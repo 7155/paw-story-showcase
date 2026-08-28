@@ -53,10 +53,12 @@ export function SolarSystem3D({
   const [planetScreenPositions, setPlanetScreenPositions] = useState<
     Array<{ x: number; y: number; visible: boolean }>
   >([]);
+  const requestRenderRef = useRef<() => void>(() => undefined);
 
   const stateRef = useRef({
     activeStep,
     viewMode,
+    isPlaying,
     isDragging: false,
     prevMouseX: 0,
     prevMouseY: 0,
@@ -71,7 +73,9 @@ export function SolarSystem3D({
   useEffect(() => {
     stateRef.current.activeStep = activeStep;
     stateRef.current.viewMode = viewMode;
-  }, [activeStep, viewMode]);
+    stateRef.current.isPlaying = isPlaying;
+    requestRenderRef.current();
+  }, [activeStep, isPlaying, viewMode]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -472,6 +476,8 @@ export function SolarSystem3D({
     const gravBeam = new THREE.Line(beamGeom, beamMat);
     scene.add(gravBeam);
 
+    let scheduleFrame: () => void = () => undefined;
+
     // 8. Mouse / Touch Orbit Interaction
     const onPointerDown = (e: MouseEvent | TouchEvent) => {
       stateRef.current.isDragging = true;
@@ -479,6 +485,7 @@ export function SolarSystem3D({
       const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
       stateRef.current.prevMouseX = clientX;
       stateRef.current.prevMouseY = clientY;
+      scheduleFrame();
     };
 
     const onPointerMove = (e: MouseEvent | TouchEvent) => {
@@ -496,6 +503,7 @@ export function SolarSystem3D({
 
       stateRef.current.prevMouseX = clientX;
       stateRef.current.prevMouseY = clientY;
+      scheduleFrame();
     };
 
     const onPointerUp = () => {
@@ -518,21 +526,25 @@ export function SolarSystem3D({
       camera.aspect = newWidth / newHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(newWidth, newHeight);
+      scheduleFrame();
     };
     window.addEventListener("resize", onResize);
 
     // 10. Animation Loop
-    let animationFrameId: number;
-    const startedAt = performance.now();
-    let previousFrameAt = startedAt;
+    let animationFrameId: number | null = null;
+    let previousFrameAt = performance.now();
+    let motionElapsed = 0;
 
     const tempV3 = new THREE.Vector3();
 
     const animate = (timestamp = performance.now()) => {
-      animationFrameId = requestAnimationFrame(animate);
+      animationFrameId = null;
       const delta = Math.min((timestamp - previousFrameAt) / 1_000, 0.1);
-      const elapsed = (timestamp - startedAt) / 1_000;
       previousFrameAt = timestamp;
+      const st = stateRef.current;
+      const motionDelta = st.isPlaying ? delta : 0;
+      motionElapsed += motionDelta;
+      const elapsed = motionElapsed;
 
       // Sun Pulsing & Gravitational Waves
       const sunScale = 1 + Math.sin(elapsed * 2.2) * 0.04;
@@ -546,7 +558,6 @@ export function SolarSystem3D({
       });
 
       // Smooth Rotation Damping
-      const st = stateRef.current;
       st.rotX += (st.targetRotX - st.rotX) * 0.06;
       st.rotY += (st.targetRotY - st.rotY) * 0.06;
 
@@ -560,7 +571,7 @@ export function SolarSystem3D({
           const targetCamX = activeNode.group.position.x * 1.35;
           const targetCamY = activeNode.group.position.y + 45;
           const targetCamZ = activeNode.group.position.z + 140;
-          camera.position.lerp(tempV3.set(targetCamX, targetCamY, targetCamZ), 0.04);
+          camera.position.lerp(tempV3.set(targetCamX, targetCamY, targetCamZ), st.isPlaying ? 0.04 : 1);
           camera.lookAt(activeNode.group.position);
         }
       } else {
@@ -571,7 +582,7 @@ export function SolarSystem3D({
         const camX = Math.sin(st.rotY) * camXZ;
         const camZ = Math.cos(st.rotY) * camXZ;
 
-        camera.position.lerp(tempV3.set(camX, camY, camZ), 0.08);
+        camera.position.lerp(tempV3.set(camX, camY, camZ), st.isPlaying ? 0.08 : 1);
         camera.lookAt(0, -15, 0);
       }
 
@@ -584,7 +595,7 @@ export function SolarSystem3D({
 
       planetNodes.forEach((node, idx) => {
         // Orbital movement
-        node.currentAngle += node.baseSpeed * delta;
+        node.currentAngle += node.baseSpeed * motionDelta;
         const rawX = node.a * Math.cos(node.currentAngle);
         const rawZ = node.b * Math.sin(node.currentAngle);
 
@@ -661,12 +672,19 @@ export function SolarSystem3D({
       }
 
       renderer.render(scene, camera);
+
+      if (stateRef.current.isPlaying || stateRef.current.isDragging) scheduleFrame();
     };
 
-    animate();
+    scheduleFrame = () => {
+      if (animationFrameId === null) animationFrameId = window.requestAnimationFrame(animate);
+    };
+    requestRenderRef.current = scheduleFrame;
+    scheduleFrame();
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      requestRenderRef.current = () => undefined;
+      if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("mouseup", onPointerUp);
       window.removeEventListener("touchend", onPointerUp);

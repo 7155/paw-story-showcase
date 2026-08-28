@@ -675,6 +675,32 @@
 .rag-eval-metrics>aside{border-color:#e2ba93;background:#fff7ee}.rag-eval-metrics>aside strong{color:#775d48}.rag-eval-metrics>aside small{color:#85776b}
 .rag-evolution-lab>.playback-controls span{color:#65766d}
 
+/* Retrieval is a relationship graph, not a decorative row of process cards. */
+.rag-mode-stage{grid-template-columns:minmax(0,1.55fr) minmax(270px,.45fr)}
+.rag-relationship-panel{min-width:0}
+.rag-relationship-panel>header{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(0,1.3fr);align-items:end;gap:24px}
+.rag-relationship-panel>header>span{display:flex;flex-direction:column;gap:7px}
+.rag-relationship-panel>header b{color:#4f7c67;font:750 10px ui-monospace,monospace;letter-spacing:.11em}
+.rag-relationship-panel>header h3{margin:0;color:#1d2924;font-size:32px;line-height:1.05}
+.rag-relationship-panel>header>p{margin:0;color:#5f6c65;font-size:14px;line-height:1.65}
+.rag-relationship-graph{position:relative;height:330px;margin-top:22px;overflow:hidden;border:1px solid #d8e4dd;border-radius:18px;background:rgba(248,251,249,.88)}
+.rag-relationship-graph>svg{position:absolute;z-index:0;inset:0;width:100%;height:100%;overflow:visible}
+.rag-relationship-graph>svg line{stroke:#82b79d;stroke-width:1.15;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}
+.rag-relationship-graph>button{position:absolute;z-index:2;width:132px;min-height:74px;padding:10px 11px;border:1px solid #cfddd5;border-radius:12px;background:rgba(255,255,255,.94);box-shadow:0 15px 32px -27px rgba(23,65,45,.62);display:flex;align-items:flex-start;justify-content:center;flex-direction:column;gap:4px;text-align:left;cursor:pointer;transform:translate(-50%,-50%);transition:transform 160ms var(--ease-out),border-color 160ms ease,box-shadow 160ms ease}
+.rag-relationship-graph>button small{color:#698277;font:750 8px ui-monospace,monospace;letter-spacing:.08em}
+.rag-relationship-graph>button strong{color:#26352e;font-size:12px;line-height:1.25}
+.rag-relationship-graph>button span{color:#7a8680;font-size:10px;line-height:1.35}
+.rag-relationship-graph>button[data-kind=query]{border-color:#c8d3ee;background:#f5f7ff}.rag-relationship-graph>button[data-kind=query] small{color:#6175b8}
+.rag-relationship-graph>button[data-kind=operator]{border-color:#bedccb;background:#f2f9f5}.rag-relationship-graph>button[data-kind=operator] small{color:#2f805a}
+.rag-relationship-graph>button[data-kind=source]{border-color:#e0d5bd;background:#fffaf1}.rag-relationship-graph>button[data-kind=source] small{color:#9a743e}
+.rag-relationship-graph>button[data-kind=merge]{border-color:#cfc6e8;background:#f8f5ff}.rag-relationship-graph>button[data-kind=merge] small{color:#7665aa}
+.rag-relationship-graph>button[data-kind=evidence]{border-color:#9fcbb5;background:#eaf6ef}.rag-relationship-graph>button[data-kind=evidence] small{color:#2c7453}
+.rag-relationship-graph>button[aria-pressed=true]{border-color:#4d9873;box-shadow:0 0 0 5px rgba(73,151,112,.11),0 18px 38px -28px rgba(23,65,45,.65);transform:translate(-50%,-50%) scale(1.035)}
+.rag-node-inspector{margin:0 0 14px;padding:15px;border:1px solid #d8e4dd;border-radius:11px;background:#f3f8f5;display:flex;flex-direction:column;gap:5px}
+.rag-node-inspector small{color:#6d8378;font:750 8px ui-monospace,monospace;letter-spacing:.09em}.rag-node-inspector>strong{color:#2d7655;font-size:13px}.rag-node-inspector>p{margin:0;color:#607068;font-size:11px;line-height:1.5}
+.playback-controls button:disabled{color:#44745f;background:#e9f2ed;cursor:not-allowed;opacity:1}
+.ime-window .insert-receipt[data-decision=rejected]{border-color:#ead5c1;background:#fff6ed;color:#9a6333}
+
 @media(max-width:980px){
   .project-docs-shell{grid-template-columns:205px minmax(0,1fr)}.project-docs-outline{display:none}.project-docs-article{padding-right:38px;padding-left:38px}
 }
@@ -682,10 +708,10 @@
   .memory-capability-switch{display:flex;overflow-x:auto;scroll-snap-type:x mandatory}.memory-capability-switch button{flex:0 0 min(78vw,300px);scroll-snap-align:start}
   .context-governance-summary>header{grid-template-columns:1fr;gap:14px;padding:20px}.context-governance-summary>header>p{font-size:13px}
   .project-docs-titlebar{padding:14px 18px}.project-docs-titlebar>b{display:none}.project-docs-shell{grid-template-columns:1fr}.project-docs-tree{padding:12px;border-right:0;border-bottom:1px solid #e2e6e3;display:flex;flex-flow:row nowrap;gap:7px;overflow-x:auto;scroll-snap-type:x mandatory}.project-docs-tree>p,.project-docs-tree>footer{display:none}.project-docs-tree>button{flex:0 0 190px;scroll-snap-align:start}.project-docs-article{padding:38px 25px 48px}.project-docs-article>h3{font-size:42px}.project-docs-article>p{font-size:16px}
-  .rag-step-row::before,.rag-trace-pipeline::before{display:none}
+  .rag-mode-stage{grid-template-columns:minmax(0,1fr)}.rag-mode-stage>aside{min-width:0}.rag-step-row::before,.rag-trace-pipeline::before{display:none}.rag-relationship-panel>header{grid-template-columns:1fr}.rag-relationship-graph{height:auto;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:9px}.rag-relationship-graph>svg{display:none}.rag-relationship-graph>button{position:static;width:auto;min-height:82px;transform:none}.rag-relationship-graph>button[aria-pressed=true]{transform:none}
 }
 @media(max-width:520px){
-  .project-docs-titlebar strong{font-size:16px}.project-docs-titlebar small{font-size:11px}.project-docs-article{padding:32px 20px 42px}.project-docs-article>header{align-items:flex-start;flex-direction:column}.project-docs-article>h3{margin-top:27px;font-size:37px}.project-docs-article>section{grid-template-columns:30px 1fr;gap:12px}.project-docs-article>section h4{font-size:18px}.project-docs-article>section p{font-size:13px}
+  .project-docs-titlebar strong{font-size:16px}.project-docs-titlebar small{font-size:11px}.project-docs-article{padding:32px 20px 42px}.project-docs-article>header{align-items:flex-start;flex-direction:column}.project-docs-article>h3{margin-top:27px;font-size:37px}.project-docs-article>section{grid-template-columns:30px 1fr;gap:12px}.project-docs-article>section h4{font-size:18px}.project-docs-article>section p{font-size:13px}.rag-relationship-graph{grid-template-columns:1fr}.rag-relationship-panel>header h3{font-size:28px}
 }
 
 /* Project Docs act as a gravity field: intent at the center, executable constraints in orbit. */
@@ -745,6 +771,6 @@
 }
 @media(max-width:520px){.project-gravity-map{grid-template-columns:1fr}.project-gravity-core{grid-column:auto}}
 @media(prefers-reduced-motion:reduce){
-  [role="tabpanel"][data-active=true],.project-docs-article{animation:context-panel-fade 200ms ease both}.project-docs-article>section:not(.project-docs-gravity){opacity:1;transform:none;animation:none}.project-gravity-orbit,.memory-time-axis button[aria-pressed=true]>i::after,.rag-evolution-lab[data-active=true] .rag-step-row::before,.rag-evolution-lab[data-active=true] .rag-trace-pipeline::before{animation:none}.memory-capability-switch button,.project-docs-gravity>header>a,.project-gravity-map>button{transition:none}
+  [role="tabpanel"][data-active=true],.project-docs-article{animation:context-panel-fade 200ms ease both}.project-docs-article>section:not(.project-docs-gravity){opacity:1;transform:none;animation:none}.project-gravity-orbit,.memory-time-axis button[aria-pressed=true]>i::after,.rag-evolution-lab[data-active=true] .rag-step-row::before,.rag-evolution-lab[data-active=true] .rag-trace-pipeline::before{animation:none}.memory-capability-switch button,.project-docs-gravity>header>a,.project-gravity-map>button,.rag-relationship-graph>button{transition:none}
 }
 @keyframes context-panel-fade{from{opacity:0}to{opacity:1}}

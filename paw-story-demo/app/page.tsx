@@ -40,6 +40,7 @@ const chapters = [
 ];
 
 const inputTimelineDurations = [700, 900, 620, 420, 1_180, 320, 620, 620, 700, 680, 880, 1_080, 360, 1_350] as const;
+const inputManualGateSteps = [4, 11] as const;
 
 const inputScenarios = [
   {
@@ -342,6 +343,55 @@ const ragModes = [
   },
 ] as const;
 
+const ragRelationshipGraphs = {
+  embedding: {
+    focus: "vector",
+    nodes: [
+      { id: "query", kind: "query", label: "QUERY", value: "上海门店为何下降", detail: "自然语言问题", x: 10, y: 48 },
+      { id: "vector", kind: "operator", label: "EMBEDDING", value: "问题向量", detail: "语义编码", x: 34, y: 25 },
+      { id: "index", kind: "source", label: "VECTOR INDEX", value: "项目切片", detail: "独立知识库", x: 34, y: 72 },
+      { id: "topk", kind: "merge", label: "ANN TOP-K", value: "20 个近邻", detail: "按距离排序", x: 66, y: 48 },
+      { id: "evidence", kind: "evidence", label: "EVIDENCE", value: "相似片段", detail: "等待答案核对", x: 90, y: 48 },
+    ],
+    edges: [["query", "vector"], ["index", "topk"], ["vector", "topk"], ["topk", "evidence"]],
+  },
+  hybrid: {
+    focus: "rrf",
+    nodes: [
+      { id: "query", kind: "query", label: "QUERY", value: "到店核销下降", detail: "问题 + 精确术语", x: 10, y: 48 },
+      { id: "bm25", kind: "operator", label: "BM25", value: "关键词召回", detail: "匹配指标口径", x: 34, y: 23 },
+      { id: "vector", kind: "operator", label: "EMBEDDING", value: "向量召回", detail: "寻找语义近邻", x: 34, y: 73 },
+      { id: "rrf", kind: "merge", label: "RRF MERGE", value: "26 个候选", detail: "两路合并去重", x: 66, y: 48 },
+      { id: "evidence", kind: "evidence", label: "EVIDENCE", value: "口径 + 数据", detail: "保留来源", x: 90, y: 48 },
+    ],
+    edges: [["query", "bm25"], ["query", "vector"], ["bm25", "rrf"], ["vector", "rrf"], ["rrf", "evidence"]],
+  },
+  rerank: {
+    focus: "reranker",
+    nodes: [
+      { id: "query", kind: "query", label: "QUERY", value: "下降原因 + 周报", detail: "复合问题", x: 9, y: 48 },
+      { id: "hybrid", kind: "operator", label: "HYBRID", value: "混合召回", detail: "词法 + 向量", x: 30, y: 48 },
+      { id: "candidates", kind: "source", label: "CANDIDATES", value: "26 条片段", detail: "高召回候选集", x: 52, y: 23 },
+      { id: "reranker", kind: "merge", label: "RERANKER", value: "Cross-encoder", detail: "按回答价值重排", x: 72, y: 48 },
+      { id: "evidence", kind: "evidence", label: "TOP EVIDENCE", value: "6 条依据", detail: "可读证据集", x: 91, y: 48 },
+    ],
+    edges: [["query", "hybrid"], ["hybrid", "candidates"], ["candidates", "reranker"], ["reranker", "evidence"]],
+  },
+  agentic: {
+    focus: "planner",
+    nodes: [
+      { id: "query", kind: "query", label: "QUESTION", value: "解释并写周报", detail: "带交付目标", x: 9, y: 48 },
+      { id: "planner", kind: "operator", label: "AGENT PLAN", value: "口径 / 数据 / 原因", detail: "拆解与路由", x: 27, y: 48 },
+      { id: "docs", kind: "source", label: "PROJECT DOCS", value: "目标与口径", detail: "项目范围", x: 51, y: 16 },
+      { id: "memory", kind: "source", label: "USER MEMORY", value: "获准上下文", detail: "显式授权", x: 51, y: 48 },
+      { id: "knowledge", kind: "source", label: "KNOWLEDGE", value: "外部材料", detail: "按需挂载", x: 51, y: 80 },
+      { id: "verify", kind: "merge", label: "VERIFY", value: "冲突与缺口", detail: "有界补检", x: 76, y: 48 },
+      { id: "receipt", kind: "evidence", label: "RECEIPT", value: "6 条可追溯依据", detail: "真实命中 / AI 估计分开", x: 91, y: 48 },
+    ],
+    edges: [["query", "planner"], ["planner", "docs"], ["planner", "memory"], ["planner", "knowledge"], ["docs", "verify"], ["memory", "verify"], ["knowledge", "verify"], ["verify", "receipt"]],
+  },
+} as const;
+
 const agentPatterns = [
   { id: "tree", index: "01", label: "主从树", title: "判断全部挤回主 Agent", detail: "子 Agent 能并行执行，却无法横向补位；计划、上下文和验收最终都堵在一个入口。", metric: "同级通道 0" },
   { id: "swarm", index: "02", label: "全连接蜂群", title: "通信比工作增长得更快", detail: "每个人都能互相 @，但消息、等待和重试很快超过真正写入文件的结果。", metric: "潜在 @ ∞" },
@@ -424,24 +474,28 @@ function useLoop(length: number, delay: number) {
   return { step, playing, setStep, setPlaying, restart: () => { setStep(0); setPlaying(true); } };
 }
 
-function useTimedLoop(durations: readonly number[]) {
+function useTimedLoop(durations: readonly number[], manualGateSteps: readonly number[] = []) {
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(true);
 
   useEffect(() => {
     if (!playing) return;
     const timer = window.setTimeout(
-      () => setStep((value) => (value + 1) % durations.length),
+      () => setStep((value) => {
+        const next = (value + 1) % durations.length;
+        if (manualGateSteps.includes(next)) setPlaying(false);
+        return next;
+      }),
       durations[step] ?? 700,
     );
     return () => window.clearTimeout(timer);
-  }, [durations, playing, step]);
+  }, [durations, manualGateSteps, playing, step]);
 
   return {
     step,
     playing,
     setPlaying,
-    goTo: (next: number) => { setStep(next); setPlaying(true); },
+    goTo: (next: number, shouldPlay = !manualGateSteps.includes(next)) => { setStep(next); setPlaying(shouldPlay); },
     restart: () => { setStep(0); setPlaying(true); },
   };
 }
@@ -523,10 +577,10 @@ function ChapterIntro({ index, kicker, title, body }: { index: string; kicker: s
   return <div className="chapter-intro"><p className="eyebrow"><span>{index}</span> {kicker}</p><h2>{title}</h2><p>{body}</p></div>;
 }
 
-function PlaybackControls({ playing, onToggle, onRestart }: { playing: boolean; onToggle: () => void; onRestart: () => void }) {
+function PlaybackControls({ playing, onToggle, onRestart, lockedLabel }: { playing: boolean; onToggle: () => void; onRestart: () => void; lockedLabel?: string }) {
   return (
     <div className="playback-controls">
-      <button onClick={onToggle} type="button">{playing ? <Pause size={14} /> : <Play size={14} />}{playing ? "暂停" : "继续"}</button>
+      <button disabled={Boolean(lockedLabel)} onClick={onToggle} type="button">{lockedLabel ? <CircleDot size={14} /> : playing ? <Pause size={14} /> : <Play size={14} />}{lockedLabel ?? (playing ? "暂停" : "继续")}</button>
       <button onClick={onRestart} type="button"><RefreshCw size={14} />重播</button><span>真实组件状态回放</span>
     </div>
   );
@@ -534,10 +588,12 @@ function PlaybackControls({ playing, onToggle, onRestart }: { playing: boolean; 
 
 function ImeDemo() {
   const [scenarioId, setScenarioId] = useState<(typeof inputScenarios)[number]["id"]>("report");
+  const [acceptedText, setAcceptedText] = useState<string | null>(null);
+  const [decisionReceipt, setDecisionReceipt] = useState<"accepted" | "rejected" | null>(null);
   const windowRef = useRef<HTMLDivElement>(null);
   const caretRef = useRef<HTMLElement>(null);
   const [popupAnchor, setPopupAnchor] = useState({ left: 16, top: 420, ready: false });
-  const playback = useTimedLoop(inputTimelineDurations);
+  const playback = useTimedLoop(inputTimelineDurations, inputManualGateSteps);
   const scenario = inputScenarios.find((item) => item.id === scenarioId) ?? inputScenarios[0];
   const stageIndex = Math.max(0, Math.min(3, playback.step - 6));
   const showComposition = playback.step === 1;
@@ -564,7 +620,27 @@ function ImeDemo() {
 
   const chooseScenario = (next: (typeof inputScenarios)[number]["id"]) => {
     setScenarioId(next);
+    setAcceptedText(null);
+    setDecisionReceipt(null);
     playback.restart();
+  };
+
+  const restart = () => {
+    setAcceptedText(null);
+    setDecisionReceipt(null);
+    playback.restart();
+  };
+
+  const acceptText = (text: string) => {
+    setAcceptedText(text);
+    setDecisionReceipt("accepted");
+    playback.goTo(13, false);
+  };
+
+  const rejectText = () => {
+    setAcceptedText(null);
+    setDecisionReceipt("rejected");
+    playback.goTo(2, false);
   };
 
   useEffect(() => {
@@ -624,8 +700,9 @@ function ImeDemo() {
           {showComposition ? <span className="composition-roman">{scenario.compositionRoman}</span> : null}
           <i className="ime-caret-anchor" data-active={phaseIndex < 4} ref={caretRef}><b className="caret" /></i>
         </div>
-        {inserted ? <p className="generated-paragraph">{scenario.generatedParagraph}</p> : null}
-        {inserted ? <div className="insert-receipt"><Check size={12} /> 已插入下一段 · 依据 4 项 · 可撤销</div> : null}
+        {inserted && acceptedText ? <p className="generated-paragraph">{acceptedText}</p> : null}
+        {decisionReceipt === "accepted" ? <div className="insert-receipt"><Check size={12} /> 已由用户采纳并写入 · 可撤销</div> : null}
+        {decisionReceipt === "rejected" ? <div className="insert-receipt" data-decision="rejected"><CircleAlert size={12} /> 已拒绝本轮联想 · 未写入文档</div> : null}
       </div>
       <div className="ime-statusbar"><span>中文（简体）</span><span><Keyboard size={13} /> PAW 智能输入</span><span><Mic size={13} /> 语音</span></div>
       {showComposition ? (
@@ -654,7 +731,7 @@ function ImeDemo() {
         <div className="native-ime-card native-ime-card--suggestions" data-anchor-ready={popupAnchor.ready} data-clicked={playback.step === 5} data-surface="compactPrediction" style={{ left: popupAnchor.left, top: popupAnchor.top }}>
           <div className="native-ime-candidates">
             {scenario.suggestions.map((suggestion, index) => (
-              <button data-primary={index === 0} key={suggestion} type="button">
+              <button aria-label={`采纳联想：${suggestion}`} data-primary={index === 0} key={suggestion} onClick={() => acceptText(suggestion)} type="button">
                 <i />
                 <kbd>{index === 0 ? "Tab" : `⌥${index + 1}`}</kbd>
                 <strong>{suggestion}</strong>
@@ -662,8 +739,8 @@ function ImeDemo() {
             ))}
           </div>
           <div className="native-ime-suggestion-actions">
-            <button data-pressed={playback.step === 5} onClick={() => playback.goTo(5)} type="button"><Sparkles size={13} />生成</button>
-            <button type="button"><Search size={13} />深度</button>
+            <button data-pressed={playback.step === 5} onClick={() => playback.goTo(6)} type="button"><Sparkles size={13} />点击生成</button>
+            <button onClick={rejectText} type="button"><CircleAlert size={13} />拒绝联想</button>
           </div>
         </div>
       ) : null}
@@ -683,11 +760,11 @@ function ImeDemo() {
       {showResult ? (
         <div className="native-ime-card native-ime-card--result" data-accepting={accepting} data-anchor-ready={popupAnchor.ready} data-surface="explicitResult" style={{ left: popupAnchor.left, top: popupAnchor.top }}>
           <span className="native-ime-rail" />
-          <header><kbd>Tab 插入</kbd><strong>{playback.step === 10 ? "正在接收内容" : "生成结果"}</strong><button aria-label="关闭" type="button">×</button></header>
+          <header><kbd>Tab 插入</kbd><strong>{playback.step === 10 ? "正在接收内容" : "生成结果 · 等待用户决定"}</strong><button aria-label="拒绝并关闭" onClick={rejectText} type="button">×</button></header>
           <p className="native-ime-diagnostic">{scenario.diagnostic}</p>
           {playback.step === 10 ? <p className="native-ime-handoff">{scenario.handoff}</p> : null}
           <div className="native-ime-result-copy">{resultText}<b className="stream-caret" /></div>
-          <footer><button onClick={() => playback.goTo(12)} type="button">插入</button><button type="button">重试</button><button aria-label="更多" type="button">•••</button></footer>
+          <footer><button onClick={() => acceptText(scenario.generatedParagraph)} type="button">采纳并插入</button><button onClick={() => playback.goTo(6)} type="button">重试</button><button aria-label="拒绝结果" onClick={rejectText} type="button">拒绝</button></footer>
         </div>
       ) : null}
       <aside className="rag-source-trace" data-visible={showSourceTrace} aria-label="本轮上下文与数据源">
@@ -707,7 +784,12 @@ function ImeDemo() {
         </div>
         <footer><ShieldCheck size={12} /> 只发送本轮获准使用的片段</footer>
       </aside>
-      <PlaybackControls playing={playback.playing} onRestart={playback.restart} onToggle={() => playback.setPlaying(!playback.playing)} />
+      <PlaybackControls
+        lockedLabel={playback.step === 4 ? "请选择联想或点击生成" : playback.step === 11 ? "请采纳或拒绝结果" : undefined}
+        playing={playback.playing}
+        onRestart={restart}
+        onToggle={() => playback.setPlaying(!playback.playing)}
+      />
     </div>
   );
 }
@@ -801,8 +883,11 @@ function MemoryStory() {
   const retrieval = useLoop(ragModes.length, 3600);
   const [activeContextSourceId, setActiveContextSourceId] = useState<(typeof governedContextSources)[number]["id"]>("project");
   const [activeProjectDocumentId, setActiveProjectDocumentId] = useState<(typeof projectDocumentPages)[number]["id"]>("project");
+  const [activeRagNodeId, setActiveRagNodeId] = useState<string>(ragRelationshipGraphs.embedding.focus);
   const activeEntry = memoryTimelineEntries[timeline.step] ?? memoryTimelineEntries[0];
   const activeMode = ragModes[retrieval.step] ?? ragModes[0];
+  const activeRagGraph = ragRelationshipGraphs[activeMode.id];
+  const activeRagNode = activeRagGraph.nodes.find((node) => node.id === activeRagNodeId) ?? activeRagGraph.nodes[0];
   const activeContextSource = governedContextSources.find((source) => source.id === activeContextSourceId) ?? governedContextSources[0];
   const activeProjectDocument = projectDocumentPages.find((document) => document.id === activeProjectDocumentId) ?? projectDocumentPages[0];
 
@@ -966,16 +1051,37 @@ function MemoryStory() {
         <div className="rag-query"><span>QUESTION</span><p>“帮我解释上海门店转化为什么下降，并写进今天的实习周报。”</p></div>
         <nav aria-label="切换 RAG 策略">
           {ragModes.map((mode, index) => (
-            <button aria-pressed={retrieval.step === index} key={mode.id} onClick={() => { retrieval.setStep(index); retrieval.setPlaying(false); }} type="button"><b>{String(index + 1).padStart(2, "0")}</b><span>{mode.label}</span></button>
+            <button aria-pressed={retrieval.step === index} key={mode.id} onClick={() => { retrieval.setStep(index); retrieval.setPlaying(false); setActiveRagNodeId(ragRelationshipGraphs[mode.id].focus); }} type="button"><b>{String(index + 1).padStart(2, "0")}</b><span>{mode.label}</span></button>
           ))}
         </nav>
         <div className="rag-mode-stage">
-          <section>
-            <p>ACTIVE STRATEGY</p><h3>{activeMode.title}</h3><span>{activeMode.summary}</span>
-            <div className="rag-step-row">{activeMode.steps.map((step, index) => <span key={step}><i>{index + 1}</i><strong>{step}</strong>{index < activeMode.steps.length - 1 ? <ArrowRight size={13}/> : null}</span>)}</div>
+          <section className="rag-relationship-panel">
+            <header><span><b>ACTIVE RELATION GRAPH</b><h3>{activeMode.title}</h3></span><p>{activeMode.summary}</p></header>
+            <div className="rag-relationship-graph" aria-label={`${activeMode.label} 检索关系图`}>
+              <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 100">
+                {activeRagGraph.edges.map(([from, to]) => {
+                  const source = activeRagGraph.nodes.find((node) => node.id === from);
+                  const target = activeRagGraph.nodes.find((node) => node.id === to);
+                  return source && target ? <line key={`${from}-${to}`} x1={source.x} x2={target.x} y1={source.y} y2={target.y}/> : null;
+                })}
+              </svg>
+              {activeRagGraph.nodes.map((node, index) => (
+                <button
+                  aria-pressed={activeRagNode.id === node.id}
+                  data-kind={node.kind}
+                  key={node.id}
+                  onClick={() => setActiveRagNodeId(node.id)}
+                  style={{ left: `${node.x}%`, top: `${node.y}%`, "--rag-node-order": index } as React.CSSProperties}
+                  type="button"
+                >
+                  <small>{node.label}</small><strong>{node.value}</strong><span>{node.detail}</span>
+                </button>
+              ))}
+            </div>
           </section>
           <aside>
             <div><span>检索执行回执 · 合成</span><strong>{activeMode.metric}</strong></div>
+            <section className="rag-node-inspector"><small>SELECTED NODE</small><strong>{activeRagNode.label}</strong><p>{activeRagNode.value} · {activeRagNode.detail}</p></section>
             {activeMode.hits.map((hit) => <p key={hit}><Check size={12}/>{hit}</p>)}
             <footer><CircleAlert size={13}/><span><b>能力边界</b>{activeMode.boundary}</span></footer>
           </aside>
