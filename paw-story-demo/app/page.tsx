@@ -956,7 +956,7 @@ function MemoryStory() {
             <p>项目文档</p>
             {projectDocumentPages.map((document) => (
               <button aria-pressed={activeProjectDocumentId === document.id} key={document.id} onClick={() => setActiveProjectDocumentId(document.id)} type="button">
-                <FileText size={16}/><span><small>{document.group}</small><strong>{document.file}</strong></span>
+                <FileText size={16}/><span><small>{document.group}</small><strong>{document.path}</strong></span>
               </button>
             ))}
             <footer><ShieldCheck size={16}/><span><strong>真实来源，公开清洗</strong><small>不复制 transcript / 私有 Runtime</small></span></footer>

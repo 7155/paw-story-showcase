@@ -54,6 +54,8 @@ export function SolarSystem3D({
     Array<{ x: number; y: number; visible: boolean }>
   >([]);
   const requestRenderRef = useRef<() => void>(() => undefined);
+  const requestedPlayingRef = useRef(isPlaying);
+  const prefersReducedMotionRef = useRef(false);
 
   const stateRef = useRef({
     activeStep,
@@ -71,15 +73,20 @@ export function SolarSystem3D({
   });
 
   useEffect(() => {
+    requestedPlayingRef.current = isPlaying;
     stateRef.current.activeStep = activeStep;
     stateRef.current.viewMode = viewMode;
-    stateRef.current.isPlaying = isPlaying;
+    stateRef.current.isPlaying = isPlaying && !prefersReducedMotionRef.current;
     requestRenderRef.current();
   }, [activeStep, isPlaying, viewMode]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+
+    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    prefersReducedMotionRef.current = motionPreference.matches;
+    stateRef.current.isPlaying = requestedPlayingRef.current && !motionPreference.matches;
 
     const width = container.clientWidth;
     const height = container.clientHeight;
@@ -605,7 +612,7 @@ export function SolarSystem3D({
         pos.y -= Math.max(0, 6000 / (node.a + 40) - 15) * 0.3; // Gravity sink curve
 
         node.group.position.copy(pos);
-        node.planetMesh.rotation.y += 0.02;
+        node.planetMesh.rotation.y += 1.2 * motionDelta;
 
         // Moons revolution around planet
         const moonRadius1 = node.planetMesh.geometry.parameters.radius * 1.85;
@@ -682,9 +689,21 @@ export function SolarSystem3D({
     requestRenderRef.current = scheduleFrame;
     scheduleFrame();
 
+    const onMotionPreferenceChange = (event: MediaQueryListEvent) => {
+      prefersReducedMotionRef.current = event.matches;
+      stateRef.current.isPlaying = requestedPlayingRef.current && !event.matches;
+      if (event.matches && animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+      scheduleFrame();
+    };
+    motionPreference.addEventListener("change", onMotionPreferenceChange);
+
     return () => {
       requestRenderRef.current = () => undefined;
       if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
+      motionPreference.removeEventListener("change", onMotionPreferenceChange);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("mouseup", onPointerUp);
       window.removeEventListener("touchend", onPointerUp);

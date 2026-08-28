@@ -132,7 +132,7 @@
 - Owner：当前 oshow Goal 主 Session。
 - 记录日期：2026-08-28。
 - 当前状态：进行中；不得由此文档推断 Runtime 完成。
-- 已实现源码：三章单页故事、语音转文字演示、可切换的 Project Docs 引力场 / User Memory / 浅色 Knowledge RAG 三页、Trace/Eval 边界、Three.js Room 关系视图、真实 PAWOS 静态前端窗口态、有序合成 Room 事件导演。
+- 已实现源码：三章单页故事、语音转文字演示、可切换的真实 Project Docs 阅读页 / User Memory / 浅色 Knowledge RAG 三页、Trace/Eval 边界、Three.js Room 关系视图、真实 PAWOS 静态前端窗口态、有序合成 Room 事件导演。
 - 视觉实测（中间回执）：1440×900 视口下第二章主标题 86.4px、导语 20.88px、治理正文 13px、原始输入 21px；390×844 视口下主标题 46px、导语 18px且页面无横向内容溢出。真实 OS 舞台在窄屏实测为 341×256（4:3）。此回执不是最终部署验收。
 - 交互实测（修订前中间回执）：桌面和 390×844 手机视口均实际点击 Project Docs、User Memory、Knowledge Mount 三个 tab 并得到唯一可见 panel；当时抽查虚构示例 `AGENTS.md` 后正文可更新，知识库计算样式为浅色 `rgba(249, 251, 248, 0.96)`。该回执只证明切换机制，不证明后续真实文档清洗投影；此回执也不是公开部署验收。
 - 自动检查（中间回执）：`npm run lint` 退出 0（保留 2 个既有未使用旧章节 warning）；`npm test` 退出 0，包含 PAWOS 与站点生产构建以及 5/5 Node tests。构建的 chunk-size 与 Vinext route-classification warning 尚未伪装成错误或完成结论。
@@ -146,5 +146,8 @@
 - 前台复测（最新修订）：1440×900 下重播后先得到 `compactPrediction / 点击生成`，界面显示自动回放说明；随后按钮可观测为 `已点击 · 生成中`，再进入 `explicitGenerating` 与授权来源 Trace；最终 `explicitResult / 生成结果 · 等待用户决定` 连续停留 1.8 秒以上且播放控件锁定为“请采纳或拒绝结果”。390×844 下候选卡宽 309px，完全落在 331px 的真实窗口内，页面无横向溢出。
 - 文档复测（最新修订）：桌面与 390×844 均无横向溢出，实际 DOM 中轨道/行星图节点数为 0；六个文档按钮逐一点击后都显示正确的仓库相对路径、真实公开摘录、清洗状态与对应 GitHub 源文件链接。手机正文标题为 37px，并可直接阅读原文摘录、清洗回执和章节。
 - 自动检查（最新修订）：`npm run lint` 退出 0（仍只有 2 个明确保留的未使用旧章节 warning）；`CI=true npm test` 再次退出 0，包含 PAWOS production build、站点 production build 与 5/5 Node tests。仍只有既有大 chunk 与 Vinext route-classification warning。
-- 待验证：最新修订的独立复核、最终 manifest、公开性检查、端到端测试、Git 精确 push、Sites 公开部署与生产 URL 前台复测。
+- 独立复核（第三轮）：Reviewer 针对固定提交 `3848bc8` 给出 `clear_with_risk`，P0=0、P1=3；确认真实文档、清洗边界、自动生成和最终采纳门禁成立，同时指出文档树未直接显示完整路径、390px RAG 隐藏 SVG 后退化成无连线卡片、Three.js 没有在组件内部响应 `prefers-reduced-motion`。Reviewer 允许进入 manifest 检查，但不建议带这三项风险直接发布。
+- P1 修复（当前）：文档树已直接显示六个完整仓库相对路径；820px 以下 RAG 改为单列有向关系脊柱，390px 实测 7 个节点与 6 个可见方向连接、所有节点均落在图边界内且无页面溢出；`SolarSystem3D` 现在直接读取并监听 `prefers-reduced-motion`，减少动态效果时取消持续 RAF，只渲染静态帧，用户拖拽或偏好恢复后才按状态重新调度。
+- 自动检查（P1 修复后）：`npm run lint` 退出 0（仍只有 2 个明确保留的未使用旧章节 warning）；`CI=true npm test` 再次退出 0，包含 TypeScript、PAWOS production build、站点 production build与 5/5 Node tests。仍只有既有大 chunk 与 Vinext route-classification warning。
+- 待验证：三项 P1 修复的独立复核、最终 manifest、公开性检查、Git 精确 push、Sites 公开部署与生产 URL 前台复测。
 - 结果修订：验证和交付完成后在本节追加命令回执、前台证据、未验证边界、提交 SHA、部署 URL 与文档 hash。
