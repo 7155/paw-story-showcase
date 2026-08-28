@@ -151,5 +151,8 @@
 - 自动检查（P1 修复后）：`npm run lint` 退出 0（仍只有 2 个明确保留的未使用旧章节 warning）；`CI=true npm test` 再次退出 0，包含 TypeScript、PAWOS production build、站点 production build与 5/5 Node tests。仍只有既有大 chunk 与 Vinext route-classification warning。
 - 独立复核（第四轮）：Reviewer 针对固定提交 `4afcb19` 给出 `clear_with_risk`，P0=0、P1=0；逐项确认完整路径、移动端有向关系脊柱和 Three.js reduced-motion 均关闭上一轮问题，允许进入最终 manifest 与发布。保留的非阻断风险是移动端用线性脊柱表达关系，精确分支拓扑仍由桌面 SVG 承担；本轮 Reviewer 未重复全量构建或生产部署验收。
 - 整合检查：`PAW_E2E_SYSTEM_CHROME=1 pnpm test:showcase` 退出 0，11-App 界面审计与 Room“3/3 WorkPatch 后启动 Reviewer”的单序列流程共 2/2 通过；在全新 clone 内临时重建 manifest 后，`python3 scripts/check_public_showcase.py` 返回 `OK (11 Apps, 733 files hashed, 690 public text files scanned)`。该临时清单尚未写回主分支，避免在最终台账更新前制造陈旧 hash。
-- 待验证：包含本条最终复核回执的 manifest、Git 精确 push、Sites public 部署与生产 URL 前台复测。
+- Git 与公开性回执：包含最终复核回执的 733 文件 manifest 已在全新 clone 通过 `python3 scripts/check_public_showcase.py`；公开代码基线 `2f0363a` 已精确推送到 GitHub `7155/paw-story-showcase` 的 `main`，本地未跟踪的 `AGENTS.md`、根 `docs/` 与原始 ZIP 未进入提交。
+- Sites 部署回执：Sites version 11 已成功发布到 `https://paw-story-demo.zeratual.chatgpt.site`，访问策略由仅 owner 改为 `public`。首次保存 GitHub SHA 因站点绑定的是专用源仓而被拒绝；随后按 Sites 契约将同一 `paw-story-demo` 源树通过短期凭据推到专用 `main`，凭据未写入远端 URL、Git 配置或项目文件。
+- 生产前台验收：公开 URL 无登录即可打开；自动回放依次观测到 `compactPrediction / 点击生成`、`已点击 · 生成中`、`explicitResult / 生成结果 · 等待用户决定`，结果持续停留且写入门禁仍为采纳/拒绝。六个真实文档均显示完整相对路径、公开摘录与 GitHub 源链接，旧轨道图节点为 0；390×844 的 Agentic RAG 为 7 节点、6 个可见方向连接、节点全在图内且页面无横向溢出。真实 PAWOS 窗口态最终显示 `SEQ 36 / FINAL SUBMIT / WorkPatch 3/3 / Reviewer PASSED / P0 0`。
+- 最终状态：展示站交付完成；真实的是公开 PAWOS 前端源码、组件与交互，Session、Room、输入、Memory、Knowledge、Browser、Terminal、人物与指标仍是明确标注的公开合成数据。该结果不证明 PAW Runtime、安装、原生 Squirrel、Electron guest、PTY 或 macOS 前台验收。
 - 结果修订：验证和交付完成后在本节追加命令回执、前台证据、未验证边界、提交 SHA、部署 URL 与文档 hash。
