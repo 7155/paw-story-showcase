@@ -149,5 +149,7 @@
 - 独立复核（第三轮）：Reviewer 针对固定提交 `3848bc8` 给出 `clear_with_risk`，P0=0、P1=3；确认真实文档、清洗边界、自动生成和最终采纳门禁成立，同时指出文档树未直接显示完整路径、390px RAG 隐藏 SVG 后退化成无连线卡片、Three.js 没有在组件内部响应 `prefers-reduced-motion`。Reviewer 允许进入 manifest 检查，但不建议带这三项风险直接发布。
 - P1 修复（当前）：文档树已直接显示六个完整仓库相对路径；820px 以下 RAG 改为单列有向关系脊柱，390px 实测 7 个节点与 6 个可见方向连接、所有节点均落在图边界内且无页面溢出；`SolarSystem3D` 现在直接读取并监听 `prefers-reduced-motion`，减少动态效果时取消持续 RAF，只渲染静态帧，用户拖拽或偏好恢复后才按状态重新调度。
 - 自动检查（P1 修复后）：`npm run lint` 退出 0（仍只有 2 个明确保留的未使用旧章节 warning）；`CI=true npm test` 再次退出 0，包含 TypeScript、PAWOS production build、站点 production build与 5/5 Node tests。仍只有既有大 chunk 与 Vinext route-classification warning。
-- 待验证：三项 P1 修复的独立复核、最终 manifest、公开性检查、Git 精确 push、Sites 公开部署与生产 URL 前台复测。
+- 独立复核（第四轮）：Reviewer 针对固定提交 `4afcb19` 给出 `clear_with_risk`，P0=0、P1=0；逐项确认完整路径、移动端有向关系脊柱和 Three.js reduced-motion 均关闭上一轮问题，允许进入最终 manifest 与发布。保留的非阻断风险是移动端用线性脊柱表达关系，精确分支拓扑仍由桌面 SVG 承担；本轮 Reviewer 未重复全量构建或生产部署验收。
+- 整合检查：`PAW_E2E_SYSTEM_CHROME=1 pnpm test:showcase` 退出 0，11-App 界面审计与 Room“3/3 WorkPatch 后启动 Reviewer”的单序列流程共 2/2 通过；在全新 clone 内临时重建 manifest 后，`python3 scripts/check_public_showcase.py` 返回 `OK (11 Apps, 733 files hashed, 690 public text files scanned)`。该临时清单尚未写回主分支，避免在最终台账更新前制造陈旧 hash。
+- 待验证：包含本条最终复核回执的 manifest、Git 精确 push、Sites public 部署与生产 URL 前台复测。
 - 结果修订：验证和交付完成后在本节追加命令回执、前台证据、未验证边界、提交 SHA、部署 URL 与文档 hash。
