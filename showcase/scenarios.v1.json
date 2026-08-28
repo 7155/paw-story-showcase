@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "paw.showcase-scenarios.v1",
+  "dataMode": "synthetic-preview-only",
+  "apps": [
+    {
+      "id": "project-workbench",
+      "routes": ["/overview", "/planning", "/work-documents"],
+      "renderOwner": "control-center-web/src/paw-os/apps/PawNativeApps.tsx",
+      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx", "control-center-web/src/app/preview-work-document-routes.ts"],
+      "claim": "interaction-rehearsal"
+    },
+    {
+      "id": "agent",
+      "routes": ["/agent?session=session-preview", "/rooms?room=room-preview"],
+      "renderOwner": "control-center-web/src/paw-os/apps/PawAgentApp.tsx",
+      "scenarioSources": ["control-center-web/src/features/agent/preview-data.ts", "control-center-web/src/app/preview-room-data.ts"],
+      "claim": "synthetic-preview"
+    },
+    {
+      "id": "memory",
+      "routes": ["/memory"],
+      "renderOwner": "control-center-web/src/features/memory/index.tsx",
+      "scenarioSources": ["control-center-web/src/app/preview-memory-data.ts"],
+      "claim": "synthetic-preview"
+    },
+    {
+      "id": "knowledge",
+      "routes": ["/knowledge"],
+      "renderOwner": "control-center-web/src/features/knowledge/index.tsx",
+      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
+      "claim": "synthetic-preview"
+    },
+    {
+      "id": "input-studio",
+      "routes": ["/input", "/input?view=lexicon", "/voice", "/history"],
+      "renderOwner": "control-center-web/src/paw-os/apps/PawSystemAppsMigrated.tsx",
+      "scenarioSources": ["control-center-web/src/app/preview-input-data.ts", "control-center-web/src/app/preview-history-routes.ts"],
+      "claim": "interaction-rehearsal"
+    },
+    {
+      "id": "app-center",
+      "routes": ["/plugins", "/plugins?view=catalog", "/plugins?view=proposals"],
+      "renderOwner": "control-center-web/src/features/plugins/index.tsx",
+      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
+      "claim": "interaction-rehearsal"
+    },
+    {
+      "id": "system-monitor",
+      "routes": ["/observability", "/context-debug", "/diagnostics"],
+      "renderOwner": "control-center-web/src/paw-os/apps/PawSystemAppsMigrated.tsx",
+      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
+      "claim": "synthetic-preview"
+    },
+    {
+      "id": "system-settings",
+      "routes": ["/configuration", "/appearance", "/governance", "/approvals"],
+      "renderOwner": "control-center-web/src/paw-os/apps/PawSystemAppsMigrated.tsx",
+      "scenarioSources": ["control-center-web/src/app/preview-input-data.ts", "control-center-web/src/app/preview-control-transport.tsx"],
+      "claim": "interaction-rehearsal"
+    },
+    {
+      "id": "files",
+      "routes": ["/files"],
+      "renderOwner": "control-center-web/src/features/files/PawOsFilesApp.tsx",
+      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
+      "claim": "synthetic-preview"
+    },
+    {
+      "id": "browser",
+      "routes": ["/browser"],
+      "renderOwner": "control-center-web/src/paw-os/apps/PawBrowserApp.tsx",
+      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
+      "claim": "host-unavailable",
+      "boundary": "The web Showcase renders PAW Browser chrome and synthetic snapshots, not a live Electron webview guest."
+    },
+    {
+      "id": "terminal",
+      "routes": ["/terminal"],
+      "renderOwner": "control-center-web/src/features/terminal/PawOsTerminalApp.tsx",
+      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
+      "claim": "host-unavailable",
+      "boundary": "The terminal surface uses in-memory sample output and never starts a real PTY."
+    }
+  ]
+}

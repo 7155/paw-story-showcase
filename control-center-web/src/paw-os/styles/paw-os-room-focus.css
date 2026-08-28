@@ -1,0 +1,422 @@
+/* Sol collaboration focus
+ *
+ * This surface is a projection of real Room WorkItems, participants, public
+ * activities and receipts. Celestial labels are stable display aliases only;
+ * buttons always retain the real participant identity behind them.
+ */
+
+.paw-desktop-root .paw-room-focus-overview {
+  /* One Room status palette (UR-057 / paw-os-room-migrated-v1): reuse the
+     desktop-scoped --room-* hues instead of a near-duplicate local set, so
+     "running/waiting/blocked/complete" reads as the exact same colour in the
+     Focus console, the chronology work-strip and the flow ledger. */
+  --focus-blue: var(--room-blue);
+  --focus-green: var(--room-green);
+  --focus-amber: var(--room-amber);
+  --focus-red: var(--room-red);
+  min-width: 0;
+  min-height: 100%;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 14px;
+  color: #282d35;
+  background:
+    radial-gradient(24rem 18rem at 100% 0, rgb(39 131 222 / .055), transparent 72%),
+    #fafafa;
+}
+
+.paw-desktop-root .paw-room-focus-overview__mission {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgb(42 45 52 / .08);
+  border-radius: 14px;
+  background: rgb(255 255 255 / .94);
+  box-shadow: 0 8px 24px rgb(42 45 52 / .045);
+}
+
+.paw-desktop-root .paw-room-focus-overview__sol {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgb(39 131 222 / .16);
+  border-radius: 50%;
+  background: rgb(39 131 222 / .045);
+}
+
+.paw-desktop-root .paw-room-focus-overview__sol::before,
+.paw-desktop-root .paw-room-focus-overview__sol::after {
+  position: absolute;
+  border: 1px solid rgb(39 131 222 / .2);
+  border-radius: 50%;
+  content: '';
+}
+.paw-desktop-root .paw-room-focus-overview__sol::before { width: 22px; height: 10px; transform: rotate(-28deg); }
+.paw-desktop-root .paw-room-focus-overview__sol::after { width: 10px; height: 22px; transform: rotate(28deg); }
+.paw-desktop-root .paw-room-focus-overview__sol > i { z-index: 1; width: 8px; height: 8px; border-radius: 50%; background: #f5a623; box-shadow: 0 0 0 4px rgb(245 166 35 / .12); }
+
+.paw-desktop-root .paw-room-focus-overview__mission > div:nth-child(2) { min-width: 0; display: grid; gap: 2px; }
+.paw-desktop-root .paw-room-focus-overview__mission small { color: #838993; font-size: 12px; line-height: 16px; }
+.paw-desktop-root .paw-room-focus-overview__mission strong { overflow: hidden; font-size: 14px; font-weight: 680; letter-spacing: -.008em; text-overflow: ellipsis; white-space: nowrap; }
+.paw-desktop-root .paw-room-focus-overview__mission p { margin: 0; overflow: hidden; color: #666e7a; font-size: 12px; line-height: 17px; text-overflow: ellipsis; white-space: nowrap; }
+
+.paw-desktop-root .paw-room-focus-overview__mission--dormant {
+  border-style: dashed;
+  background: rgb(251 252 254 / .92);
+}
+
+.paw-desktop-root .paw-room-focus-overview__mission--dormant strong { color: #4a5564; }
+
+.paw-desktop-root .paw-room-focus-overview__mission-state,
+.paw-desktop-root .paw-room-focus-overview__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #737a86;
+  font-size: 12px;
+  font-weight: 570;
+  white-space: nowrap;
+}
+
+.paw-desktop-root .paw-room-focus-overview__mission-state > i,
+.paw-desktop-root .paw-room-focus-overview__state > i {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: #9198a3;
+}
+
+.paw-desktop-root .paw-room-focus-overview [data-state='running'] .paw-room-focus-overview__state > i,
+.paw-desktop-root .paw-room-focus-overview__mission-state[data-state='running'] > i { background: var(--focus-blue); box-shadow: 0 0 0 3px rgb(39 131 222 / .1); }
+.paw-desktop-root .paw-room-focus-overview [data-state='review'] .paw-room-focus-overview__state > i,
+.paw-desktop-root .paw-room-focus-overview__mission-state[data-state='review'] > i,
+.paw-desktop-root .paw-room-focus-overview [data-state='waiting'] .paw-room-focus-overview__state > i,
+.paw-desktop-root .paw-room-focus-overview__mission-state[data-state='waiting'] > i { background: var(--focus-amber); }
+.paw-desktop-root .paw-room-focus-overview [data-state='blocked'] .paw-room-focus-overview__state > i,
+.paw-desktop-root .paw-room-focus-overview [data-state='failed'] .paw-room-focus-overview__state > i,
+.paw-desktop-root .paw-room-focus-overview__mission-state[data-state='blocked'] > i,
+.paw-desktop-root .paw-room-focus-overview__mission-state[data-state='failed'] > i { background: var(--focus-red); }
+.paw-desktop-root .paw-room-focus-overview [data-state='completed'] .paw-room-focus-overview__state > i,
+.paw-desktop-root .paw-room-focus-overview__mission-state[data-state='completed'] > i { background: var(--focus-green); }
+
+/* 任务脉搏 — the four real counters as one proportional bar. Segment widths
+ * are the true counts; a zero count never draws a segment. */
+.paw-desktop-root .paw-room-focus-overview__pulse { display: grid; gap: 6px; }
+.paw-desktop-root .paw-room-focus-overview__pulse-bar {
+  display: flex;
+  height: 8px;
+  overflow: hidden;
+  gap: 2px;
+  border-radius: 999px;
+  background: rgb(42 45 52 / .07);
+}
+.paw-desktop-root .paw-room-focus-overview__pulse-bar > i { min-width: 10px; flex-basis: 0; border-radius: 999px; transition: flex-grow 320ms cubic-bezier(.23, 1, .32, 1); }
+.paw-desktop-root .paw-room-focus-overview__pulse-bar > i[data-tone='active'] { background: var(--focus-blue); animation: paw-room-focus-pulse-live 2.4s ease-in-out infinite; }
+.paw-desktop-root .paw-room-focus-overview__pulse-bar > i[data-tone='review'] { background: var(--focus-amber); }
+.paw-desktop-root .paw-room-focus-overview__pulse-bar > i[data-tone='blocked'] { background: var(--focus-red); }
+.paw-desktop-root .paw-room-focus-overview__pulse-bar > i[data-tone='completed'] { background: var(--focus-green); }
+
+.paw-desktop-root .paw-room-focus-overview__counts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+.paw-desktop-root .paw-room-focus-overview__counts > div { min-width: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 4px; padding: 7px 9px; border: 1px solid rgb(42 45 52 / .07); border-radius: 10px; background: rgb(255 255 255 / .8); }
+.paw-desktop-root .paw-room-focus-overview__counts > div[data-zero] { opacity: .62; }
+.paw-desktop-root .paw-room-focus-overview__counts dt { color: #858b95; font-size: 12px; }
+.paw-desktop-root .paw-room-focus-overview__counts dd { margin: 0; color: #363c46; font-size: 13px; font-weight: 680; font-variant-numeric: tabular-nums; }
+.paw-desktop-root .paw-room-focus-overview__counts [data-tone='active'] dd { color: var(--focus-blue); }
+.paw-desktop-root .paw-room-focus-overview__counts [data-tone='review'] dd { color: var(--focus-amber); }
+.paw-desktop-root .paw-room-focus-overview__counts [data-tone='blocked'] dd { color: var(--focus-red); }
+.paw-desktop-root .paw-room-focus-overview__counts [data-tone='completed'] dd { color: var(--focus-green); }
+
+.paw-desktop-root .paw-room-focus-overview__section {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgb(42 45 52 / .075);
+  border-radius: 12px;
+  background: rgb(255 255 255 / .88);
+}
+
+.paw-desktop-root .paw-room-focus-overview__section > header,
+.paw-desktop-root .paw-room-focus-overview__inspector > header {
+  min-height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  border-bottom: 1px solid rgb(42 45 52 / .07);
+}
+.paw-desktop-root .paw-room-focus-overview__section > header > span,
+.paw-desktop-root .paw-room-focus-overview__inspector > header > span:first-child { min-width: 0; display: inline-flex; align-items: center; gap: 6px; color: #59616e; }
+.paw-desktop-root .paw-room-focus-overview__section > header svg,
+.paw-desktop-root .paw-room-focus-overview__inspector > header svg { color: #838b97; }
+.paw-desktop-root .paw-room-focus-overview__section > header strong,
+.paw-desktop-root .paw-room-focus-overview__inspector > header strong { font-size: 12px; font-weight: 650; }
+.paw-desktop-root .paw-room-focus-overview__section > header small { color: #9197a1; font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* Partner-only collaboration graph. Partners occupy a stable two-column
+ * ledger and real relations get their own rows. Labels and paths never float
+ * above the same pixels, so the narrow Room tool rail remains readable. */
+.paw-desktop-root .paw-room-focus-overview__mesh-canvas {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+  padding: 6px 10px 10px;
+}
+
+.paw-desktop-root .paw-room-focus-overview__mesh-nodes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 12px;
+}
+
+.paw-desktop-root .paw-room-focus-overview__mesh-nodes > [role='listitem'] { min-width: 0; }
+
+.paw-desktop-root .paw-room-focus-overview__mesh-node {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  align-items: start;
+  gap: 7px;
+  padding: 7px 4px;
+  border: 0;
+  border-radius: 6px;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+.paw-desktop-root button.paw-room-focus-overview__mesh-node:hover { background: rgb(39 131 222 / .055); }
+.paw-desktop-root button.paw-room-focus-overview__mesh-node[aria-pressed='true'] { background: rgb(39 131 222 / .085); box-shadow: inset 0 0 0 1px rgb(39 131 222 / .18); }
+.paw-desktop-root .paw-room-focus-overview__mesh-node:focus-visible { outline: 2px solid var(--focus-blue); outline-offset: 1px; }
+
+.paw-desktop-root .paw-room-focus-overview__mesh-node > span { width: 100%; min-width: 0; display: grid; gap: 1px; }
+.paw-desktop-root .paw-room-focus-overview__mesh-node > span > strong { overflow: hidden; font-size: 12px; font-weight: 640; line-height: 16px; text-overflow: ellipsis; white-space: nowrap; }
+.paw-desktop-root .paw-room-focus-overview__mesh-node > span > small { display: none; }
+.paw-desktop-root .paw-room-focus-overview__mesh-node > span > em { overflow: hidden; color: #727a86; font-size: 12px; font-style: normal; font-weight: 500; line-height: 16px; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Planet marks keep their identity colors; the state ring is live state. */
+.paw-desktop-root .paw-room-focus-overview__mesh-node > i { width: 10px; height: 10px; border-radius: 50%; background: #9198a3; box-shadow: 0 0 0 2.5px rgb(145 152 163 / .16); }
+.paw-desktop-root .paw-room-focus-overview__mesh-node--partner > i { width: 13px; height: 13px; background: #4b8fd0; }
+.paw-desktop-root .paw-room-focus-overview__mesh-node--partner[data-tone='1'] > i { background: #bd6355; }
+.paw-desktop-root .paw-room-focus-overview__mesh-node--partner[data-tone='2'] > i { background: #b9903f; }
+.paw-desktop-root .paw-room-focus-overview__mesh-node--partner[data-tone='3'] > i { background: #786bc2; }
+
+.paw-desktop-root .paw-room-focus-overview__mesh-node[data-state='running'] > i { box-shadow: 0 0 0 2.5px rgb(39 131 222 / .28); }
+.paw-desktop-root .paw-room-focus-overview__mesh-node:is([data-state='review'], [data-state='waiting']) > i { box-shadow: 0 0 0 2.5px rgb(179 106 11 / .3); }
+.paw-desktop-root .paw-room-focus-overview__mesh-node:is([data-state='blocked'], [data-state='failed']) > i { box-shadow: 0 0 0 2.5px rgb(198 71 71 / .34); }
+.paw-desktop-root .paw-room-focus-overview__mesh-node[data-state='completed'] > i { box-shadow: 0 0 0 2.5px rgb(36 138 77 / .26); }
+.paw-desktop-root .paw-room-focus-overview__mesh-node--partner[data-state='disconnected'] { opacity: .55; }
+
+.paw-desktop-root .paw-room-focus-overview__mesh-relations {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 5px 0 0;
+  border-top: 1px solid rgb(42 45 52 / .07);
+  list-style: none;
+}
+.paw-desktop-root .paw-room-focus-overview__mesh-relations > li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  min-height: 27px;
+  color: #59616e;
+  font-size: 12px;
+}
+.paw-desktop-root .paw-room-focus-overview__mesh-relations i { width: 8px; height: 1px; background: #9aa1ac; }
+.paw-desktop-root .paw-room-focus-overview__mesh-relations li:is([data-state='running'], [data-state='dispatched'], [data-state='offered']) i { background: var(--focus-blue); }
+.paw-desktop-root .paw-room-focus-overview__mesh-relations li:is([data-state='review'], [data-state='waiting']) i { background: var(--focus-amber); }
+.paw-desktop-root .paw-room-focus-overview__mesh-relations li:is([data-state='blocked'], [data-state='failed']) i { background: var(--focus-red); }
+.paw-desktop-root .paw-room-focus-overview__mesh-relations li[data-state='completed'] i { background: var(--focus-green); }
+.paw-desktop-root .paw-room-focus-overview__mesh-relations span { min-width: 0; display: flex; align-items: center; gap: 5px; }
+.paw-desktop-root .paw-room-focus-overview__mesh-relations strong { overflow: hidden; font-weight: 620; text-overflow: ellipsis; white-space: nowrap; }
+.paw-desktop-root .paw-room-focus-overview__mesh-relations svg { flex: 0 0 auto; color: #a0a6af; }
+.paw-desktop-root .paw-room-focus-overview__mesh-relations small { color: #858c97; white-space: nowrap; }
+.paw-desktop-root .paw-room-focus-overview__mesh-empty { margin: 0; padding-top: 7px; border-top: 1px solid rgb(42 45 52 / .07); color: #858c97; font-size: 12px; line-height: 17px; }
+
+.paw-desktop-root .paw-room-focus-overview__mesh-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 2px 10px 9px;
+  list-style: none;
+  color: #737a86;
+  font-size: 12px;
+  line-height: 16px;
+}
+.paw-desktop-root .paw-room-focus-overview__mesh-legend > li { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.paw-desktop-root .paw-room-focus-overview__mesh-legend i { width: 16px; border-top: 2px solid #9aa1ac; }
+.paw-desktop-root .paw-room-focus-overview__mesh-legend [data-kind='dependency'] i,
+.paw-desktop-root .paw-room-focus-overview__mesh-legend [data-kind='handoff'] i { border-top-style: dashed; }
+.paw-desktop-root .paw-room-focus-overview__mesh-legend [data-kind='review'] i { border-top-style: dotted; }
+
+/* Chronological flow ledger: every packet is a real public message, an
+ * authoritative transfer or a WorkItem revision, in true event order. */
+.paw-desktop-root .paw-room-focus-overview__flow-window { display: inline-flex; min-width: 0; align-items: center; gap: 7px; }
+.paw-desktop-root .paw-room-focus-overview__flow-window > small { color: #9197a1; font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.paw-desktop-root .paw-room-focus-overview__flow-window > button { border: 0; border-radius: 5px; color: #206fae; background: transparent; font: 620 12px/16px inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.paw-desktop-root .paw-room-focus-overview__flow-window > button:focus-visible { outline: 2px solid var(--focus-blue); outline-offset: 2px; }
+
+.paw-desktop-root .paw-room-focus-overview__packets { display: grid; max-height: 320px; margin: 0; padding: 5px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; list-style: none; }
+.paw-desktop-root .paw-room-focus-overview__packets > li { min-width: 0; }
+.paw-desktop-root .paw-room-focus-overview__packets button { width: 100%; min-width: 0; display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: start; gap: 7px; padding: 7px; border: 0; border-radius: 8px; color: inherit; background: transparent; text-align: left; cursor: pointer; transition: background-color 120ms ease, transform 100ms ease; }
+.paw-desktop-root .paw-room-focus-overview__packets button:hover { background: rgb(42 45 52 / .035); }
+.paw-desktop-root .paw-room-focus-overview__packets button:active { transform: scale(.994); }
+.paw-desktop-root .paw-room-focus-overview__packets button[aria-current='true'] { background: rgb(39 131 222 / .075); box-shadow: inset 0 0 0 1px rgb(39 131 222 / .09); }
+.paw-desktop-root .paw-room-focus-overview__packet-icon { display: grid; width: 20px; height: 20px; place-items: center; color: #7a8290; }
+.paw-desktop-root .paw-room-focus-overview__packets [data-kind='request'] .paw-room-focus-overview__packet-icon,
+.paw-desktop-root .paw-room-focus-overview__packets [data-kind='dispatch'] .paw-room-focus-overview__packet-icon { color: var(--focus-blue); }
+.paw-desktop-root .paw-room-focus-overview__packets [data-kind='question'] .paw-room-focus-overview__packet-icon,
+.paw-desktop-root .paw-room-focus-overview__packets [data-kind='approval'] .paw-room-focus-overview__packet-icon { color: var(--focus-amber); }
+.paw-desktop-root .paw-room-focus-overview__packets [data-kind='result'] .paw-room-focus-overview__packet-icon,
+.paw-desktop-root .paw-room-focus-overview__packets [data-kind='answer'] .paw-room-focus-overview__packet-icon { color: var(--focus-green); }
+.paw-desktop-root .paw-room-focus-overview__packet-copy { min-width: 0; display: grid; gap: 1px; }
+.paw-desktop-root .paw-room-focus-overview__packet-copy strong { font-size: 12px; font-weight: 640; }
+.paw-desktop-root .paw-room-focus-overview__packet-copy p { margin: 0; overflow: hidden; color: #59616e; font-size: 12.5px; line-height: 17px; text-overflow: ellipsis; white-space: nowrap; }
+.paw-desktop-root .paw-room-focus-overview__packet-copy small { overflow: hidden; color: #9197a1; font-size: 12px; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+
+.paw-desktop-root .paw-room-focus-overview__packet-detail { display: grid; gap: 5px; padding: 9px 11px 10px; border-top: 1px solid rgb(42 45 52 / .07); background: rgb(250 250 250 / .8); }
+.paw-desktop-root .paw-room-focus-overview__packet-detail > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.paw-desktop-root .paw-room-focus-overview__packet-detail > header strong { font-size: 12px; font-weight: 650; }
+.paw-desktop-root .paw-room-focus-overview__packet-detail > header span { color: #737a86; font-size: 12px; }
+.paw-desktop-root .paw-room-focus-overview__packet-detail > header span[data-status='failed'] { color: var(--focus-red); }
+.paw-desktop-root .paw-room-focus-overview__packet-detail > p { max-height: 76px; margin: 0; overflow: auto; color: #4c545f; font-size: 12.5px; line-height: 18px; }
+.paw-desktop-root .paw-room-focus-overview__packet-detail dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 8px; margin: 0; font-size: 12px; line-height: 16px; }
+.paw-desktop-root .paw-room-focus-overview__packet-detail dt { color: #949aa4; }
+.paw-desktop-root .paw-room-focus-overview__packet-detail dd { min-width: 0; margin: 0; overflow: hidden; color: #5e6673; font-family: var(--font-mono); text-overflow: ellipsis; white-space: pre-line; }
+
+/* Dispatch plan — the route decision as a readable route, not a dead label. */
+.paw-desktop-root .paw-room-focus-overview__dispatch-plan {
+  display: grid;
+  gap: 6px;
+  padding: 8px 9px;
+  border: 1px solid rgb(39 131 222 / .16);
+  border-radius: 10px;
+  background: rgb(39 131 222 / .04);
+}
+.paw-desktop-root .paw-room-focus-overview__dispatch-route { display: flex; min-width: 0; align-items: baseline; gap: 6px; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-route svg { align-self: center; flex-shrink: 0; color: var(--focus-blue); }
+.paw-desktop-root .paw-room-focus-overview__dispatch-route b { font-size: 12.5px; font-weight: 680; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-route small { overflow: hidden; color: #8b929d; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-plan > dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 8px; margin: 0; font-size: 12px; line-height: 16px; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-plan > dl > div { display: contents; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-plan dt { color: #7d8592; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-plan dd { min-width: 0; margin: 0; color: #454c58; overflow-wrap: anywhere; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-objective { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-candidates { font-size: 12px; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-candidates > summary { width: fit-content; color: #737a86; line-height: 17px; cursor: pointer; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-candidates ul { display: grid; gap: 3px; margin: 5px 0 0; padding: 0; list-style: none; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-candidates li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: 6px; padding: 2px 6px; border-radius: 6px; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-candidates li[data-selected] { background: rgb(39 131 222 / .08); }
+.paw-desktop-root .paw-room-focus-overview__dispatch-candidates li strong { font-size: 12px; font-weight: 640; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-candidates li small { overflow: hidden; color: #8b929d; text-overflow: ellipsis; white-space: nowrap; }
+.paw-desktop-root .paw-room-focus-overview__dispatch-candidates li span { color: #737a86; font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.paw-desktop-root .paw-room-focus-overview__inspector { min-width: 0; display: grid; align-content: start; overflow: hidden; border: 1px solid rgb(39 131 222 / .14); border-radius: 13px; background: #fff; box-shadow: 0 10px 28px rgb(42 45 52 / .055); animation: paw-room-focus-inspector-enter 180ms cubic-bezier(.23, 1, .32, 1) both; }
+.paw-desktop-root .paw-room-focus-overview__inspector-copy { display: grid; gap: 3px; padding: 10px 11px 8px; }
+.paw-desktop-root .paw-room-focus-overview__inspector-copy > small { color: #8b929d; font-size: 12px; }
+.paw-desktop-root .paw-room-focus-overview__inspector-copy > strong { font-size: 13.5px; font-weight: 660; line-height: 18px; }
+.paw-desktop-root .paw-room-focus-overview__inspector-copy > p { margin: 0; color: #59616e; font-size: 12px; line-height: 17px; }
+.paw-desktop-root .paw-room-focus-overview__inspector dl { display: grid; gap: 5px; margin: 0; padding: 0 11px 9px; }
+.paw-desktop-root .paw-room-focus-overview__inspector dl > div { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 7px; font-size: 12px; line-height: 16px; }
+.paw-desktop-root .paw-room-focus-overview__inspector dt { color: #949aa4; }
+.paw-desktop-root .paw-room-focus-overview__inspector dd { min-width: 0; margin: 0; overflow-wrap: anywhere; color: #5e6673; }
+.paw-desktop-root .paw-room-focus-overview__expected { display: grid; gap: 2px; margin: 0 11px 8px; color: #59616e; font-size: 12px; line-height: 16px; }
+.paw-desktop-root .paw-room-focus-overview__expected > span { color: #949aa4; }
+.paw-desktop-root .paw-room-focus-overview__acceptance { margin: 0 11px 8px; color: #59616e; font-size: 12px; }
+.paw-desktop-root .paw-room-focus-overview__acceptance > summary { width: fit-content; cursor: pointer; color: #737a86; line-height: 17px; }
+.paw-desktop-root .paw-room-focus-overview__acceptance ul { display: grid; max-height: min(220px, 30vh); gap: 3px; margin: 5px 0 0; padding-left: 17px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.paw-desktop-root .paw-room-focus-overview__acceptance li { color: #666e7a; line-height: 17px; }
+.paw-desktop-root .paw-room-focus-overview__blocker { display: grid; gap: 2px; margin: 0 10px 8px; padding: 8px 9px; border-radius: 8px; color: #8c3636; background: rgb(198 71 71 / .07); }
+.paw-desktop-root .paw-room-focus-overview__blocker strong { font-size: 12px; }
+.paw-desktop-root .paw-room-focus-overview__blocker span { font-size: 12px; line-height: 16px; }
+.paw-desktop-root .paw-room-focus-overview__inspector-wave { display: flex; align-items: center; gap: 5px; margin: -2px 11px 8px; color: #206fae; font-size: 12px; line-height: 16px; }
+
+/* Dual-axis review verdict: operability and requirement stay two answers. */
+.paw-desktop-root .paw-room-focus-overview__review { display: grid; gap: 4px; margin: 0 10px 8px; padding: 8px 9px; border-radius: 8px; background: rgb(36 138 77 / .06); }
+.paw-desktop-root .paw-room-focus-overview__review[data-verdict='attention'] { background: rgb(198 71 71 / .07); }
+.paw-desktop-root .paw-room-focus-overview__review > span { display: inline-flex; align-items: center; gap: 5px; color: #1d7242; font-size: 12px; font-weight: 640; }
+.paw-desktop-root .paw-room-focus-overview__review[data-verdict='attention'] > span { color: #a13d3d; }
+.paw-desktop-root .paw-room-focus-overview__review > dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1px 8px; margin: 0; font-size: 12px; line-height: 16px; }
+.paw-desktop-root .paw-room-focus-overview__review > dl > div { display: contents; }
+.paw-desktop-root .paw-room-focus-overview__review dt { color: #7d8592; }
+.paw-desktop-root .paw-room-focus-overview__review dd { margin: 0; color: #454c58; font-weight: 600; }
+.paw-desktop-root .paw-room-focus-overview__review > p { margin: 0; color: #59616e; font-size: 12px; line-height: 16px; }
+.paw-desktop-root .paw-room-focus-overview__result { margin: 0 11px 8px; color: #59616e; font-size: 12px; line-height: 16px; }
+.paw-desktop-root .paw-room-focus-overview__evidence { display: grid; gap: 3px; margin: 0; padding: 0 10px 9px; list-style: none; }
+.paw-desktop-root .paw-room-focus-overview__evidence li { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px; align-items: baseline; }
+.paw-desktop-root .paw-room-focus-overview__evidence span { color: #9299a3; font-size: 12px; }
+.paw-desktop-root .paw-room-focus-overview__evidence code { overflow: hidden; color: #59616e; font: 12px/16px var(--font-mono); text-overflow: ellipsis; white-space: nowrap; }
+.paw-desktop-root .paw-room-focus-overview__open { min-height: 32px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 0 10px 10px; border: 1px solid rgb(39 131 222 / .16); border-radius: 9px; color: #206fae; background: rgb(39 131 222 / .055); font-size: 12px; font-weight: 620; cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease, transform 100ms ease; }
+.paw-desktop-root .paw-room-focus-overview__open:hover { border-color: rgb(39 131 222 / .28); background: rgb(39 131 222 / .09); }
+.paw-desktop-root .paw-room-focus-overview__open:active { transform: scale(.985); }
+.paw-desktop-root .paw-room-focus-overview__empty { margin: 0; padding: 10px; color: #8a919c; font-size: 12px; line-height: 16px; }
+
+/* Living signals: Sol breathes, running work pulses, the newest packet slides
+ * in. Pure projection decoration — no data or order is implied by motion. */
+.paw-desktop-root .paw-room-focus-overview__sol > i,
+.paw-desktop-root .paw-room-focus-overview__mesh-node--root > i { animation: paw-room-focus-sol-breathe 3.2s ease-in-out infinite; }
+.paw-desktop-root .paw-room-focus-overview [data-state='running'] .paw-room-focus-overview__state > i,
+.paw-desktop-root .paw-room-focus-overview__mission-state[data-state='running'] > i,
+.paw-desktop-root .paw-room-focus-overview__mesh-node[data-state='running'] > i { animation: paw-room-focus-live 2.1s ease-in-out infinite; }
+.paw-desktop-root .paw-room-focus-overview__packets > li:last-child > button { animation: paw-room-focus-packet-enter 220ms cubic-bezier(.23, 1, .32, 1) both; }
+
+@keyframes paw-room-focus-inspector-enter {
+  from { opacity: 0; transform: translateY(4px) scale(.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes paw-room-focus-sol-breathe {
+  0%, 100% { box-shadow: 0 0 0 4px rgb(245 166 35 / .12); }
+  50% { box-shadow: 0 0 0 8px rgb(245 166 35 / .045); }
+}
+
+@keyframes paw-room-focus-live {
+  0%, 100% { box-shadow: 0 0 0 3px rgb(39 131 222 / .12); }
+  50% { box-shadow: 0 0 0 6px rgb(39 131 222 / .035); }
+}
+
+@keyframes paw-room-focus-packet-enter {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes paw-room-focus-pulse-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .68; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paw-desktop-root .paw-room-focus-overview__inspector { animation: none; }
+  .paw-desktop-root .paw-room-focus-overview button { transition: none; }
+  .paw-desktop-root .paw-room-focus-overview__sol > i,
+  .paw-desktop-root .paw-room-focus-overview__mesh-node--root > i,
+  .paw-desktop-root .paw-room-focus-overview [data-state='running'] .paw-room-focus-overview__state > i,
+  .paw-desktop-root .paw-room-focus-overview__mission-state[data-state='running'] > i,
+  .paw-desktop-root .paw-room-focus-overview__mesh-node[data-state='running'] > i,
+  .paw-desktop-root .paw-room-focus-overview__pulse-bar > i[data-tone='active'],
+  .paw-desktop-root .paw-room-focus-overview__packets > li:last-child > button { animation: none; }
+  .paw-desktop-root .paw-room-focus-overview__pulse-bar > i { transition: none; }
+}
+
+@media (max-width: 700px) {
+  .paw-desktop-root .paw-room-focus-overview { padding: 10px; }
+  .paw-desktop-root .paw-room-focus-overview__mission { grid-template-columns: 34px minmax(0, 1fr); }
+  .paw-desktop-root .paw-room-focus-overview__mission-state { grid-column: 2; justify-self: start; }
+}

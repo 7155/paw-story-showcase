@@ -1,0 +1,97 @@
+body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+  font-kerning: normal;
+  letter-spacing: var(--tracking-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Mixed Chinese/Latin runs are the default in this product. Keeping Latin
+   ahead of PingFang in --font-sans stops Chinese faces from claiming Latin
+   glyphs, and these two rules keep the two scripts on one rhythm: numerals
+   stay the same width everywhere, and CJK punctuation is not double-spaced. */
+:where(body) {
+  font-variant-numeric: tabular-nums;
+  text-spacing-trim: space-first;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-block: 0;
+}
+
+/*
+ * Display serif is an earned role: genuine page/document titles, major dates,
+ * and selected long-form leads (opt in with .editorial-lead). Operational
+ * headings — dashboard sections, panels, controls — are UI voice. Serif on
+ * operational text reads as costume and drifts off the UI baseline.
+ */
+/* With display on the grotesque, the title earns its rank from weight and a
+   tighter optical track rather than from a change of skeleton. Chinese takes
+   tracking badly, so the negative track stays small — the mass does the work. */
+h1 {
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: var(--text-page-title);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -.018em;
+  line-height: var(--text-page-title-lh);
+  text-wrap: pretty;
+}
+
+.editorial-lead {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -.012em;
+}
+
+h2,
+h3,
+h4 {
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-heading);
+  text-wrap: pretty;
+}
+
+h2 { font-size: var(--text-section-lead); line-height: var(--text-section-lead-lh); }
+h3 { font-size: var(--text-subsection); line-height: var(--text-subsection-lh); }
+h4 { font-size: var(--text-ui); line-height: var(--text-ui-lh); }
+
+
+
+
+
+
+small {
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-ui);
+  line-height: var(--line-height-ui);
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--font-mono);
+}
+
+kbd {
+  min-width: 20px;
+  padding: 1px 5px;
+  border: 1px solid var(--color-border);
+  border-bottom-color: var(--color-border-strong);
+  border-radius: var(--radius-1);
+  background: var(--color-surface-subtle);
+  box-shadow: 0 1px 0 var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-ui);
+  text-align: center;
+}

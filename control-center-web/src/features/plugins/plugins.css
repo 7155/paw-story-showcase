@@ -1,0 +1,1119 @@
+main[data-route-id='plugins'] .plugins-count {
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.plugins-maintenance-entry {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-block: 1px solid var(--color-border);
+}
+
+.plugins-maintenance-entry > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.plugins-maintenance-entry strong { font-size: 14px; }
+.plugins-maintenance-entry small {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.plugins-filters {
+  display: grid;
+  align-items: end;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  grid-template-columns: minmax(220px, 1fr) minmax(132px, 180px) auto;
+}
+
+.plugins-filters .ui-field,
+.plugins-search {
+  min-width: 0;
+}
+
+.plugins-mode-filter {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.plugins-mode-filter > span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.plugins-browser {
+  display: grid;
+  min-width: 0;
+  border-block: 1px solid var(--color-border);
+  grid-template-columns: minmax(320px, 1fr) minmax(400px, 1fr);
+}
+
+.plugins-list {
+  min-width: 0;
+  max-height: 590px;
+  overflow: auto;
+}
+
+.plugins-list__item {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 92px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 13px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  text-align: left;
+  touch-action: manipulation;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-press) var(--ease-press);
+}
+
+.plugins-list__item:last-child { border-bottom: 0; }
+@media (hover: hover) and (pointer: fine) {
+  .plugins-list__item:hover { background: var(--color-surface-hover); }
+}
+.plugins-list__item:active { transform: scale(.995); }
+.plugins-list__item[data-selected='true'] {
+  box-shadow: inset 3px 0 0 var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.plugins-list__copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.plugins-list__copy small,
+.plugins-detail__heading small {
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.plugins-list__copy strong {
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.plugins-list__copy > span {
+  display: block;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.plugins-list__aside {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.plugins-list__aside > svg { color: var(--color-text-tertiary); }
+
+.plugins-detail {
+  min-width: 0;
+  min-height: 360px;
+  padding: var(--space-5);
+  border-left: 1px solid var(--color-border);
+  background: var(--color-surface-subtle);
+}
+
+.plugins-detail--empty {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: var(--space-2);
+  color: var(--color-text-tertiary);
+  text-align: left;
+}
+
+.plugins-detail--empty strong {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.plugins-detail--empty span {
+  max-width: 300px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.plugins-detail__toolbar {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: space-between;
+  margin: calc(var(--space-2) * -1) 0 var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.plugins-detail__heading {
+  display: grid;
+  min-width: 0;
+  align-items: start;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+}
+
+.plugins-detail__icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-2);
+  color: var(--color-accent);
+  background: var(--color-surface);
+}
+
+.plugins-detail__heading h3 {
+  margin: 2px 0 4px;
+  font-size: 16px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.plugins-detail__heading p,
+.plugins-detail__capabilities p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.plugins-detail__facts {
+  display: grid;
+  margin: var(--space-4) 0 0;
+}
+
+.plugins-detail__facts > div {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+  grid-template-columns: minmax(112px, .7fr) minmax(0, 1.4fr);
+}
+
+.plugins-detail__facts dt,
+.plugins-detail__facts dd { margin: 0; font-size: 13px; line-height: 1.5; }
+.plugins-detail__facts dt {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: var(--color-text-secondary);
+}
+.plugins-detail__facts dd { overflow-wrap: anywhere; }
+
+.plugins-detail__capabilities { margin-top: var(--space-4); }
+.plugins-detail__capabilities h4 { margin: 0 0 var(--space-2); font-size: 13px; }
+.plugins-detail__capabilities ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.plugins-detail__capabilities li {
+  padding: 4px 7px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.capability-policy-notices {
+  display: grid;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+}
+
+.capability-policy-notices .mgmt-notice { margin-block: 0; }
+
+.capability-policy-feedback {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.capability-policy-feedback .mgmt-notice .ui-button {
+  margin-top: var(--space-2);
+}
+
+.plugins-policy-disclosure {
+  margin-top: var(--space-3);
+  border-block: 1px solid var(--color-border-soft);
+}
+
+.plugins-policy-disclosure > summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  list-style: none;
+}
+
+.plugins-policy-disclosure > summary::-webkit-details-marker { display: none; }
+
+.plugins-policy-disclosure > summary > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.plugins-policy-disclosure > summary strong { color: var(--color-text); font-size: 13px; }
+.plugins-policy-disclosure > summary small { font-size: 12px; line-height: 1.4; }
+.plugins-policy-disclosure > summary svg { flex: 0 0 auto; transition: transform 160ms var(--ease-standard); }
+.plugins-policy-disclosure[open] > summary svg { transform: rotate(90deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .plugins-policy-disclosure > summary svg { transition: none; }
+}
+
+.capability-default-field {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border-block: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.capability-default-field .ui-select__trigger {
+  width: 100%;
+}
+
+.capability-disclosure ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  color: var(--color-text-secondary);
+  font-size: var(--text-label);
+  line-height: var(--text-label-lh);
+}
+
+.capability-precedence {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border-left: 2px solid var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+.capability-precedence > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.capability-precedence > header > span,
+.capability-precedence dd {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+.capability-precedence > header small,
+.capability-precedence dd small {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-label);
+  line-height: var(--text-label-lh);
+  overflow-wrap: anywhere;
+}
+.capability-precedence > header strong { font-size: var(--text-ui); }
+.capability-precedence dl {
+  display: grid;
+  margin: 0;
+  border-block: 1px solid var(--color-border);
+}
+.capability-precedence dl > div {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-soft);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.capability-precedence dl > div:last-child { border-bottom: 0; }
+.capability-precedence dt,
+.capability-precedence dd,
+.capability-precedence > p {
+  margin: 0;
+  font-size: var(--text-label);
+  line-height: var(--text-label-lh);
+}
+.capability-precedence dt { color: var(--color-text-secondary); }
+.capability-precedence > p { color: var(--color-text-secondary); }
+
+.plugin-lifecycle {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.plugin-catalog {
+  display: grid;
+  border-block: 1px solid var(--color-border);
+}
+
+.plugin-catalog__row {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 14px 10px;
+  border-bottom: 1px solid var(--color-border);
+  grid-template-columns: minmax(190px, .8fr) minmax(280px, 1.4fr) auto;
+}
+
+.plugin-catalog__row:last-child { border-bottom: 0; }
+.plugin-catalog__identity,
+.plugin-catalog__facts,
+.plugin-catalog__action,
+.lifecycle-policy__title,
+.lifecycle-policy__limits { display: grid; min-width: 0; }
+.plugin-catalog__identity { gap: 3px; }
+.plugin-catalog__identity strong { font-size: 14px; }
+.plugin-catalog__identity small,
+.plugin-catalog__identity > span { color: var(--color-text-secondary); font-size: 13px; line-height: 1.45; }
+.plugin-catalog__facts { gap: 5px; }
+.plugin-catalog__facts > span,
+.lifecycle-policy__limits > span {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.plugin-catalog__facts svg,
+.lifecycle-policy__limits svg { flex: 0 0 auto; color: var(--color-text-tertiary); }
+.plugin-catalog__action { justify-items: end; gap: var(--space-2); }
+
+.plugin-authoring-callout {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-2);
+  background: var(--color-surface-subtle);
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+}
+
+.plugin-authoring-callout__icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  color: var(--color-accent);
+}
+
+.plugin-authoring-callout > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.plugin-authoring-callout strong { font-size: 13px; }
+.plugin-authoring-callout small { color: var(--color-text-secondary); font-size: 13px; line-height: 1.5; }
+
+.plugin-lifecycle__install {
+  display: grid;
+  align-items: end;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+}
+
+.plugin-lifecycle__install .ui-field { min-width: 0; }
+.plugin-lifecycle__install .ui-input { width: 100%; }
+
+.installed-plugin__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  grid-column: 1 / -1;
+}
+
+.plugin-lifecycle__validation {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+  grid-column: 1 / -1;
+}
+
+.plugin-lifecycle__validation span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.plugin-lifecycle__proposals,
+.plugin-lifecycle__installed {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.plugin-lifecycle__proposals h3 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.plugin-proposal,
+.installed-plugin {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  color: var(--color-text);
+  background: var(--color-surface);
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.plugin-proposal {
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .plugin-proposal:hover { border-color: var(--color-border-strong); }
+}
+.plugin-proposal span,
+.installed-plugin__identity { display: grid; min-width: 0; gap: 2px; }
+.plugin-proposal small { color: var(--color-text-secondary); font-size: 13px; }
+
+/* An installed Package reads as one small dossier: identity and state on the
+   first line, then its permission/resource/rollback facts, then the guarded
+   lifecycle actions. Every fact answers "what will an action change?". */
+.installed-plugin {
+  align-items: start;
+  padding: 12px 14px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.installed-plugin__identity strong { font-size: 14px; overflow-wrap: anywhere; }
+
+.installed-plugin__identity small {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.installed-plugin__identity small span + span::before {
+  margin-right: 6px;
+  color: var(--color-text-tertiary);
+  content: '·';
+}
+
+.installed-plugin__state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: end;
+  gap: 6px;
+}
+
+.installed-plugin__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 14px;
+  margin: 0;
+  padding: 0;
+  grid-column: 1 / -1;
+  list-style: none;
+}
+
+.installed-plugin__facts li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.installed-plugin__facts svg { flex: 0 0 auto; color: var(--color-text-tertiary); }
+
+.installed-plugin[data-selected] {
+  border-color: color-mix(in srgb, var(--color-accent) 62%, var(--color-border));
+  background: var(--color-accent-subtle);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+/* Approval is the one deliberate stop in the Package lifecycle. It renders as
+   a structured confirmation card — stage progress, then facts, then the
+   decision — instead of one concatenated metadata sentence. */
+.plugin-lifecycle__approval {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-warning-border);
+  border-left: 3px solid var(--color-warning);
+  border-radius: var(--radius-2);
+  background: var(--color-warning-soft);
+}
+
+.plugin-lifecycle__approval-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+}
+
+.plugin-lifecycle__approval-heading > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.plugin-lifecycle__approval small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.plugin-lifecycle__approval-heading strong {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.plugin-lifecycle__stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plugin-lifecycle__stages li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.plugin-lifecycle__stages li::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentcolor;
+  content: '';
+  opacity: .55;
+}
+
+.plugin-lifecycle__stages li[data-state='done'] {
+  border-color: color-mix(in srgb, var(--color-success) 34%, var(--color-border));
+  color: var(--color-success);
+}
+
+.plugin-lifecycle__stages li[data-state='current'] {
+  border-color: var(--color-warning-border);
+  color: var(--color-warning);
+  font-weight: var(--font-weight-semibold);
+}
+
+.plugin-lifecycle__approval-facts {
+  display: grid;
+  margin: 0;
+  border-block: 1px solid color-mix(in srgb, var(--color-warning) 16%, var(--color-border));
+}
+
+.plugin-lifecycle__approval-facts > div {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+  padding: 7px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-warning) 16%, var(--color-border));
+  grid-template-columns: minmax(96px, .38fr) minmax(0, 1.62fr);
+}
+
+.plugin-lifecycle__approval-facts > div:last-child { border-bottom: 0; }
+
+.plugin-lifecycle__approval-facts dt,
+.plugin-lifecycle__approval-facts dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.plugin-lifecycle__approval-facts dt { color: var(--color-text-secondary); }
+.plugin-lifecycle__approval-facts dd { overflow-wrap: anywhere; }
+
+.plugin-lifecycle__approval-actions {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: var(--space-2);
+}
+
+.plugin-lifecycle__receipt {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.plugin-lifecycle__receipt > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.plugin-lifecycle__receipt small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.lifecycle-hooks {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, .75fr);
+}
+
+.lifecycle-hooks__policies,
+.lifecycle-hooks__audit { display: grid; min-width: 0; align-content: start; }
+.lifecycle-hooks__policies { border-block: 1px solid var(--color-border); }
+.lifecycle-policy {
+  display: grid;
+  min-width: 0;
+  min-height: 74px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--color-border);
+  grid-template-columns: minmax(150px, .8fr) minmax(230px, 1.2fr) auto;
+}
+.lifecycle-policy:last-child { border-bottom: 0; }
+.lifecycle-policy__title { gap: 2px; }
+.lifecycle-policy__title strong { font-size: 13px; }
+.lifecycle-policy__title small { color: var(--color-text-secondary); font-size: 13px; line-height: 1.4; }
+.lifecycle-policy__limits {
+  gap: 5px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.lifecycle-hooks__audit { gap: var(--space-2); }
+.lifecycle-hooks__audit h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0 0 2px;
+  font-size: 13px;
+}
+.lifecycle-hooks__audit h3 small {
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+}
+.lifecycle-audit {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 48px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.lifecycle-audit > span { display: grid; min-width: 0; gap: 2px; }
+.lifecycle-audit strong { font-size: 13px; }
+.lifecycle-audit small { overflow: hidden; color: var(--color-text-tertiary); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.lifecycle-audit-more { border-bottom: 1px solid var(--color-border); }
+.lifecycle-audit-more > summary {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  list-style: none;
+}
+.lifecycle-audit-more > summary::-webkit-details-marker { display: none; }
+.lifecycle-audit-more > summary svg {
+  flex: 0 0 auto;
+  transition: transform 160ms var(--ease-standard);
+}
+.lifecycle-audit-more[open] > summary svg { transform: rotate(90deg); }
+.lifecycle-audit-more__items { display: grid; }
+
+@media (max-width: 980px) {
+  .plugins-filters { grid-template-columns: minmax(210px, 1fr) minmax(130px, 170px); }
+  .plugins-mode-filter { grid-column: 1 / -1; }
+  .plugins-mode-filter .ui-segmented { width: fit-content; }
+  .plugins-browser { grid-template-columns: minmax(280px, .9fr) minmax(340px, 1.1fr); }
+  .plugin-catalog__row { grid-template-columns: minmax(180px, .8fr) minmax(240px, 1.2fr); }
+  .plugin-catalog__action { grid-column: 1 / -1; grid-template-columns: auto auto; justify-content: end; }
+  .lifecycle-hooks { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  .plugins-maintenance-entry {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .plugins-filters { grid-template-columns: 1fr; }
+  .plugins-mode-filter { grid-column: auto; }
+  .plugins-mode-filter .ui-segmented { width: 100%; }
+  .plugins-browser,
+  .plugins-browser[data-detail-open='true'] { grid-template-columns: 1fr; }
+  .plugins-list { max-height: 340px; }
+  .plugins-detail { min-height: 0; border-top: 1px solid var(--color-border); border-left: 0; }
+  .plugins-detail--empty { display: none; }
+  .plugins-detail__heading { grid-template-columns: 36px minmax(0, 1fr); }
+  .plugins-detail__heading > .mgmt-status { grid-column: 2; }
+  .plugins-detail__facts > div { grid-template-columns: 1fr; gap: 4px; }
+  .plugin-lifecycle__install { align-items: stretch; grid-template-columns: 1fr; }
+  .plugin-authoring-callout { align-items: start; grid-template-columns: 36px minmax(0, 1fr); }
+  .plugin-authoring-callout .ui-button { grid-column: 1 / -1; justify-self: stretch; }
+  .plugin-lifecycle__validation { grid-column: auto; flex-wrap: wrap; }
+  .plugin-lifecycle__approval-facts > div { grid-template-columns: 1fr; gap: 3px; }
+  .plugin-lifecycle__receipt { align-items: stretch; flex-direction: column; }
+  .plugin-catalog__row,
+  .lifecycle-policy { align-items: start; grid-template-columns: 1fr; }
+  .plugin-catalog__action { grid-column: auto; justify-content: stretch; justify-items: stretch; }
+  .plugin-catalog__action .ui-button { width: 100%; }
+  .lifecycle-policy__limits { grid-template-columns: 1fr; }
+  .capability-precedence > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .capability-precedence dl > div { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .plugins-list__item { align-items: start; grid-template-columns: minmax(0, 1fr); }
+  .plugins-list__aside { justify-content: space-between; }
+}
+.capability-disclosure { border-top: 1px solid var(--color-border); padding-top: 12px; }
+.capability-disclosure h4 { margin: 0 0 9px; font-size: 12px; }
+.capability-disclosure dl { display: grid; gap: 7px; margin: 0; }
+.capability-disclosure dl > div { display: grid; gap: 3px; grid-template-columns: 58px minmax(0, 1fr); }
+.capability-disclosure dt { color: var(--color-text-tertiary); font-size: 12px; }
+.capability-disclosure dd { font-size: 12px; margin: 0; overflow-wrap: anywhere; }
+.capability-disclosure__technical { margin-top: 12px; }
+.capability-disclosure summary { display: flex; min-height: 44px; align-items: center; cursor: pointer; font-size: 12px; font-weight: 700; }
+.capability-disclosure__technical-content { padding-bottom: 2px; }
+.capability-disclosure pre { max-height: 240px; overflow: auto; margin: 0; padding: 9px; border: 1px solid var(--color-border); border-radius: var(--radius-2); font-size: 12px; white-space: pre-wrap; }
+.capability-disclosure > p { color: var(--color-text-tertiary); font-size: 12px; }
+
+/* The usage ledger speaks once: per-column boilerplate repeated five times is
+   noise, not information — the section description already carries it. */
+main[data-route-id='plugins'] .mgmt-metrics .mgmt-metric__detail { display: none; }
+main[data-route-id='plugins'] .mgmt-metrics { grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .plugins-list__item,
+  .lifecycle-audit-more > summary svg { transition: none; }
+  .plugins-list__item:active { transform: none; }
+}
+
+@media (max-width: 760px) {
+  main[data-route-id='plugins'] .mgmt-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: var(--space-2);
+  }
+
+  main[data-route-id='plugins'] .mgmt-metric {
+    grid-template-columns: 14px minmax(0, 1fr);
+    column-gap: 5px;
+  }
+
+  main[data-route-id='plugins'] .ui-button,
+  main[data-route-id='plugins'] .ui-icon-button,
+  main[data-route-id='plugins'] .ui-input,
+  main[data-route-id='plugins'] .ui-select__trigger,
+  main[data-route-id='plugins'] .ui-segmented__item,
+  main[data-route-id='plugins'] details > summary {
+    min-height: 44px;
+  }
+}
+
+@container paw-window (max-width: 900px) {
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-filters { grid-template-columns: minmax(210px, 1fr) minmax(130px, 170px); }
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-mode-filter { grid-column: 1 / -1; }
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-browser { grid-template-columns: minmax(240px, .9fr) minmax(300px, 1.1fr); }
+  main[data-route-id='plugins'][data-paw-os-app] .lifecycle-hooks { grid-template-columns: minmax(0, 1fr); }
+}
+
+@container paw-window (max-width: 680px) {
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-maintenance-entry,
+  main[data-route-id='plugins'][data-paw-os-app] .plugin-lifecycle__receipt,
+  main[data-route-id='plugins'][data-paw-os-app] .capability-precedence > header { align-items: stretch; flex-direction: column; }
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-filters,
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-browser,
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-browser[data-detail-open='true'],
+  main[data-route-id='plugins'][data-paw-os-app] .plugin-lifecycle__install,
+  main[data-route-id='plugins'][data-paw-os-app] .plugin-lifecycle__approval-facts > div,
+  main[data-route-id='plugins'][data-paw-os-app] .plugin-catalog__row,
+  main[data-route-id='plugins'][data-paw-os-app] .lifecycle-policy,
+  main[data-route-id='plugins'][data-paw-os-app] .lifecycle-policy__limits,
+  main[data-route-id='plugins'][data-paw-os-app] .capability-precedence dl > div { grid-template-columns: minmax(0, 1fr); }
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-mode-filter { grid-column: auto; }
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-mode-filter .ui-segmented { width: 100%; }
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-list { max-height: 320px; }
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-detail { min-height: 0; border-top: 1px solid var(--color-border); border-left: 0; }
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-detail--empty { display: none; }
+  main[data-route-id='plugins'][data-paw-os-app] .plugin-catalog__action { grid-column: auto; justify-content: stretch; }
+  main[data-route-id='plugins'][data-paw-os-app] .plugin-catalog__action .ui-button { width: 100%; }
+}
+
+/* UR-102 app-center-lifecycle semantic typography */
+main[data-route-id='plugins'][data-paw-os-app] :is(
+  .plugins-policy-disclosure > summary small,
+  .plugin-lifecycle__approval small,
+  .plugin-lifecycle__stages li,
+  .plugin-lifecycle__approval-facts dt,
+  .plugin-lifecycle__approval-facts dd,
+  .plugin-lifecycle__receipt small,
+  .lifecycle-audit small,
+  .capability-disclosure dt,
+  .capability-disclosure dd
+) { font-size: 13px; }
+main[data-route-id='plugins'][data-paw-os-app] :is(
+  .plugin-lifecycle__approval-heading strong,
+  .capability-disclosure h4,
+  .capability-disclosure summary
+) { font-size: 14px; }
+main[data-route-id='plugins'][data-paw-os-app] .capability-disclosure > p { font-size: 15px; }
+/* UR-102 app-center-lifecycle semantic typography end */
+
+/* A single installed Package should use the whole lifecycle measure. The
+ * shared App Center shell intentionally uses a two-column catalogue when
+ * several Packages are present; with one Package that leaves the title column
+ * at zero width and turns a name such as “时间线检查” into one character per
+ * line. Let the lone card span both tracks while preserving the multi-card
+ * catalogue layout. */
+.paw-desktop-root .paw-system-app[data-system-app='app-center'] .plugin-lifecycle__installed > .installed-plugin:only-child {
+  grid-column: 1 / -1;
+}
+
+/* ---------------------------------------------------------------------------
+ * Native App Center consoles — cool bright rounded PAWOS surface.
+ *
+ * Inside the PAWOS window, the titlebar and the App navigation already name
+ * the App and the current page, so each console is a rounded white card with
+ * one slim purpose heading instead of a repeated management-sheet header.
+ * Token fallbacks keep the same geometry readable outside the desktop shell.
+ * ------------------------------------------------------------------------ */
+
+main[data-route-id='plugins'][data-paw-os-app] .plugins-native-card {
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--paw-system-line, var(--color-border));
+  border-radius: 14px;
+  background: var(--paw-system-surface, var(--color-surface));
+  animation: plugins-card-arrive 320ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .plugins-native-card:nth-child(2) { animation-delay: 35ms; }
+main[data-route-id='plugins'][data-paw-os-app] .plugins-native-card:nth-child(3) { animation-delay: 70ms; }
+
+@keyframes plugins-card-arrive {
+  from { opacity: .72; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .plugins-native-card__head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 13px;
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .plugins-native-card__glyph {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--paw-system-accent-soft, var(--color-accent-subtle));
+  color: var(--paw-system-accent, var(--color-accent));
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .plugins-native-card__head h2 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  line-height: 1.3;
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .plugins-native-card__trailing {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .plugins-count {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--paw-system-fill, var(--color-surface-subtle));
+  font-size: 12px;
+}
+
+/* Capability browser inside the console: one rounded frame, soft detail
+   panel, pill selection accent — no square sheet rules. */
+main[data-route-id='plugins'][data-paw-os-app] .plugins-browser {
+  overflow: hidden;
+  border: 1px solid var(--paw-system-line, var(--color-border));
+  border-radius: 12px;
+  background: var(--paw-system-surface, var(--color-surface));
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .plugins-list__item {
+  border-bottom-color: var(--paw-system-line, var(--color-border));
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .plugins-detail {
+  border-left-color: var(--paw-system-line, var(--color-border));
+  background: var(--paw-system-fill, var(--color-surface-subtle));
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .plugins-detail__icon,
+main[data-route-id='plugins'][data-paw-os-app] .plugin-authoring-callout__icon {
+  border: 0;
+  border-radius: 10px;
+  background: var(--paw-system-accent-soft, var(--color-accent-subtle));
+  color: var(--paw-system-accent, var(--color-accent));
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .plugins-detail__capabilities li {
+  border-color: var(--paw-system-line, var(--color-border));
+  border-radius: 999px;
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .capability-precedence {
+  border-left-color: var(--paw-system-accent, var(--color-accent));
+  border-radius: 10px;
+  background: var(--paw-system-accent-soft, var(--color-accent-subtle));
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .capability-default-field {
+  border: 0;
+  border-radius: 10px;
+  background: var(--paw-system-fill, var(--color-surface-subtle));
+}
+
+/* Package lifecycle: rounded approval stop, soft install divider, calm
+   authoring callout, and hoverable Package dossiers. */
+main[data-route-id='plugins'][data-paw-os-app] .plugin-lifecycle__approval { border-radius: 12px; }
+
+main[data-route-id='plugins'][data-paw-os-app] .plugin-lifecycle__install {
+  padding: 14px 0 0;
+  border-top: 1px solid var(--paw-system-line, var(--color-border));
+  border-bottom: 0;
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .plugin-authoring-callout {
+  border: 0;
+  border-radius: 12px;
+  background: var(--paw-system-fill, var(--color-surface-subtle));
+}
+
+main[data-route-id='plugins'][data-paw-os-app] :is(.installed-plugin, .plugin-proposal) {
+  border-radius: 11px;
+  transition: border-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  main[data-route-id='plugins'][data-paw-os-app] :is(.installed-plugin, .plugin-proposal):hover {
+    border-color: color-mix(in srgb, var(--paw-system-accent, var(--color-accent)) 34%, var(--paw-system-line, var(--color-border)));
+    box-shadow: 0 4px 14px rgb(16 24 32 / 7%);
+  }
+}
+
+/* Automatic curation policies read as rounded fill rows instead of a ruled
+   table; the audit column keeps its quiet chronology. */
+main[data-route-id='plugins'][data-paw-os-app] .lifecycle-hooks__policies {
+  gap: 8px;
+  border-block: 0;
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .lifecycle-policy {
+  min-height: 0;
+  padding: 11px 13px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--paw-system-fill, var(--color-surface-subtle));
+}
+
+main[data-route-id='plugins'][data-paw-os-app] .mgmt-metrics {
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+}
+
+@container paw-window (max-width: 680px) {
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-native-card { padding: 13px 14px; }
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-native-card__head { margin-bottom: 10px; }
+  main[data-route-id='plugins'][data-paw-os-app] .installed-plugin__state { justify-content: start; grid-column: 1 / -1; }
+  main[data-route-id='plugins'][data-paw-os-app] .installed-plugin__actions .ui-button { flex: 1 1 auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main[data-route-id='plugins'][data-paw-os-app] .plugins-native-card { animation: none; }
+  main[data-route-id='plugins'][data-paw-os-app] :is(.installed-plugin, .plugin-proposal) { transition: none; }
+}

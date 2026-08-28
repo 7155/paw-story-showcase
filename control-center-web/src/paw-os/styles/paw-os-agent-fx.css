@@ -1,0 +1,1240 @@
+/* Current PAWOS Agent conversation projection.
+   This file only styles classes emitted by AgentTimeline's production `fx`
+   presentation. Workspace chrome, composer geometry and trace remain owned by
+   paw-os-agent-migrated-v1.css; shared rich renderers remain owned by agent.css. */
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'] .agent-turn {
+  padding: 0;
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'] .agent-turn + .agent-turn {
+  margin-top: 20px;
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'] .agent-assistant-turn {
+  margin-top: 0;
+  animation: none;
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'] .agent-assistant-turn__body,
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'] .agent-turn-sequence {
+  gap: 20px;
+}
+
+/* Session 上下文 chips：对话开篇的一块居中铭牌，两侧 hairline 像章节起始线。
+   一次性陈述工作区绑定与权限模式，随记录滚动，不占用固定视口
+   （UR-011 / PF-CM-007）。 */
+.paw-desktop-root .paw-chatfx .fx-context-chips {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0 22px;
+}
+
+.paw-desktop-root .paw-chatfx .fx-context-chips::before,
+.paw-desktop-root .paw-chatfx .fx-context-chips::after {
+  content: '';
+  height: 1px;
+  flex: 1 1 24px;
+  max-width: 120px;
+  background: linear-gradient(90deg, transparent, var(--paw-chat-border));
+}
+
+.paw-desktop-root .paw-chatfx .fx-context-chips::after {
+  background: linear-gradient(90deg, var(--paw-chat-border), transparent);
+}
+
+.paw-desktop-root .paw-chatfx .fx-context-chip {
+  display: inline-flex;
+  overflow: hidden;
+  max-width: 55%;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 11px 3px 9px;
+  border: 1px solid var(--paw-chat-border);
+  border-radius: 999px;
+  color: var(--paw-chat-text-secondary);
+  background: var(--paw-chat-surface);
+  box-shadow: 0 1px 2px rgb(24 32 43 / 4%);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.paw-desktop-root .paw-chatfx .fx-context-chip > .paw-mark {
+  margin-inline-start: -1px;
+  color: var(--paw-chat-text-tertiary);
+}
+
+.paw-desktop-root .paw-chatfx .fx-context-chip__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.paw-desktop-root .paw-chatfx .fx-context-chip[data-tone='bound'] > .paw-mark { color: var(--paw-chat-ok); }
+.paw-desktop-root .paw-chatfx .fx-context-chip[data-tone='permission'] > .paw-mark { color: var(--paw-chat-warn); }
+
+/* Narrow Session window: the lead-in keeps stating the workspace binding and
+   the permission mode, but says it with marks only. The words move into the
+   accessibility tree instead of unmounting, and `title` keeps them one hover
+   away (PF-CM-009/017). */
+@container paw-session-workspace (max-width: 560px) {
+  .paw-desktop-root .paw-chatfx .fx-context-chip {
+    max-width: none;
+    padding: 5px;
+  }
+
+  .paw-desktop-root .paw-chatfx .fx-context-chip > .paw-mark {
+    margin-inline-start: 0;
+  }
+
+  .paw-desktop-root .paw-chatfx .fx-context-chip__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+.paw-desktop-root .paw-chatfx .paw-user-step {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 16px;
+}
+
+/* 用户气泡：冷钴微渐变 + hairline 边 + 收紧的右下角，像一枚落款。 */
+.paw-desktop-root .paw-chatfx .paw-user-message {
+  max-width: calc(95% - 40px);
+  margin-left: 70px;
+  padding: 8px 15px;
+  border: 1px solid color-mix(in srgb, var(--paw-chat-accent) 14%, var(--paw-chat-border));
+  border-radius: 18px 18px 6px 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--paw-chat-accent) 7%, #fff), var(--paw-chat-user-bubble));
+  box-shadow: 0 1px 2px rgb(24 32 43 / 4%), 0 5px 16px rgb(47 107 255 / 6%);
+  font-size: 16px;
+  line-height: 24px;
+  overflow-wrap: anywhere;
+}
+
+.paw-desktop-root .paw-chatfx .fx-user-meta,
+.paw-desktop-root .paw-chatfx .fx-meta {
+  color: var(--paw-chat-text-tertiary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.paw-desktop-root .paw-chatfx .fx-user-meta {
+  padding-right: 6px;
+  font-size: 12px;
+}
+
+.paw-desktop-root .paw-chatfx .paw-fx-message-shell {
+  position: relative;
+}
+
+.paw-desktop-root .paw-chatfx :is(.paw-user-step, .paw-fx-message-shell):hover .agent-message-actions,
+.paw-desktop-root .paw-chatfx :is(.paw-user-step, .paw-fx-message-shell):focus-within .agent-message-actions {
+  opacity: 1;
+}
+
+.paw-desktop-root .paw-chatfx .paw-assistant-text {
+  padding-inline: 4px;
+  color: var(--paw-chat-text);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.paw-desktop-root .paw-chatfx .paw-assistant-text .agent-markdown {
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work {
+  gap: 8px;
+}
+
+/* 折叠的工作胶囊：一枚白色仪表片——状态环、步数、耗时、折角，
+   打开对话第一眼即知这一轮做了什么、花了多久、结局如何。 */
+.paw-desktop-root .paw-chatfx .agent-turn-work__toggle {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 11px 5px 6px;
+  border: 1px solid var(--paw-chat-border);
+  border-radius: 999px;
+  color: var(--paw-chat-text-secondary);
+  background: var(--paw-chat-surface);
+  box-shadow: 0 1px 2px rgb(24 32 43 / 4%);
+  cursor: pointer;
+  text-align: left;
+  transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__toggle:hover {
+  border-color: color-mix(in srgb, var(--paw-chat-text-tertiary) 42%, var(--paw-chat-border));
+  color: var(--paw-chat-text);
+  background: var(--paw-chat-surface);
+  box-shadow: 0 1px 2px rgb(24 32 43 / 5%), 0 4px 12px rgb(24 32 43 / 6%);
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work[data-expanded] .agent-turn-work__toggle {
+  border-color: color-mix(in srgb, var(--paw-chat-accent) 26%, var(--paw-chat-border));
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--paw-chat-accent) 66%, transparent);
+  outline-offset: 2px;
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__state {
+  width: 18px;
+  height: 18px;
+  display: inline-grid;
+  flex: 0 0 18px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--paw-chat-ok);
+  background: color-mix(in srgb, var(--paw-chat-ok) 10%, transparent);
+}
+
+/* The settled-state dot must tell the truth: a failed turn folds behind a
+   danger tone and an aborted turn behind a neutral one, never the ok green. */
+.paw-desktop-root .paw-chatfx .agent-turn-work__toggle[data-status='failed'] .agent-turn-work__state {
+  color: var(--paw-chat-danger);
+  background: color-mix(in srgb, var(--paw-chat-danger) 10%, transparent);
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__toggle[data-status='aborted'] .agent-turn-work__state {
+  color: var(--paw-chat-text-tertiary);
+  background: color-mix(in srgb, var(--paw-chat-text-tertiary) 12%, transparent);
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__copy {
+  min-width: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__copy strong {
+  flex: 0 0 auto;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__copy small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--paw-chat-text-tertiary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__chevron {
+  flex: 0 0 auto;
+  color: var(--paw-chat-text-tertiary);
+  transition: transform 180ms var(--paw-chat-spring, cubic-bezier(.34, 1.4, .64, 1));
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work[data-expanded] .agent-turn-work__chevron {
+  transform: rotate(90deg);
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__sequence,
+.paw-desktop-root .paw-chatfx .agent-turn-work__result {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__reveal {
+  min-width: 0;
+  transition:
+    height 220ms var(--paw-chat-spring, cubic-bezier(.34, 1.4, .64, 1)),
+    opacity 150ms ease;
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__process {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__step {
+  position: relative;
+  min-width: 0;
+  padding-left: 24px;
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__step::before {
+  position: absolute;
+  top: 0;
+  bottom: -2px;
+  left: 8px;
+  width: 1px;
+  background: var(--paw-chat-border);
+  content: '';
+}
+
+/* 步骤节点：白心细环。已完成安静地留下刻度，运行中由实心蓝点接管。 */
+.paw-desktop-root .paw-chatfx .agent-turn-work__rail-dot {
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  left: 4px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid color-mix(in srgb, var(--paw-chat-text-tertiary) 62%, var(--paw-chat-border));
+  border-radius: 50%;
+  background: var(--paw-chat-surface);
+  box-shadow: 0 0 0 2px var(--paw-chat-surface);
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__step-body {
+  min-width: 0;
+  padding-block: 2px 7px;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity-node {
+  position: relative;
+  min-width: 0;
+  padding-left: 24px;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity-node::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 8px;
+  width: 1px;
+  background: var(--paw-chat-border);
+  content: '';
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity-node:last-child::before {
+  bottom: calc(100% - 14px);
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity-node::after {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  left: 4px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid color-mix(in srgb, var(--paw-chat-text-tertiary) 62%, var(--paw-chat-border));
+  border-radius: 50%;
+  background: var(--paw-chat-surface);
+  box-shadow: 0 0 0 2px var(--paw-chat-surface);
+  content: '';
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity-node[data-state='running']::after {
+  border-color: var(--paw-chat-accent);
+  background: var(--paw-chat-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--paw-chat-accent) 12%, transparent);
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity-node[data-state='waiting']::after {
+  border-color: var(--paw-chat-warn);
+  background: color-mix(in srgb, var(--paw-chat-warn) 18%, var(--paw-chat-surface));
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity-node[data-state='failed']::after {
+  border-color: var(--paw-chat-danger);
+  background: var(--paw-chat-danger);
+}
+
+/* One lane per step, not a plate per step. `fit-content` shrink-wrapped the
+   row to its shortest child, so the object of a call ("ego-browser …") was
+   ellipsised long before the lane ran out; the row now claims the full width
+   and spends it on the hint. */
+.paw-desktop-root .paw-chatfx .paw-activity {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: var(--paw-chat-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 4px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity:hover .paw-activity__row {
+  background: var(--paw-chat-surface-hover);
+}
+
+.paw-desktop-root .paw-chatfx .paw-chevron {
+  display: inline-grid;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--paw-chat-text-tertiary);
+  transition: transform 180ms var(--paw-chat-spring, cubic-bezier(.34, 1.4, .64, 1));
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity[aria-expanded='true'] .paw-chevron {
+  transform: rotate(90deg);
+}
+
+/* 工具家族小徽标：一行一个 14px 图形替代拥挤的文字前缀。
+   可访问名称仍是完整工具名（按钮 aria-label），徽标只做视觉分组。 */
+.paw-desktop-root .paw-chatfx .paw-activity__glyph {
+  display: inline-grid;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0;
+  color: var(--paw-chat-text-tertiary);
+  background: transparent;
+}
+
+/* 稳定的语义色族：协作、思考、委派、规划、审批在密集步骤树里靠色调分组。
+   色调只落在字形本身——每行一枚着色小方块会把步骤树变成贴纸墙，也会挤掉正文宽度。
+   运行中/等待/失败的状态色在下方以更高优先级覆盖。 */
+.paw-desktop-root .paw-chatfx .paw-activity__glyph[data-kind='thinking'],
+.paw-desktop-root .paw-chatfx .paw-activity__glyph[data-kind='collaboration'] {
+  color: var(--paw-chat-accent);
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__glyph[data-kind='delegation'] {
+  color: var(--paw-chat-violet);
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__glyph[data-kind='plan'] {
+  color: var(--paw-chat-ok);
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__glyph[data-kind='approval'] {
+  color: var(--paw-chat-warn);
+}
+
+/* 一行只读一行：标签在整条通道里不再收缩换行，超长工具名以省略号收口，
+   剩下的宽度全部留给提示。 */
+.paw-desktop-root .paw-chatfx .paw-activity__label {
+  overflow: hidden;
+  max-width: 28ch;
+  flex: 0 1 auto;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paw-desktop-root .paw-chatfx .fx-meta {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* 步骤的具体对象（文件、消息、结果摘要）随行内提示直接可扫读，
+   不必逐行展开披露（PF-CM-007）。提示占满标签之后的整条通道：
+   固定 46ch 上限在宽窗口里白白丢掉可读字数。 */
+.paw-desktop-root .paw-chatfx .paw-activity__hint {
+  overflow: hidden;
+  min-width: 0;
+  flex: 1 1 auto;
+  color: var(--paw-chat-text-tertiary);
+  font-size: 12.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity[data-state='running'] .paw-activity__glyph {
+  color: var(--paw-chat-accent);
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity[data-state='waiting'] .paw-activity__glyph {
+  color: var(--paw-chat-warn);
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity[data-state='failed'] .paw-activity__glyph {
+  color: var(--paw-chat-danger);
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__progress {
+  min-width: 118px;
+  display: inline-grid;
+  grid-template-columns: minmax(54px, 82px) auto;
+  align-items: center;
+  gap: 6px;
+  margin-left: 3px;
+  color: var(--paw-chat-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__progress-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paw-chat-text-tertiary) 14%, transparent);
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__progress-track > i {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: var(--paw-chat-accent);
+  transform: scaleX(var(--paw-activity-progress, 0));
+  transform-origin: left center;
+  /* Same truth rule as .fx-track: settle onto the real ratio, no overshoot. */
+  transition: transform 500ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__progress[data-state='completed'] .paw-activity__progress-track > i {
+  background: var(--paw-chat-ok);
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__progress[data-state='failed'] .paw-activity__progress-track > i {
+  background: var(--paw-chat-danger);
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__progress > small {
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__detail {
+  margin: 0 0 0 20px;
+  color: var(--paw-chat-text-secondary);
+  font-size: 13px;
+  transition:
+    height 220ms var(--paw-chat-spring, cubic-bezier(.34, 1.4, .64, 1)),
+    opacity 150ms ease,
+    margin 200ms ease;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__detail > .fx-inner {
+  min-height: 0;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__detail .agent-activity-row[data-summary-hidden] {
+  padding-left: 0;
+  border-bottom: 0;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__detail .agent-activity-row[data-summary-hidden]::before,
+.paw-desktop-root .paw-chatfx .paw-activity__detail .agent-activity-row[data-summary-hidden] > summary {
+  display: none;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__detail .agent-activity-row[data-summary-hidden] .agent-activity-row__details {
+  padding: 0;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity__detail:is([data-state='opening'], [data-state='open']) {
+  margin: 6px 0 4px 20px;
+}
+
+.paw-desktop-root .paw-chatfx .paw-activity[data-state='running'] .paw-activity__label {
+  color: transparent;
+  background:
+    linear-gradient(
+      100deg,
+      var(--paw-chat-text-secondary) 10%,
+      var(--paw-chat-text-secondary) 36%,
+      var(--paw-chat-accent) 50%,
+      var(--paw-chat-text-secondary) 64%,
+      var(--paw-chat-text-secondary) 90%
+    );
+  background-clip: text;
+  background-size: 230% 100%;
+  -webkit-background-clip: text;
+  animation: paw-agent-fx-text-sweep 1.85s ease-in-out infinite;
+}
+
+/* 状态是一个词，不是一枚徽章。填充胶囊在每一行都加了一圈边缘与 18px 内边距，
+   密集步骤树里既是卡片语汇，也直接吃掉可读宽度；颜色与行星标记已足够表达状态。 */
+.paw-desktop-root .paw-chatfx .fx-pill {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 0 2px;
+  border-radius: 0;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.paw-desktop-root .paw-chatfx .fx-pill i {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  border-radius: 50%;
+}
+
+.paw-desktop-root .paw-chatfx .fx-pill.ok {
+  color: var(--paw-chat-ok);
+}
+
+.paw-desktop-root .paw-chatfx .fx-pill.ok i { background: var(--paw-chat-ok); }
+
+.paw-desktop-root .paw-chatfx .fx-pill.run {
+  color: var(--paw-chat-accent);
+}
+
+.paw-desktop-root .paw-chatfx .fx-pill.run i {
+  background: var(--paw-chat-accent);
+  animation: paw-agent-fx-pulse 1.7s ease-in-out infinite;
+}
+
+.paw-desktop-root .paw-chatfx .fx-pill.wait {
+  color: var(--paw-chat-warn);
+}
+
+.paw-desktop-root .paw-chatfx .fx-pill.wait i { background: var(--paw-chat-warn); }
+
+.paw-desktop-root .paw-chatfx .fx-pill.danger {
+  color: var(--paw-chat-danger);
+}
+
+.paw-desktop-root .paw-chatfx .fx-pill.danger i { background: var(--paw-chat-danger); }
+
+/* 子 Agent 回执：紫调区分「另一个 Agent 在后台替你完成」与父级自身工具调用。 */
+.paw-desktop-root .paw-chatfx .fx-pill.vio {
+  color: var(--paw-chat-violet);
+}
+
+.paw-desktop-root .paw-chatfx .fx-pill.vio i { background: var(--paw-chat-violet); }
+
+@keyframes paw-agent-fx-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .35; }
+}
+
+/* Conversation planet marks on the cold-white conversation face.
+   The mark itself is declared once in agent.css; here it only inherits the
+   Session palette (cobalt accent, warm wait, cold red) so a Tool pill and a
+   thinking bar read as the same body under the same light. */
+.paw-desktop-root .paw-chatfx .paw-conv-planet {
+  --paw-planet-core: var(--paw-chat-accent);
+  --paw-planet-shade: color-mix(in srgb, var(--paw-planet-core) 50%, #0b1220);
+}
+
+.paw-desktop-root .paw-chatfx .paw-conv-planet[data-state='waiting'] { --paw-planet-core: var(--paw-chat-warn); }
+.paw-desktop-root .paw-chatfx .paw-conv-planet[data-state='failed'] { --paw-planet-core: var(--paw-chat-danger); }
+.paw-desktop-root .paw-chatfx .paw-conv-planet[data-state='done'] { --paw-planet-core: var(--paw-chat-ok); }
+
+.paw-desktop-root .paw-chatfx .paw-conv-planet[data-state='idle'] {
+  --paw-planet-core: color-mix(in srgb, var(--paw-chat-text-tertiary) 70%, var(--paw-chat-surface));
+  --paw-planet-shade: color-mix(in srgb, var(--paw-chat-text-tertiary) 92%, #0b1220);
+}
+
+/* In a status pill the tone is the authority on colour and the planet is the
+   authority on motion: an identical body reads ok / run / wait / danger /
+   subagent-violet without a second vocabulary of coloured dots. */
+.paw-desktop-root .paw-chatfx :is(.fx-pill, .agent-fx-pill) .paw-conv-planet { margin-inline-end: 2px; }
+.paw-desktop-root .paw-chatfx :is(.fx-pill.ok, .agent-fx-pill[data-tone='ok']) .paw-conv-planet { --paw-planet-core: var(--paw-chat-ok); }
+.paw-desktop-root .paw-chatfx :is(.fx-pill.run, .agent-fx-pill[data-tone='run']) .paw-conv-planet { --paw-planet-core: var(--paw-chat-accent); }
+.paw-desktop-root .paw-chatfx :is(.fx-pill.wait, .agent-fx-pill[data-tone='wait'], .agent-fx-pill[data-tone='warn']) .paw-conv-planet { --paw-planet-core: var(--paw-chat-warn); }
+.paw-desktop-root .paw-chatfx :is(.fx-pill.danger, .agent-fx-pill[data-tone='danger']) .paw-conv-planet { --paw-planet-core: var(--paw-chat-danger); }
+.paw-desktop-root .paw-chatfx .fx-pill.vio .paw-conv-planet { --paw-planet-core: var(--paw-chat-violet); }
+
+/* 思考/执行条上的行星是这条胶囊里唯一的动源，给它一点呼吸边距。 */
+.paw-desktop-root .paw-chatfx .agent-assistant-pending > .paw-conv-planet { margin-inline: 3px 1px; }
+.paw-desktop-root .paw-chatfx .agent-reasoning-feed > .paw-conv-planet { margin-inline-end: 1px; }
+
+/* 轨迹树的节点圆点本身就是一颗小球：跑起来的那颗换上受光渐变并呼吸，
+   停下来的节点保持原来的空心圆环，读者一眼能找到「现在在哪」。 */
+.paw-desktop-root .paw-chatfx .paw-activity-node[data-state='running']::after {
+  border-color: color-mix(in srgb, var(--paw-chat-accent) 70%, transparent);
+  background:
+    radial-gradient(circle at 32% 27%, rgb(255 255 255 / 86%) 0 14%, rgb(255 255 255 / 0%) 46%),
+    radial-gradient(circle at 76% 82%, rgb(8 16 34 / 30%) 0 16%, rgb(8 16 34 / 0%) 60%),
+    radial-gradient(circle at 42% 38%, var(--paw-chat-accent) 0 54%, color-mix(in srgb, var(--paw-chat-accent) 50%, #0b1220) 100%);
+}
+
+@keyframes paw-agent-fx-text-sweep {
+  0%, 18% { background-position: 100% 50%; }
+  82%, 100% { background-position: -100% 50%; }
+}
+
+.paw-desktop-root .paw-chatfx .fx-approval {
+  position: relative;
+  overflow: hidden;
+  margin: 4px 0 4px 20px;
+  border: 1px solid var(--paw-chat-border);
+  border-radius: 12px;
+  background: var(--paw-chat-surface);
+  box-shadow: 0 1px 2px rgb(24 32 43 / 4%), 0 8px 22px rgb(24 32 43 / 6%);
+}
+
+.paw-desktop-root .paw-chatfx .fx-approval::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--paw-chat-warn);
+  content: '';
+}
+
+.paw-desktop-root .paw-chatfx .fx-approval[data-state='approved']::before { background: var(--paw-chat-ok); }
+.paw-desktop-root .paw-chatfx .fx-approval[data-state='rejected']::before { background: var(--paw-chat-danger); }
+
+/* 等待审批：左侧警戒条安静呼吸、卡面铺一层极浅暖底。
+   用光提请注意，不用弹跳打断阅读。 */
+.paw-desktop-root .paw-chatfx .fx-approval[data-state='pending'] {
+  border-color: color-mix(in srgb, var(--paw-chat-warn) 30%, var(--paw-chat-border));
+  background: color-mix(in srgb, var(--paw-chat-warn) 3%, var(--paw-chat-surface));
+}
+
+.paw-desktop-root .paw-chatfx .fx-approval[data-state='pending']::before {
+  animation: paw-fx-approval-breathe 2.2s ease-in-out infinite;
+}
+
+@keyframes paw-fx-approval-breathe {
+  0%, 100% { opacity: 1; box-shadow: 4px 0 12px -2px color-mix(in srgb, var(--paw-chat-warn) 38%, transparent); }
+  50% { opacity: .55; box-shadow: none; }
+}
+
+/* 真实进行中的进度卡：钴色描边随状态点亮，与 composer 光环同源。 */
+.paw-desktop-root .paw-chatfx .fx-progress-card[data-state='running'] {
+  border-color: color-mix(in srgb, var(--paw-chat-accent) 26%, var(--paw-chat-border));
+  box-shadow: 0 1px 2px rgb(24 32 43 / 4%), 0 6px 18px rgb(47 107 255 / 7%);
+}
+
+.paw-desktop-root .paw-chatfx .fx-approval .bd {
+  padding: 12px 16px 13px;
+  color: var(--paw-chat-text-secondary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.paw-desktop-root .paw-chatfx .fx-approval__title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.paw-desktop-root .paw-chatfx .fx-approval__title b { color: var(--paw-chat-text); font-size: 14px; }
+.paw-desktop-root .paw-chatfx .fx-approval .bd > p { margin: 4px 0 0; }
+.paw-desktop-root .paw-chatfx .fx-approval .ops { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+.paw-desktop-root .paw-chatfx .fx-btn {
+  padding: 6px 15px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 150ms var(--paw-chat-spring, cubic-bezier(.34, 1.4, .64, 1)), background-color 100ms ease;
+}
+
+.paw-desktop-root .paw-chatfx .fx-btn:active { transform: scale(.96); }
+.paw-desktop-root .paw-chatfx .fx-btn.primary { color: #fff; background: var(--paw-chat-accent); }
+.paw-desktop-root .paw-chatfx .fx-btn.ghost { color: var(--paw-chat-text); background: var(--paw-chat-surface-hover); }
+
+.paw-desktop-root .paw-chatfx .paw-tool-card {
+  overflow: hidden;
+  border: 1px solid var(--paw-chat-border);
+  border-radius: var(--paw-chat-radius-tool);
+  background: var(--paw-chat-surface);
+}
+
+.paw-desktop-root .paw-chatfx .paw-tool-panel { padding: 8px 16px 12px; }
+
+/* ================= Detail-panel craft (paper-card removal) =================
+   迁移稿把每个嵌套证据面板都套上独立白纸卡（20px 二级缩进 + 圆角 + 投影），
+   三层披露就叠三张纸。FX 签收稿收敛为一层安静的细线容器：面板贴着步骤轨
+   排布、头部只用发丝线分隔，原始 JSON 保持第三层的深色折叠面板。 */
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx .agent-activity-row__details {
+  margin: 4px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx :is(
+  .agent-tool-result-panel,
+  .agent-tool-result-view
+) {
+  margin: 8px 0 0;
+  border: 1px solid var(--paw-chat-border);
+  border-radius: var(--paw-chat-radius-tool);
+  background: var(--paw-chat-surface);
+  box-shadow: none;
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx .agent-tool-result-panel[data-tone='error'] {
+  border-color: color-mix(in srgb, var(--paw-chat-danger) 30%, var(--paw-chat-border));
+  background: color-mix(in srgb, var(--paw-chat-danger) 4%, var(--paw-chat-surface));
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx :is(
+  .agent-tool-result-panel__header,
+  .agent-tool-result-view > header
+) {
+  min-height: 34px;
+  padding: 5px 8px 5px 12px;
+  border-bottom: 1px solid var(--paw-chat-border);
+  color: var(--paw-chat-text-secondary);
+  background: var(--paw-chat-surface-subtle);
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx .agent-activity-row__source-panel {
+  padding: 6px 0 6px 10px;
+  border-left: 2px solid var(--paw-chat-border);
+  background: transparent;
+}
+.paw-desktop-root .paw-chatfx .fx-progress-card { margin: 4px 0 4px 20px; }
+.paw-desktop-root .paw-chatfx .fx-progress-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.paw-desktop-root .paw-chatfx .fx-progress__detail { margin: 2px 0 4px; color: var(--paw-chat-text-secondary); font-size: 13px; }
+
+.paw-desktop-root .paw-chatfx .fx-track {
+  height: 5px;
+  overflow: hidden;
+  margin: 10px 0 6px;
+  border-radius: 999px;
+  background: var(--paw-chat-surface-hover);
+}
+
+.paw-desktop-root .paw-chatfx .fx-track .fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  /* Real-ratio fills never overshoot: an eager spring would briefly claim
+     more progress than the reducer reported. */
+  background: var(--paw-chat-accent);
+  transition: width 500ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.paw-desktop-root .paw-chatfx .fx-runrow { display: flex; align-items: center; gap: 10px; }
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx .agent-inline-diff {
+  width: 100%;
+  max-width: 100%;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx .agent-inline-diff > summary {
+  display: flex;
+  min-height: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 6px;
+  color: var(--paw-chat-text-secondary);
+  background: transparent;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx .agent-inline-diff > summary:hover {
+  background: var(--paw-chat-surface-hover);
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx .agent-inline-diff > summary .agent-insert-icon {
+  display: none;
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx .agent-inline-diff > summary > svg:last-child {
+  order: -2;
+  margin-left: 0;
+  color: var(--paw-chat-text-tertiary);
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx .agent-inline-diff > .agent-diff-preview {
+  overflow: hidden;
+  margin: 4px 0 4px 20px;
+  border: 1px solid var(--paw-chat-border);
+  border-radius: var(--paw-chat-radius-tool);
+  background: var(--paw-chat-surface);
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx :is(
+  .agent-diff-preview > header,
+  .agent-diff-file > header
+) {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--paw-chat-border);
+  color: var(--paw-chat-text-secondary);
+  background: var(--paw-chat-surface-subtle);
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx .agent-diff-file { border: 0; }
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx .agent-diff-file table { width: 100%; border-collapse: collapse; }
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx tr[data-kind='add'] :is(.agent-diff-code, .agent-diff-gutter) {
+  color: var(--paw-chat-ok);
+  background: color-mix(in srgb, var(--paw-chat-ok) 7%, transparent);
+}
+
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'].paw-chatfx tr[data-kind='remove'] :is(.agent-diff-code, .agent-diff-gutter) {
+  color: var(--paw-chat-danger);
+  background: color-mix(in srgb, var(--paw-chat-danger) 7%, transparent);
+}
+
+/* ================= Conversation-tree craft (baseline alignment) =================
+   Rail geometry, keyboard affordance and live-state presence for the step tree.
+   Only projects real reducer state; no synthetic markers. */
+
+/* The step rail spans dot-to-dot. Without the trim the first node carried a
+   floating line stub above its dot up to the group's top edge. */
+.paw-desktop-root .paw-chatfx .paw-activity-node:first-child::before {
+  top: 14px;
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__process > .agent-turn-work__step:first-child::before {
+  top: 12px;
+}
+
+/* Activity rows and the turn-work toggle are real buttons: keyboard readers
+   get the same ring the composer controls use, and a press answers in kind. */
+.paw-desktop-root .paw-chatfx .paw-activity:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--paw-chat-accent) 66%, transparent);
+  outline-offset: 2px;
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__toggle:active,
+.paw-desktop-root .paw-chatfx .paw-activity:active .paw-activity__row {
+  transform: scale(.985);
+}
+
+.paw-desktop-root .paw-chatfx .agent-turn-work__toggle,
+.paw-desktop-root .paw-chatfx .paw-activity__row {
+  transform-origin: left center;
+  transition: transform 150ms var(--paw-chat-spring, cubic-bezier(.34, 1.4, .64, 1)), background-color 140ms ease, color 140ms ease;
+}
+
+/* 滚动时指针静止、行在动：每一行经过指针都会点亮再熄灭，读起来就是「疯狂闪烁」。
+   时间线停下之前不回应 hover，也不留过渡尾巴。 */
+.paw-desktop-root .paw-chatfx .agent-timeline[data-scrolling] :is(.paw-activity__row, .agent-turn-work__toggle) {
+  transition: none;
+}
+
+.paw-desktop-root .paw-chatfx .agent-timeline[data-scrolling] .paw-activity:hover .paw-activity__row,
+.paw-desktop-root .paw-chatfx .agent-timeline[data-scrolling] .agent-turn-work__toggle:hover {
+  background: transparent;
+}
+
+/* Inline diff/code disclosures inside the tree answer with the same spring
+   as the step chevrons, so every fold in the conversation shares one voice. */
+.paw-desktop-root .paw-chatfx .agent-rich-collapsible__chevron {
+  transition: transform 180ms var(--paw-chat-spring, cubic-bezier(.34, 1.4, .64, 1));
+}
+
+/* A running step's dot breathes a soft accent ring, so the live position in
+   the tree is findable at a glance even while collapsed rows stay quiet. */
+.paw-desktop-root .paw-chatfx .paw-activity-node[data-state='running']::after {
+  animation: paw-agent-fx-dot-breathe 1.9s ease-in-out infinite;
+}
+
+@keyframes paw-agent-fx-dot-breathe {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--paw-chat-accent) 14%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--paw-chat-accent) 5%, transparent); }
+}
+
+/* ================= Conversation states (deep pass) =================
+   等待条、空态、加载态、回到最新——同一张冷白工作面上的四件小器物。
+   只投影真实 reducer/加载状态，不虚构进度。 */
+
+/* 正在工作：内容宽度的轻量状态行。只有状态环运动；文字、背景和省略号
+   都保持静止，避免高频 rerender 看起来像一张反复闪烁的卡片。 */
+.paw-desktop-root .paw-chatfx .agent-assistant-pending {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 4px;
+  padding: 3px 4px;
+  border: 0;
+  border-radius: 5px;
+  color: var(--paw-chat-text-secondary);
+  background: transparent;
+  box-shadow: none;
+}
+
+.paw-desktop-root .paw-chatfx .agent-assistant-pending::after {
+  content: none;
+}
+
+.paw-desktop-root .paw-chatfx .agent-assistant-pending > svg {
+  color: var(--paw-chat-accent);
+}
+
+.paw-desktop-root .paw-chatfx .agent-assistant-pending > span {
+  display: inline-flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.paw-desktop-root .paw-chatfx .agent-assistant-pending strong {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: 7px;
+  color: var(--paw-chat-text);
+  background: none;
+  animation: none;
+  font-size: 13.5px;
+  font-weight: 620;
+}
+
+.paw-desktop-root .paw-chatfx .agent-assistant-pending time {
+  color: var(--paw-chat-text-tertiary);
+  background: none;
+  -webkit-text-fill-color: var(--paw-chat-text-tertiary);
+  font: 550 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.paw-desktop-root .paw-chatfx .agent-assistant-pending small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--paw-chat-text-tertiary);
+  font-size: 12.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paw-desktop-root .paw-chatfx .agent-working-dots b {
+  background: var(--paw-chat-accent);
+}
+
+.paw-desktop-root .paw-chatfx .agent-working-dots { display: none; }
+
+/* Failure is a recoverable transcript annotation, not a second dialog. The
+   thin signal rule and clear actions retain urgency without boxing the copy. */
+.paw-desktop-root .paw-session-workspace__conversation[data-message-flow='separated'] .agent-turn__failure {
+  display: inline-grid;
+  width: fit-content;
+  max-width: min(100%, 620px);
+  min-height: 0;
+  margin: 4px 0 8px 20px;
+  padding: 6px 7px;
+  border: 0;
+  border-left: 2px solid var(--paw-chat-danger);
+  border-radius: 0 5px 5px 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* 空态：居中的邀请卡——环形图标、一句话主张、可行动的下一步。 */
+.paw-desktop-root .paw-chatfx .agent-timeline-empty,
+.paw-desktop-root .paw-chatfx .agent-timeline-loading {
+  width: min(100% - 32px, 440px);
+  min-height: 0;
+  margin: clamp(48px, 16cqh, 150px) auto 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 34px 28px 30px;
+  border: 1px solid var(--paw-chat-border);
+  border-radius: 16px;
+  background: var(--paw-chat-surface);
+  box-shadow: 0 1px 2px rgb(24 32 43 / 4%), 0 18px 44px rgb(24 32 43 / 6%);
+  text-align: center;
+}
+
+.paw-desktop-root .paw-chatfx :is(.agent-timeline-empty, .agent-timeline-loading) > svg {
+  width: 46px;
+  height: 46px;
+  margin-bottom: 8px;
+  padding: 13px;
+  border: 1px solid color-mix(in srgb, var(--paw-chat-accent) 22%, var(--paw-chat-border));
+  border-radius: 50%;
+  color: var(--paw-chat-accent);
+  background: color-mix(in srgb, var(--paw-chat-accent) 6%, var(--paw-chat-surface));
+}
+
+.paw-desktop-root .paw-chatfx :is(.agent-timeline-empty, .agent-timeline-loading) > span {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+}
+
+.paw-desktop-root .paw-chatfx :is(.agent-timeline-empty, .agent-timeline-loading) strong {
+  color: var(--paw-chat-text);
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -.01em;
+}
+
+.paw-desktop-root .paw-chatfx :is(.agent-timeline-empty, .agent-timeline-loading) small {
+  max-width: 30ch;
+  color: var(--paw-chat-text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* 回到最新：悬浮小药丸，落在 Composer 上方，随手可归位。 */
+.paw-desktop-root .paw-chatfx .agent-jump-latest {
+  border: 1px solid var(--paw-chat-border);
+  border-radius: 999px;
+  color: var(--paw-chat-text-secondary);
+  background: var(--paw-chat-surface);
+  box-shadow: 0 1px 2px rgb(24 32 43 / 6%), 0 10px 26px rgb(24 32 43 / 12%);
+  font-weight: 600;
+}
+
+.paw-desktop-root .paw-chatfx .agent-jump-latest:hover {
+  color: var(--paw-chat-text);
+  background: var(--paw-chat-surface);
+  box-shadow: 0 1px 2px rgb(24 32 43 / 7%), 0 12px 30px rgb(24 32 43 / 15%);
+}
+
+.paw-desktop-root .paw-chatfx .agent-jump-latest > svg {
+  color: var(--paw-chat-accent);
+}
+
+@container paw-session-workspace (max-width: 520px) {
+  .paw-desktop-root .paw-chatfx .paw-user-message {
+    max-width: calc(100% - 18px);
+    margin-left: 18px;
+  }
+
+  .paw-desktop-root .paw-chatfx :is(.fx-approval, .fx-progress-card) {
+    margin-left: 0;
+  }
+
+  .paw-desktop-root .paw-chatfx .agent-turn-work__copy {
+    gap: 5px;
+  }
+
+  .paw-desktop-root .paw-chatfx .agent-turn-work__copy small {
+    max-width: min(52vw, 220px);
+  }
+
+  .paw-desktop-root .paw-chatfx .paw-activity__progress {
+    min-width: 62px;
+    grid-template-columns: minmax(54px, 72px);
+  }
+
+  .paw-desktop-root .paw-chatfx .paw-activity__progress > small {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paw-desktop-root .paw-chatfx :is(.agent-turn-work__chevron, .agent-turn-work__reveal) {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paw-desktop-root .paw-chatfx :is(.paw-chevron, .paw-activity__detail, .paw-activity__progress-track > i, .fx-btn, .fx-track .fill, .agent-turn-work__toggle, .paw-activity__row, .agent-rich-collapsible__chevron) {
+    transition: none;
+  }
+
+  .paw-desktop-root .paw-chatfx :is(.agent-turn-work__toggle:active, .paw-activity:active .paw-activity__row) {
+    transform: none;
+  }
+
+  .paw-desktop-root .paw-chatfx .fx-pill.run i,
+  .paw-desktop-root .paw-chatfx .paw-activity-node[data-state='running']::after,
+  .paw-desktop-root .paw-chatfx .paw-conv-planet__body,
+  .paw-desktop-root .paw-chatfx .paw-conv-planet__orbit,
+  .paw-desktop-root .paw-chatfx .fx-approval[data-state='pending']::before {
+    animation: none;
+  }
+
+  .paw-desktop-root .paw-chatfx .paw-activity[data-state='running'] .paw-activity__label {
+    color: var(--paw-chat-text-secondary);
+    background: none;
+    animation: none;
+  }
+
+  .paw-desktop-root .paw-chatfx .agent-assistant-pending strong {
+    color: var(--paw-chat-text);
+    background: none;
+    animation: none;
+  }
+}
+
+:root[data-reduce-motion='true'] .paw-desktop-root .paw-chatfx .paw-activity[data-state='running'] .paw-activity__label {
+  color: var(--paw-chat-text-secondary);
+  background: none;
+  animation: none;
+}
+
+:root[data-reduce-motion='true'] .paw-desktop-root .paw-chatfx .agent-assistant-pending strong {
+  color: var(--paw-chat-text);
+  background: none;
+  animation: none;
+}
+
+:root[data-reduce-motion='true'] .paw-desktop-root .paw-chatfx :is(
+  .agent-turn-work__chevron,
+  .agent-turn-work__reveal,
+  .paw-chevron,
+  .paw-activity__detail,
+  .agent-turn-work__toggle,
+  .paw-activity__row
+) {
+  transition: none;
+}
+
+:root[data-reduce-motion='true'] .paw-desktop-root .paw-chatfx :is(
+  .agent-turn-work__toggle:active,
+  .paw-activity:active .paw-activity__row
+) {
+  transform: none;
+}
+
+:root[data-reduce-motion='true'] .paw-desktop-root .paw-chatfx .paw-activity-node[data-state='running']::after,
+:root[data-reduce-motion='true'] .paw-desktop-root .paw-chatfx .paw-conv-planet__body,
+:root[data-reduce-motion='true'] .paw-desktop-root .paw-chatfx .paw-conv-planet__orbit,
+:root[data-reduce-motion='true'] .paw-desktop-root .paw-chatfx .fx-approval[data-state='pending']::before {
+  animation: none;
+}
+
+@media (forced-colors: active) {
+  .paw-desktop-root .paw-chatfx .paw-activity[data-state='running'] .paw-activity__label,
+  .paw-desktop-root .paw-chatfx .agent-assistant-pending strong {
+    color: CanvasText;
+    background: none;
+    animation: none;
+  }
+}

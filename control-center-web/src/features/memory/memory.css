@@ -1,0 +1,2800 @@
+/* Memory App — one stylesheet owner for the governed second brain.
+   The pipeline 来源 -> 整理 -> 记忆 -> 主题 is the App's spine: it is always
+   visible, carries the live counts, and is the primary navigation between
+   the memory layers. Every other surface (catalog, references, role books,
+   curation, relations, preferences) hangs off one of its stages.
+
+   Order: identity tokens -> app frame -> pipeline -> view tabs -> catalog ->
+   lineage & references -> reference dialog -> role books -> curation ->
+   relations -> preferences -> edit dialog -> PAWOS native frame ->
+   semantic type roles -> interaction states -> motion -> responsive.
+
+   Timeline internals live in activity-timeline.css; this file only arranges
+   the timeline within the Memory frame. Shared mgmt-* grammar is owned by
+   management.css; only Memory-scoped composition may override it here. */
+
+main[data-route-id='memory'] {
+  /* The App root is the responsive container. Every Memory surface — window
+     chrome included — reads the width of the PAWOS window it was given, so a
+     resize reflows the App without the browser viewport ever being asked. */
+  container: memory-app / inline-size;
+
+  --memory-signal: #d94f8b;
+  --memory-signal-strong: #b82d70;
+  --memory-signal-soft: rgb(217 79 139 / .1);
+  --memory-gold: #b66a0b;
+  --memory-line: rgb(32 38 49 / .08);
+  --memory-line-soft: rgb(32 38 49 / .06);
+
+  /* Layer identities. Every memory layer keeps its own hue so one glance
+     says where you are: raw amber evidence warms into working gold, the
+     brand pink of organized memory, and the settled indigo of long-term
+     topics; the satellite views (partners, timeline, relations,
+     preferences) each hold their own register around that spine. */
+  --memory-evidence: #b45309;
+  --memory-evidence-strong: #92400e;
+  --memory-evidence-soft: rgb(180 83 9 / .1);
+  --memory-organize: var(--memory-gold);
+  --memory-organize-strong: #8a5108;
+  --memory-organize-soft: rgb(182 106 11 / .12);
+  --memory-atoms: #d94f8b;
+  --memory-atoms-strong: #b82d70;
+  --memory-atoms-soft: rgb(217 79 139 / .1);
+  --memory-books: #4f46e5;
+  --memory-books-strong: #4338ca;
+  --memory-books-soft: rgb(79 70 229 / .09);
+  --memory-partner: #7c3aed;
+  --memory-partner-strong: #6d28d9;
+  --memory-partner-soft: rgb(124 58 237 / .09);
+  --memory-time: #2563eb;
+  --memory-time-strong: #1d4ed8;
+  --memory-time-soft: rgb(37 99 235 / .09);
+  --memory-relations: #0d9488;
+  --memory-relations-strong: #0f766e;
+  --memory-relations-soft: rgb(13 148 136 / .1);
+  --memory-calm: #15803d;
+  --memory-calm-strong: #166534;
+  --memory-calm-soft: rgb(21 128 61 / .09);
+
+  /* One PAWOS UI system: retire the legacy near-square "paper" corner scale
+     (2/3/4px) for every consumer of --radius-1/2/3 inside Memory, including
+     shared .ui-* primitives rendered on this route. Memory now reads the
+     same rounded control/menu/panel geometry as the rest of the OS instead
+     of a second, sharper corner language. */
+  --radius-1: 6px;
+  --radius-2: 8px;
+  --radius-3: 12px;
+}
+
+/* ============================== layer identities ==============================
+   The active layer re-points the shared signal tokens, so every rule that
+   already speaks var(--memory-signal) inherits the layer's personality
+   without repeating itself. Catalog layers key off data-layer; the other
+   views key off data-view. */
+
+.memory-second-brain[data-view='catalog'][data-layer='evidence'] {
+  --memory-signal: var(--memory-evidence);
+  --memory-signal-strong: var(--memory-evidence-strong);
+  --memory-signal-soft: var(--memory-evidence-soft);
+}
+
+.memory-second-brain[data-view='catalog'][data-layer='books'] {
+  --memory-signal: var(--memory-books);
+  --memory-signal-strong: var(--memory-books-strong);
+  --memory-signal-soft: var(--memory-books-soft);
+}
+
+.memory-second-brain[data-view='roleBooks'] {
+  --memory-signal: var(--memory-partner);
+  --memory-signal-strong: var(--memory-partner-strong);
+  --memory-signal-soft: var(--memory-partner-soft);
+}
+
+/* Timeline internals and the relations canvas read the shared accent, so the
+   layer hue also has to travel through --color-accent inside these views. */
+.memory-second-brain[data-view='timeline'] {
+  --memory-signal: var(--memory-time);
+  --memory-signal-strong: var(--memory-time-strong);
+  --memory-signal-soft: var(--memory-time-soft);
+  --color-accent: var(--memory-time);
+  --color-accent-hover: var(--memory-time-strong);
+  --color-accent-pressed: var(--memory-time-strong);
+  --color-accent-strong: var(--memory-time-strong);
+  --color-accent-soft: var(--memory-time-soft);
+}
+
+.memory-second-brain[data-view='relations'] {
+  --memory-signal: var(--memory-relations);
+  --memory-signal-strong: var(--memory-relations-strong);
+  --memory-signal-soft: var(--memory-relations-soft);
+  --color-accent: var(--memory-relations);
+  --color-accent-hover: var(--memory-relations-strong);
+  --color-accent-pressed: var(--memory-relations-strong);
+  --color-accent-strong: var(--memory-relations-strong);
+  --color-accent-soft: var(--memory-relations-soft);
+}
+
+.memory-second-brain[data-view='organize'] {
+  --memory-signal: var(--memory-organize);
+  --memory-signal-strong: var(--memory-organize-strong);
+  --memory-signal-soft: var(--memory-organize-soft);
+}
+
+.memory-second-brain[data-view='preferences'] {
+  --memory-signal: var(--memory-calm);
+  --memory-signal-strong: var(--memory-calm-strong);
+  --memory-signal-soft: var(--memory-calm-soft);
+}
+
+/* The header mode chip mirrors the view identity outside the workspace. */
+.memory-second-brain__mode[data-view='roleBooks'] { --memory-signal: var(--memory-partner); --memory-signal-strong: var(--memory-partner-strong); }
+.memory-second-brain__mode[data-view='timeline'] { --memory-signal: var(--memory-time); --memory-signal-strong: var(--memory-time-strong); }
+.memory-second-brain__mode[data-view='relations'] { --memory-signal: var(--memory-relations); --memory-signal-strong: var(--memory-relations-strong); }
+.memory-second-brain__mode[data-view='organize'] { --memory-signal: var(--memory-organize); --memory-signal-strong: var(--memory-organize-strong); }
+.memory-second-brain__mode[data-view='preferences'] { --memory-signal: var(--memory-calm); --memory-signal-strong: var(--memory-calm-strong); }
+
+/* ============================== app frame ============================== */
+
+.memory-second-brain {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+  container: memory-second-brain / inline-size;
+}
+
+.memory-second-brain__mode {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+}
+
+/* The collapsed page nav. It only exists once the window is too narrow for a
+   readable rail or tab strip, and it always names the page in words. */
+.memory-app-nav {
+  display: none;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--memory-line, var(--color-border));
+  background: var(--color-paper);
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.memory-app-nav__label {
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.memory-app-nav__select { min-width: 0; }
+
+.memory-second-brain__mode > i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--memory-signal, var(--color-accent));
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--memory-signal, var(--color-accent)) 25%, transparent);
+}
+
+.memory-second-brain__mode > span { min-width: 0; display: grid; gap: 1px; }
+.memory-second-brain__mode strong { font-size: 14px; line-height: 18px; }
+.memory-second-brain__mode small { overflow: hidden; color: var(--color-text-tertiary); font-size: 13px; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ============================== the pipeline ==============================
+   A compact spine, not a dashboard: one thin rail carries the four stages
+   with their live counts, and the 整理状态 disclosure holds the per-source
+   breakdowns, index/governance signals, and the provenance promise. The
+   workspace below always owns the first screen. */
+
+.memory-pipeline {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-3);
+  background: var(--color-paper);
+  overflow: hidden;
+}
+
+.memory-pipeline__rail {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  gap: 4px;
+  padding: 5px 6px;
+}
+
+/* Narrow windows scroll the spine horizontally; the stages never stack into
+   a card wall above the content. */
+.memory-pipeline__stages {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.memory-pipeline__stage { display: grid; flex: 1 0 auto; }
+
+/* The spine is a gradient of the four layer identities: raw amber warms
+   into working gold, then the pink of organized memory, then settled
+   indigo. Each stage carries its own signal even when another layer owns
+   the workspace. */
+.memory-pipeline__stage[data-stage='evidence'] {
+  --stage-signal: var(--memory-evidence);
+  --stage-signal-strong: var(--memory-evidence-strong);
+  --stage-signal-soft: var(--memory-evidence-soft);
+}
+
+.memory-pipeline__stage[data-stage='organize'] {
+  --stage-signal: var(--memory-organize);
+  --stage-signal-strong: var(--memory-organize-strong);
+  --stage-signal-soft: var(--memory-organize-soft);
+}
+
+.memory-pipeline__stage[data-stage='atoms'] {
+  --stage-signal: var(--memory-atoms);
+  --stage-signal-strong: var(--memory-atoms-strong);
+  --stage-signal-soft: var(--memory-atoms-soft);
+}
+
+.memory-pipeline__stage[data-stage='books'] {
+  --stage-signal: var(--memory-books);
+  --stage-signal-strong: var(--memory-books-strong);
+  --stage-signal-soft: var(--memory-books-soft);
+}
+
+.memory-pipeline__stage > button {
+  position: relative;
+  display: grid;
+  width: 100%;
+  align-items: center;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: var(--radius-2);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  gap: 9px;
+  transition: background var(--duration-enter) var(--ease-standard);
+}
+
+.memory-pipeline__stage > button:focus-visible {
+  z-index: 1;
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.memory-pipeline__stage-icon {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  border: 1px solid color-mix(in srgb, var(--stage-signal, var(--memory-signal)) 26%, var(--color-border));
+  border-radius: 8px;
+  background: var(--stage-signal-soft, var(--memory-signal-soft));
+  color: var(--stage-signal-strong, var(--memory-signal-strong));
+  place-items: center;
+  transition: background var(--duration-enter) var(--ease-standard), border-color var(--duration-enter) var(--ease-standard);
+}
+
+.memory-pipeline__stage-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0;
+}
+
+.memory-pipeline__stage-copy small {
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  line-height: 1.35;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+
+.memory-pipeline__stage-copy strong {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.3;
+  letter-spacing: -.01em;
+}
+
+.memory-pipeline__stage-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding-left: 2px;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.memory-pipeline__stage-count small {
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: var(--font-weight-medium);
+}
+
+.memory-pipeline__stage-count[data-unknown] { color: var(--color-text-tertiary); }
+
+.memory-pipeline__stage[data-active] > button {
+  background: color-mix(in srgb, var(--stage-signal, var(--memory-signal)) 6%, var(--color-paper));
+  box-shadow: inset 0 -2px 0 var(--stage-signal, var(--memory-signal));
+}
+
+.memory-pipeline__stage[data-active] .memory-pipeline__stage-copy strong { color: var(--stage-signal-strong, var(--memory-signal-strong)); }
+.memory-pipeline__stage[data-active] .memory-pipeline__stage-icon {
+  border-color: color-mix(in srgb, var(--stage-signal, var(--memory-signal)) 52%, var(--color-border));
+  background: color-mix(in srgb, var(--stage-signal, var(--memory-signal)) 16%, var(--color-paper));
+}
+
+/* Connectors carry direction only; the waiting quantity stays an honest,
+   clickable count on the 整理 stage itself. */
+.memory-pipeline__flow {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  padding-inline: 1px;
+  color: var(--color-text-tertiary);
+}
+
+.memory-pipeline__flow svg { opacity: .6; }
+
+/* Work waiting to move belongs to the organize stage, whichever layer owns
+   the workspace right now. */
+.memory-pipeline__flow[data-tone='active'] { color: var(--memory-organize-strong); }
+.memory-pipeline__flow[data-tone='active'] svg { opacity: 1; }
+
+.memory-pipeline[data-state='pending'] .memory-pipeline__stage-count,
+.memory-pipeline[data-state='error'] .memory-pipeline__stage-count { color: var(--color-text-tertiary); }
+
+.memory-pipeline__toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  margin-block: 2px;
+  padding: 0 10px 0 12px;
+  border: 0;
+  border-left: 1px solid var(--color-border-soft);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.memory-pipeline__toggle:focus-visible {
+  border-radius: var(--radius-1);
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.memory-pipeline__toggle > i { width: 7px; height: 7px; border-radius: 50%; background: var(--color-info); }
+.memory-pipeline__toggle > i[data-tone='success'] { background: var(--color-success); }
+.memory-pipeline__toggle > i[data-tone='warning'] { background: var(--color-warning); }
+.memory-pipeline__toggle svg {
+  color: var(--color-text-tertiary);
+  transition: transform var(--motion-disclose) var(--ease-standard);
+}
+
+.memory-pipeline[data-expanded] .memory-pipeline__toggle svg { transform: rotate(180deg); }
+
+.memory-pipeline__summary {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+  padding: 11px 16px 12px;
+  border-top: 1px solid var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-surface-subtle) 44%, var(--color-paper));
+}
+
+.memory-pipeline__facts {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  gap: 8px 18px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.memory-pipeline__facts > div {
+  min-width: 0;
+  padding-left: 9px;
+  border-left: 2px solid var(--fact-signal, var(--color-border));
+}
+
+.memory-pipeline__facts > div[data-stage='evidence'] { --fact-signal: var(--memory-evidence); }
+.memory-pipeline__facts > div[data-stage='organize'] { --fact-signal: var(--memory-organize); }
+.memory-pipeline__facts > div[data-stage='atoms'] { --fact-signal: var(--memory-atoms); }
+.memory-pipeline__facts > div[data-stage='books'] { --fact-signal: var(--memory-books); }
+.memory-pipeline__facts dt { color: var(--color-text-tertiary); font-size: 12px; line-height: 1.4; }
+.memory-pipeline__facts dd {
+  margin: 2px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.memory-pipeline__signals {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 20px;
+}
+
+.memory-pipeline__signal {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  grid-template-columns: 8px minmax(0, auto);
+  gap: 8px;
+}
+
+.memory-pipeline__signal > i { width: 7px; height: 7px; border-radius: 50%; background: var(--color-info); }
+.memory-pipeline__signal[data-tone='success'] > i { background: var(--color-success); }
+.memory-pipeline__signal[data-tone='warning'] > i { background: var(--color-warning); }
+.memory-pipeline__signal > span { display: grid; min-width: 0; gap: 0; }
+.memory-pipeline__signal strong { font-size: 13px; line-height: 1.4; }
+.memory-pipeline__signal small { color: var(--color-text-tertiary); font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+
+.memory-pipeline__fault {
+  display: inline-flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  color: var(--color-warning);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.memory-pipeline__note {
+  display: inline-flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.memory-pipeline__note svg { flex: 0 0 auto; margin-top: 2px; color: var(--color-success); }
+.memory-pipeline__note span { font-size: 14px; line-height: 1.5; }
+
+/* ============================== view tabs ============================== */
+
+.memory-view-tabs { min-width: 0; }
+.memory-view-tabs > .ui-tabs__list {
+  margin-bottom: var(--space-3);
+  padding-inline: 2px;
+  overflow-x: auto;
+}
+
+/* ============================== catalog ============================== */
+
+.memory-catalog-filters {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: start;
+  gap: 7px 10px;
+}
+
+.memory-catalog-filters .ui-field { min-width: 116px; }
+.memory-catalog-filters__query { min-width: 190px; flex: 1; }
+
+/* The search runs live while typing, so it reads as a search box, not a
+   query form waiting for a submit button. */
+.memory-catalog-filters__query-box {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.memory-catalog-filters__query-box > svg {
+  position: absolute;
+  z-index: 1;
+  left: 10px;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.memory-catalog-filters__query-box .ui-input { padding-left: 32px; }
+
+.memory-layer-workspace {
+  display: grid;
+  min-width: 0;
+  min-height: 440px;
+  margin-top: var(--space-4);
+  border-block: 1px solid var(--color-border-strong);
+  grid-template-columns: minmax(320px, .78fr) minmax(0, 1.35fr);
+}
+
+/* No `overscroll-behavior: contain` here: when the list fits (no overflow of
+   its own) a contained scroll container swallows wheel events entirely, so the
+   surrounding tab panel's overflow could never be reached. */
+.memory-layer-list {
+  min-width: 0;
+  max-height: 720px;
+  padding: 8px 10px 18px;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface-subtle);
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+
+.memory-layer-list .mgmt-list { display: grid; gap: 7px; }
+
+.memory-layer-list .mgmt-list__row {
+  min-height: 78px;
+  align-items: start;
+  padding: 11px 12px;
+  border: 1px solid var(--memory-line, var(--color-border));
+  border-radius: 11px;
+  background: var(--color-paper);
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 9px;
+  transition: background-color 140ms ease, border-color 140ms ease, transform 180ms cubic-bezier(.16, 1, .3, 1);
+}
+
+.memory-layer-list .mgmt-list__row[data-selected] {
+  border-color: color-mix(in srgb, var(--memory-signal) 42%, var(--color-border));
+  background: color-mix(in srgb, var(--memory-signal) 4%, var(--color-paper));
+  box-shadow: inset 3px 0 var(--memory-signal);
+}
+
+.memory-layer-list .mgmt-list__copy { grid-column: 1 / -1; }
+.memory-layer-list .mgmt-list__copy strong { display: block; overflow: visible; font-size: 14px; line-height: 20px; overflow-wrap: anywhere; }
+.memory-layer-list .mgmt-list__copy span {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 19px;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.memory-layer-list .mgmt-list__meta { color: var(--color-text-tertiary); font-size: 13px; line-height: 1.4; white-space: normal; }
+.memory-layer-list .mgmt-list__status { justify-self: end; }
+.memory-layer-list .mgmt-list__row > svg { display: none; }
+
+/* Evidence rows read like a ledger of raw records: tighter corners and
+   mono metadata keep them visibly less "finished" than organized memory. */
+.memory-second-brain[data-view='catalog'][data-layer='evidence'] .memory-layer-list .mgmt-list__row {
+  border-radius: 6px;
+}
+
+.memory-second-brain[data-view='catalog'][data-layer='evidence'] .memory-layer-list .mgmt-list__meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* Book rows read like spines on a shelf: an indigo spine edge and a larger
+   serif-weight title mark the settled, long-term register. */
+.memory-second-brain[data-view='catalog'][data-layer='books'] .memory-layer-list .mgmt-list__row {
+  border-left: 3px solid color-mix(in srgb, var(--memory-signal) 45%, var(--color-border));
+  border-radius: 7px 11px 11px 7px;
+}
+
+.memory-second-brain[data-view='catalog'][data-layer='books'] .memory-layer-list .mgmt-list__copy strong {
+  font-size: 15px;
+  letter-spacing: -.012em;
+}
+
+.memory-second-brain[data-view='catalog'][data-layer='books'] .memory-layer-list .mgmt-list__row[data-selected] {
+  border-left-color: var(--memory-signal);
+  box-shadow: none;
+}
+
+.memory-layer-detail {
+  min-width: 0;
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.memory-layer-detail > .ui-empty-state { min-height: 360px; }
+
+.memory-layer-detail__back {
+  display: none;
+  min-height: 32px;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.memory-layer-actions {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.memory-layer-actions > :only-child { grid-column: 1 / -1; }
+
+.memory-catalog-detail {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, .8fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  padding-block: var(--space-4);
+  border-block: 1px solid var(--color-border);
+}
+
+.memory-catalog-detail > .memory-lineage-panel,
+.memory-catalog-detail > .ui-inline-notice { grid-column: 1 / -1; }
+.memory-catalog-detail > div,
+.memory-catalog-detail dl { min-width: 0; }
+
+.memory-catalog-detail__identity > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--memory-signal-strong, var(--color-accent));
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.memory-catalog-detail h3 {
+  margin: 5px 0 0;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.memory-catalog-detail p {
+  max-width: 70ch;
+  margin: 6px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.memory-catalog-detail__body {
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid var(--memory-line, var(--color-border));
+}
+
+/* Raw evidence content is a quoted record, not authored prose. */
+.memory-second-brain[data-view='catalog'][data-layer='evidence'] .memory-catalog-detail__body > p {
+  padding: 9px 12px;
+  border-left: 2px solid color-mix(in srgb, var(--memory-signal) 40%, transparent);
+  background: color-mix(in srgb, var(--memory-signal) 3%, var(--color-surface-subtle));
+}
+
+.memory-catalog-detail__body > small {
+  display: block;
+  color: var(--memory-signal-strong, var(--color-text-tertiary));
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.memory-catalog-detail dl {
+  display: grid;
+  margin: 0;
+  border-left: 1px solid var(--color-border);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.memory-catalog-detail dl div {
+  min-width: 0;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--memory-line, var(--color-border));
+}
+
+.memory-catalog-detail dt { color: var(--color-text-tertiary); font-size: 13px; }
+.memory-catalog-detail dd {
+  margin: 3px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.memory-catalog-detail__tags {
+  display: flex;
+  min-width: 0;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.memory-catalog-detail__tags span {
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--memory-signal-strong, var(--color-text-secondary));
+  background: var(--memory-signal-soft, var(--color-surface-subtle));
+  font-size: 13px;
+}
+
+.memory-catalog-detail__tag-disclosure {
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+
+.memory-catalog-detail__tag-disclosure > summary {
+  width: max-content;
+  max-width: 100%;
+  padding: 4px 2px;
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.memory-catalog-detail__tag-disclosure > summary:hover,
+.memory-catalog-detail__tag-disclosure[data-expanded='true'] > summary { color: var(--memory-signal-strong); }
+.memory-catalog-detail__tag-disclosure-body { padding-top: 6px; }
+
+.memory-action-unavailable {
+  margin: 0;
+  padding: 8px 11px;
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-2);
+  background: var(--color-warning-soft);
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ============================== lineage & references ============================== */
+
+.memory-lineage-panel {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+  padding: 13px 0 3px;
+  border-top: 1px solid var(--color-border);
+}
+
+.memory-lineage-panel > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.memory-lineage-panel > div:first-child > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--memory-signal-strong, var(--color-accent));
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+}
+
+.memory-lineage-panel > div:first-child > strong {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.memory-lineage-panel > div:first-child > p,
+.memory-lineage-empty {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.memory-reference-list {
+  display: grid;
+  min-width: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.memory-reference-list button {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  padding: 9px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--memory-line, var(--color-border));
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  grid-template-columns: 18px minmax(0, 1fr) 18px;
+  gap: 7px;
+}
+
+.memory-reference-list button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.memory-reference-list button span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+
+.memory-reference-list button span small {
+  color: var(--memory-signal-strong, var(--color-accent));
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* ============================== reference dialog ============================== */
+
+.memory-reference-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: min(88vh, 820px);
+  overflow: hidden;
+}
+
+.memory-reference-dialog > :nth-child(2) { min-height: 0; }
+.memory-reference-dialog .ui-dialog__description { overflow-wrap: anywhere; }
+
+.memory-reference-dialog__feedback {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: var(--space-2);
+}
+
+.memory-reference-path {
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.memory-reference-path ol {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  border-block: 1px solid var(--color-border);
+  list-style: none;
+}
+
+.memory-reference-path li {
+  display: grid;
+  min-width: 130px;
+  max-width: 220px;
+  align-items: center;
+  padding: 8px 9px;
+  color: var(--color-text-tertiary);
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 8px;
+}
+
+.memory-reference-path li[data-current='true'] {
+  background: color-mix(in srgb, var(--memory-signal, var(--color-accent)) 7%, transparent);
+  color: var(--color-text-primary);
+}
+
+.memory-reference-path li > span {
+  color: var(--memory-signal-strong, var(--color-accent));
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: var(--font-weight-semibold);
+}
+
+.memory-reference-path li > small {
+  grid-column: 1;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memory-reference-path li > svg {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.memory-reference-view {
+  display: grid;
+  min-width: 0;
+  max-height: min(62vh, 620px);
+  gap: var(--space-3);
+  padding-right: 3px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.memory-reference-view__identity {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  padding-block: 10px;
+  border-block: 1px solid var(--color-border-strong);
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.memory-reference-view__identity > span {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  border: 1px solid color-mix(in srgb, var(--memory-signal) 26%, var(--color-border));
+  border-radius: 9px;
+  background: var(--memory-signal-soft);
+  color: var(--memory-signal-strong, var(--color-accent));
+  place-items: center;
+}
+
+.memory-reference-view__identity > div { display: grid; min-width: 0; gap: 2px; }
+.memory-reference-view__identity small { color: var(--color-text-tertiary); font-size: 12px; }
+.memory-reference-view__identity strong { font-family: var(--font-sans); font-size: 13px; overflow-wrap: anywhere; }
+
+.memory-reference-view__advanced {
+  margin-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.memory-reference-view__advanced > summary {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.memory-reference-view__advanced > summary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.memory-reference-view__advanced[open] > summary { color: var(--color-text-secondary); }
+.memory-reference-view__advanced > .ui-disclosure__reveal > div { padding-bottom: var(--space-2); }
+.memory-reference-view__notice { display: inline-flex; align-items: flex-start; gap: 7px; }
+.memory-reference-view__notice svg { flex: 0 0 auto; margin-top: 2px; }
+.memory-reference-view__content { margin: 0; font-size: 14px; line-height: 1.62; overflow-wrap: anywhere; }
+
+.memory-reference-view__facts {
+  display: grid;
+  margin: 0;
+  border-block: 1px solid var(--color-border);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.memory-reference-view__facts > div { min-width: 0; padding: 9px; border-right: 1px solid var(--memory-line, var(--color-border)); border-bottom: 1px solid var(--memory-line, var(--color-border)); }
+.memory-reference-view__facts > div:nth-child(3n) { border-right: 0; }
+.memory-reference-view__facts dt { color: var(--color-text-tertiary); font-size: 12px; }
+.memory-reference-view__facts dd { margin: 3px 0 0; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+
+.memory-reference-view__source-context {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  background: var(--color-surface-subtle);
+}
+
+.memory-reference-view__source-context > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.memory-reference-view__source-context > header span { display: inline-flex; align-items: center; gap: 6px; }
+.memory-reference-view__source-context > header small { color: var(--color-text-tertiary); }
+.memory-reference-view__source-context > dl { display: grid; margin: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.memory-reference-view__source-context > dl > div { min-width: 0; }
+.memory-reference-view__source-context dt { color: var(--color-text-tertiary); font-size: 12px; }
+.memory-reference-view__source-context dd { margin: 3px 0 0; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.memory-reference-view__source-context > p { margin: 0; color: var(--color-text-secondary); font-size: 14px; line-height: 1.55; }
+
+.memory-reference-view__children { display: grid; min-width: 0; }
+.memory-reference-view__children > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; }
+.memory-reference-view__children > header span { display: inline-flex; align-items: center; gap: 6px; }
+.memory-reference-view__children > header small { color: var(--color-text-tertiary); }
+
+.memory-reference-view__children > button {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  padding: 10px 2px;
+  border: 0;
+  border-top: 1px solid var(--memory-line, var(--color-border));
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.memory-reference-view__children > button:disabled { cursor: not-allowed; opacity: .64; }
+.memory-reference-view__children > button span { display: grid; min-width: 0; gap: 2px; }
+.memory-reference-view__children > button small { color: var(--memory-signal-strong, var(--color-accent)); font-size: 12px; }
+.memory-reference-view__children > button strong { font-size: 13px; overflow-wrap: anywhere; }
+.memory-reference-view__children > button em { color: var(--color-text-tertiary); font-family: var(--font-mono); font-size: 12px; font-style: normal; overflow-wrap: anywhere; }
+.memory-reference-view__children > button b { color: var(--color-warning); font-size: 12px; }
+.memory-reference-view__children > p,
+.memory-reference-view__guard { margin: 0; padding: 10px 0; color: var(--color-text-secondary); font-size: 14px; line-height: 1.55; }
+.memory-reference-view__guard { display: inline-flex; align-items: center; gap: 7px; color: var(--color-warning); }
+
+/* ============================== layer chrome (role books & relations) ============================== */
+
+.memory-layer-heading {
+  display: flex;
+  min-width: 0;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+}
+
+.memory-layer-heading > div { min-width: 0; }
+.memory-layer-heading span { color: var(--memory-signal-strong, var(--color-accent)); font-size: 12px; font-weight: var(--font-weight-semibold); text-transform: uppercase; }
+.memory-layer-heading h3 { margin: 4px 0 0; font-size: 20px; }
+.memory-layer-heading p { margin: 5px 0 0; color: var(--color-text-secondary); font-size: 14px; line-height: 1.5; }
+.memory-layer-loading { display: flex; min-height: 120px; align-items: center; justify-content: center; gap: 7px; color: var(--color-text-secondary); }
+.memory-layer-loading svg { animation: memory-spin 1.2s linear infinite; }
+
+/* Role books are a reading list, not a four-column data table. The shared
+   OperationalList grammar leaves too little measure for a partner summary at
+   this width, so the title owns the column and status/meta stack underneath. */
+.memory-second-brain .memory-role-book-workspace {
+  grid-template-columns: minmax(300px, .82fr) minmax(0, 1.18fr);
+}
+
+.memory-second-brain .memory-role-book-workspace .memory-layer-list .mgmt-list__row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 5px 9px;
+}
+
+.memory-second-brain .memory-role-book-workspace .memory-layer-list .mgmt-list__copy { grid-column: 1; }
+.memory-second-brain .memory-role-book-workspace .memory-layer-list .mgmt-list__meta { grid-column: 1; grid-row: 2; }
+.memory-second-brain .memory-role-book-workspace .memory-layer-list .mgmt-list__status {
+  grid-column: 1;
+  grid-row: 3;
+  justify-self: start;
+}
+
+.memory-second-brain .memory-role-book-workspace .memory-layer-list .mgmt-list__row > svg {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: center;
+}
+
+.memory-role-book-detail { display: grid; min-width: 0; gap: var(--space-4); padding-top: var(--space-4); }
+
+.memory-role-book-detail > header {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  grid-template-columns: 36px minmax(0, 1fr) auto auto;
+  gap: 10px;
+}
+
+/* Partners are identities, so their mark is a round avatar, not a tile. */
+.memory-role-book-detail > header > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  border: 1px solid color-mix(in srgb, var(--memory-signal) 26%, var(--color-border));
+  border-radius: 50%;
+  background: var(--memory-signal-soft);
+  color: var(--memory-signal-strong, var(--color-accent));
+  place-items: center;
+}
+
+.memory-role-book-detail > header > div { min-width: 0; }
+.memory-role-book-detail > header small { color: var(--color-text-tertiary); font-size: 12px; }
+.memory-role-book-detail > header h3 { margin: 2px 0 0; font-size: 16px; }
+.memory-role-book-detail > header p { margin: 3px 0 0; color: var(--color-text-secondary); font-size: 14px; line-height: 1.5; }
+
+.memory-role-book-revisions { display: flex; min-width: 0; gap: 6px; padding-block: 8px; border-block: 1px solid var(--color-border); overflow-x: auto; }
+.memory-role-book-revisions button { display: grid; min-width: 112px; padding: 7px 9px; border: 1px solid var(--color-border); border-radius: var(--radius-2); background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.memory-role-book-revisions button[aria-current='true'] { border-color: var(--memory-signal, var(--color-accent)); background: var(--memory-signal-soft, var(--color-accent-soft)); }
+.memory-role-book-revisions strong { font-size: 13px; }
+.memory-role-book-revisions small { color: var(--color-text-tertiary); font-size: 12px; }
+
+.memory-role-book-sections { display: grid; min-width: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--color-border); border-left: 1px solid var(--color-border); }
+.memory-role-book-sections > section { min-width: 0; border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+.memory-role-book-sections > section > header { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--color-surface-subtle); }
+.memory-role-book-sections > section > header strong { font-size: 13px; }
+.memory-role-book-sections > section > header small { color: var(--color-text-tertiary); }
+.memory-role-book-sections > section > button { display: grid; width: 100%; min-width: 0; align-items: center; padding: 8px 10px; border: 0; border-top: 1px solid var(--memory-line, var(--color-border)); background: transparent; color: inherit; text-align: left; cursor: pointer; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; }
+.memory-role-book-sections > section > button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.memory-role-book-sections > section > button[aria-expanded='true'] { box-shadow: inset 1px 0 0 var(--memory-signal, var(--color-accent)); background: var(--memory-signal-soft, var(--color-accent-soft)); }
+.memory-role-book-sections > section > button span { font-size: 13px; overflow-wrap: anywhere; }
+.memory-role-book-sections > section > button > svg { transition: transform var(--motion-disclose) var(--ease-standard); }
+.memory-role-book-sections > section > button[aria-expanded='true'] > svg { transform: rotate(90deg); }
+.memory-role-book-sections > section > p { margin: 0; padding: 10px; color: var(--color-text-tertiary); font-size: 14px; line-height: 1.5; }
+
+.memory-role-book-item-disclosure {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    grid-template-rows var(--motion-disclose) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
+}
+
+.memory-role-book-item-disclosure[data-open='true'] { grid-template-rows: 1fr; opacity: 1; pointer-events: auto; }
+.memory-role-book-item-disclosure > div { min-height: 0; overflow: hidden; }
+.memory-role-book-item-disclosure__content { padding: 0 10px 10px; }
+.memory-role-book-item-disclosure .memory-lineage-panel {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+  box-shadow: none;
+}
+
+.memory-role-book-detail > footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding-block: 10px; border-top: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 13px; line-height: 1.4; }
+.memory-role-book-detail > footer span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ============================== curation workbench ============================== */
+
+.memory-curation {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-4);
+  padding-top: var(--space-3);
+}
+
+.memory-curation__header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.memory-curation__header > div:first-child { min-width: 0; }
+.memory-curation__header h2 { margin: 0; font-size: 18px; letter-spacing: 0; }
+.memory-curation__header span {
+  display: block;
+  margin-top: 3px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.memory-curation__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--space-2);
+}
+
+/* A flat working band on the cold white surface, not a floating hero card. */
+.memory-curation__progress-card {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-block: 1px solid var(--color-border-strong);
+  background: transparent;
+  grid-template-columns: minmax(220px, .9fr) minmax(300px, 1.35fr) minmax(176px, auto);
+}
+
+.memory-curation__progress-copy {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.memory-curation__eyebrow {
+  color: var(--memory-signal-strong, var(--color-accent));
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.memory-curation__progress-copy > strong {
+  color: var(--color-text-primary);
+  font-size: clamp(18px, 2vw, 24px);
+  letter-spacing: -.025em;
+  line-height: 1.2;
+}
+
+.memory-curation__progress-copy > p {
+  max-width: 45ch;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.memory-curation__progress-meter {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.memory-curation__progress-label,
+.memory-curation__progress-dates {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.memory-curation__progress-label {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.memory-curation__progress-label strong {
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.memory-curation__progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-surface-subtle);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.memory-curation__progress-track > span {
+  display: block;
+  min-width: 3px;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--memory-signal, var(--color-accent));
+}
+
+.memory-curation__progress-dates {
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+}
+
+.memory-curation__progress-dates span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+}
+
+.memory-curation__progress-dates svg { flex: 0 0 auto; }
+
+.memory-curation__runner {
+  display: grid;
+  min-width: 176px;
+  gap: 7px;
+}
+
+.memory-curation__runner label { display: grid; gap: 4px; }
+.memory-curation__runner label > span {
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.memory-curation__batch-bound {
+  display: flex;
+  width: 100%;
+  min-height: 34px;
+  align-items: center;
+  padding: 0 9px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.memory-curation__backlog-grid {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1.45fr) minmax(250px, .75fr);
+}
+
+.memory-curation__days,
+.memory-curation__apps {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+}
+
+.memory-curation__days > header,
+.memory-curation__apps > header {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 0 12px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-subtle);
+}
+
+.memory-curation__days > header > div,
+.memory-curation__apps > header > div {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.memory-curation__days > header svg,
+.memory-curation__apps > header svg { color: var(--memory-signal-strong, var(--color-accent)); }
+.memory-curation__days > header strong,
+.memory-curation__apps > header strong { font-size: 13px; }
+.memory-curation__days > header > span,
+.memory-curation__apps > header > span { color: var(--color-text-tertiary); font-size: 12px; }
+
+.memory-curation__days ol,
+.memory-curation__apps ol {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.memory-curation__days li { border-bottom: 1px solid var(--memory-line, var(--color-border)); }
+
+.memory-curation__days li > button {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  grid-template-columns: 104px minmax(120px, 1fr) auto auto;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-enter) var(--ease-standard), transform var(--duration-enter) var(--ease-standard);
+}
+
+.memory-curation__days li:last-child,
+.memory-curation__apps li:last-child { border-bottom: 0; }
+.memory-curation__days li > button:focus-visible { position: relative; z-index: 1; outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.memory-curation__days li > button:active { transform: scale(.995); }
+.memory-curation__days time { color: var(--color-text-primary); font-size: 13px; font-weight: 700; }
+.memory-curation__day-apps { overflow: hidden; color: var(--color-text-secondary); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.memory-curation__days li > button > strong { color: var(--color-text-primary); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+.memory-curation__apps li {
+  display: grid;
+  gap: 7px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--memory-line, var(--color-border));
+  transition: background var(--duration-enter) var(--ease-standard), transform var(--duration-enter) var(--ease-standard);
+}
+
+.memory-curation__apps li > div:first-child {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.memory-curation__apps li strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.memory-curation__apps li div > span { color: var(--color-text-secondary); font-size: 12px; font-variant-numeric: tabular-nums; }
+.memory-curation__apps li small { color: var(--color-text-tertiary); font-size: 12px; }
+
+.memory-curation__app-meter {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-surface-subtle);
+}
+
+.memory-curation__app-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--memory-signal, var(--color-accent));
+  opacity: .72;
+}
+
+.memory-curation__empty-copy {
+  margin: 0;
+  padding: var(--space-4);
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+}
+
+.memory-curation__technical { border-top: 1px solid var(--color-border); }
+
+.memory-curation__technical > summary {
+  width: fit-content;
+  padding: 9px 2px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.memory-curation__technical[open] > summary { color: var(--memory-signal-strong, var(--color-accent)); }
+.memory-curation__technical > .ui-disclosure__reveal > div { padding-bottom: var(--space-2); }
+
+.memory-curation__list {
+  display: grid;
+  min-width: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.memory-curation__row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: 11px 8px;
+  border-bottom: 1px solid var(--memory-line, var(--color-border));
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--duration-enter) var(--ease-standard);
+}
+
+.memory-curation__row[data-selected='true'] { box-shadow: inset 3px 0 0 var(--memory-signal, var(--color-accent)); background: var(--memory-signal-soft, var(--color-accent-soft)); }
+.memory-curation__row > input { width: 16px; height: 16px; margin: 2px 0 0; accent-color: var(--memory-signal, var(--color-accent)); }
+.memory-curation__row > input:disabled { cursor: wait; opacity: .6; }
+
+.memory-curation__copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.memory-curation__title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.memory-curation__title strong,
+.memory-curation__copy > span,
+.memory-curation__copy small { overflow-wrap: anywhere; }
+.memory-curation__title strong { font-size: 13px; }
+.memory-curation__copy > span { color: var(--color-text-secondary); font-size: 13px; line-height: 1.45; }
+.memory-curation__copy small { color: var(--color-text-tertiary); font-size: 13px; }
+
+/* ============================== relations ============================== */
+
+.memory-relations {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+}
+
+.memory-relations__content {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+}
+
+.memory-relations__toolbar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.memory-relations__filters {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.memory-relations__search {
+  position: relative;
+  display: flex;
+  min-width: min(280px, 100%);
+  flex: 1 1 280px;
+  align-items: center;
+}
+
+.memory-relations__search > svg {
+  position: absolute;
+  z-index: 1;
+  left: 10px;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.memory-relations__search .ui-input { padding-left: 32px; }
+.memory-relations__filters > .memory-relations__source {
+  width: 154px;
+  min-width: 126px;
+  flex: 0 0 154px;
+}
+
+.memory-graph__scope {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 10px;
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.memory-graph__scope span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.memory-graph__scope code {
+  max-width: 152px;
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memory-graph__scope strong {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.memory-graph__scope[data-clipped='true'] span:last-child {
+  color: var(--color-warning);
+  font-weight: 700;
+}
+
+.memory-explorer {
+  display: grid;
+  min-width: 0;
+  border-block: 1px solid var(--color-border);
+  grid-template-columns: 256px minmax(0, 1fr);
+}
+
+.memory-explorer__visual {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  grid-template-rows: auto auto minmax(620px, 70vh);
+}
+
+.memory-graph__truth {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+}
+
+.memory-graph__truth > p { margin: 0; }
+.memory-graph__truth .ui-button {
+  min-height: 28px;
+  flex: 0 0 auto;
+  color: var(--color-text-secondary);
+}
+
+.memory-graph__truth[data-empty='true'] {
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
+}
+
+.memory-graph__legend {
+  display: flex;
+  min-height: 34px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.memory-graph__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.memory-graph__legend i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--memory-signal-strong, var(--color-accent));
+  background: var(--memory-signal-soft, var(--color-accent-soft));
+}
+
+.memory-graph__legend i[data-shape='tag'] { border-radius: 50%; }
+.memory-graph__legend i[data-shape='book'] { width: 15px; height: 10px; }
+.memory-graph__legend i[data-shape='edge'] {
+  width: 18px;
+  height: 0;
+  border: 0;
+  border-top: 2px solid var(--memory-signal-strong, var(--color-accent));
+  background: transparent;
+}
+
+.memory-graph__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 5px;
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.memory-node-list {
+  display: grid;
+  min-width: 0;
+  max-height: 590px;
+  align-content: start;
+  border-right: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.memory-node-list > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.memory-node-list > header span {
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+/* Same rule as the catalog list: no contained overscroll here, because a
+   list that happens to fit would swallow wheel events meant for the page. */
+.memory-node-list__scroll,
+.memory-node-list--bipartite > div {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.memory-node-list--bipartite { grid-template-rows: auto auto auto minmax(0, 1fr); }
+
+.memory-node-list button {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 9px 10px;
+  border: 0;
+  border-bottom: 1px solid var(--memory-line, var(--color-border));
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-enter) var(--ease-standard), transform var(--duration-press) var(--ease-press);
+}
+
+.memory-node-list button:active { transform: scale(.99); }
+.memory-node-list button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.memory-node-list button[data-selected='true'] {
+  box-shadow: inset 3px 0 0 var(--memory-signal, var(--color-accent));
+  background: var(--memory-signal-soft, var(--color-accent-soft));
+}
+
+.memory-node-list button > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.memory-node-list button > span:last-child { justify-items: end; }
+.memory-node-list button strong,
+.memory-node-list button b {
+  min-width: 0;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memory-node-list button b { font-family: var(--font-mono); }
+.memory-node-list button small {
+  max-width: 100%;
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memory-relation-canvas {
+  position: relative;
+  min-width: 0;
+  height: clamp(620px, 70vh, 820px);
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border-strong);
+  background: var(--color-paper);
+  isolation: isolate;
+}
+
+.memory-relation-canvas::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border: 1px solid var(--color-border);
+  content: '';
+  pointer-events: none;
+}
+
+.memory-relation-canvas__surface {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.memory-relation-canvas__surface canvas {
+  display: block;
+  cursor: grab;
+}
+
+.memory-relation-canvas__surface canvas:active { cursor: grabbing; }
+
+.memory-relation-canvas__controls {
+  position: absolute;
+  z-index: 2;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-menu);
+}
+
+.memory-relation-canvas__controls .ui-button {
+  width: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.memory-relation-canvas__focus {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  left: 12px;
+  display: grid;
+  min-width: 184px;
+  max-width: min(280px, calc(100% - 150px));
+  padding: 10px 11px;
+  border: 1px solid color-mix(in srgb, var(--memory-signal, var(--color-accent)) 34%, var(--color-border));
+  border-radius: var(--radius-3);
+  /* Opaque floating surface: this panel sits over the live relation canvas,
+     so its text must never depend on an unknown backdrop (PAWOS control
+     contract — no glass on controls/panels, only true window chrome). */
+  background: var(--color-surface);
+  box-shadow: var(--shadow-2);
+  gap: 2px;
+  animation: memory-relation-focus-in 180ms cubic-bezier(.23, 1, .32, 1) both;
+}
+
+.memory-relation-canvas__focus > span {
+  color: var(--memory-signal-strong, var(--color-accent));
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.memory-relation-canvas__focus > strong {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memory-relation-canvas__focus > small {
+  color: var(--color-text-tertiary);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.memory-relation-canvas__focus .ui-button {
+  min-height: 28px;
+  justify-self: start;
+  margin-top: 5px;
+}
+
+.memory-relation-canvas__hint {
+  position: absolute;
+  z-index: 2;
+  bottom: 11px;
+  left: 12px;
+  padding: 5px 8px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-1);
+  color: var(--color-text-tertiary);
+  font-size: 14px;
+  line-height: 1.45;
+  pointer-events: none;
+  transition: opacity var(--duration-enter) var(--ease-standard);
+}
+
+.memory-relation-canvas:not([data-ready='true']) .memory-relation-canvas__hint { opacity: 0; }
+
+.memory-relation-canvas__loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  transform: translate(-50%, -50%);
+}
+
+.memory-relation-canvas__error {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: min(360px, calc(100% - 32px));
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 38%, var(--color-border));
+  border-radius: var(--radius-3);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-2);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  transform: translate(-50%, -50%);
+  gap: 10px;
+  justify-items: start;
+}
+
+.memory-relation-canvas__error > svg { color: var(--color-danger); }
+.memory-relation-canvas__error > span { display: grid; gap: 2px; }
+.memory-relation-canvas__error strong { color: var(--color-text-primary); }
+
+.memory-relation-canvas[data-ready='true'] .memory-relation-canvas__surface {
+  animation: memory-graph-enter var(--motion-enter) var(--ease-standard) both;
+}
+
+.memory-relation-tooltip {
+  display: grid;
+  width: min(296px, calc(100vw - 40px));
+  padding: 12px 13px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-3);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-menu);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  gap: 6px;
+  animation: memory-relation-tooltip-in 160ms cubic-bezier(.23, 1, .32, 1) both;
+}
+
+.memory-relation-tooltip__eyebrow {
+  color: var(--memory-signal-strong, var(--color-accent));
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.memory-relation-tooltip > strong {
+  font-size: 14px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.memory-relation-tooltip > p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.memory-relation-tooltip__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.memory-relation-tooltip__metrics span {
+  padding: 3px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.memory-relation-tooltip > small {
+  padding-top: 2px;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.memory-entity {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-5);
+  padding-block: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  grid-template-columns: minmax(220px, .72fr) repeat(2, minmax(0, 1fr));
+}
+
+.memory-entity__summary,
+.memory-entity__rows { min-width: 0; }
+.memory-entity__summary h3,
+.memory-entity__rows h3 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.memory-entity__summary > p {
+  margin: 5px 0 var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.memory-entity__summary dl {
+  display: grid;
+  margin: 0;
+  border-block: 1px solid var(--color-border);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.memory-entity__summary dl div {
+  min-width: 0;
+  padding: 7px 8px;
+  border-right: 1px solid var(--memory-line, var(--color-border));
+  border-bottom: 1px solid var(--memory-line, var(--color-border));
+}
+
+.memory-entity__summary dl div:nth-child(2n) { border-right: 0; }
+.memory-entity__summary dt { color: var(--color-text-tertiary); font-size: 13px; }
+.memory-entity__summary dd { margin: 3px 0 0; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+
+.memory-entity__attributes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding-top: var(--space-2);
+}
+
+.memory-entity__attributes span {
+  padding: 3px 5px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-1);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.memory-entity__error { color: var(--color-danger) !important; }
+.memory-entity__rows > header {
+  display: flex;
+  min-height: 27px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.memory-entity__rows > header span { color: var(--color-warning); font-size: 13px; }
+
+.memory-entity__row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(120px, 1.4fr) minmax(90px, .8fr) minmax(90px, .8fr);
+  gap: var(--space-2);
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--memory-line, var(--color-border));
+}
+
+.memory-entity__row > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.memory-entity__row strong,
+.memory-entity__row b,
+.memory-entity__row button {
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memory-entity__row button { color: var(--memory-signal-strong, var(--color-accent)); cursor: pointer; }
+.memory-entity__row button:focus-visible {
+  border-radius: var(--radius-1);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.memory-entity__row small {
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memory-entity__empty {
+  margin: 0;
+  padding: 12px 4px;
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.memory-entity__load-more {
+  width: 100%;
+  min-height: 32px;
+  margin-top: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-1);
+  background: var(--color-surface-subtle);
+  color: var(--memory-signal-strong, var(--color-accent));
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--duration-enter) var(--ease-standard), transform var(--duration-press) var(--ease-press);
+}
+
+.memory-entity__load-more:active { transform: scale(.99); }
+.memory-entity__load-more:disabled {
+  color: var(--color-text-tertiary);
+  cursor: wait;
+}
+
+/* ============================== preferences ============================== */
+
+.memory-preferences { min-width: 0; }
+
+.memory-preferences__intro {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 13px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--memory-line, var(--color-border));
+}
+
+.memory-preferences__intro > span:first-child {
+  display: grid;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--memory-signal-strong, var(--color-accent));
+  background: var(--memory-signal-soft, var(--color-surface-muted));
+}
+
+.memory-preferences__intro strong { display: block; margin-bottom: 4px; font-size: 16px; letter-spacing: -.01em; }
+.memory-preferences__intro p { max-width: 62ch; margin: 0; color: var(--color-text-secondary); font-size: 15px; line-height: 1.6; }
+
+.memory-preferences__persistence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-muted);
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.memory-preferences__persistence i { width: 6px; height: 6px; border-radius: 50%; background: var(--color-success); }
+.memory-preferences__persistence[data-state='pending'] i { background: var(--memory-gold); animation: memory-preference-pending 1.5s ease-in-out infinite; }
+.memory-preferences__persistence[data-state='read-only'] i { background: var(--color-text-tertiary); }
+
+.memory-preferences__recall-policy {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--memory-line-soft, var(--color-border));
+}
+
+.memory-preferences__recall-policy > span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--memory-signal-soft, var(--color-surface-muted));
+  color: var(--memory-signal-strong, var(--color-accent));
+}
+
+.memory-preferences__recall-policy strong { color: var(--color-text); font-size: 13px; }
+.memory-preferences__recall-policy p { margin: 2px 0 0; color: var(--color-text-secondary); font-size: 13px; line-height: 1.5; }
+.memory-preferences__recall-policy > small { color: var(--color-text-tertiary); font-size: 12px; white-space: nowrap; }
+
+.memory-preferences__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  padding: 4px 0 20px;
+  border-bottom: 1px solid var(--memory-line, var(--color-border));
+}
+
+.memory-preferences__grid > * {
+  min-width: 0;
+  min-height: 116px;
+  align-content: start;
+  padding: 18px 20px 18px 0;
+  border-bottom: 1px solid var(--memory-line-soft, var(--color-border));
+}
+
+.memory-preferences__grid > :nth-child(even) { padding-right: 0; padding-left: 20px; border-left: 1px solid var(--memory-line-soft, var(--color-border)); }
+.memory-preferences__grid > :nth-last-child(-n + 2) { border-bottom: 0; }
+.memory-preferences__switch { align-self: end; }
+
+.memory-preferences__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: 14px;
+}
+
+.memory-preferences__actions > span { color: var(--color-text-tertiary); font-size: 13px; }
+
+/* ============================== edit dialog ============================== */
+
+.memory-edit-dialog { width: min(560px, calc(100vw - 32px)); }
+
+.memory-edit-form {
+  display: grid;
+  max-height: min(62vh, 560px);
+  gap: var(--space-3);
+  padding: 2px;
+  overflow-y: auto;
+}
+
+.memory-edit-form__split {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.memory-edit-error {
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 2px solid var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ============================== PAWOS native frame ==============================
+   The native window is already the Memory surface. The management page shell
+   and the Radix Tabs root stay structural; the pipeline band, the filter band,
+   and the workspace panes provide all visible structure. */
+
+main[data-route-id='memory'][data-paw-os-app='memory'] {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  /* Inside a window the root has a definite height as well, so pages can size
+     against the window instead of the browser viewport. */
+  container-type: size;
+  color: #202631;
+  background: #f5f7fa;
+  font-family: var(--font-body, "SF Pro Text", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif);
+}
+
+main[data-route-id='memory'][data-paw-os-app='memory'] > .mgmt-page__native-actions {
+  position: relative;
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 7px 14px 7px 16px;
+  border-bottom: 1px solid var(--memory-line);
+  /* Opaque native action bar: PAWOS controls never blur their backdrop. */
+  background: #fff;
+}
+
+main[data-route-id='memory'][data-paw-os-app='memory'] > .mgmt-page__body {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* Window layout: pipeline band, optional collapsed page nav, then one
+   scrollable page body. The rows are addressed explicitly because the nav is
+   absent from the flow whenever the window is wide enough for a real rail. */
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 0;
+  overflow: hidden;
+  background: #f5f7fa;
+}
+
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain > .memory-pipeline { grid-row: 1; }
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain > .memory-app-nav { grid-row: 2; }
+
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain > .memory-view-tabs,
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain > .mgmt-loading,
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain > [role='alert'] {
+  min-height: 0;
+  grid-row: 3;
+  overflow: auto;
+}
+
+/* The pipeline becomes a full-bleed band under the window chrome. */
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain > .memory-pipeline {
+  border: 0;
+  border-bottom: 1px solid var(--memory-line);
+  border-radius: 0;
+  background: #fff;
+}
+
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain > .memory-pipeline .memory-pipeline__summary {
+  background: #fafbfd;
+}
+
+/* Structural resets: no stacked frames around the same catalog. */
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain .memory-view-tabs,
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain .memory-view-tabs > [role='tabpanel'],
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain .memory-view-tabs .mgmt-section {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.memory-second-brain > .memory-view-tabs {
+  min-height: 0;
+}
+
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain > .memory-view-tabs {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+}
+
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain > .memory-view-tabs > [role='tabpanel'] {
+  min-height: 0;
+  overflow: auto;
+  animation: memory-view-arrive 260ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.memory-second-brain[data-view='catalog'] > .memory-view-tabs > [role='tabpanel'] { overflow: hidden; }
+
+.memory-second-brain[data-view='catalog'] .mgmt-section {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.memory-second-brain[data-view='catalog'] .mgmt-section__header {
+  min-height: 54px;
+  margin: 0;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--memory-line);
+  background: #fff;
+}
+
+.memory-second-brain[data-view='catalog'] .mgmt-section__header h2 { margin: 0; font-size: 15px; letter-spacing: -.008em; }
+.memory-second-brain[data-view='catalog'] .mgmt-section__header p { margin-top: 2px; color: #7a8493; font-size: 14px; line-height: 1.45; }
+
+.memory-second-brain[data-view='catalog'] .memory-catalog-filters {
+  min-width: 0;
+  flex-wrap: nowrap;
+  gap: 7px;
+  padding: 9px 16px 11px;
+  border-bottom: 1px solid var(--memory-line);
+  background: #fafbfd;
+}
+
+.memory-second-brain[data-view='catalog'] .memory-layer-workspace {
+  min-height: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  border: 0;
+  grid-template-columns: minmax(310px, .88fr) minmax(420px, 1.12fr);
+  background: #fff;
+}
+
+.memory-second-brain[data-view='catalog'] .memory-layer-list {
+  max-height: none;
+  height: auto;
+}
+
+.memory-second-brain[data-view='catalog'] .memory-layer-detail {
+  min-height: 0;
+  overflow: auto;
+  padding: 18px clamp(18px, 3cqw, 30px) 30px;
+  background: #fff;
+}
+
+.memory-second-brain[data-view='catalog'] .memory-catalog-detail {
+  display: block;
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+  animation: memory-detail-arrive 200ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+/* An unselected catalog is an invitation, not a blank hero panel. Keep the
+   guidance close to the list and let the detail pane reclaim its height. */
+.memory-second-brain[data-view='catalog'] .memory-layer-detail > .ui-empty-state {
+  min-height: 0;
+  height: 100%;
+  align-content: start;
+  padding: clamp(24px, 8cqw, 64px) 0 24px;
+}
+
+.memory-second-brain[data-view='catalog'] .memory-layer-detail > .ui-empty-state .ui-empty-state__icon {
+  background: var(--memory-signal-soft);
+  border-color: color-mix(in srgb, var(--memory-signal) 28%, transparent);
+  color: var(--memory-signal-strong);
+}
+
+.memory-second-brain[data-view='catalog'] .memory-catalog-detail h3 { margin-top: 7px; font-size: 20px; line-height: 1.42; letter-spacing: -.018em; }
+.memory-second-brain[data-view='catalog'] .memory-catalog-detail p { max-width: 68ch; font-size: 15px; line-height: 1.68; }
+.memory-second-brain[data-view='catalog'] .memory-catalog-detail dl { margin-top: 18px; border: 0; border-top: 1px solid var(--memory-line); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.memory-second-brain[data-view='catalog'] .memory-catalog-detail dl div { padding: 9px 2px; border-color: var(--memory-line-soft); }
+.memory-second-brain[data-view='catalog'] .memory-catalog-detail__tags { margin-top: 12px; }
+
+/* The centered reading column for full-width views inside the native frame. */
+.memory-second-brain .memory-preferences,
+.memory-second-brain .memory-curation,
+.memory-second-brain .activity-timeline,
+.memory-second-brain .memory-relations,
+.memory-second-brain .memory-role-book-workspace {
+  width: min(1120px, calc(100% - 36px));
+  margin-inline: auto;
+}
+
+.memory-second-brain .memory-preferences > .mgmt-section { padding: 24px 0 36px; }
+.memory-second-brain .memory-preferences .mgmt-section__header { padding-bottom: 14px; border-bottom: 1px solid var(--memory-line); }
+.memory-second-brain .memory-preferences .mgmt-section__header h2 { font-size: 21px; letter-spacing: -.018em; }
+
+/* ============================== window page frames ==============================
+   The catalog owns an explicit three-row frame above. The other five pages keep
+   their natural flow, but inside a window they still read as App pages: the page
+   frame goes full-bleed, its heading is pinned to the top of the pane, and only
+   the body below it scrolls. The reading measure moves from the frame onto the
+   page blocks so a pinned heading can span the whole pane. */
+
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain {
+  --memory-page-gutter: clamp(14px, 3cqw, 28px);
+  --memory-page-measure: 1120px;
+}
+
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain :is(
+  .memory-preferences,
+  .memory-curation,
+  .activity-timeline,
+  .memory-relations,
+  .memory-role-book-layer
+) {
+  width: 100%;
+  min-width: 0;
+  margin-inline: 0;
+}
+
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain :is(
+  .memory-curation,
+  .activity-timeline,
+  .memory-relations,
+  .memory-role-book-layer
+) > *,
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain .memory-preferences > .mgmt-section > * {
+  width: min(var(--memory-page-measure), calc(100% - 2 * var(--memory-page-gutter)));
+  margin-inline: auto;
+}
+
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain :is(
+  .memory-curation > .memory-curation__header,
+  .activity-timeline > .activity-timeline__toolbar,
+  .memory-relations > .memory-relations__toolbar,
+  .memory-role-book-layer > .memory-layer-heading,
+  .memory-preferences > .mgmt-section > .mgmt-section__header
+) {
+  position: sticky;
+  z-index: 4;
+  top: 0;
+  width: 100%;
+  margin: 0 0 var(--space-3);
+  padding-block: 11px;
+  padding-inline: max(var(--memory-page-gutter), (100% - var(--memory-page-measure)) / 2);
+  border-bottom: 1px solid var(--memory-line);
+  /* Opaque: a PAWOS page heading never blurs the content scrolling under it. */
+  background: #fff;
+}
+
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain .memory-preferences > .mgmt-section { padding: 0 0 36px; }
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain .memory-curation { padding-top: 0; }
+
+/* The relation graph is sized by the window, never by the browser viewport:
+   inside a short window the canvas shrinks instead of pushing the controls and
+   the node list out of the pane. */
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-relation-canvas { height: clamp(280px, 58cqh, 820px); }
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-explorer__visual { grid-template-rows: auto auto minmax(0, 1fr); }
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-node-list { max-height: clamp(220px, 58cqh, 590px); }
+
+/* Loading and empty states report inside the pane instead of forcing it open. */
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain :is(.mgmt-loading, .memory-layer-loading) {
+  min-height: 0;
+  padding: var(--space-4) var(--memory-page-gutter);
+}
+
+main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain .ui-empty-state {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Selection, focus, and scrollbars all follow the layer identity. */
+main[data-route-id='memory'] ::selection { background: color-mix(in srgb, var(--memory-signal) 24%, transparent); }
+main[data-route-id='memory'] :focus-visible { outline-color: var(--memory-signal); }
+main[data-route-id='memory'][data-paw-os-app='memory'] :where(.memory-layer-list, [role='tabpanel']) { scrollbar-color: color-mix(in srgb, var(--memory-signal) 28%, transparent) transparent; scrollbar-width: thin; }
+
+/* UR-102 memory semantic typography */
+main[data-route-id='memory'][data-paw-os-app] .memory-preferences__actions > span { font-size: 13px; }
+main[data-route-id='memory'][data-paw-os-app] .memory-pipeline__signal strong { font-size: 13px; }
+main[data-route-id='memory'][data-paw-os-app] .memory-pipeline__stage-copy strong { font-size: 14px; }
+main[data-route-id='memory'][data-paw-os-app] .memory-second-brain__mode strong { font-size: 14px; }
+/* UR-102 memory semantic typography end */
+
+/* ============================== interaction states ============================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .memory-pipeline__stage > button:hover,
+  .memory-reference-list button:hover,
+  .memory-reference-view__children > button:hover:not(:disabled),
+  .memory-role-book-sections > section > button:hover,
+  .memory-curation__row:hover,
+  .memory-curation__days li > button:hover,
+  .memory-curation__apps li:hover,
+  .memory-node-list button:hover,
+  .memory-entity__load-more:hover {
+    background: var(--color-surface-hover);
+  }
+
+  .memory-pipeline__stage[data-active] > button:hover {
+    background: color-mix(in srgb, var(--memory-signal) 9%, var(--color-paper));
+  }
+
+  .memory-pipeline__toggle:hover { color: var(--color-text-primary); }
+
+  .memory-curation__days li > button:hover,
+  .memory-curation__apps li:hover { transform: translateX(2px); }
+
+  .memory-relation-canvas__controls .ui-button:hover:not(:disabled) {
+    border-color: var(--color-border);
+    background: var(--color-surface-hover);
+  }
+
+  .memory-layer-list .mgmt-list__row:hover {
+    border-color: color-mix(in srgb, var(--memory-signal) 30%, transparent);
+    background: color-mix(in srgb, var(--memory-signal) 2%, var(--color-paper));
+    transform: translateY(-1px);
+  }
+}
+
+/* ============================== motion ============================== */
+
+@keyframes memory-spin { to { transform: rotate(360deg); } }
+
+/* Arrival is opacity + a small settle only: a blur filter here caused a
+   visible re-rasterise flicker on text during every view switch. */
+@keyframes memory-view-arrive {
+  from { opacity: .9; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* A newly selected record announces itself once, then stays still. */
+@keyframes memory-detail-arrive {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes memory-preference-pending { 50% { opacity: .42; } }
+
+@keyframes memory-graph-enter {
+  from { opacity: 0; transform: scale(.985); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes memory-relation-tooltip-in {
+  from { opacity: 0; transform: translateY(4px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes memory-relation-tooltip-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes memory-relation-focus-in {
+  from { opacity: 0; transform: translateY(-4px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .memory-pipeline__stage > button,
+  .memory-curation__progress-track > span,
+  .memory-curation__app-meter span,
+  .memory-curation__days li > button,
+  .memory-curation__apps li,
+  .memory-node-list button,
+  .memory-entity__load-more,
+  .memory-layer-list .mgmt-list__row { transition: none !important; }
+
+  .memory-second-brain > .memory-view-tabs > [role='tabpanel'],
+  .memory-second-brain[data-view='catalog'] .memory-catalog-detail,
+  .memory-preferences__persistence i { animation: none; }
+  .memory-pipeline__toggle svg { transition: none; }
+  .memory-relation-canvas[data-ready='true'] .memory-relation-canvas__surface { animation: none; }
+  .memory-relation-tooltip { animation: memory-relation-tooltip-fade 120ms linear both; }
+  .memory-relation-canvas__focus { animation: memory-relation-tooltip-fade 120ms linear both; }
+  .memory-role-book-item-disclosure { transition: opacity var(--duration-fast) var(--ease-standard); }
+  .memory-role-book-sections > section > button > svg { transition: none; }
+}
+
+:root[data-reduce-motion='true'] .memory-pipeline__stage > button,
+:root[data-reduce-motion='true'] .memory-curation__progress-track > span,
+:root[data-reduce-motion='true'] .memory-curation__app-meter span,
+:root[data-reduce-motion='true'] .memory-curation__days li > button,
+:root[data-reduce-motion='true'] .memory-curation__apps li,
+:root[data-reduce-motion='true'] .memory-node-list button,
+:root[data-reduce-motion='true'] .memory-entity__load-more,
+:root[data-reduce-motion='true'] .memory-layer-list .mgmt-list__row { transition: none !important; }
+
+:root[data-reduce-motion='true'] .memory-second-brain > .memory-view-tabs > [role='tabpanel'],
+:root[data-reduce-motion='true'] .memory-second-brain[data-view='catalog'] .memory-catalog-detail,
+:root[data-reduce-motion='true'] .memory-preferences__persistence i { animation: none; }
+:root[data-reduce-motion='true'] .memory-pipeline__toggle svg { transition: none; }
+:root[data-reduce-motion='true'] .memory-relation-canvas[data-ready='true'] .memory-relation-canvas__surface { animation: none; }
+:root[data-reduce-motion='true'] .memory-relation-tooltip { animation: memory-relation-tooltip-fade 120ms linear both; }
+:root[data-reduce-motion='true'] .memory-relation-canvas__focus { animation: memory-relation-tooltip-fade 120ms linear both; }
+:root[data-reduce-motion='true'] .memory-role-book-item-disclosure { transition: opacity var(--duration-fast) var(--ease-standard); }
+:root[data-reduce-motion='true'] .memory-role-book-sections > section > button > svg { transition: none; }
+
+/* ============================== responsive ==============================
+   One responsive system, two nested containers: memory-app is the App root and
+   drives window chrome and control sizing; memory-second-brain is the workspace
+   and drives every in-flow surface. Both react to the PAWOS window, so a resize
+   reflows the App identically to a resized browser page. Only portalled dialogs
+   still consult the viewport, because they render outside both containers. */
+
+/* Nav collapse. Below this width the PAWOS App rail has already turned into a
+   strip and the tab list no longer fits, so Memory shows a labelled page
+   selector instead of leaving the six pages behind unlabelled icons. */
+@container memory-app (max-width: 620px) {
+  .memory-app-nav { display: grid; }
+  .memory-view-tabs > .ui-tabs__list { display: none; }
+}
+
+@container memory-second-brain (max-width: 1120px) {
+  .memory-entity { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .memory-entity__summary { grid-column: 1 / -1; }
+  .memory-curation__progress-card { grid-template-columns: minmax(220px, .8fr) minmax(280px, 1.2fr); }
+  .memory-curation__runner { min-width: 0; grid-column: 1 / -1; grid-template-columns: minmax(150px, 200px) auto; align-items: end; }
+}
+
+@container memory-second-brain (max-width: 920px) {
+  .memory-pipeline__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .memory-explorer { grid-template-columns: 210px minmax(0, 1fr); }
+  .memory-curation__backlog-grid { grid-template-columns: minmax(0, 1fr); }
+  .memory-second-brain[data-view='catalog'] .memory-layer-workspace { grid-template-columns: minmax(280px, .8fr) minmax(360px, 1.2fr); }
+  .memory-layer-workspace,
+  .memory-second-brain .memory-role-book-workspace { grid-template-columns: minmax(0, 1fr); }
+  .memory-layer-list { max-height: 460px; border-right: 0; border-bottom: 1px solid var(--color-border); }
+  .memory-layer-actions { grid-template-columns: minmax(0, 1fr); }
+  .memory-role-book-detail > header { grid-template-columns: 36px minmax(0, 1fr) auto; }
+  .memory-role-book-detail > header .ui-button { grid-column: 2 / -1; justify-self: start; }
+}
+
+@container memory-second-brain (max-width: 680px) {
+  /* The spine keeps a single scrollable row; only the status toggle wraps
+     onto its own thin line so the rail never becomes a card wall. */
+  .memory-pipeline__rail { flex-wrap: wrap; }
+  .memory-pipeline__toggle {
+    min-height: 36px;
+    flex: 1 1 100%;
+    justify-content: space-between;
+    margin: 0;
+    border-top: 1px solid var(--color-border-soft);
+    border-left: 0;
+  }
+
+  .memory-pipeline__facts { grid-template-columns: minmax(0, 1fr); }
+  .memory-pipeline__summary { padding-inline: 14px; }
+
+  .memory-second-brain[data-view='catalog'] .memory-layer-workspace { grid-template-columns: minmax(0, 1fr); overflow: hidden; }
+  .memory-second-brain[data-view='catalog'] .memory-layer-list { height: 100%; max-height: none; border-bottom: 0; }
+  .memory-second-brain[data-view='catalog'] .memory-layer-workspace:not([data-detail-open='true']) .memory-layer-detail { display: none; }
+  .memory-second-brain[data-view='catalog'] .memory-layer-workspace[data-detail-open='true'] .memory-layer-list { display: none; }
+  .memory-second-brain[data-view='catalog'] .memory-layer-workspace[data-detail-open='true'] .memory-layer-detail { display: block; overflow: auto; }
+  .memory-second-brain[data-view='catalog'] .memory-layer-detail__back { display: inline-flex; }
+  .memory-second-brain[data-view='catalog'] .memory-catalog-filters { flex-wrap: wrap; }
+  .memory-layer-workspace { min-height: 0; }
+  .memory-layer-detail { padding-inline: 0; }
+  .memory-layer-detail > .ui-empty-state { min-height: 152px; padding-block: var(--space-5); }
+
+  .memory-catalog-detail { grid-template-columns: minmax(0, 1fr); }
+  .memory-catalog-detail dl { border-left: 0; border-top: 1px solid var(--color-border); }
+
+  .memory-curation__header { align-items: stretch; flex-direction: column; }
+  .memory-curation__actions { flex-wrap: wrap; }
+  .memory-curation__progress-card { align-items: stretch; grid-template-columns: minmax(0, 1fr); }
+  .memory-curation__runner { grid-column: auto; grid-template-columns: minmax(0, 1fr); }
+  .memory-curation__batch-bound { min-height: 44px; }
+  .memory-curation__progress-dates { align-items: flex-start; flex-direction: column; }
+  .memory-curation__days li > button { grid-template-columns: minmax(104px, .8fr) auto; }
+  .memory-curation__day-apps { grid-column: 1 / -1; grid-row: 2; }
+  .memory-curation__day-state { grid-column: 2; grid-row: 2; justify-self: end; }
+
+  .memory-relations__toolbar { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .memory-graph__scope { justify-content: flex-start; }
+  .memory-relations__filters { justify-content: stretch; }
+  .memory-relations__search { min-width: 100%; flex-basis: 100%; }
+  .memory-relations__filters > .memory-relations__source {
+    width: auto;
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  .memory-explorer { grid-template-columns: minmax(0, 1fr); }
+  .memory-explorer__visual { grid-template-rows: auto auto minmax(520px, 68vh); }
+  .memory-node-list {
+    max-height: 250px;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .memory-relation-canvas { height: clamp(520px, 68vh, 680px); }
+  .memory-graph__truth { align-items: flex-start; flex-direction: column; }
+
+  .memory-entity { grid-template-columns: minmax(0, 1fr); }
+  .memory-entity__summary { grid-column: auto; }
+  .memory-entity__row { grid-template-columns: minmax(0, 1fr) auto; }
+  .memory-entity__row > span:last-child { grid-column: 1 / -1; }
+
+  .memory-role-book-sections { grid-template-columns: minmax(0, 1fr); }
+  .memory-role-book-detail > header { grid-template-columns: 34px minmax(0, 1fr); }
+  .memory-role-book-detail > header .mgmt-status,
+  .memory-role-book-detail > header .ui-button { grid-column: 2; justify-self: start; }
+
+  .memory-preferences__intro { grid-template-columns: 42px minmax(0, 1fr); }
+  .memory-preferences__persistence { grid-column: 2; justify-self: start; }
+  .memory-preferences__recall-policy { grid-template-columns: 28px minmax(0, 1fr); }
+  .memory-preferences__recall-policy > small { grid-column: 2; white-space: normal; }
+  .memory-preferences__grid { grid-template-columns: minmax(0, 1fr); }
+  .memory-preferences__grid > *,
+  .memory-preferences__grid > :nth-child(even) { min-height: 0; padding: 15px 0; border-left: 0; border-bottom: 1px solid var(--memory-line-soft, var(--color-border)); }
+  .memory-preferences__grid > :last-child { border-bottom: 0; }
+}
+
+/* Portalled dialogs live outside both containers; they follow the viewport. */
+@media (max-width: 680px) {
+  .memory-reference-view__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .memory-reference-view__facts > div:nth-child(3n) { border-right: 1px solid var(--memory-line, var(--color-border)); }
+  .memory-reference-view__facts > div:nth-child(2n) { border-right: 0; }
+  .memory-reference-view__source-context > dl { grid-template-columns: minmax(0, 1fr); }
+  .memory-edit-form__split { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Touch targets grow to 44px once the App itself is compact — a narrow window
+   on a large display needs the same reachable controls as a small screen. */
+@container memory-app (max-width: 760px) {
+  main[data-route-id='memory'] .ui-button,
+  main[data-route-id='memory'] .ui-icon-button,
+  main[data-route-id='memory'] .ui-input,
+  main[data-route-id='memory'] .ui-select__trigger,
+  main[data-route-id='memory'] [role='tab'] {
+    min-height: 44px;
+  }
+
+  main[data-route-id='memory'] [role='tab'] { min-width: 44px; }
+
+  main[data-route-id='memory'] .memory-relation-canvas__controls .ui-button {
+    width: 44px;
+    min-width: 44px;
+  }
+
+  main[data-route-id='memory'] .memory-entity__row button {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+  }
+}
+
+/* 375px class windows. The App keeps one column everywhere: nothing may push
+   the pane wider than the window, and the pinned page headings shrink with it. */
+@container memory-app (max-width: 430px) {
+  main[data-route-id='memory'][data-paw-os-app='memory'] .memory-second-brain { --memory-page-gutter: 12px; }
+  main[data-route-id='memory'] .memory-app-nav { padding-inline: 12px; }
+  main[data-route-id='memory'] .memory-second-brain__mode small { display: none; }
+  main[data-route-id='memory'] .memory-catalog-filters .ui-field,
+  main[data-route-id='memory'] .memory-catalog-filters__query { min-width: 0; flex-basis: 100%; }
+  main[data-route-id='memory'] .memory-graph__scope code { max-width: 100%; }
+  main[data-route-id='memory'] .memory-relations__filters > .memory-relations__source { width: 100%; flex-basis: 100%; }
+}

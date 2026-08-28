@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "paw.showcase-upstream.v1",
+  "snapshotDate": "2026-08-28",
+  "sourceRepository": "7155/personal-agent-workbench",
+  "sourceVisibilityAtSnapshot": "private",
+  "sourceCommit": "cc1eca9ef7223addb6c55e93b680c1f361f6ab3b",
+  "sourceSubtree": "control-center-web",
+  "snapshotMode": "fresh-history-selected-frontend",
+  "dataMode": "synthetic-preview-only",
+  "authority": "derivative-showcase-not-product-source",
+  "localChanges": [
+    "default the development and build transports to mock",
+    "redact machine-specific example paths",
+    "add a public scenario catalog, boundary guide, App audit, and privacy checker",
+    "exclude private product documents, repository history, dependencies, output, and Runtime data"
+  ],
+  "proofBoundary": "This snapshot proves selected source provenance and a runnable synthetic-data web showcase only."
+}

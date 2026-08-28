@@ -1,0 +1,1492 @@
+/* PAWOS shell structure -------------------------------------------------------
+ * This file owns shell structure and state semantics: tokens, layout geometry,
+ * interaction targets, window states and flow signals. Visual identity (colour,
+ * material, blur, shadows) is owned by paw-os-shell-migrated-v1.css; timing and
+ * choreography by paw-os-motion.css; the shared control language (select,
+ * menu, button, panel) by paw-os-controls.css. Windows are opaque working
+ * surfaces; backdrop blur is reserved for true chrome (menu bar, Dock and
+ * Launchpad) so dragging or resizing a window never re-rasterizes a filter
+ * stack behind it. Menus are opaque by contract — see paw-os-controls.css. */
+
+.paw-desktop-root {
+  /* PAWOS uses the product typography authority instead of inventing a second
+     compact scale inside every App. These aliases keep mixed Chinese/Latin
+     copy on one stable rhythm while preserving a distinct technical role. */
+  --paw-type-heading: var(--text-section-lead, 21px);
+  --paw-type-title: var(--text-subsection, 16px);
+  --paw-type-body: var(--text-reading, 15px);
+  --paw-type-ui: var(--text-ui, 14px);
+  --paw-type-meta: var(--text-label, 13px);
+  --paw-type-mono: var(--text-code, 13px);
+  --paw-leading-heading: var(--text-section-lead-lh, 28px);
+  --paw-leading-title: var(--text-subsection-lh, 24px);
+  --paw-leading-body: var(--text-reading-lh, 25px);
+  --paw-leading-ui: var(--text-ui-lh, 20px);
+  --paw-leading-meta: var(--text-label-lh, 18px);
+  --paw-leading-mono: var(--text-code-lh, 20px);
+  /* One chrome scale. The menu bar and titlebar heights are shared tokens so
+     the viewport offset, drag surfaces and body padding can never drift. */
+  --paw-menu-h: 34px;
+  --paw-titlebar-h: 40px;
+  --paw-dock-h: 62px;
+  --paw-bg: #eef3f9;
+  --paw-panel: #ffffff;
+  --paw-panel-strong: #ffffff;
+  --paw-panel-soft: #f1f5fa;
+  --paw-line: rgba(0, 0, 0, 0.08);
+  --paw-line-soft: rgba(0, 0, 0, 0.045);
+  --paw-ink: #0f172a;
+  --paw-muted: #64748b;
+  --paw-accent: #2563eb;
+  --paw-accent-strong: #1d4ed8;
+  --paw-accent-soft: #eff6ff;
+  --paw-chrome: rgba(255, 255, 255, 0.72);
+  --paw-chrome-soft: rgba(255, 255, 255, 0.88);
+  --paw-chrome-ink: #0f172a;
+  --paw-chrome-muted: #64748b;
+  --paw-desktop-ink: #0f172a;
+  --paw-desktop-muted: #64748b;
+  --paw-desktop-surface: rgba(255, 255, 255, 0.65);
+  --paw-success: #10b981;
+  --paw-warning: #f59e0b;
+  --paw-danger: #ef4444;
+  --paw-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.22), 0 2px 8px rgba(15, 23, 42, 0.06);
+  --paw-radius: 12px;
+  --paw-ease-out: cubic-bezier(.16, 1, .3, 1);
+  --paw-ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  min-width: 0;
+  min-height: 480px;
+  overflow: hidden;
+  color: var(--paw-ink);
+  font-family: var(--font-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Segoe UI", sans-serif);
+  font-size: var(--paw-type-ui);
+  font-weight: var(--font-weight-regular, 400);
+  line-height: var(--paw-leading-ui);
+  background-color: var(--paw-bg);
+  color-scheme: light;
+}
+
+.paw-desktop-root .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.paw-desktop-root *, .paw-desktop-root *::before, .paw-desktop-root *::after { box-sizing: border-box; }
+.paw-desktop-root button, .paw-desktop-root input, .paw-desktop-root textarea, .paw-desktop-root select { color: inherit; font: inherit; }
+.paw-desktop-root button { border: 0; background: none; }
+.paw-desktop { position: absolute; inset: 0; overflow: hidden; isolation: isolate; }
+
+/* Menu bar structure. The real DOM is mark | active App | status; the macOS
+   native host reserves a first column for its own traffic controls. */
+.paw-menu-bar {
+  position: absolute; z-index: 80; inset: 0 0 auto; height: var(--paw-menu-h);
+  display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 0 16px;
+  user-select: none;
+}
+.paw-menu-bar > .paw-system-mark { min-width: 0; grid-column: 1; }
+.paw-menu-bar > .paw-menu-app { min-width: 0; grid-column: 2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.paw-menu-bar > .paw-menu-status { min-width: 0; grid-column: 3; }
+html[data-paw-native-host='macos'] .paw-menu-bar {
+  grid-template-columns: 68px max-content minmax(0, 1fr) auto;
+  /* Electron removes its own title strip on macOS. This one PAW bar becomes
+     the window drag surface while the native traffic lights occupy column 1. */
+  -webkit-app-region: drag;
+}
+html[data-paw-native-host='macos'] .paw-menu-bar > :is(button, .paw-menu-status) {
+  -webkit-app-region: no-drag;
+}
+html[data-paw-native-host='macos'] .paw-menu-bar::before {
+  width: 68px;
+  height: 100%;
+  grid-column: 1;
+  content: '';
+  pointer-events: none;
+}
+html[data-paw-native-host='macos'] .paw-menu-bar > .paw-system-mark { grid-column: 2; }
+html[data-paw-native-host='macos'] .paw-menu-bar > .paw-menu-app { grid-column: 3; }
+html[data-paw-native-host='macos'] .paw-menu-bar > .paw-menu-status { grid-column: 4; }
+.paw-system-mark { min-width: 0; height: 28px; display: grid; place-items: center; padding: 0 2px; cursor: pointer; }
+.paw-menu-app { display: inline-flex; align-items: center; gap: 8px; min-width: 0; cursor: pointer; }
+.paw-menu-status { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+.paw-desktop-viewport { position: absolute; left: 0; top: var(--paw-menu-h); right: 0; bottom: 0; overflow: hidden; }
+.paw-desktop-viewport::after {
+  position: absolute;
+  z-index: 74;
+  inset: 10px 10px 84px;
+  pointer-events: none;
+  border: 2px solid color-mix(in srgb, var(--paw-accent) 74%, white);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--paw-accent) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, white 62%, transparent);
+  opacity: 0;
+  content: '';
+  /* The snap preview updates while a window is being dragged. Animating its
+     inset would run a layout invalidation on every preview change. */
+  transition: opacity 100ms ease;
+}
+.paw-desktop-root[data-snap-preview='maximized'] .paw-desktop-viewport::after { opacity: 1; }
+.paw-desktop-root[data-snap-preview='left'] .paw-desktop-viewport::after { right: calc(50% + 5px); opacity: 1; }
+.paw-desktop-root[data-snap-preview='right'] .paw-desktop-viewport::after { left: calc(50% + 5px); opacity: 1; }
+.paw-window-body,
+.paw-window-body * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.paw-window-body::-webkit-scrollbar,
+.paw-window-body *::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+/* Overview and focus dim the Wayfinder with opacity plus the shared quiet
+   plane only — never a filter, which would hold a full-viewport re-raster of
+   the wallpaper for as long as the mode stays open. */
+.paw-wayfinder {
+  /* One width token for the recent-work instrument: the lede column reserves
+     its gutter from the same number, so the two can never overlap after a
+     breakpoint changes one of them. */
+  --paw-work-w: 324px;
+  position: absolute; inset: 0; overflow: hidden; color: var(--paw-desktop-ink); user-select: none; transition: opacity 220ms var(--paw-ease-out), transform 220ms var(--paw-ease-out);
+}
+.paw-desktop[data-overview] .paw-wayfinder { opacity: .55; }
+
+.paw-field-media {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* The wallpaper is its own sealed paint world: desktop work can never
+     re-rasterize the field's one-time filters (ridge depth-of-field, film
+     grain), and the picture itself carries no animation that could
+     invalidate the chrome glass above it. */
+  contain: strict;
+}
+.paw-composition-field {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  display: block;
+  opacity: 1;
+  transition: opacity 220ms var(--paw-ease-out);
+}
+/* Live overlay — the only part of the wallpaper that ever moves. The SVG
+   picture below it rasterizes once and is never invalidated again; the ambient
+   veils and the Runtime pulse both land here as compositor-only
+   transform/opacity on pre-blurred gradients, and the residual energy keeps
+   the light gap slightly lit after activity. The custom property lives on this
+   small subtree so an energy write can never trigger a style pass over the
+   terrain. */
+.paw-field-live {
+  --paw-composition-energy: 0;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* Ambient weather — five layers, and the whole reason the desktop reads as a
+   living sky rather than as a printed backdrop: volumetric shafts fanning out
+   of the horizon gap, two cold aurora curtains crossing the upper sky, one fog
+   bank drifting along the valley, and a sheen breathing on the light itself.
+   Each is a single pre-blurred gradient on one HTML node, so a layer costs one
+   paint when the compositor promotes it and nothing per frame after that.
+   Static placement uses the individual `rotate` and `translate` properties so
+   the reduced-motion `transform: none` reset can flatten the choreography
+   without dragging a layer off its mark. */
+.paw-field-live__rays,
+.paw-field-live__veil,
+.paw-field-live__drift,
+.paw-field-live__sheen {
+  position: absolute;
+  pointer-events: none;
+}
+/* The shafts are a disc centred on the light gap so the fan can pivot about
+   its own origin. Bounded in px as well as vw: on a very wide display an
+   unbounded full-bleed layer is real compositor memory for no extra drama. */
+.paw-field-live__rays {
+  left: 68.4%;
+  top: 61.3%;
+  width: clamp(1000px, 132vw, 2100px);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  opacity: .84;
+}
+.paw-field-live__veil--high {
+  left: -16%;
+  top: -14%;
+  width: 92%;
+  height: 58%;
+  rotate: -9deg;
+  opacity: .92;
+}
+.paw-field-live__veil--low {
+  right: -22%;
+  top: -2%;
+  width: 88%;
+  height: 52%;
+  rotate: 7deg;
+  opacity: .8;
+}
+/* Valley weather: a wide, very soft bank lying along the mid ridges. It is
+   the layer that makes the terrain itself look alive, so it is the one that
+   travels furthest — but it travels slowly, and only sideways. */
+.paw-field-live__drift {
+  left: -34%;
+  top: 56%;
+  width: 104%;
+  height: 30%;
+  opacity: .5;
+}
+.paw-field-live__sheen {
+  /* Anchored to the light gap at 985,552 of the 1440x900 picture. */
+  left: 68.4%;
+  top: 61.3%;
+  width: 64%;
+  min-width: 540px;
+  aspect-ratio: 2.7;
+  border-radius: 50%;
+  translate: -50% -50%;
+  opacity: .46;
+}
+/* Ambient motion is suspended, not merely hidden, the moment nobody is
+   watching the scenery: `data-ambient-paused` covers a hidden document, a
+   focused App window, the Launchpad veil and the overview plane, and the two
+   remaining signals hand the frame budget to collaboration focus and to a
+   live window drag/resize. Pausing the loops leaves each composited layer
+   exactly where it stopped, so resuming costs nothing and no frame is ever
+   spent behind work. */
+.paw-desktop[data-ambient-paused] .paw-field-live > *,
+.paw-desktop[data-collaboration-focus] .paw-field-live > *,
+.paw-desktop-root[data-window-interaction] .paw-field-live > * {
+  animation-play-state: paused;
+}
+.paw-field-live__glow {
+  position: absolute;
+  /* The light gap sits at 985,552 of the 1440x900 picture. */
+  left: 68.4%;
+  top: 61.3%;
+  width: 34%;
+  min-width: 320px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: calc(var(--paw-composition-energy, 0) * .3);
+  /* The centring offset is the separate translate property, so the pulse's
+     transform keyframes cannot knock the glow off the light gap. */
+  translate: -50% -50%;
+  transition: opacity 640ms var(--paw-ease-out);
+}
+/* Collaboration focus recedes the wallpaper with opacity alone (the focus
+   plane above supplies the darkness) and clears the live light entirely, so
+   nothing glows or pulses behind focused work. The pulse driver also skips
+   choreography while focus, a hidden document or a window gesture owns the
+   stage. */
+.paw-desktop[data-collaboration-focus] .paw-composition-field {
+  opacity: .7;
+}
+.paw-desktop[data-collaboration-focus] .paw-field-live {
+  opacity: 0;
+}
+.paw-desktop[data-collaboration-focus] .paw-wayfinder,
+.paw-desktop[data-collaboration-focus] .paw-dock {
+  opacity: .14;
+  pointer-events: none;
+}
+.paw-collaboration-focus-exit {
+  position: absolute;
+  z-index: 210;
+  top: 48px;
+  left: 50%;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--paw-accent) 42%, var(--paw-line));
+  border-radius: 999px;
+  color: var(--paw-ink);
+  background: color-mix(in srgb, var(--paw-panel-strong) 94%, transparent);
+  box-shadow: 0 8px 26px rgb(15 23 42 / 16%);
+  transform: translateX(-50%);
+  cursor: pointer;
+}
+/* Project Field stage — the first viewport's one composition.
+   The desktop used to be two matching white cards in opposite corners with
+   nothing between them. The subject now lives in a single left column: the
+   lede says what the machine is for, and the identity rail sits directly
+   under that sentence as its index, sharing one ground. The recent-work
+   instrument keeps the opposite corner, so the two surfaces read as a
+   statement and an instrument instead of as twins.
+   This file owns geometry only; the veil that grounds the column and every
+   ink on it belong to paw-os-shell-migrated-v1.css. */
+.paw-field-stage {
+  position: absolute; z-index: 3;
+  left: 34px;
+  right: calc(var(--paw-work-w) + 24px + 44px);
+  top: 45%;
+  max-width: 548px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 22px;
+  translate: 0 -52%;
+}
+/* The column's ground is an opening in the fog, not a fourth panel: one
+   feathered gradient with no border, radius or shadow. It costs a single
+   paint on promotion and cannot reach the sealed wallpaper underneath — the
+   chrome blur budget still belongs to menu bar, Dock and Launchpad.
+   The insets are symmetric on purpose: the veil's ellipse is inscribed in
+   this box, so the gradient reaches zero exactly at the box edge and the
+   opening can never show a clipped seam over the terrain. */
+.paw-field-stage::before {
+  position: absolute; z-index: -1;
+  inset: -200px -300px;
+  content: '';
+  pointer-events: none;
+}
+/* The lede is type, not a target: only its action answers the pointer, so a
+   rubber-band selection can still be drawn straight across the sentence. */
+.paw-field-lede { align-self: stretch; display: flex; flex-direction: column; align-items: flex-start; pointer-events: none; }
+.paw-field-lede button { pointer-events: auto; }
+.paw-field-lede__mark {
+  display: flex; align-items: center; gap: 7px;
+  margin: 0 0 9px;
+  font-size: 12px; font-weight: 650; letter-spacing: .07em;
+}
+/* The same cobalt bar that opens the Agent home greeting: the desktop and
+   the App state their identity in one grammar. */
+.paw-field-lede__mark::before { width: 20px; height: 2px; flex: none; content: ''; }
+.paw-field-lede__mark span { letter-spacing: .1em; }
+.paw-field-lede__title {
+  margin: 0 0 10px;
+  font-size: clamp(27px, 2.5vw, 38px); font-weight: 720; letter-spacing: -.035em; line-height: 1.14;
+  text-wrap: balance;
+}
+.paw-field-lede__title em { font-style: normal; }
+.paw-field-lede__copy {
+  max-width: 31em;
+  margin: 0 0 18px;
+  font-size: 14px; font-weight: 450; line-height: 1.68;
+  text-wrap: pretty;
+}
+/* The three things that actually exist on the path the sentence describes.
+   Weight and ink only — no chip, no rule, no colour of their own — so the
+   line still reads as one sentence while those three words survive being
+   read from across a room. CJK breaks between any two characters, so each
+   keyed noun is held together: a term split down the middle stops being a
+   term. */
+.paw-field-lede__copy b { font-weight: 620; white-space: nowrap; }
+.paw-field-lede__start {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 36px; padding: 0 16px 0 18px;
+  border-radius: 999px;
+  font-size: 13.5px; font-weight: 650;
+  cursor: pointer;
+  transition: background-color 140ms ease, box-shadow 180ms var(--paw-ease-out), transform 180ms var(--paw-ease-out);
+}
+.paw-field-lede__start svg { flex: none; transition: transform 180ms var(--paw-ease-out); }
+.paw-field-lede__start:hover svg { transform: translateX(3px); }
+.paw-field-lede__start:active { transform: translateY(1px); }
+
+/* Identity rail — the lede's index. One tile per desktop identity, laid on
+   the same veil the sentence sits on, so the first viewport carries no second
+   plate. Hover, selection and the running pill speak the shared identity
+   language declared in paw-app-icon.css; this file is the list's only style
+   owner. */
+.paw-desktop-shortcuts {
+  align-self: stretch;
+  display: flex; flex-wrap: wrap; gap: 2px;
+  margin-left: -7px;
+}
+.paw-desktop-shortcuts button {
+  display: grid; justify-items: center; align-content: start; gap: 6px;
+  width: 82px; padding: 9px 6px 8px; border-radius: 12px; color: var(--paw-desktop-ink);
+  text-align: center;
+  cursor: pointer; transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+/* Hover and selection speak the shared identity wash (paw-app-icon.css), so
+   the desktop, Dock and launcher can never drift into different plates. */
+.paw-desktop-shortcuts button:hover {
+  background: var(--paw-identity-wash);
+}
+.paw-desktop-shortcuts button[aria-selected='true'] {
+  color: var(--paw-ink);
+  background: var(--paw-identity-wash-strong);
+  box-shadow: var(--paw-identity-ring);
+}
+.paw-desktop-shortcuts button > span {
+  display: grid; place-items: center;
+  border-radius: 8px;
+}
+.paw-desktop-shortcuts button strong {
+  max-width: 100%; overflow: hidden;
+  font-size: 12px; font-weight: 570; line-height: 1.25;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+/* Running state mirrors the Dock's shape language: long pill = visible
+   window, short soft pill = minimized only — shape plus the App's own
+   identity colour, never colour alone. */
+.paw-desktop-shortcuts button > i { display: none; }
+.paw-desktop-shortcuts button[data-open] > i {
+  display: block;
+  width: 14px; height: 3px;
+  border-radius: 999px;
+  background: var(--paw-identity-dot);
+}
+.paw-desktop-shortcuts button[data-minimized] > i {
+  width: 6px;
+  opacity: .55;
+}
+.paw-desktop[data-collaboration-focus] .paw-field-stage {
+  opacity: .44;
+  filter: saturate(.58);
+}
+
+/* Wayfinder recent-work panel. Structure only: one bounded card in the
+   desktop's top-right corner whose height is capped inside the viewport —
+   overflow lives in the internal list scroll, never on the desktop itself. */
+.paw-wayfinder-work {
+  position: absolute; z-index: 3;
+  top: 20px; right: 24px;
+  width: min(var(--paw-work-w), calc(100% - 168px));
+  max-height: min(62vh, calc(100% - 108px));
+  display: flex; flex-direction: column;
+  border-radius: 14px;
+}
+.paw-wayfinder-work__head {
+  display: flex; align-items: baseline; gap: 7px;
+  padding: 12px 14px 6px;
+}
+.paw-wayfinder-work__head strong { font-size: 12px; font-weight: 640; letter-spacing: .04em; }
+.paw-wayfinder-work__count { font-size: 11px; font-variant-numeric: tabular-nums; }
+.paw-wayfinder-work__search {
+  display: flex; align-items: center; gap: 7px;
+  flex: none; min-height: 28px; margin: 0 10px 8px; padding: 0 9px;
+  border-radius: 8px; cursor: text;
+}
+.paw-wayfinder-work__search svg { flex: none; }
+.paw-wayfinder-work__search input {
+  flex: 1; min-width: 0; padding: 0;
+  border: 0; background: none; font-size: 12px;
+}
+.paw-wayfinder-work__list {
+  min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: 0 8px 10px;
+  scrollbar-width: thin;
+}
+.paw-wayfinder-work__bucket { display: grid; gap: 2px; }
+.paw-wayfinder-work__bucket + .paw-wayfinder-work__bucket { margin-top: 9px; }
+.paw-wayfinder-work__bucket-label,
+.paw-wayfinder-work__bucket-toggle {
+  display: flex; align-items: center; gap: 5px;
+  margin: 0; padding: 4px 6px 3px;
+  font-size: 10.5px; font-weight: 620; letter-spacing: .08em;
+}
+.paw-wayfinder-work__bucket-toggle { width: 100%; border-radius: 7px; text-align: left; cursor: pointer; }
+.paw-wayfinder-work__bucket-label small,
+.paw-wayfinder-work__bucket-toggle small { font-size: 10px; font-weight: 550; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.paw-wayfinder-work__row-shell { position: relative; }
+.paw-wayfinder-work__row {
+  width: 100%;
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 8px; border-radius: 9px;
+  text-align: left; cursor: pointer;
+}
+.paw-wayfinder-work__row-shell:has(.paw-wayfinder-work__repeats-toggle) .paw-wayfinder-work__row { padding-right: 44px; }
+.paw-wayfinder-work__dot { flex: none; width: 6px; height: 6px; margin-top: 6px; border-radius: 50%; }
+.paw-wayfinder-work__copy { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.paw-wayfinder-work__copy strong {
+  font-size: 12.5px; font-weight: 570; line-height: 1.35;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.paw-wayfinder-work__copy small {
+  display: flex; align-items: center; gap: 6px; min-width: 0;
+  font-size: 11px; font-weight: 480;
+}
+.paw-wayfinder-work__copy small svg { flex: none; }
+.paw-wayfinder-work__copy small > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.paw-wayfinder-work__agents { display: inline-flex; flex: none; gap: 3px; }
+.paw-wayfinder-work__agents b { padding: 0 5px; border-radius: 999px; font-size: 10px; font-weight: 580; line-height: 15px; }
+.paw-wayfinder-work__repeats-toggle {
+  position: absolute; top: 7px; right: 8px; z-index: 1;
+  min-width: 27px; height: 17px; padding: 0 5px;
+  border-radius: 999px;
+  font-size: 10px; font-variant-numeric: tabular-nums; line-height: 1;
+  cursor: pointer;
+}
+.paw-wayfinder-work__repeat {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-top: 1px; padding: 3px 8px 3px 22px;
+  border-radius: 7px; font-size: 11px; text-align: left; cursor: pointer;
+}
+.paw-wayfinder-work__more {
+  justify-self: start;
+  margin-top: 1px; padding: 3px 8px;
+  border-radius: 7px; font-size: 11px; cursor: pointer;
+}
+.paw-wayfinder-work__state {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 7px;
+  margin: 0; padding: 8px 8px 6px;
+  font-size: 11.5px;
+}
+.paw-wayfinder-work__state button {
+  padding: 2px 10px; border-radius: 999px;
+  font-size: 11px; cursor: pointer;
+}
+
+.paw-selection-lasso {
+  position: absolute; z-index: 75; pointer-events: none;
+  border: 1px solid var(--paw-accent); border-radius: 4px;
+  background: color-mix(in srgb, var(--paw-accent) 15%, transparent);
+}
+
+/* Structure only. The menu material, item colours, hover/focus selection and
+   separators are the shared control language in paw-os-controls.css. */
+.paw-context-menu { position: fixed; z-index: 220; width: 220px; }
+
+/* Windows sit above the Dock (z 8) and below the menu bar (z 80). */
+.paw-window-layer { position: absolute; z-index: 10; inset: 0 0 76px; pointer-events: none; }
+.paw-room-window-flow {
+  position: absolute; z-index: 20; inset: 0;
+  width: 100%; height: 100%; overflow: visible; pointer-events: none;
+}
+/* The overlay repaints per frame only while a window drag streams live path
+   geometry through it or a live packet pulse is animating. Promote it for
+   exactly those windows so its repaints rasterize into their own layer; at
+   rest the hint is released, so a Room desktop showing static relationship
+   hints no longer pins one full-viewport compositor layer forever. */
+.paw-desktop-root[data-window-interaction] .paw-room-window-flow,
+.paw-room-window-flow:has(g[data-live]) {
+  will-change: transform;
+}
+.paw-room-window-flow path { fill: none; vector-effect: non-scaling-stroke; }
+/* Idle relationships are a faint dashed hint; a live transfer lights the path
+   and marches the dashes toward the target, so direction is readable even
+   before the packet arrives. */
+.paw-room-window-flow__base {
+  stroke: rgb(15 23 42 / .12);
+  stroke-width: 1.25;
+  stroke-dasharray: 2 7;
+}
+.paw-room-window-flow g[data-live] .paw-room-window-flow__base {
+  stroke: color-mix(in srgb, var(--paw-accent) 55%, transparent);
+  stroke-width: 1.6;
+  stroke-dasharray: 4 6;
+  animation: paw-window-flow-march 620ms linear infinite;
+}
+.paw-room-window-flow__live {
+  stroke: color-mix(in srgb, var(--paw-accent) 78%, white);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: paw-window-flow-reveal 900ms var(--paw-ease-out) both;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--paw-accent) 56%, transparent));
+}
+.paw-room-window-flow__packet {
+  fill: var(--paw-accent);
+  stroke: color-mix(in srgb, var(--paw-accent) 36%, white);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--paw-accent) 64%, transparent));
+  animation: paw-window-flow-packet 820ms linear both;
+}
+.paw-room-window-flow__source,
+.paw-room-window-flow__arrival {
+  fill: none;
+  stroke: var(--paw-accent);
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.paw-room-window-flow__source { animation: paw-window-flow-source 360ms var(--paw-ease-out) both; }
+.paw-room-window-flow__arrival { animation: paw-window-flow-arrival 420ms var(--paw-ease-out) both; }
+.paw-room-window-flow g[data-kind='question'] { --paw-accent: #a78bfa; }
+.paw-room-window-flow g[data-kind='answer'] { --paw-accent: #22c55e; }
+.paw-room-window-flow g[data-kind='result'] { --paw-accent: #38bdf8; }
+.paw-room-window-flow g[data-kind='context'] { --paw-accent: #f59e0b; }
+@keyframes paw-window-flow-march { to { stroke-dashoffset: -10; } }
+@keyframes paw-window-flow-reveal {
+  0% { opacity: 0; stroke-dashoffset: 1; }
+  68% { opacity: 1; stroke-dashoffset: 0; }
+  100% { opacity: 0; stroke-dashoffset: 0; }
+}
+@keyframes paw-window-flow-packet { 0%, 100% { opacity: 0; } 14%, 76% { opacity: 1; } }
+@keyframes paw-window-flow-source { 0% { opacity: 0; transform: scale(.25); } 55% { opacity: 1; } 100% { opacity: 0; transform: scale(1.8); } }
+@keyframes paw-window-flow-arrival { 0% { opacity: 0; transform: scale(.25); } 48% { opacity: 1; } 100% { opacity: 0; transform: scale(2); } }
+.paw-window-shell {
+  position: absolute; min-width: 280px; min-height: 210px; pointer-events: auto; transform-origin: 0 0;
+  /* One query container per window, declared on the frame the pointer
+     actually drags and resizes. Every App's `@container paw-window` rule then
+     answers the true window width — including mid-gesture, while the shell's
+     inline width changes and the App tree has not re-rendered yet — and no
+     inner surface can quietly become a second `paw-window` owner. */
+  container: paw-window / inline-size;
+  /* Placement is one gesture: snap, maximize, restore and viewport fit move
+     position and size on the same clock, so the frame can never tear — size
+     snapping while the transform still travels. Live drag/resize is direct
+     manipulation and opts out entirely below. */
+  transition:
+    opacity 220ms ease,
+    transform 240ms var(--paw-ease-out),
+    width 240ms var(--paw-ease-out),
+    height 240ms var(--paw-ease-out);
+}
+.paw-window-shell[data-interaction] { transition: none; }
+/* The pointer owns the frame: promote it once for the whole gesture, and
+   release the hint at rest so idle windows never hold compositor layers. */
+.paw-window-shell[data-interaction='dragging'] { will-change: transform; }
+.paw-window-shell[data-interaction='resizing'] { will-change: transform, width, height; }
+/* Idle siblings drop out of hit-testing for the gesture: the captured
+   pointer already owns the stream, and skipping their hit regions keeps
+   the main thread free under a dense window stack. */
+.paw-desktop-root[data-window-interaction] .paw-window-shell:not([data-interaction]) {
+  pointer-events: none;
+}
+.paw-window {
+  position: relative;
+  width: 100%; height: 100%; display: block;
+  overflow: hidden;
+  border: 1px solid var(--paw-line);
+  border-radius: var(--paw-radius);
+  background: var(--paw-panel-strong);
+  box-shadow: var(--paw-shadow);
+  /* Opaque surfaces never re-rasterize a blur while dragging; the hint keeps
+     the window on a stable compositor layer through transform changes. */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.paw-desktop[data-collaboration-focus] .paw-window-shell[data-collaboration-role='unrelated'] .paw-window {
+  opacity: .84;
+  filter: brightness(.94) saturate(.72);
+}
+/* Full-viewport filters + a live transform starve the pointer; freeze the
+   dim to opacity-only for the exact duration of a drag/resize. */
+.paw-desktop-root[data-window-interaction] .paw-desktop[data-collaboration-focus] .paw-window-shell[data-collaboration-role='unrelated'] .paw-window {
+  filter: none;
+}
+.paw-desktop[data-collaboration-focus] .paw-window-shell[data-collaboration-role='hidden'] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.paw-window-shell[data-focus-layout] { min-width: 0; min-height: 0; }
+/* Collaboration roles carry an accent ring. The .paw-desktop-root prefix keeps
+   this state rule above the visual owner's base material declaration. */
+.paw-desktop-root .paw-window-shell[data-collaboration-role='primary'] .paw-window,
+.paw-desktop-root .paw-window-shell[data-collaboration-role='satellite'] .paw-window {
+  border-color: color-mix(in srgb, var(--paw-accent) 58%, var(--paw-line));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--paw-accent) 18%, transparent), var(--paw-shadow);
+}
+.paw-window-shell[data-collaboration-role='satellite'] .paw-window {
+  animation: paw-collaboration-satellite-enter 260ms var(--paw-ease-out) both;
+}
+.paw-window-shell[data-flow-state='source'] .paw-window,
+.paw-window-shell[data-flow-state='arrival'] .paw-window {
+  animation: paw-collaboration-edge-pulse 880ms var(--paw-ease-out) both;
+}
+.paw-window-shell[data-flow-state='arrival'] .paw-window {
+  --paw-flow-edge: color-mix(in srgb, var(--paw-accent) 68%, white);
+}
+/* Arrival also blinks a small dot beside the target title, so the receiving
+   window is identifiable even when its edge is covered by another window. */
+.paw-window-shell[data-flow-state='arrival'] .paw-window-title > strong::after {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 7px;
+  border-radius: 50%;
+  background: var(--paw-accent);
+  content: '';
+  animation: paw-window-flow-arrival-blink 900ms ease both;
+}
+@keyframes paw-window-flow-arrival-blink {
+  0%, 55%, 100% { opacity: 0; }
+  15%, 40%, 75% { opacity: 1; }
+}
+@keyframes paw-collaboration-satellite-enter {
+  from { opacity: 0; transform: translateY(8px) scale(.988); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes paw-collaboration-edge-pulse {
+  0%, 100% { box-shadow: var(--paw-shadow); }
+  38% { box-shadow: 0 0 0 3px var(--paw-flow-edge, color-mix(in srgb, var(--paw-accent) 46%, transparent)), 0 24px 68px -10px rgb(15 23 42 / 34%); }
+}
+.paw-window-layer[data-overview] .paw-window-shell .paw-window {
+  border-color: color-mix(in srgb, var(--paw-line) 74%, white);
+  box-shadow: 0 24px 58px -16px rgba(15, 23, 42, .34), 0 2px 8px rgba(15, 23, 42, .12);
+}
+.paw-window-layer[data-overview] .paw-window-shell:hover .paw-window,
+.paw-window-layer[data-overview] .paw-window-shell:focus-within .paw-window {
+  border-color: color-mix(in srgb, var(--paw-accent) 64%, var(--paw-line));
+  box-shadow: 0 30px 72px -14px rgba(15, 23, 42, .42), 0 0 0 3px color-mix(in srgb, var(--paw-accent) 18%, transparent);
+}
+.paw-window-titlebar {
+  position: absolute;
+  z-index: 9;
+  inset: 0 0 auto;
+  height: var(--paw-titlebar-h);
+  display: grid; grid-template-columns: var(--paw-titlebar-lead, 76px) minmax(0, 1fr) minmax(0, auto); align-items: center;
+  padding: 0 14px;
+  /* The empty title area is the drag target. Controls opt back in below. */
+  pointer-events: auto;
+  user-select: none; cursor: grab;
+}
+.paw-window-titlebar > * { pointer-events: auto; }
+/* Resizing re-measures the ellipsized title every frame, so it hides while the
+   width changes. Dragging is transform-only and must not blink the chrome. */
+.paw-window-shell[data-interaction='resizing'] .paw-window-title { visibility: hidden; opacity: 0; }
+.paw-window-titlebar:active { cursor: grabbing; }
+
+.paw-traffic-lights { display: flex; align-items: center; gap: 7px; }
+/* Direct children only: the cluster also hosts an App leading-chrome slot,
+   whose control keeps its own size and shape. */
+.paw-traffic-lights > button {
+  width: 12px; height: 12px;
+  /* 同一套命中区域：a light is a fixed 12px target on every window. Without
+     this it flex-shrinks whenever the cluster outgrows its titlebar column,
+     so the main window's lights end up smaller than a satellite's. */
+  flex: 0 0 12px;
+  display: grid; place-items: center; padding: 0;
+  cursor: pointer;
+}
+.paw-traffic-lights > button svg { width: 7px; height: 7px; }
+
+.paw-window-title { display: flex; align-items: center; justify-content: flex-start; gap: 6px; overflow: hidden; color: var(--paw-ink); text-overflow: ellipsis; white-space: nowrap; transition: opacity 120ms ease, visibility 120ms ease; }
+.paw-window-title > strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* chrome 槽位是真实网格列：App 级控件右对齐、永不再压标题与信号灯 */
+.paw-window-chrome-slot { min-width: 0; height: 100%; display: flex; align-items: center; justify-content: flex-end; overflow: hidden; }
+.paw-window-chrome-slot:empty { display: none; }
+/* Leading App chrome docks to the right of the traffic lights, never before
+   them: the red/yellow/green trio must start at the same x on every window,
+   and the shared nth-child colour rules count buttons from the first child. */
+.paw-window-leading-slot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: 3px;
+}
+.paw-window-leading-slot:empty { display: none; }
+.paw-traffic-lights .paw-window-leading-slot .paw-agent-rail-toggle {
+  position: static;
+  z-index: auto;
+  flex: 0 0 30px;
+}
+.paw-traffic-lights:has(.paw-window-leading-slot:not(:empty)) {
+  width: auto;
+  min-width: 76px;
+}
+/* Docked App chrome makes the cluster wider than the fixed leading column, so
+   that column sizes to its content instead. The lights themselves never give
+   ground — only the column does. Every titlebar reads the same token, so a
+   per-App or per-breakpoint leading width still composes with this. */
+.paw-window-titlebar:has(.paw-window-leading-slot:not(:empty)) {
+  --paw-titlebar-lead: auto;
+}
+.paw-window-body {
+  width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: hidden;
+  padding-top: var(--paw-titlebar-h);
+  background: transparent;
+  /* An App container, not a document. One stretch cell whose row and column
+     both floor at 0 means a wide table, a long path or a streaming code block
+     reflows or scrolls inside the App instead of pushing the window's own box
+     wider — a window can never gain the page-like overflow that would reach
+     the document as horizontal scroll. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  /* Containment instead of a pinned layer: the old translateZ(0) held one
+     full-window GPU layer per window forever — with several Apps open that
+     is real compositor memory and per-frame cost at idle. contain keeps the
+     same containing-block behaviour for fixed/absolute App descendants (so
+     in-App popovers still anchor and clip to the window) while letting App
+     layout/paint invalidations stop at the window boundary. The drag path
+     still promotes the whole shell via its scoped will-change. */
+  contain: layout paint;
+}
+.paw-window-body > *, .paw-window-route-surface, .paw-window-route-surface > * { min-width: 0; min-height: 0; }
+.paw-window-route-surface {
+  width: 100%; height: 100%; overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+.paw-window-resize { position: absolute; z-index: 8; margin: 0; padding: 0; border: 0; outline: 0; background: transparent; touch-action: none; }
+.paw-window-resize:focus-visible { outline: 2px solid var(--paw-app-accent, var(--paw-accent)); outline-offset: -2px; background: color-mix(in srgb, var(--paw-app-accent, var(--paw-accent)) 12%, transparent); }
+.paw-window-resize[data-handle='north'], .paw-window-resize[data-handle='south'] {
+  left: 10px; right: 10px; height: 8px; cursor: ns-resize;
+}
+.paw-window-resize[data-handle='north'] { top: -4px; }
+.paw-window-resize[data-handle='south'] { bottom: -4px; }
+.paw-window-resize[data-handle='east'], .paw-window-resize[data-handle='west'] {
+  top: 10px; bottom: 10px; width: 16px; cursor: ew-resize;
+}
+.paw-window-resize[data-handle='east'] { right: -12px; }
+.paw-window-resize[data-handle='west'] { left: -12px; }
+.paw-window-resize[data-handle='north-east'], .paw-window-resize[data-handle='north-west'],
+.paw-window-resize[data-handle='south-east'], .paw-window-resize[data-handle='south-west'] {
+  width: 20px; height: 20px;
+}
+.paw-window-resize[data-handle='north-east'] { top: -8px; right: -8px; cursor: nesw-resize; }
+.paw-window-resize[data-handle='north-west'] { top: -8px; left: -8px; cursor: nwse-resize; }
+.paw-window-resize[data-handle='south-east'] { right: -8px; bottom: -8px; cursor: nwse-resize; }
+.paw-window-resize[data-handle='south-west'] { bottom: -8px; left: -8px; cursor: nesw-resize; }
+.paw-overview-window-target {
+  position: absolute; z-index: 8; inset: 0; display: flex; align-items: flex-end; justify-content: center;
+  padding: 18px; border-radius: var(--paw-radius); cursor: pointer;
+}
+.paw-overview-window-target span {
+  max-width: 80%; overflow: hidden; padding: 7px 12px; border-radius: 9px;
+  color: var(--paw-chrome-ink); background: var(--paw-chrome-soft);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, .14); font-size: 14px; font-weight: 650;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.paw-overview-window-target:focus-visible { outline: 4px solid var(--paw-accent); outline-offset: 5px; }
+
+/* Dock structure. z 8 keeps ordinary App windows (layer z 10) above the shelf. */
+.paw-dock {
+  position: absolute; z-index: 8; left: 50%; bottom: 12px; height: var(--paw-dock-h);
+  display: flex; align-items: center; gap: 5px; padding: 8px 11px;
+  border-radius: 18px;
+  transform: translateX(-50%);
+}
+.paw-dock > i { width: 1px; height: 30px; margin: 0 3px; transform: translate3d(calc(var(--paw-dock-shift, 0) * 1px), 0, 0); }
+/* Magnetic magnification. dock-magnification.ts writes --paw-dock-mag (0..1
+   pointer energy) and --paw-dock-shift (neighbour push plus the magnet gather
+   toward the pointer, in px) per shelf child; everything below is
+   transform-only, so the shelf answers the pointer at frame rate without
+   reflow. The .32 scale factor is DOCK_MAGNIFY_GROW — geometry and paint use
+   the same number, so the computed push always clears the real grown width.
+   At rest both properties resolve to 0 and the button is exactly its layout
+   box. */
+.paw-dock button {
+  position: relative; width: 44px; height: 44px; display: grid; place-items: center;
+  border-radius: 12px; color: var(--paw-ink); cursor: pointer;
+  transform: translate3d(calc(var(--paw-dock-shift, 0) * 1px), calc(var(--paw-dock-mag, 0) * -12px), 0)
+    scale(calc((1 + var(--paw-dock-mag, 0) * .32) * var(--paw-dock-press, 1)));
+  transform-origin: 50% 92%;
+  transition: transform 280ms var(--paw-ease-out), background-color 120ms ease;
+}
+.paw-dock button:active { --paw-dock-press: .94; }
+/* While the pointer conducts, follow it closely; the long ease only carries
+   the shelf back to rest after pointerleave. */
+.paw-dock[data-magnify] button {
+  transition: transform 120ms var(--paw-ease-out), background-color 120ms ease;
+  will-change: transform;
+}
+/* Running state is a shape, not only a colour: a long pill means the App has
+   a visible window; a short soft pill means every window is minimized. */
+.paw-dock button[data-open]::after {
+  position: absolute; bottom: -5px; left: 50%; width: 14px; height: 3px;
+  border-radius: 999px; translate: -50%;
+  background: var(--paw-identity-dot, var(--paw-accent)); content: '';
+}
+.paw-dock button[data-minimized]::after { width: 6px; }
+/* Hover/focus name label. Centering uses the separate translate property so a
+   reduced-motion transform reset can never knock the label off its icon. */
+.paw-dock-tip {
+  position: absolute;
+  bottom: calc(100% + 13px);
+  left: 50%;
+  width: max-content;
+  max-width: 240px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  visibility: hidden;
+  opacity: 0;
+  translate: -50% 4px;
+  /* The label rides a magnified button; the inverse scale keeps its box and
+     type at exactly 1:1 while the icon grows underneath it. */
+  scale: calc(1 / ((1 + var(--paw-dock-mag, 0) * .32) * var(--paw-dock-press, 1)));
+  transform-origin: 50% 100%;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.paw-dock button:focus-visible .paw-dock-tip { visibility: visible; opacity: 1; translate: -50% 0; }
+@media (hover: hover) and (pointer: fine) {
+  .paw-dock button:hover .paw-dock-tip { visibility: visible; opacity: 1; translate: -50% 0; }
+}
+.paw-launchpad {
+  position: absolute;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
+.paw-launchpad > section {
+  width: min(760px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  overflow: auto;
+}
+.paw-launchpad section > header {
+  display: grid;
+  grid-template-columns: max-content minmax(140px, 460px) max-content;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 16px;
+  color: var(--paw-ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+.paw-launchpad section > header button {
+  padding: 6px 10px;
+  color: var(--paw-accent-strong);
+  cursor: pointer;
+}
+/* Five tracks, because the archive's widest group is five Apps: every group
+   then lands on one band and the whole shelf reads without a scroll at the
+   height a desktop actually has. */
+.paw-launchpad section > div {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+}
+.paw-launchpad section > div > button {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border: 1px solid transparent;
+  color: var(--paw-ink);
+  cursor: pointer;
+  text-align: center;
+}
+.paw-launchpad section > div > button > span {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  color: var(--app-color, var(--paw-accent));
+}
+.paw-launchpad section > div > button strong {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paw-launchpad section > div > button small {
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--paw-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paw-launchpad-group,
+.paw-launchpad-empty {
+  grid-column: 1 / -1;
+}
+.paw-dock button:is([aria-pressed='true'], [aria-current='page']) { color: var(--app-color, var(--paw-accent)); }
+
+/* UR-104 App palettes. Each window owns one recognizable hue relationship;
+   success, warning and danger remain inherited system semantics. Material
+   doses tint the current theme instead of assuming a fixed wallpaper. */
+[data-app='project-workbench'] {
+  --paw-app-accent: #315eac;
+  --paw-app-accent-strong: #244781;
+  --paw-app-support: #c9802c;
+  --paw-app-material-family: work-document;
+  --paw-app-canvas: color-mix(in oklab, var(--paw-panel-strong) 97.5%, var(--paw-app-support));
+  --paw-app-nav: color-mix(in oklab, var(--paw-panel-soft) 91%, var(--paw-app-accent));
+  --paw-app-surface: color-mix(in oklab, var(--paw-panel-strong) 98%, var(--paw-app-accent));
+  --paw-app-selection: color-mix(in oklab, var(--paw-panel-strong) 81.5%, var(--paw-app-accent));
+  --app-color: var(--paw-app-accent);
+}
+[data-app='agent'] {
+  --paw-app-accent: #6b4db3;
+  --paw-app-accent-strong: #50398a;
+  --paw-app-support: #c65e79;
+  --paw-app-material-family: conversation-flow;
+  --paw-app-canvas: color-mix(in oklab, var(--paw-panel-strong) 98%, var(--paw-app-accent));
+  --paw-app-nav: color-mix(in oklab, var(--paw-panel-soft) 88%, var(--paw-app-accent));
+  --paw-app-surface: color-mix(in oklab, var(--paw-panel-strong) 96%, var(--paw-app-support));
+  --paw-app-selection: color-mix(in oklab, var(--paw-panel-strong) 80%, var(--paw-app-accent));
+  --app-color: var(--paw-app-accent);
+}
+[data-app='memory'] {
+  --paw-app-accent: #a63d71;
+  --paw-app-accent-strong: #7d2c55;
+  --paw-app-support: #c9852c;
+  --paw-app-material-family: memory-library;
+  --paw-app-canvas: color-mix(in oklab, var(--paw-panel-strong) 98%, var(--paw-app-support));
+  --paw-app-nav: color-mix(in oklab, var(--paw-panel-soft) 90%, var(--paw-app-accent));
+  --paw-app-surface: color-mix(in oklab, var(--paw-panel-strong) 95%, var(--paw-app-support));
+  --paw-app-selection: color-mix(in oklab, var(--paw-panel-strong) 82%, var(--paw-app-accent));
+  --app-color: var(--paw-app-accent);
+}
+[data-app='knowledge'] {
+  --paw-app-accent: #4d5fa8;
+  --paw-app-accent-strong: #354584;
+  --paw-app-support: #16877f;
+  --paw-app-material-family: knowledge-library;
+  --paw-app-canvas: color-mix(in oklab, var(--paw-panel-strong) 98.5%, var(--paw-app-accent));
+  --paw-app-nav: color-mix(in oklab, var(--paw-panel-soft) 89%, var(--paw-app-support));
+  --paw-app-surface: color-mix(in oklab, var(--paw-panel-strong) 96.5%, var(--paw-app-accent));
+  --paw-app-selection: color-mix(in oklab, var(--paw-panel-strong) 83%, var(--paw-app-support));
+  --app-color: var(--paw-app-accent);
+}
+[data-app='input-studio'] {
+  --paw-app-accent: #11786d;
+  --paw-app-accent-strong: #0c5b52;
+  --paw-app-support: #be684f;
+  --paw-app-material-family: studio-console;
+  --paw-app-canvas: color-mix(in oklab, var(--paw-panel-strong) 97%, var(--paw-app-accent));
+  --paw-app-nav: color-mix(in oklab, var(--paw-panel-soft) 87%, var(--paw-app-support));
+  --paw-app-surface: color-mix(in oklab, var(--paw-panel-strong) 97.5%, var(--paw-app-support));
+  --paw-app-selection: color-mix(in oklab, var(--paw-panel-strong) 78%, var(--paw-app-accent));
+  --app-color: var(--paw-app-accent);
+}
+[data-app='app-center'] {
+  --paw-app-accent: #b95028;
+  --paw-app-accent-strong: #8a3b1e;
+  --paw-app-support: #8650aa;
+  --paw-app-material-family: catalog;
+  --paw-app-canvas: color-mix(in oklab, var(--paw-panel-strong) 97.2%, var(--paw-app-support));
+  --paw-app-nav: color-mix(in oklab, var(--paw-panel-soft) 86%, var(--paw-app-accent));
+  --paw-app-surface: color-mix(in oklab, var(--paw-panel-strong) 96.8%, var(--paw-app-accent));
+  --paw-app-selection: color-mix(in oklab, var(--paw-panel-strong) 79%, var(--paw-app-accent));
+  --app-color: var(--paw-app-accent);
+}
+[data-app='system-monitor'] {
+  --paw-app-accent: #096f8d;
+  --paw-app-accent-strong: #07536a;
+  --paw-app-support: #779b2e;
+  --paw-app-material-family: telemetry;
+  --paw-app-canvas: color-mix(in oklab, var(--paw-panel-strong) 99%, var(--paw-app-accent));
+  --paw-app-nav: color-mix(in oklab, var(--paw-panel-soft) 93%, var(--paw-app-accent));
+  --paw-app-surface: color-mix(in oklab, var(--paw-panel-strong) 98.5%, var(--paw-app-support));
+  --paw-app-selection: color-mix(in oklab, var(--paw-panel-strong) 84%, var(--paw-app-accent));
+  --app-color: var(--paw-app-accent);
+}
+[data-app='system-settings'] {
+  --paw-app-accent: #53617f;
+  --paw-app-accent-strong: #3e4961;
+  --paw-app-support: #a87632;
+  --paw-app-material-family: system-preferences;
+  --paw-app-canvas: color-mix(in oklab, var(--paw-panel-strong) 99%, var(--paw-app-support));
+  --paw-app-nav: color-mix(in oklab, var(--paw-panel-soft) 92%, var(--paw-app-accent));
+  --paw-app-surface: color-mix(in oklab, var(--paw-panel-strong) 97.8%, var(--paw-app-accent));
+  --paw-app-selection: color-mix(in oklab, var(--paw-panel-strong) 85%, var(--paw-app-accent));
+  --app-color: var(--paw-app-accent);
+}
+[data-app='files'] {
+  --paw-app-accent: #2c6cb8;
+  --paw-app-accent-strong: #20518b;
+  --paw-app-support: #c79427;
+  --paw-app-material-family: work-document;
+  --paw-app-canvas: color-mix(in oklab, var(--paw-panel-strong) 98.2%, var(--paw-app-support));
+  --paw-app-nav: color-mix(in oklab, var(--paw-panel-soft) 89.5%, var(--paw-app-accent));
+  --paw-app-surface: color-mix(in oklab, var(--paw-panel-strong) 97.2%, var(--paw-app-accent));
+  --paw-app-selection: color-mix(in oklab, var(--paw-panel-strong) 81%, var(--paw-app-accent));
+  --app-color: var(--paw-app-accent);
+}
+[data-app='browser'] {
+  --paw-app-accent: #146f7b;
+  --paw-app-accent-strong: #0f545d;
+  --paw-app-support: #4868bd;
+  --paw-app-material-family: browser-chrome;
+  --paw-app-canvas: color-mix(in oklab, var(--paw-panel-strong) 99.2%, var(--paw-app-accent));
+  --paw-app-nav: color-mix(in oklab, var(--paw-panel-soft) 91.5%, var(--paw-app-accent));
+  --paw-app-surface: color-mix(in oklab, var(--paw-panel-strong) 98.8%, var(--paw-app-support));
+  --paw-app-selection: color-mix(in oklab, var(--paw-panel-strong) 86%, var(--paw-app-accent));
+  --app-color: var(--paw-app-accent);
+}
+[data-app='terminal'] {
+  --paw-app-accent: #79c56e;
+  --paw-app-accent-strong: #39784b;
+  --paw-app-support: #d09a34;
+  --paw-app-material-family: terminal-console;
+  --paw-app-canvas: color-mix(in oklab, #0d1117 96%, var(--paw-app-accent));
+  --paw-app-nav: color-mix(in oklab, #161b22 90%, var(--paw-app-support));
+  --paw-app-surface: color-mix(in oklab, #0d1117 97%, var(--paw-app-support));
+  --paw-app-selection: color-mix(in oklab, #21262d 82%, var(--paw-app-accent));
+  --app-color: var(--paw-app-accent);
+}
+
+.paw-window-shell[data-app] {
+  --paw-accent: var(--paw-app-accent);
+  --paw-accent-strong: var(--paw-app-accent-strong);
+  --paw-app-surface-strong: color-mix(in oklab, var(--paw-app-surface) 94%, var(--paw-app-support));
+  --paw-app-support-soft: color-mix(in oklab, var(--paw-panel-strong) 88%, var(--paw-app-support));
+  --paw-app-line: color-mix(in oklab, var(--paw-line) 62%, var(--paw-app-accent));
+  --paw-accent-soft: var(--paw-app-selection);
+}
+.paw-window-shell[data-app] .paw-native-app {
+  --color-accent: var(--paw-app-accent);
+  --color-accent-hover: var(--paw-app-accent-strong);
+  --color-accent-pressed: var(--paw-app-accent-strong);
+  --color-accent-strong: var(--paw-app-accent-strong);
+  --color-accent-soft: var(--paw-app-selection);
+  --color-accent-subtle: var(--paw-app-surface);
+  --color-canvas: var(--paw-app-canvas);
+  --color-chrome: var(--paw-app-nav);
+  --color-paper: var(--paw-app-surface);
+  --color-paper-subtle: var(--paw-app-support-soft);
+  --color-surface: var(--paw-app-surface-strong);
+  --color-surface-subtle: var(--paw-app-support-soft);
+  --color-surface-hover: var(--paw-app-selection);
+  background: var(--paw-app-canvas);
+}
+.paw-window-shell[data-app] .paw-native-nav { background: var(--paw-app-nav); }
+.paw-window-shell[data-app] .paw-native-stage,
+.paw-window-shell[data-app] .paw-native-page { background: var(--paw-app-canvas); }
+
+.paw-window-shell[data-app='agent'] .paw-agent-app { background: var(--paw-app-canvas); }
+.paw-window-shell[data-app='agent'] .paw-agent-rail { background: var(--paw-app-nav); }
+.paw-window-shell[data-app='agent'] :is(.paw-session-workspace, .paw-room-workspace) { background: var(--paw-app-surface); }
+
+.paw-window-shell[data-app='files'] .paw-files-app {
+  --color-accent: var(--paw-app-accent);
+  --color-accent-hover: var(--paw-app-accent-strong);
+  --color-accent-strong: var(--paw-app-accent-strong);
+  --color-accent-soft: var(--paw-app-selection);
+  --color-canvas: var(--paw-app-canvas);
+  --color-chrome: var(--paw-app-nav);
+  --color-paper: var(--paw-app-surface);
+  --color-surface: var(--paw-app-surface-strong);
+  background: var(--paw-app-canvas);
+}
+.paw-window-shell[data-app='files'] .paw-files-tree { background: var(--paw-app-nav); }
+
+/* Terminal window chrome shares the console's obsidian material; the feature
+   stylesheet owns tab, selection, and accent states so the identity beam and
+   ambient depth live beside the DOM they describe. */
+.paw-window-shell[data-app='terminal'] .paw-terminal-app {
+  background: color-mix(in oklab, #0d1117 92%, var(--paw-app-accent));
+}
+.paw-window-shell[data-app='terminal'] .paw-window-titlebar,
+.paw-window-shell[data-app='terminal'] .paw-terminal-app__toolbar { background: color-mix(in oklab, #151a22 94%, var(--paw-app-accent)); }
+.paw-window-shell[data-app='terminal'] .paw-window-titlebar .paw-terminal-tab-new {
+  color: #aeb7c7;
+}
+.paw-window-shell[data-app='terminal'] .paw-window-titlebar .paw-terminal-tab-new:hover {
+  background: rgb(255 255 255 / 8%);
+  color: #f7f9fc;
+}
+.paw-window-shell[data-app='terminal'] .paw-terminal-console__empty button {
+  border-color: color-mix(in srgb, var(--paw-app-accent) 54%, transparent);
+  background: var(--paw-app-accent-strong);
+}
+
+/* Narrower desktops keep the composition and yield width in one place: the
+   recent-work instrument narrows, and the lede column reclaims the gutter
+   from the same token, so the fog field stays visible between them. */
+@media (max-width: 1050px) {
+  .paw-wayfinder { --paw-work-w: 296px; }
+  .paw-field-stage { left: 26px; right: calc(var(--paw-work-w) + 20px + 32px); }
+}
+@media (max-width: 820px) {
+  .paw-menu-bar { padding-inline: 8px; gap: 9px; }
+  .paw-menu-status > span { display: none; }
+  .paw-menu-app { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .paw-window-shell:not([data-overview]):not([data-focus-layout]) { min-width: 0; min-height: 0; width: calc(100% - 12px) !important; height: calc(100% - 70px) !important; transform: translate3d(6px, 6px, 0) !important; }
+  .paw-window-shell:not([data-focus-layout]) .paw-window-resize { display: none; }
+  .paw-window-titlebar { grid-template-columns: var(--paw-titlebar-lead, 70px) minmax(0, 1fr) minmax(0, auto); }
+  .paw-wayfinder { overflow: auto; padding-bottom: 92px; }
+  /* The narrow desktop stacks in reading order: the lede column joins the
+     flow first, then the work instrument, each still bounded. A stacked
+     column has no room left for a feathered opening, so its ground closes
+     into a bounded panel — the same answer the work instrument already
+     gives at this width. The ink is proven against that panel, never
+     against the bare fog. */
+  .paw-field-stage {
+    /* Still a stacking context, so the ground stays behind the column
+       instead of falling through to the wallpaper plane. */
+    position: relative; z-index: 1;
+    left: auto; right: auto; top: auto;
+    max-width: none; margin: 24px 36px 0; gap: 18px;
+    translate: none;
+  }
+  /* The panel's own edge lands on the same 20px gutter the work instrument
+     below it uses, so the stack reads as one column. */
+  .paw-field-stage::before { inset: -16px; border-radius: 16px; }
+  .paw-wayfinder-work { position: relative; z-index: auto; top: auto; right: auto; width: auto; max-height: 330px; margin: 18px 20px 108px; }
+  .paw-dock { max-width: calc(100% - 16px); overflow-x: auto; scrollbar-width: none; }
+  .paw-dock button { flex: 0 0 42px; }
+  /* The narrow Dock scrolls internally; a hover label would be clipped. */
+  .paw-dock-tip { display: none; }
+  .paw-launchpad { padding: 12px; }
+  .paw-launchpad > section { width: 100%; max-height: calc(100vh - var(--paw-menu-h) - 24px); }
+  .paw-launchpad section > div { grid-template-columns: repeat(3, 1fr); }
+}
+/* Window chrome ladder. The acceptance widths are 760 / 560 / 375 and they are
+   read from the window container, never the document: a 375px-wide window on a
+   1440px desktop has exactly the 375px problem. Text yields before controls —
+   the traffic lights, the App identity mark and every docked App verb survive
+   every step, and no slot is ever allowed to grow across another. */
+@container paw-window (max-width: 760px) {
+  .paw-window-titlebar { padding-inline: 12px; column-gap: 8px; }
+}
+@container paw-window (max-width: 620px) {
+  .paw-window-titlebar:has(.paw-window-chrome-slot:not(:empty)) .paw-window-title { visibility: hidden; opacity: 0; }
+}
+@container paw-window (max-width: 560px) {
+  /* Leading App chrome shares the traffic-light column, so a window carrying
+     one has no caption room left either — the same yield the trailing chrome
+     slot already takes one step earlier. */
+  .paw-window-titlebar:has(.paw-window-leading-slot:not(:empty)) .paw-window-title { visibility: hidden; opacity: 0; }
+}
+@container paw-window (max-width: 375px) {
+  .paw-window-titlebar { padding-inline: 8px; column-gap: 6px; }
+  .paw-traffic-lights { gap: 5px; }
+  /* Labels hide before icons: the caption text goes, the identity mark and
+     every window verb stay at full size. */
+  .paw-window-title > strong { display: none; }
+  .paw-window-leading-slot { max-width: 32px; overflow: hidden; }
+}
+
+/* Reduced motion keeps every state legible through short opacity changes:
+   no travel, no marching dashes, no packet flights and no ambient field. */
+@media (prefers-reduced-motion: reduce) {
+  .paw-window-shell,
+  .paw-wayfinder,
+  .paw-desktop-viewport::after {
+    transition: opacity 180ms ease !important;
+  }
+  .paw-window,
+  .paw-window-body,
+  .paw-launchpad,
+  .paw-launchpad > section,
+  .paw-context-menu {
+    transition: opacity 160ms ease !important;
+    transform: none !important;
+  }
+  .paw-dock button {
+    transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease !important;
+  }
+  .paw-dock button,
+  .paw-dock button:hover,
+  .paw-dock button:active,
+  .paw-dock > i,
+  .paw-desktop-shortcuts button:active > span {
+    transform: none !important;
+  }
+  .paw-dock-tip { scale: none; }
+  .paw-room-window-flow g[data-live] .paw-room-window-flow__base {
+    animation: none !important;
+  }
+  .paw-room-window-flow__live,
+  .paw-room-window-flow__source,
+  .paw-room-window-flow__arrival {
+    animation: paw-window-flow-reduced-fade 240ms ease both !important;
+    stroke-dashoffset: 0;
+    transform: none !important;
+  }
+  .paw-room-window-flow__packet { display: none; }
+  .paw-window-shell[data-collaboration-role='satellite'] .paw-window,
+  .paw-window-shell[data-flow-state] .paw-window,
+  .paw-window-shell[data-flow-state='arrival'] .paw-window-title > strong::after {
+    animation: paw-window-flow-reduced-fade 240ms ease both !important;
+    transform: none !important;
+  }
+  .paw-composition-field,
+  .paw-composition-field *,
+  .paw-field-live * {
+    animation: none !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
+}
+/* The explicit reduce-motion setting quiets the wallpaper exactly like the
+   system preference: the picture is already still, and the live glow drops
+   its pulse choreography (the driver also skips WAAPI on both signals). */
+:root[data-reduce-motion='true'] .paw-composition-field,
+:root[data-reduce-motion='true'] .paw-composition-field *,
+:root[data-reduce-motion='true'] .paw-field-live * {
+  animation: none !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+@keyframes paw-window-flow-reduced-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------------------------------------------------------------- Typography
+ * PAWOS is an operating surface, so hierarchy remains stable across windows:
+ * 21/28 heading, 16/24 title, 15/25 reading, 14/20 UI, 13/18 metadata and
+ * 13/20 technical output. The selectors are rooted here so legacy App-local
+ * micro scales cannot shrink real content after it enters PAWOS. */
+.paw-desktop-root :is(
+  .paw-app-toolbar h1,
+  .paw-page-frame > header h1,
+  .paw-suite-hero h2,
+  .paw-workflow > header h2
+) {
+  margin-block: 0;
+  color: var(--paw-ink);
+  font-family: var(--font-display);
+  font-size: var(--paw-type-heading);
+  font-weight: var(--font-weight-bold, 700);
+  line-height: var(--paw-leading-heading);
+  letter-spacing: var(--tracking-heading, -.006em);
+}
+
+.paw-desktop-root :is(
+  .paw-os-satellite__hero h2,
+  .paw-files-preview > header h2,
+  .paw-library-detail > header strong,
+  .paw-agent-settings__section > header h2,
+  .paw-native-suite h3
+) {
+  color: var(--paw-ink);
+  font-family: var(--font-ui);
+  font-size: var(--paw-type-title);
+  font-weight: var(--font-weight-semibold, 600);
+  line-height: var(--paw-leading-title);
+  letter-spacing: var(--tracking-heading, -.006em);
+}
+
+/* A document or App title may use two lines. Window captions and list rows
+   intentionally retain their compact ellipsis treatment. */
+.paw-desktop-root :is(
+  .paw-app-toolbar h1,
+  .paw-page-frame > header h1,
+  .paw-suite-hero h2,
+  .paw-workflow > header h2,
+  .paw-os-satellite__hero h2
+) {
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.paw-desktop-root :is(
+  .paw-context-menu button,
+  .paw-launchpad section > header,
+  .paw-launchpad section > div > button strong,
+  .paw-agent-rail > header > span,
+  .paw-agent-search input,
+  .paw-agent-row strong,
+  .paw-app-rail nav strong,
+  .paw-feature-nav a,
+  .paw-native-nav nav strong,
+  .paw-files-app__toolbar,
+  .paw-files-tree__row
+) {
+  font-family: var(--font-ui);
+  font-size: var(--paw-type-ui);
+  line-height: var(--paw-leading-ui);
+}
+
+.paw-desktop-root :is(
+  .paw-menu-status,
+  .paw-window-title,
+  .paw-launchpad section > div > button small,
+  .paw-agent-group > header,
+  .paw-agent-row small,
+  .paw-app-rail nav small,
+  .paw-native-nav small,
+  .paw-session-workspace__identity small,
+  .paw-session-workspace__header nav button,
+  .paw-session-workspace__runtime > span,
+  .paw-room-workspace__identity small,
+  .paw-room-workspace__header nav button,
+  .paw-room-workspace__runtime > span,
+  .paw-room-governance small,
+  .paw-files-tree small,
+  .paw-files-preview > header small,
+  .paw-os-satellite__hero small,
+  .paw-participant-chat__timeline article > header,
+  .paw-participant-chat__activity-group > summary
+) {
+  font-family: var(--font-ui);
+  font-size: var(--paw-type-meta);
+  line-height: var(--paw-leading-meta);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.paw-desktop-root :is(
+  .paw-page-frame > header p,
+  .paw-suite-hero p,
+  .paw-library-detail__description,
+  .paw-memory-detail > p,
+  .paw-os-satellite__empty p,
+  .paw-os-satellite__document-body p,
+  .paw-os-satellite__task-body p,
+  .paw-os-satellite__entity-body p,
+  .paw-participant-chat__timeline article p,
+  .paw-room-workspace__empty p,
+  .paw-native-empty p
+) {
+  font-family: var(--font-reading);
+  font-size: var(--paw-type-body);
+  font-weight: var(--font-weight-regular, 400);
+  line-height: var(--paw-leading-body);
+  letter-spacing: var(--tracking-body, 0);
+}
+
+/* Keep prose between 45 and 75 Latin characters. At 68ch the same measure is
+   roughly 30-36 full-width Chinese glyphs; code, tables and rich results keep
+   their separate wider measures. */
+.paw-desktop-root :is(
+  .paw-session-workspace__conversation,
+  .ccui-conversation-surface,
+  .paw-files-preview__body
+) :is(.agent-markdown, .agent-file-markdown) > :is(h1, h2, h3, p, ul, ol, blockquote),
+.paw-desktop-root :is(
+  .paw-page-frame > header p,
+  .paw-suite-hero p,
+  .paw-library-detail__description,
+  .paw-memory-detail > p,
+  .paw-os-satellite__empty p,
+  .paw-os-satellite__document-body p,
+  .paw-os-satellite__task-body p,
+  .paw-os-satellite__entity-body p,
+  .paw-participant-chat__timeline article p,
+  .paw-room-workspace__empty p,
+  .paw-native-empty p
+) {
+  max-inline-size: min(68ch, 100%);
+  overflow-wrap: anywhere;
+}
+
+/* Composer copy is reading text. Container breakpoints may rearrange its
+   controls, but must not reduce the input to a 12px micro scale. */
+.paw-desktop-root :is(
+  .paw-unified-composer > textarea,
+  .paw-session-workspace__composer .agent-composer textarea,
+  .paw-room-workspace__composer .room-composer textarea
+) {
+  font-family: var(--font-reading);
+  font-size: var(--paw-type-body);
+  font-weight: var(--font-weight-regular, 400);
+  line-height: var(--paw-leading-body);
+}
+
+/* Terminal is the one whole-App monospace surface. No font assets are loaded;
+   this resolves through the existing SF Mono / Menlo system stack. */
+.paw-desktop-root .paw-terminal-app,
+.paw-desktop-root .paw-terminal-app :is(
+  button,
+  input,
+  .paw-terminal-console__empty
+) {
+  font-family: var(--font-mono);
+  font-size: var(--paw-type-mono);
+  line-height: var(--paw-leading-mono);
+}
+
+@media (max-width: 420px) {
+  .paw-menu-bar > .paw-menu-app { display: none; }
+}

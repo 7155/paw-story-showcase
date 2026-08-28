@@ -1,0 +1,178 @@
+/* eslint-disable */
+/**
+ * This file is generated. Do not edit it by hand.
+ * Source: rag_ime/contracts/json/agent-room.v1.json
+ */
+
+export interface AgentRoomV1 {
+  schemaVersion: 'rag-ime.agent-room.v1';
+  id: string;
+  title: string;
+  status: 'active' | 'archived';
+  roomKind?: 'collaboration' | 'roleplay';
+  avatar?: string;
+  description?: string;
+  scenarioPrompt?: string;
+  routingPolicy:
+    'manual_mentions' | 'moderator' | 'sequential' | 'natural' | 'parallel' | 'invite_only';
+  routingConfig?: {
+    maxResponders: 1;
+    naturalJitter: number;
+    fallbackParticipantId: string;
+  };
+  moderatorParticipantId: string;
+  nextSpeakerOrdinal?: number;
+  activeTopicId?: string;
+  configRevision?: number;
+  /**
+   * @maxItems 4
+   */
+  workspaceRoots:
+    [] | [string] | [string, string] | [string, string, string] | [string, string, string, string];
+  executionMode: 'read_only' | 'per_action' | 'workspace_managed' | 'full_trust';
+  createdAtMs: number;
+  updatedAtMs: number;
+  lastEventSequence: number;
+  /**
+   * @minItems 2
+   * @maxItems 8
+   */
+  participants:
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+      ]
+    | [
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+        {
+          [k: string]: unknown;
+        },
+      ];
+  /**
+   * @maxItems 200
+   */
+  topics?: {
+    [k: string]: unknown;
+  }[];
+  /**
+   * @maxItems 100
+   */
+  artifacts?: {
+    [k: string]: unknown;
+  }[];
+  /**
+   * @maxItems 100
+   */
+  workItems?: {
+    [k: string]: unknown;
+  }[];
+}

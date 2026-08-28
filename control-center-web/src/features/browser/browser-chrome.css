@@ -1,0 +1,544 @@
+/*
+ * Browser feature chrome states.
+ *
+ * Owns the state elements of the real Browser surface: the tab icon slot
+ * (loading / favicon / failure), per-tab close reveal, the truthful omnibox
+ * (security icon, resting URL emphasis, Enter commit preview), the honest
+ * load hairline, the page failure surface, the find-in-page match counter,
+ * day-grouped history, the in-App destructive confirmations, and the
+ * dismissible action receipt. Tab strip, toolbar, and omnibox base layout
+ * plus their surface colours remain owned by paw-apps.css and
+ * paw-os-tools-files-migrated-v1.css. Popover materials and saturated
+ * button colours read the shared OS control tokens (paw-os-controls.css)
+ * with equivalent fallbacks for the standalone route.
+ */
+
+/* 1. Tab identity: icon slot and close reveal */
+
+.paw-browser-tab-icon {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+}
+
+.paw-browser-tab-icon img {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  object-fit: contain;
+}
+
+.paw-browser-tab[data-failed] .paw-browser-tab-icon {
+  color: var(--paw-danger, #ef4444);
+}
+
+/* Background tabs keep exactly one resting close affordance in the strip:
+   theirs appears only on hover or keyboard focus inside the tab. */
+.paw-browser-tab:not([data-active]) .paw-browser-tab-close {
+  opacity: 0;
+  animation: none;
+}
+
+.paw-browser-tab:not([data-active]):hover .paw-browser-tab-close,
+.paw-browser-tab:not([data-active]):focus-within .paw-browser-tab-close {
+  opacity: 1;
+}
+
+/* 2. Truthful omnibox */
+
+.paw-omnibox-form {
+  position: relative;
+}
+
+.paw-omnibox-icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+}
+
+.paw-omnibox-icon[data-kind='search'] {
+  color: var(--paw-muted, #64748b);
+}
+
+.paw-omnibox-icon[data-kind='info'] {
+  color: var(--paw-warning, #b45309);
+}
+
+.paw-omnibox-field {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  align-self: stretch;
+}
+
+/* At rest the styled URL replaces the raw field text; the field value itself
+   never changes, so focus always reveals the exact committed address. */
+.paw-omnibox-field[data-presenting] > input {
+  color: transparent;
+}
+
+.paw-omnibox-presentation {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  color: var(--paw-muted, #64748b);
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.paw-desktop-root .paw-omnibox-presentation {
+  font-size: 13px;
+}
+
+.paw-omnibox-url-scheme,
+.paw-omnibox-url-rest {
+  color: color-mix(in srgb, var(--paw-muted, #64748b) 78%, transparent);
+}
+
+.paw-omnibox-url-host {
+  color: var(--paw-ink, #0f172a);
+  font-weight: 560;
+}
+
+.paw-omnibox-clear {
+  color: var(--paw-muted, #64748b);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+/* One truthful commit preview: exactly what Enter will open or search.
+   The popover speaks the shared OS menu material. */
+.paw-omnibox-commit-hint {
+  position: absolute;
+  z-index: 24;
+  top: calc(100% + 6px);
+  right: -1px;
+  left: -1px;
+  padding: 5px;
+  border: 1px solid var(--paw-menu-line, rgb(23 26 33 / 12%));
+  border-radius: var(--paw-menu-radius, 10px);
+  background: var(--paw-menu-bg, #fff);
+  box-shadow: var(--paw-menu-shadow, 0 18px 44px -12px rgb(23 32 52 / 24%), 0 3px 10px rgb(23 26 33 / 8%));
+  animation: paw-omnibox-commit-hint-in 150ms var(--paw-ease-out, ease-out) both;
+}
+
+.paw-omnibox-commit-hint > button {
+  width: 100%;
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 9px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--paw-ink, #0f172a);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.paw-omnibox-commit-hint > button:hover {
+  background: color-mix(in srgb, var(--paw-accent, #0ea5b7) 9%, transparent);
+}
+
+.paw-omnibox-commit-icon {
+  display: grid;
+  place-items: center;
+  color: var(--paw-muted, #64748b);
+}
+
+.paw-omnibox-commit-text {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.paw-omnibox-commit-text b {
+  flex-shrink: 0;
+  font-weight: 640;
+}
+
+.paw-omnibox-commit-text > span {
+  overflow: hidden;
+  color: var(--paw-muted, #64748b);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.paw-omnibox-commit-text small {
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--paw-muted, #64748b) 76%, transparent);
+  font-size: 11px;
+}
+
+.paw-omnibox-commit-hint kbd {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in srgb, var(--paw-line, rgb(15 23 42 / 12%)) 88%, transparent);
+  border-radius: 6px;
+  background: var(--paw-panel-soft, #f1f5fa);
+  color: var(--paw-muted, #64748b);
+  font-family: inherit;
+  font-size: 11px;
+}
+
+/* 3. Loading and failure honesty */
+
+/* The load hairline exists only between the guest's real did-start-loading
+   and did-stop-loading reports; it is never driven by a timer. */
+.paw-browser-loadbar {
+  position: absolute;
+  z-index: 14;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--paw-browser-accent, var(--paw-accent, #0ea5b7)) 16%, transparent);
+  pointer-events: none;
+}
+
+.paw-browser-loadbar::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -38%;
+  width: 38%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--paw-browser-accent, var(--paw-accent, #0ea5b7)), transparent);
+  content: '';
+  animation: paw-browser-loadbar-run 1.1s ease-in-out infinite;
+}
+
+/* CDP-mode failure keeps the raw transport message next to the headline. */
+.paw-browser-error > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.paw-browser-error small {
+  color: var(--paw-muted, #64737d);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.paw-browser-page-status {
+  position: absolute;
+  z-index: 8;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: color-mix(in srgb, var(--paw-app-surface, #fff) 96%, transparent);
+  animation: paw-browser-page-status-in 180ms ease-out both;
+}
+
+.paw-browser-page-card {
+  width: min(440px, 100%);
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 26px 26px 20px;
+  border: 1px solid color-mix(in srgb, var(--paw-line, rgb(15 23 42 / 12%)) 86%, transparent);
+  border-radius: 18px;
+  background: var(--paw-panel-strong, #fff);
+  color: var(--paw-muted, #64748b);
+  text-align: center;
+  box-shadow: 0 24px 64px rgb(15 23 42 / 12%);
+}
+
+.paw-browser-page-mark {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--paw-danger, #ef4444) 10%, transparent);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--paw-danger, #ef4444) 4%, transparent);
+  color: var(--paw-danger, #ef4444);
+}
+
+.paw-browser-page-card strong {
+  color: var(--paw-ink, #0f172a);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.paw-browser-page-card p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.paw-browser-page-card-url {
+  max-width: 100%;
+  margin-top: 2px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--paw-panel-soft, #f1f5fa);
+  color: color-mix(in srgb, var(--paw-ink, #0f172a) 78%, var(--paw-muted, #64748b));
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.paw-browser-page-evidence {
+  color: color-mix(in srgb, var(--paw-muted, #64748b) 78%, transparent);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+}
+
+.paw-browser-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Failure-card actions follow the shared OS button recipe: a quiet bordered
+   default and one solid primary recovery. */
+.paw-browser-page-actions button {
+  min-height: var(--paw-control-h, 32px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 14px;
+  border: 1px solid var(--paw-control-line, rgb(23 26 33 / 16%));
+  border-radius: var(--paw-control-radius, 8px);
+  background: var(--paw-control-bg, #fff);
+  color: var(--paw-control-ink, #171a21);
+  font-size: var(--paw-control-font, 13px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 130ms ease, border-color 130ms ease, color 130ms ease, transform 130ms ease;
+}
+
+.paw-browser-page-actions button:hover {
+  border-color: var(--paw-control-line-strong, rgb(23 26 33 / 30%));
+  background: var(--paw-control-bg-soft, #f6f8fb);
+}
+
+.paw-browser-page-actions button:active {
+  transform: translateY(1px);
+}
+
+.paw-browser-page-actions .paw-browser-page-retry {
+  border-color: var(--paw-button-primary-bg, var(--paw-accent, #0ea5b7));
+  background: var(--paw-button-primary-bg, var(--paw-accent, #0ea5b7));
+  color: var(--paw-button-primary-ink, #fff);
+}
+
+.paw-browser-page-actions .paw-browser-page-retry:hover {
+  border-color: color-mix(in srgb, var(--paw-button-primary-bg, var(--paw-accent, #0ea5b7)) 86%, #000);
+  background: color-mix(in srgb, var(--paw-button-primary-bg, var(--paw-accent, #0ea5b7)) 86%, #000);
+}
+
+.paw-browser-page-actions button[data-copied] {
+  border-color: color-mix(in srgb, var(--paw-success, #16a34a) 34%, transparent);
+  color: var(--paw-success, #16a34a);
+}
+
+.paw-browser-page-guest-note {
+  margin-top: 10px;
+  color: color-mix(in srgb, var(--paw-muted, #64748b) 74%, transparent);
+  font-size: 11.5px;
+}
+
+/* Find-in-page additions: the leading icon and the guest-reported counter.
+   Bar layout and colours stay with the shared .paw-browser-find owner. */
+.paw-browser-find__icon {
+  flex-shrink: 0;
+  color: var(--paw-muted, #64748b);
+}
+
+.paw-browser-find__count {
+  flex: 0 0 auto;
+  min-width: 3ch;
+  color: var(--paw-muted, #64748b);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* The zoom readout doubles as the reset action; keep it as wide as the old
+   readout so the menu row does not shift while zooming. */
+.paw-browser-menu-zoom .paw-browser-menu-zoom-reset {
+  width: 100%;
+  height: 26px;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.paw-browser-menu-zoom .paw-browser-menu-zoom-reset:disabled {
+  cursor: default;
+  color: var(--paw-muted, #64748b);
+}
+
+/* Day-grouped history keeps one scroll area for the whole timeline. */
+.paw-browser-history-days {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 5px 8px 12px;
+}
+
+.paw-browser-history .paw-browser-history-day > h3 {
+  margin: 8px 0 2px;
+  padding: 0 10px;
+  color: var(--paw-muted, #64748b);
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 650;
+  letter-spacing: .02em;
+}
+
+.paw-browser-history .paw-browser-history-day:first-child > h3 {
+  margin-top: 2px;
+}
+
+.paw-browser-history .paw-browser-history-day ol {
+  padding: 0;
+  overflow: visible;
+}
+
+/* Destructive actions confirm in place instead of a blocking dialog. */
+.paw-browser-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  animation: paw-browser-confirm-in 150ms ease-out both;
+}
+
+.paw-browser-confirm em {
+  color: var(--paw-muted, #64748b);
+  font-size: 13px;
+  line-height: 1.4;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.paw-browser-confirm button {
+  min-height: var(--paw-control-h-sm, 28px);
+  padding: 0 10px;
+  border: 1px solid var(--paw-control-line, rgb(23 26 33 / 16%));
+  border-radius: var(--paw-control-radius, 8px);
+  background: var(--paw-control-bg, #fff);
+  color: var(--paw-control-ink, #171a21);
+  cursor: pointer;
+  font-size: var(--paw-control-font, 13px);
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+/* The armed destructive action is the shared solid danger button, so the
+   irreversible step reads the same in every App. */
+.paw-browser-confirm button[data-danger] {
+  border-color: var(--paw-button-danger-bg, #d92d20);
+  background: var(--paw-button-danger-bg, #d92d20);
+  color: var(--paw-button-danger-ink, #fff);
+}
+
+.paw-browser-confirm button:disabled {
+  cursor: wait;
+  opacity: .5;
+}
+
+/* The receipt now carries its own dismiss action beside the live message. */
+.paw-browser-action-receipt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paw-browser-action-receipt output {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.paw-browser-action-receipt button {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--paw-muted, #64748b);
+  cursor: pointer;
+}
+
+@keyframes paw-browser-page-status-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes paw-browser-confirm-in {
+  from { opacity: 0; transform: translate3d(4px, 0, 0); }
+}
+
+@keyframes paw-omnibox-commit-hint-in {
+  from { opacity: 0.4; transform: translateY(-4px); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .paw-browser-menu-zoom .paw-browser-menu-zoom-reset:hover:not(:disabled),
+  .paw-browser-action-receipt button:hover {
+    background: var(--paw-browser-hover, rgb(15 23 42 / 6%));
+    color: var(--paw-ink, #0f172a);
+  }
+
+  .paw-browser-confirm button:hover:not(:disabled) {
+    border-color: var(--paw-control-line-strong, rgb(23 26 33 / 30%));
+    background: var(--paw-control-bg-soft, #f6f8fb);
+  }
+
+  .paw-browser-confirm button[data-danger]:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--paw-button-danger-bg, #d92d20) 86%, #000);
+    background: color-mix(in srgb, var(--paw-button-danger-bg, #d92d20) 86%, #000);
+  }
+}
+
+@keyframes paw-browser-loadbar-run {
+  to { left: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paw-browser-page-status,
+  .paw-browser-confirm,
+  .paw-omnibox-commit-hint {
+    animation: none;
+  }
+
+  /* Loading stays announced, just without the runner sweep. */
+  .paw-browser-loadbar::before {
+    left: 0;
+    width: 100%;
+    animation: none;
+  }
+
+  .paw-browser-page-actions button {
+    transition-duration: 1ms;
+  }
+}

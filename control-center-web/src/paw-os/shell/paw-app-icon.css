@@ -1,0 +1,107 @@
+/* PAWOS App identity system — the approved 2026-08-23 full-colour icon wall.
+   App identities are deterministic colour tiles; navigation and command
+   icons stay monochrome. Placement may size the asset, but never redraw it,
+   recolour it, or add a second plate around it. */
+
+/* One size ladder. Every shell placement resolves one of these five steps,
+   so identical surfaces can never drift apart by a pixel or two. */
+:root {
+  --paw-icon-paper: #fff;
+  --paw-icon-step-xs: 16px; /* menu bar App identity */
+  --paw-icon-step-sm: 20px; /* window titlebar */
+  --paw-icon-step-md: 28px; /* overview targets, App runtime headers, Wayfinder list rows */
+  --paw-icon-step-lg: 34px; /* Dock, native App nav header */
+  --paw-icon-step-xl: 48px; /* launcher */
+}
+
+.paw-app-icon {
+  display: block;
+  flex: 0 0 auto;
+  overflow: visible;
+  filter: drop-shadow(0 1px 2px rgb(15 23 42 / .15));
+  shape-rendering: geometricPrecision;
+  transition: filter 180ms ease, transform 180ms cubic-bezier(.2, .8, .2, 1);
+}
+
+/* The source wall already owns its only material highlight. Keep it restrained
+   on cold-white system chrome instead of adding a gloss or outer frame. */
+.paw-app-icon__sheen { opacity: .82; }
+
+/* The PAW system mark is monochrome and follows the surrounding text colour.
+   Optical nudge keeps the glacial paw sitting on the wordmark baseline. */
+.paw-brand-mark {
+  display: block;
+  flex: 0 0 auto;
+  translate: 0 -.5px;
+}
+.paw-desktop-root .paw-system-mark { display: inline-flex; gap: 7px; align-items: center; }
+.paw-launchpad-title .paw-brand-mark { align-self: center; translate: 0 0; }
+
+/* Small placements retain the exact drawing; only the shadow tightens so the
+   identity stays crisp at 16px instead of blooming. */
+.paw-app-icon[data-paw-icon-scale='small'] {
+  filter: drop-shadow(0 1px 1px rgb(15 23 42 / .2));
+}
+
+/* The placement owns spacing only. The icon already contains its approved
+   colour tile, so shells must not add another white tile. */
+.paw-desktop-shortcuts button > span,
+.paw-launchpad section > div > button > span,
+.paw-native-app .paw-native-nav > header > span {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.paw-desktop-shortcuts button > span { width: 32px; height: 32px; }
+.paw-menu-app .paw-app-icon { width: var(--paw-icon-step-xs); height: var(--paw-icon-step-xs); }
+.paw-window-title .paw-app-icon { width: var(--paw-icon-step-sm); height: var(--paw-icon-step-sm); }
+.paw-overview-window-target > .paw-app-icon { width: var(--paw-icon-step-md); height: var(--paw-icon-step-md); }
+.paw-dock .paw-app-icon { width: var(--paw-icon-step-lg); height: var(--paw-icon-step-lg); }
+.paw-native-nav > header .paw-app-icon { width: var(--paw-icon-step-lg); height: var(--paw-icon-step-lg); }
+.paw-desktop-shortcuts .paw-app-icon { width: var(--paw-icon-step-md); height: var(--paw-icon-step-md); }
+.paw-launchpad .paw-app-icon { width: var(--paw-icon-step-xl); height: var(--paw-icon-step-xl); }
+
+/* One selected / running language. Hover, selection, the current-App plate
+   and the running dot all speak the App's own identity colour over a
+   translucent ground — never an opaque white square, never the system accent
+   on one surface and the App accent on another. Declared on the owning
+   buttons so var(--app-color) resolves against each App's palette. */
+.paw-dock button,
+.paw-desktop-shortcuts button,
+.paw-launchpad section > div > button {
+  --paw-identity-wash: color-mix(in srgb, var(--app-color, var(--paw-accent)) 11%, rgb(255 255 255 / .4));
+  --paw-identity-wash-strong: color-mix(in srgb, var(--app-color, var(--paw-accent)) 18%, rgb(255 255 255 / .52));
+  --paw-identity-ring: inset 0 0 0 1px color-mix(in srgb, var(--app-color, var(--paw-accent)) 30%, transparent);
+  --paw-identity-dot: var(--app-color, var(--paw-accent));
+}
+
+.paw-menu-bar > .paw-menu-app { display: inline-flex; align-items: center; gap: 7px; }
+.paw-menu-app > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.paw-overview-window-target { gap: 9px; }
+.paw-overview-window-target > .paw-app-icon { flex: 0 0 auto; }
+
+/* The boot state's own layout, including its icon slot, lives in
+   paw-app-boot.css beside the module that renders it. A doubled-class patch
+   here only ever existed to undo a fork in paw-apps.css that could not load
+   in time. */
+.paw-app-loading > .paw-app-icon { flex: 0 0 auto; }
+
+:is(.paw-dock, .paw-launchpad, .paw-desktop-shortcuts) button:hover .paw-app-icon {
+  filter: drop-shadow(0 3px 5px rgb(15 23 42 / .2));
+  transform: translateY(-1px) scale(1.02);
+}
+.paw-desktop-root :is(button:disabled, [aria-disabled='true']) .paw-app-icon {
+  opacity: .42;
+  filter: saturate(.3);
+  transform: none;
+}
+.paw-desktop-shortcuts button:hover > span,
+.paw-desktop-shortcuts button[aria-selected='true'] > span { box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .paw-app-icon { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .paw-app-icon { forced-color-adjust: auto; }
+}
