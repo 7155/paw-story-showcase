@@ -1,8 +1,8 @@
 # PAW Story Demo
 
-PAW 的公开单页产品故事。三个主章节依次展示智能输入与语音文字定稿；可切换的 Project Docs 引力场、User Memory 和 Knowledge/RAG；以及从 Three.js Room 关系视图变形为实际 PAWOS 窗口层的协作过程。
+PAW 的公开单页产品故事。三个主章节依次展示智能输入与语音文字定稿；可切换的真实 Project Docs 阅读页、User Memory 和 Knowledge/RAG；以及从 Three.js Room 关系视图变形为实际 PAWOS 窗口层的协作过程。
 
-`control-center-web` 是同仓库中的公开 PAWOS 前端快照。构建时先编译它，再把静态产物装入本站 `/pawos/`；不包含 Pi Runtime、Gateway、数据库、真实 transcript、个人输入或记忆。所有 Room 事件、人物、文档与指标均为公开合成示例并在界面标注。
+`control-center-web` 是同仓库中的公开 PAWOS 前端快照。构建时先编译它，再把静态产物装入本站 `/pawos/`；不包含 Pi Runtime、Gateway、数据库、真实 transcript、个人输入或记忆。Room 事件、人物、输入场景、业务文档与指标均为公开合成示例；Project Context Gravity 单独读取本仓库真实文件的清洗后公开投影，并显示精确来源路径。智能输入的站点回放会在候选出现约 2 秒后模拟一次“点击生成”，确保无人操作时仍可看到流式生成结果；真实产品仍由用户触发，最终结果仍等待用户采纳或拒绝。
 
 项目记录：
 

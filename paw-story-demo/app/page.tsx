@@ -39,8 +39,8 @@ const chapters = [
   { id: "agents", index: "03", label: "多 Agent" },
 ];
 
-const inputTimelineDurations = [700, 900, 620, 420, 1_180, 320, 620, 620, 700, 680, 880, 1_080, 360, 1_350] as const;
-const inputManualGateSteps = [4, 11] as const;
+const inputTimelineDurations = [700, 900, 620, 420, 1_900, 520, 620, 620, 700, 680, 880, 1_080, 360, 1_350] as const;
+const inputManualGateSteps = [11] as const;
 
 const inputScenarios = [
   {
@@ -221,81 +221,99 @@ const governedContextSources = [
 
 const projectDocumentPages = [
   {
-    id: "agents",
-    file: "AGENTS.md",
-    group: "ENTRY MAP",
-    status: "渐进式入口",
-    title: "给 Agent 一张地图，而不是一本说明书",
-    summary: "简短入口只说明当前目标、边界和下一步去哪读；更深的项目事实留在结构化文档中按需加载。",
+    id: "overview",
+    file: "README.md",
+    path: "README.md",
+    group: "ROOT OVERVIEW",
+    status: "真实文件 · 已清洗",
+    title: "公开、可运行的 PAWOS 前端快照",
+    summary: "仓库根说明把真实前端、合成状态与证明边界分开：网页可以公开复核产品界面，但不连接私有 PAW Runtime 或个人数据。",
+    excerpt: "PAW Story Showcase is a public, runnable snapshot of the real PAWOS web frontend.",
+    cleaning: "仅投影公开产品边界；省略本机地址、安装现场与任何私有仓库上下文。",
     sections: [
-      { title: "先读哪里", body: "从 PROJECT.md 和当前 active plan 开始，只加载与本轮 WorkItem 直接相关的上下文。" },
-      { title: "机械事实", body: "Git、Runtime、测试与 Trace 由工具实时读取，不能从文档状态或对话措辞反推。" },
-      { title: "工作规则", body: "保留用户原话、尊重 owner 边界、提交可复核 WorkPatch，并把未验证项明确留下。" },
+      { title: "真实部分", body: "React 组件、PAWOS Shell、11-App 注册表、App 分发、样式与 Browser / Terminal 展示代码来自固定上游前端快照。" },
+      { title: "合成部分", body: "Session、Room、Memory、Knowledge、输入、Tool、Browser 与 Terminal 状态均为公开合成预览。" },
+      { title: "证明边界", body: "构建和 App audit 只证明展示站；不能据此声称 PAW 已安装、Runtime 健康或 macOS 前台验收通过。" },
     ],
   },
   {
-    id: "project",
-    file: "PROJECT.md",
-    group: "FOUNDATION",
-    status: "权威入口",
-    title: "掌柜问数 · 门店经营分析 Agent",
-    summary: "把经营问题转换为有口径、有证据、可复核的数据结论；项目文档是协作目标与边界的唯一长期权威。",
+    id: "site",
+    file: "README.md",
+    path: "paw-story-demo/README.md",
+    group: "STORY SITE",
+    status: "真实文件 · 已清洗",
+    title: "三章连续的 PAW 产品故事",
+    summary: "站点说明固定当前故事：智能输入与语音；Project Docs、User Memory 与 Knowledge/RAG；Goal 太阳系进入真实 PAWOS 窗口。",
+    excerpt: "PAW 的公开单页产品故事。三个主章节依次展示智能输入与语音文字定稿；可切换的真实 Project Docs 阅读页、User Memory 和 Knowledge/RAG；以及从 Three.js Room 关系视图变形为实际 PAWOS 窗口层的协作过程。",
+    cleaning: "删除 starter 通用说明与环境身份字段，只保留当前页面、构建和部署边界。",
     sections: [
-      { title: "目标", body: "经营者用自然语言询问门店、商品和活动表现，Agent 返回口径一致且附来源的分析。" },
-      { title: "当前 MVP", body: "先完成华东 12 店漏斗、活动复盘和周报生成；每个结论必须链接指标字典或原始数据。" },
-      { title: "非目标", body: "不自动修改生产报表，不把个人偏好写进项目事实，也不以 AI Judge 代替最终验收。" },
+      { title: "页面目标", body: "一张公开单页连续解释输入、上下文治理与多 Agent 协作，不把真实功能换成录屏。" },
+      { title: "构建契约", body: "先构建同仓库的公开 PAWOS 前端，再将静态产物装入站点 /pawos/，最后执行站点检查。" },
+      { title: "运行边界", body: "不包含 Pi Runtime、Gateway、数据库、真实 transcript、个人输入或记忆。" },
     ],
   },
   {
     id: "requirements",
-    file: "REQUIREMENTS.md",
-    group: "PRODUCT",
-    status: "原话可追溯",
-    title: "需求台账",
-    summary: "每一条需求保留稳定 ID、用户原话、当前解释与验收边界，后续修订追加而不覆盖。",
+    file: "showcase-requirements-and-results.md",
+    path: "paw-story-demo/docs/showcase-requirements-and-results.md",
+    group: "REQUIREMENTS",
+    status: "真实文件 · 原话受保护",
+    title: "展示页需求与结果台账",
+    summary: "SHOW 稳定 ID 将用户原话、当前解释、禁止项、实现回执和未验证边界连在一起；修订追加，不用漂亮截图覆盖失败记录。",
+    excerpt: "当前要求：Project Docs 不是普通文件库，而是以本展示项目的真实 Goal 为中心，令仓库中真实存在的范围、需求、数据、Eval 和来源文档共同约束 Agent 执行轨道。",
+    cleaning: "公开投影不展示会话标识、机器路径或完整对话，只保留已经写入项目台账的需求含义与证据等级。",
     sections: [
-      { title: "BQ-001 · 漏斗解释", body: "解释上海门店转化下降，并指出变化发生在哪一层漏斗。" },
-      { title: "BQ-002 · 口径一致", body: "“到店核销”统一采用领取优惠券后 7 日内完成核销的订单。" },
-      { title: "BQ-003 · 引用", body: "结论必须落到指标字典、门店漏斗或活动决策的具体来源。" },
+      { title: "原话与修订", body: "每个 SHOW 条目同时保存当前要求、用户可见验收、禁止项和来源原话；新纠偏追加到原 ID。" },
+      { title: "真实 UI / 合成数据", body: "真实前端组件和交互可以复用；所有人物、Room 事件、个人输入与指标必须明确标为合成。" },
+      { title: "证据分层", body: "源码、测试、构建、公开部署与生产前台是不同证明层，任何一层都不能冒充下一层。" },
     ],
   },
   {
-    id: "architecture",
-    file: "ARCHITECTURE.md",
-    group: "SYSTEM",
-    status: "边界已冻结",
-    title: "数据与 Agent 边界",
-    summary: "项目文档、用户记忆和外挂知识库分开治理；Session 只按本轮任务组装已授权上下文。",
+    id: "data",
+    file: "SHOWCASE_DATA.md",
+    path: "SHOWCASE_DATA.md",
+    group: "DATA CONTRACT",
+    status: "真实文件 · 公开边界",
+    title: "公开合成数据契约",
+    summary: "数据契约列出每类 fixture 的真实代码 owner，并规定 synthetic-preview、interaction-rehearsal 与 host-unavailable 的可见标签。",
+    excerpt: "All state in this repository is synthetic. The data deliberately follows the same frontend contracts and transport interface as PAWOS, but it never claims to be production state.",
+    cleaning: "只显示公开 fixture 职责；不投影任何状态值、个人样本、日志、浏览器资料或本机数据库。",
     sections: [
-      { title: "Project Docs", body: "保存目标、需求、决策、任务、代码与验收结果。" },
-      { title: "User Memory", body: "仅在显式开关和 Tool 权限成立时参与，不自动并入项目。" },
-      { title: "Knowledge Mount", body: "按应用或 Session 显式挂载，索引与来源独立维护。" },
+      { title: "Fixture owners", body: "Session、Room、Memory、Input 与 Work Documents 各有独立 preview source，不复制成第二个 Runtime。" },
+      { title: "Required labels", body: "预览状态、交互演练和原生宿主不可用必须显式区分；没有独立证据时禁止使用 live。" },
+      { title: "Evidence levels", body: "生产源码、测试、构建、安装、运行态、前台行为和用户接受必须分别记录。" },
     ],
   },
   {
-    id: "tasks",
-    file: "TASKS.md",
-    group: "DELIVERY",
-    status: "3 个纵向 WorkItem",
-    title: "纵向任务与交接",
-    summary: "每个实施伙伴完成一个可见能力纵切并提交 WorkPatch；Facilitator 汇总后再启动独立 Reviewer。",
+    id: "eval",
+    file: "rag-memory-eval-datasets.md",
+    path: "paw-story-demo/docs/rag-memory-eval-datasets.md",
+    group: "TRACE / EVAL",
+    status: "真实文件 · 候选未冒充接入",
+    title: "RAG 与 Memory Eval 基础",
+    summary: "数据集记录整理 BEIR、MTEB、RAGBench、CRAG、LongMemEval 与 LoCoMo，并明确候选、接入和真实成绩是三个不同状态。",
+    excerpt: "本记录为 2026-08-28 的选型调研，不代表数据已经下载、接入或产生了 PAW 实测成绩。",
+    cleaning: "保留公开数据集与指标边界；不把尚未下载、尚未接入或合成 UI 数字改写成 PAW 实测。",
     sections: [
-      { title: "WI-01 · 问数入口", body: "从问题输入到指标口径确认与查询计划。" },
-      { title: "WI-02 · 证据检索", body: "从混合召回、重排到可引用证据包。" },
-      { title: "WI-03 · 周报输出", body: "从结论生成到文档写回与操作回执。" },
+      { title: "公共基准", body: "用跨领域检索、端到端 RAG 和长程记忆数据建立可重复基线，但它们不能证明 PAW 的授权隔离。" },
+      { title: "PAW 黄金集", body: "另建 24–50 条合成治理样本，覆盖允许范围、拒绝范围、删除泄漏、引用和跨 compact 召回。" },
+      { title: "真实指标 / AI 估计", body: "Precision、Recall、nDCG、MRR 与 citation 来源于标签；Groundedness Judge 必须单列为模型估计。" },
     ],
   },
   {
-    id: "acceptance",
-    file: "ACCEPTANCE.md",
-    group: "REVIEW",
-    status: "Reviewer gate",
-    title: "测试与最终验收",
-    summary: "实施 WorkPatch 全部到齐之后，Reviewer 才按原始需求、代码和真实路径执行测试。",
+    id: "upstream",
+    file: "UPSTREAM.json",
+    path: "UPSTREAM.json",
+    group: "PROVENANCE",
+    status: "真实文件 · 固定来源",
+    title: "真实前端来源与派生权威边界",
+    summary: "来源清单把当前仓库固定为 PAW control-center-web 的选定前端快照，并明确它是 derivative showcase，不是产品源码或生产权威。",
+    excerpt: "sourceRepository: 7155/personal-agent-workbench · sourceSubtree: control-center-web · authority: derivative-showcase-not-product-source",
+    cleaning: "公开页面只显示来源仓库、子树与权威类型；完整 commit、机器信息和工作区细节留在受检查的源文件。",
     sections: [
-      { title: "需求忠实", body: "逐条核对 BQ-001–BQ-003，不以实现者自述替代证据。" },
-      { title: "代码与路径", body: "运行构建、检索 Eval 和周报写回链路，记录精确命令与回执。" },
-      { title: "终止条件", body: "P0 必须为 0；存在未验证边界时明确保留，不冒充最终通过。" },
+      { title: "来源", body: "源仓库为 7155/personal-agent-workbench，选定子树为 control-center-web，来源提交由文件固定。" },
+      { title: "快照模式", body: "fresh-history-selected-frontend：只携带用于公开展示的前端与必要合同，不复制私有历史。" },
+      { title: "权威类型", body: "derivative-showcase-not-product-source：展示项目不能反向成为 PAW 产品的第二权威。" },
     ],
   },
 ] as const;
@@ -739,9 +757,10 @@ function ImeDemo() {
             ))}
           </div>
           <div className="native-ime-suggestion-actions">
-            <button data-pressed={playback.step === 5} onClick={() => playback.goTo(6)} type="button"><Sparkles size={13} />点击生成</button>
+            <button data-pressed={playback.step === 5} onClick={() => playback.goTo(5)} type="button"><Sparkles size={13} />{playback.step === 5 ? "已点击 · 生成中" : "点击生成"}</button>
             <button onClick={rejectText} type="button"><CircleAlert size={13} />拒绝联想</button>
           </div>
+          <small className="ime-autoplay-note">演示回放：停留约 2 秒后模拟用户点击生成</small>
         </div>
       ) : null}
       {showProgress ? (
@@ -785,7 +804,7 @@ function ImeDemo() {
         <footer><ShieldCheck size={12} /> 只发送本轮获准使用的片段</footer>
       </aside>
       <PlaybackControls
-        lockedLabel={playback.step === 4 ? "请选择联想或点击生成" : playback.step === 11 ? "请采纳或拒绝结果" : undefined}
+        lockedLabel={playback.step === 11 ? "请采纳或拒绝结果" : undefined}
         playing={playback.playing}
         onRestart={restart}
         onToggle={() => playback.setPlaying(!playback.playing)}
@@ -882,7 +901,7 @@ function MemoryStory() {
   const timeline = useLoop(memoryTimelineEntries.length, 2400);
   const retrieval = useLoop(ragModes.length, 3600);
   const [activeContextSourceId, setActiveContextSourceId] = useState<(typeof governedContextSources)[number]["id"]>("project");
-  const [activeProjectDocumentId, setActiveProjectDocumentId] = useState<(typeof projectDocumentPages)[number]["id"]>("project");
+  const [activeProjectDocumentId, setActiveProjectDocumentId] = useState<(typeof projectDocumentPages)[number]["id"]>("overview");
   const [activeRagNodeId, setActiveRagNodeId] = useState<string>(ragRelationshipGraphs.embedding.focus);
   const activeEntry = memoryTimelineEntries[timeline.step] ?? memoryTimelineEntries[0];
   const activeMode = ragModes[retrieval.step] ?? ragModes[0];
@@ -929,8 +948,8 @@ function MemoryStory() {
 
       <section className="project-docs-showcase" data-active={activeContextSourceId === "project"} hidden={activeContextSourceId !== "project"} id="project-context-page" role="tabpanel">
         <header className="project-docs-titlebar">
-          <div><Orbit size={22}/><span><strong>Project Context Gravity</strong><small>公开合成项目 · 不是文件柜，而是 Agent 可导航、可执行、可验证的约束场</small></span></div>
-          <b>READABLE STRUCTURE</b>
+          <div><Orbit size={22}/><span><strong>Project Context Gravity · Real Docs</strong><small>这不是普通 docs：当前仓库真实文件直接约束 Goal；这里只显示清洗后的公开投影</small></span></div>
+          <b>REAL FILES · SANITIZED</b>
         </header>
         <div className="project-docs-shell">
           <nav className="project-docs-tree" aria-label="项目文档结构">
@@ -940,36 +959,18 @@ function MemoryStory() {
                 <FileText size={16}/><span><small>{document.group}</small><strong>{document.file}</strong></span>
               </button>
             ))}
-            <footer><ShieldCheck size={16}/><span><strong>单一权威</strong><small>文件投影不复制 transcript</small></span></footer>
+            <footer><ShieldCheck size={16}/><span><strong>真实来源，公开清洗</strong><small>不复制 transcript / 私有 Runtime</small></span></footer>
           </nav>
           <article className="project-docs-article" key={activeProjectDocument.id}>
-            <section className="project-docs-gravity" aria-label="Project Docs 引力场">
-              <header>
-                <span><b>PROJECT DOCS ≠ FILE CABINET</b><strong>这不是普通的 docs，是 Agent 的执行引力场。</strong><small>中心 Goal 稳定方向；入口、需求、架构、任务与验收共同约束每条执行轨道。</small></span>
-                <a href="https://openai.com/zh-Hans-CN/index/harness-engineering/" rel="noreferrer" target="_blank">参考 · OpenAI Harness Engineering <SquareArrowOutUpRight size={14}/></a>
-              </header>
-              <div className="project-gravity-map">
-                <i className="project-gravity-orbit project-gravity-orbit--outer" aria-hidden="true"/>
-                <i className="project-gravity-orbit project-gravity-orbit--inner" aria-hidden="true"/>
-                <svg aria-hidden="true" viewBox="0 0 800 380">
-                  <path d="M400 190 L400 40 M400 190 L690 105 M400 190 L660 315 M400 190 L140 315 M400 190 L110 105 M400 190 L400 342"/>
-                </svg>
-                <div className="project-gravity-core"><span>ROOT GOAL</span><strong>掌柜问数</strong><small>可解释的经营分析 Agent</small></div>
-                {projectDocumentPages.map((document, index) => (
-                  <button
-                    aria-label={`查看 ${document.file}`}
-                    aria-pressed={activeProjectDocumentId === document.id}
-                    data-orbit-index={index}
-                    key={document.id}
-                    onClick={() => setActiveProjectDocumentId(document.id)}
-                    type="button"
-                  ><small>{document.group}</small><strong>{document.file}</strong></button>
-                ))}
-              </div>
-            </section>
-            <header><span>{activeProjectDocument.group} · {activeProjectDocument.file}</span><b>{activeProjectDocument.status}</b></header>
+            <div className="project-docs-goal-anchor" aria-label="当前项目 Goal">
+              <Orbit size={21}/><span><b>ROOT GOAL · ACTIVE</b><strong>完成并公开 PAW Story Showcase</strong><small>真实 PAWOS UI · 明确合成数据 · 可操作、可复核、可部署</small></span>
+              <a href="https://openai.com/zh-Hans-CN/index/harness-engineering/" rel="noreferrer" target="_blank">结构参考 <SquareArrowOutUpRight size={13}/></a>
+            </div>
+            <header><span>{activeProjectDocument.path}</span><b>{activeProjectDocument.status}</b></header>
             <h3>{activeProjectDocument.title}</h3>
             <p>{activeProjectDocument.summary}</p>
+            <blockquote className="project-docs-source-excerpt"><small>REAL SOURCE EXCERPT · PUBLIC FIELDS</small><p>{activeProjectDocument.excerpt}</p></blockquote>
+            <div className="project-docs-cleaning-receipt"><ShieldCheck size={17}/><span><b>PUBLIC SANITIZATION</b><strong>{activeProjectDocument.cleaning}</strong></span><a href={`https://github.com/7155/paw-story-showcase/blob/main/${activeProjectDocument.path}`} rel="noreferrer" target="_blank">查看真实文件 <SquareArrowOutUpRight size={13}/></a></div>
             {activeProjectDocument.sections.map((section, index) => (
               <section key={section.title}>
                 <span>{String(index + 1).padStart(2, "0")}</span><div><h4>{section.title}</h4><p>{section.body}</p></div>
@@ -979,7 +980,7 @@ function MemoryStory() {
           <aside className="project-docs-outline">
             <p>本页结构</p>
             {activeProjectDocument.sections.map((section, index) => <span key={section.title}><b>{String(index + 1).padStart(2, "0")}</b>{section.title}</span>)}
-            <div><FileCheck2 size={17}/><span><strong>来源回执</strong><small>项目文件 · 版本历史 · 当前 Session</small></span></div>
+            <div><FileCheck2 size={17}/><span><strong>来源回执</strong><small>真实仓库文件 · 清洗后的公开摘要</small></span></div>
           </aside>
         </div>
       </section>
