@@ -3,6 +3,8 @@ import { usePawOsAppearance } from '@/design/paw-os-themes';
 import { pawAppForPath } from './runtime/app-registry';
 import { PawDesktopProvider, usePawDesktopApi } from './runtime/desktop-context';
 import type { PawDesktopStore } from './runtime/desktop-store';
+import { PawRoomFlowShowcaseDirector } from './showcase/PawRoomFlowShowcaseDirector';
+import { isPawRoomFlowShowcase } from './showcase/room-flow-script';
 import { PawDesktop } from './shell/PawDesktop';
 import './styles/paw-os.css';
 import './styles/paw-os-motion.css';
@@ -18,16 +20,28 @@ import './styles/paw-os-room-focus.css';
 import './styles/paw-os-starfield.css';
 import './styles/paw-os-sys-apps-migrated-v1.css';
 import './styles/paw-os-tools-files-migrated-v1.css';
+import './styles/paw-os-showcase.css';
 
 export function PawOsApp() {
   const { theme } = usePawOsAppearance();
   const initialRoute = useMemo(() => currentHashRoute(), []);
   const initialApp = useMemo(() => pawAppForPath(initialRoute), [initialRoute]);
+  const roomFlowShowcase = useMemo(() => isPawRoomFlowShowcase(), []);
   return (
-    <PawDesktopProvider initialAppId={initialApp?.id} initialRoute={initialRoute}>
+    <PawDesktopProvider
+      initialAppId={initialApp?.id}
+      initialRoute={initialRoute}
+      persistenceKey={roomFlowShowcase ? 'pawos.desktop.showcase.room-flow.v1' : undefined}
+    >
       <PawOsRouteBridge />
-      <div className="paw-desktop-root" data-paw-theme={theme} data-testid="paw-os-product-root">
+      <div
+        className="paw-desktop-root"
+        data-paw-theme={theme}
+        data-room-flow-showcase={roomFlowShowcase || undefined}
+        data-testid="paw-os-product-root"
+      >
         <PawDesktop />
+        {roomFlowShowcase ? <PawRoomFlowShowcaseDirector /> : null}
       </div>
     </PawDesktopProvider>
   );

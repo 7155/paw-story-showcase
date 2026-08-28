@@ -71,7 +71,7 @@ export function roomCollaborationRoleLabel(role: RoomCollaborationRoleValue): st
   if (role === 'researcher') return '调研与证据';
   if (role === 'reviewer') return '最终独立复核';
   if (role === 'specialist') return '专项伙伴（尚未设置）';
-  if (role === 'implementer') return '实现与验证';
+  if (role === 'implementer') return '实施';
   return '协作伙伴';
 }
 
@@ -80,6 +80,6 @@ export function roomCollaborationRoleDescription(role: RoomCollaborationRoleValu
   if (role === 'researcher') return '查清事实和来源，提交证据与不确定性，不替代实现';
   if (role === 'reviewer') return '只在整合完成后独立检查完整结果，不参与原实现';
   if (role === 'specialist') return '尚未设置具体领域，不会冒充专家';
-  if (role === 'implementer') return '完成分配的改动与验证，提交可直接整合的结果';
+  if (role === 'implementer') return '完成分配的改动并提交 WorkPatch；最终测试由 Facilitator 另行分派 Reviewer';
   return '根据当前任务完成自己这一轮的部分';
 }

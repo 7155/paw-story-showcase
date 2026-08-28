@@ -61,6 +61,41 @@ test.describe('PAWOS App interface audit (ops)', () => {
       'PAWOS App audit issues',
     ).toEqual([]);
   });
+
+  test('Room showcase dispatches implementers, streams one ordered lane, then starts Reviewer', async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.goto('/?frontend=paw-os&showcase=room-flow#/agent?room=room-preview');
+
+    const director = page.getByTestId('paw-room-flow-showcase');
+    await expect(director).toBeVisible({ timeout: 30_000 });
+    await expect(director).toContainText('PUBLIC SYNTHETIC EVENTS');
+    await expect(director).toContainText('GATED');
+
+    // The three implementation planets are real PAW participant windows. The
+    // Reviewer must not exist while those WorkPatches are still incomplete.
+    await expect(page.getByRole('region', { name: 'Mars窗口' })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('region', { name: 'Venus窗口' })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('region', { name: 'Jupiter窗口' })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('region', { name: 'Saturn窗口' })).toHaveCount(0);
+
+    // Sequence 25 is the durable 3/3 implementation receipt. Only the next
+    // route_decision is allowed to open the independent test batch.
+    await expect(director).toHaveAttribute('data-sequence', '25', { timeout: 35_000 });
+    await expect(director).toContainText('3/3');
+    await expect(director).toContainText('GATED');
+    await expect(page.getByRole('region', { name: 'Saturn窗口' })).toHaveCount(0);
+
+    await expect(page.getByRole('region', { name: 'Saturn窗口' })).toBeVisible({ timeout: 5_000 });
+    await expect(director).toContainText('REVIEWER TEST');
+    await expect(director).toContainText('TESTING');
+
+    await expect(director).toHaveAttribute('data-sequence', '36', { timeout: 20_000 });
+    await expect(director).toContainText('FINAL SUBMIT');
+    await expect(director).toContainText('PASSED');
+    await expect(director).toContainText('P0');
+    await expect(director).toContainText('0');
+    await expect(page.getByRole('main', { name: 'PAW 展示页制作 主 Room' })).toContainText('实施伙伴未执行最终测试');
+  });
 });
 
 async function openAppFromLaunchpad(page: Page, label: string): Promise<void> {

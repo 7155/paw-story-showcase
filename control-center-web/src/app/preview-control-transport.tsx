@@ -11,7 +11,18 @@ import type {
   ControlTransport,
   PickedFile,
 } from '@/platform/transport';
-import { MockControlTransport, type MockRouteHandler } from '@/test/mock-transport';
+import {
+  MockControlTransport,
+  type MockControlTransportOptions,
+  type MockRouteHandler,
+} from '@/test/mock-transport';
+import {
+  PAW_ROOM_FLOW_SHOWCASE_EVENT,
+  PAW_ROOM_FLOW_SHOWCASE_ID,
+  isPawRoomFlowShowcase,
+  pawRoomFlowShowcaseDelayMs,
+  type PawRoomFlowShowcaseEventDetail,
+} from '@/paw-os/showcase/room-flow-script';
 import {
   previewAgentEvents,
   previewAgentSnapshot,
@@ -59,7 +70,22 @@ import {
  * the preview transport seam so fixtures exercise the same scoped behavior as
  * the native transport.
  */
+type PreviewRoomFlowPlayback = {
+  events: Record<string, unknown>[];
+  onSequence: (sequence: number) => void;
+  roomId: string;
+};
+
 class PreviewControlTransport extends MockControlTransport {
+  private readonly roomFlowPlayback?: PreviewRoomFlowPlayback;
+  private roomFlowStarted = false;
+
+  constructor(options: MockControlTransportOptions & { roomFlowPlayback?: PreviewRoomFlowPlayback }) {
+    const { roomFlowPlayback, ...transportOptions } = options;
+    super(transportOptions);
+    this.roomFlowPlayback = roomFlowPlayback;
+  }
+
   override subscribe<Event = unknown>(
     request: ControlSubscription,
     observer: ControlEventObserver<Event>,
@@ -67,17 +93,26 @@ class PreviewControlTransport extends MockControlTransport {
     const sessionId = request.pathId === 'agent.session.events'
       ? stringValue(request.params?.sessionId)
       : '';
-    if (!sessionId) return super.subscribe(request, observer);
+    const roomId = request.pathId === 'agent.room.events'
+      ? stringValue(request.params?.roomId)
+      : '';
+    if (!sessionId && !roomId) return super.subscribe(request, observer);
 
     const scopedObserver: ControlEventObserver<Event> = {
       ...observer,
       next: (event) => {
-        if (eventSessionId(event) === sessionId) observer.next(event);
+        if (
+          (sessionId && eventSessionId(event) === sessionId)
+          || (roomId && eventRoomId(event) === roomId)
+        ) observer.next(event);
       },
       ...(observer.snapshotRequired
         ? {
             snapshotRequired: (event: Event) => {
-              if (eventSessionId(event) === sessionId) observer.snapshotRequired?.(event);
+              if (
+                (sessionId && eventSessionId(event) === sessionId)
+                || (roomId && eventRoomId(event) === roomId)
+              ) observer.snapshotRequired?.(event);
             },
           }
         : {}),
@@ -95,7 +130,42 @@ class PreviewControlTransport extends MockControlTransport {
         }
       });
     }
+    if (
+      roomId
+      && this.roomFlowPlayback?.roomId === roomId
+      && !this.roomFlowStarted
+    ) {
+      this.roomFlowStarted = true;
+      const lastSequence = resumeSequence(request.lastEventId, roomId);
+      queueMicrotask(() => this.playRoomFlow(lastSequence));
+    }
     return unsubscribe;
+  }
+
+  private playRoomFlow(lastSequence: number): void {
+    const playback = this.roomFlowPlayback;
+    if (!playback) return;
+    const events = playback.events.filter((event) => Number(event.sequence) > lastSequence);
+    const delayMs = pawRoomFlowShowcaseDelayMs();
+    events.forEach((event, index) => {
+      window.setTimeout(() => {
+        const sequence = Number(event.sequence);
+        if (!Number.isInteger(sequence)) return;
+        playback.onSequence(sequence);
+        this.emit('agent.room.events', event);
+        window.dispatchEvent(new CustomEvent<PawRoomFlowShowcaseEventDetail>(
+          PAW_ROOM_FLOW_SHOWCASE_EVENT,
+          {
+            detail: {
+              sequence,
+              eventType: stringValue(event.eventType),
+              participantId: stringValue(event.participantId) || null,
+              payload: record(event.payload),
+            },
+          },
+        ));
+      }, delayMs * (index + 1));
+    });
   }
 }
 
@@ -104,8 +174,21 @@ export function createPreviewTransport(): MockControlTransport {
   let nextRoleId = 1;
   let nextWakeScheduleId = 1;
   let nextRoomId = 1;
+  const roomFlowShowcase = isPawRoomFlowShowcase();
+  const previewRoomBaseTimeMs = Date.now() - 60_000;
+  const completeRoomFlowSnapshot = previewRoomSnapshot(PAW_ROOM_FLOW_SHOWCASE_ID, {
+    baseTimeMs: previewRoomBaseTimeMs,
+  }) as unknown as Record<string, unknown>;
   const previewRoomSnapshots = new Map<string, Record<string, unknown>>([
-    ['room-preview', previewRoomSnapshot('room-preview') as unknown as Record<string, unknown>],
+    [
+      PAW_ROOM_FLOW_SHOWCASE_ID,
+      roomFlowShowcase
+        ? previewRoomSnapshot(PAW_ROOM_FLOW_SHOWCASE_ID, {
+            baseTimeMs: previewRoomBaseTimeMs,
+            throughSequence: 1,
+          }) as unknown as Record<string, unknown>
+        : completeRoomFlowSnapshot,
+    ],
   ]);
   let previewEvidenceDisposition = 'not_for_memory';
   let previewMemoryRunStatus = 'draft';
@@ -164,9 +247,11 @@ export function createPreviewTransport(): MockControlTransport {
     previewSession('session-work-disclosure', '过程折叠验收', 'companion-present-v1', Date.now() - 90_000, '1', { messageCount: 3, lastMessagePreview: '最终结果保持可见，推理与工具过程可按需展开。', workspaceRoots: ['/Users/example/Projects/personal-agent-workbench'] }),
   ];
   const roomSessions: Record<string, unknown>[] = [
-    previewRoomSession('session-room-present', '迁移作战室 · Earth', 'companion-present-v1', 'participant-present'),
-    previewRoomSession('session-room-firstlight', '迁移作战室 · Mars', 'companion-firstlight-v1', 'participant-firstlight'),
-    previewRoomSession('session-room-future', '迁移作战室 · Venus', 'companion-future-v1', 'participant-future'),
+    previewRoomSession('session-room-facilitator', 'PAW 展示页制作 · Sol', 'companion-present-v1', 'participant-facilitator'),
+    previewRoomSession('session-room-input', 'PAW 展示页制作 · Earth', 'companion-present-v1', 'participant-input'),
+    previewRoomSession('session-room-memory', 'PAW 展示页制作 · Mars', 'companion-firstlight-v1', 'participant-memory'),
+    previewRoomSession('session-room-room', 'PAW 展示页制作 · Venus', 'companion-future-v1', 'participant-room'),
+    previewRoomSession('session-room-review', 'PAW 展示页制作 · Jupiter', 'companion-firstlight-v1', 'participant-review'),
   ];
   let personas: AgentPersonaV1[] = previewPersonas.map((persona) => ({
     ...persona,
@@ -1238,6 +1323,23 @@ export function createPreviewTransport(): MockControlTransport {
         sha256: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
       },
     ],
+    ...(roomFlowShowcase ? {
+      roomFlowPlayback: {
+        roomId: PAW_ROOM_FLOW_SHOWCASE_ID,
+        events: Array.isArray(completeRoomFlowSnapshot.events)
+          ? completeRoomFlowSnapshot.events.map(record)
+          : [],
+        onSequence: (sequence: number) => {
+          previewRoomSnapshots.set(
+            PAW_ROOM_FLOW_SHOWCASE_ID,
+            previewRoomSnapshot(PAW_ROOM_FLOW_SHOWCASE_ID, {
+              baseTimeMs: previewRoomBaseTimeMs,
+              throughSequence: sequence,
+            }) as unknown as Record<string, unknown>,
+          );
+        },
+      },
+    } : {}),
   });
   return previewTransport;
 }
@@ -3534,8 +3636,12 @@ function eventSessionId(value: unknown): string {
   return stringValue(record(value).sessionId);
 }
 
-function resumeSequence(value: string, sessionId: string): number {
-  const prefix = `${sessionId}:`;
+function eventRoomId(value: unknown): string {
+  return stringValue(record(value).roomId);
+}
+
+function resumeSequence(value: string, ownerId: string): number {
+  const prefix = `${ownerId}:`;
   if (!value.startsWith(prefix)) return 0;
   const sequence = Number(value.slice(prefix.length));
   return Number.isInteger(sequence) && sequence >= 0 ? sequence : 0;

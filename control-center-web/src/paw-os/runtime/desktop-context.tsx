@@ -7,9 +7,19 @@ const PawDesktopContext = createContext<PawDesktopStore | null>(null);
 const pawDesktopSnapshotKey = 'pawos.desktop.v1';
 const pawDesktopPersistDelayMs = 200;
 
-export function PawDesktopProvider({ children, initialAppId, initialRoute }: { children: ReactNode; initialAppId?: PawAppId | null; initialRoute?: string }) {
+export function PawDesktopProvider({
+  children,
+  initialAppId,
+  initialRoute,
+  persistenceKey = pawDesktopSnapshotKey,
+}: {
+  children: ReactNode;
+  initialAppId?: PawAppId | null;
+  initialRoute?: string;
+  persistenceKey?: string;
+}) {
   const storeRef = useRef<PawDesktopStore | null>(null);
-  storeRef.current ??= createPawDesktopStore(initialAppId, initialRoute, readPawDesktopSnapshot());
+  storeRef.current ??= createPawDesktopStore(initialAppId, initialRoute, readPawDesktopSnapshot(persistenceKey));
   useEffect(() => {
     const store = storeRef.current;
     if (!store) return undefined;
@@ -28,7 +38,7 @@ export function PawDesktopProvider({ children, initialAppId, initialRoute }: { c
         stack: state.stack,
         activeWindowId: state.activeWindowId,
       };
-      window.localStorage.setItem(pawDesktopSnapshotKey, JSON.stringify(snapshot));
+      window.localStorage.setItem(persistenceKey, JSON.stringify(snapshot));
     };
     const unsubscribe = store.subscribe(() => {
       if (!timer) timer = window.setTimeout(write, pawDesktopPersistDelayMs);
@@ -49,13 +59,13 @@ export function PawDesktopProvider({ children, initialAppId, initialRoute }: { c
       document.removeEventListener('visibilitychange', flushWhenHidden);
       flush();
     };
-  }, []);
+  }, [persistenceKey]);
   return <PawDesktopContext.Provider value={storeRef.current}>{children}</PawDesktopContext.Provider>;
 }
 
-function readPawDesktopSnapshot(): PawDesktopSnapshot | undefined {
+function readPawDesktopSnapshot(persistenceKey: string): PawDesktopSnapshot | undefined {
   if (typeof window === 'undefined') return undefined;
-  const value = window.localStorage.getItem(pawDesktopSnapshotKey);
+  const value = window.localStorage.getItem(persistenceKey);
   return value ? JSON.parse(value) as PawDesktopSnapshot : undefined;
 }
 
