@@ -25,6 +25,11 @@ import type { AgentGoalMutationV1 } from './generated/agent-goal-mutation.v1';
 import type { AgentGoalSettleRequestV1 } from './generated/agent-goal-settle-request.v1';
 import type { AgentGoalSettleResultV1 } from './generated/agent-goal-settle-result.v1';
 import type { AgentGoalUsageV1 } from './generated/agent-goal-usage.v1';
+import type { AgentLabCostReceiptV1 } from './generated/agent-lab-cost-receipt.v1';
+import type { AgentLabCostRequestV1 } from './generated/agent-lab-cost-request.v1';
+import type { AgentLabExperimentV1 } from './generated/agent-lab-experiment.v1';
+import type { AgentLabPathSearchRequestV1 } from './generated/agent-lab-path-search-request.v1';
+import type { AgentLabPathSearchV1 } from './generated/agent-lab-path-search.v1';
 import type { AgentLifecycleCancellationAuditV1 } from './generated/agent-lifecycle-cancellation-audit.v1';
 import type { AgentMediaV1 } from './generated/agent-media.v1';
 import type { AgentMemoryEvidenceV1 } from './generated/agent-memory-evidence.v1';
@@ -38,6 +43,7 @@ import type { AgentPersonaV1 } from './generated/agent-persona.v1';
 import type { AgentRoleBookToolResultV1 } from './generated/agent-role-book-tool-result.v1';
 import type { AgentRoleBookV1 } from './generated/agent-role-book.v1';
 import type { AgentRoleRoutingProfileV1 } from './generated/agent-role-routing-profile.v1';
+import type { AgentRoomConversationSnapshotV1 } from './generated/agent-room-conversation-snapshot.v1';
 import type { AgentRoomEventPageV1 } from './generated/agent-room-event-page.v1';
 import type { AgentRoomEventV1 } from './generated/agent-room-event.v1';
 import type { AgentRoomIntercomV1 } from './generated/agent-room-intercom.v1';
@@ -71,6 +77,14 @@ import type { ControlToolManifestV1 } from './generated/control-tool-manifest.v1
 import type { DailyActivityTimelineV1 } from './generated/daily-activity-timeline.v1';
 import type { DailyConversationDigestV1 } from './generated/daily-conversation-digest.v1';
 import type { DeliveryGateObservationV1 } from './generated/delivery-gate-observation.v1';
+import type { EvalLabRunListV1 } from './generated/eval-lab-run-list.v1';
+import type { EvalRunV1 } from './generated/eval-run.v1';
+import type { EvalScheduleCreateV1 } from './generated/eval-schedule-create.v1';
+import type { EvalScheduleErrorV1 } from './generated/eval-schedule-error.v1';
+import type { EvalScheduleListV1 } from './generated/eval-schedule-list.v1';
+import type { EvalScheduleRunListV1 } from './generated/eval-schedule-run-list.v1';
+import type { EvalScheduleV1 } from './generated/eval-schedule.v1';
+import type { EvalSuiteListV1 } from './generated/eval-suite-list.v1';
 import type { ForegroundCommitV1 } from './generated/foreground-commit.v1';
 import type { ForegroundContextV2 } from './generated/foreground-context.v2';
 import type { FrontendCapabilitiesV1 } from './generated/frontend-capabilities.v1';
@@ -102,9 +116,16 @@ import type { MemoryGovernancePreviewV1 } from './generated/memory-governance-pr
 import type { MemoryGraphV1 } from './generated/memory-graph.v1';
 import type { MemoryReadErrorV1 } from './generated/memory-read-error.v1';
 import type { MemoryReferenceV1 } from './generated/memory-reference.v1';
+import type { ObservabilityEvalListV1 } from './generated/observability-eval-list.v1';
+import type { ObservabilityEvidenceEvalRequestV1 } from './generated/observability-evidence-eval-request.v1';
+import type { ObservabilitySandboxRunListV1 } from './generated/observability-sandbox-run-list.v1';
+import type { ObservabilityTraceErrorV1 } from './generated/observability-trace-error.v1';
+import type { ObservabilityTraceGetV1 } from './generated/observability-trace-get.v1';
 import type { ObservationEventV1 } from './generated/observation-event.v1';
 import type { ObservationSnapshotV1 } from './generated/observation-snapshot.v1';
 import type { OverlayConfigV1 } from './generated/overlay-config.v1';
+import type { PawPluginUsageQueryV1 } from './generated/paw.plugin-usage-query.v1';
+import type { PawPluginUsageV1 } from './generated/paw.plugin-usage.v1';
 import type { PiRuntimeManifestV1 } from './generated/pi-runtime-manifest.v1';
 import type { PromptCompileReceiptV1 } from './generated/prompt-compile-receipt.v1';
 import type { PromptPlanV1 } from './generated/prompt-plan.v1';
@@ -124,16 +145,27 @@ import type { RoomCommitV2 } from './generated/room-commit.v2';
 import type { RoomCommitV3 } from './generated/room-commit.v3';
 import type { RoomDispatchEnvelopeV2 } from './generated/room-dispatch-envelope.v2';
 import type { RoomEventEnvelopeV2 } from './generated/room-event-envelope.v2';
+import type { RoomPermissionPolicyV1 } from './generated/room-permission-policy.v1';
 import type { RoomPostV2 } from './generated/room-post.v2';
 import type { RoomQualityGateReceiptV1 } from './generated/room-quality-gate-receipt.v1';
 import type { RoomRootExecutionV3 } from './generated/room-root-execution.v3';
 import type { RoomShadowObservationV1 } from './generated/room-shadow-observation.v1';
 import type { RoomTaskV3 } from './generated/room-task.v3';
 import type { RunnerVerificationReceiptV2 } from './generated/runner-verification-receipt.v2';
+import type { SandboxRunV1 } from './generated/sandbox-run.v1';
 import type { SessionMemoryRecallV1 } from './generated/session-memory-recall.v1';
 import type { SessionRecallEffectReceiptV1 } from './generated/session-recall-effect-receipt.v1';
+import type { TraceDiagnosticInspectionV1 } from './generated/trace-diagnostic-inspection.v1';
+import type { TraceDiagnosticReportListV1 } from './generated/trace-diagnostic-report-list.v1';
+import type { TraceDiagnosticReportV1 } from './generated/trace-diagnostic-report.v1';
+import type { TraceDiagnosticResultV1 } from './generated/trace-diagnostic-result.v1';
+import type { TraceEnvelopeV1 } from './generated/trace-envelope.v1';
+import type { TraceRepairReceiptV1 } from './generated/trace-repair-receipt.v1';
+import type { TraceReplayCaseV1 } from './generated/trace-replay-case.v1';
+import type { TraceVerificationReceiptV1 } from './generated/trace-verification-receipt.v1';
 import type { TypedVerificationReceiptV1 } from './generated/typed-verification-receipt.v1';
 import type { UserMemoryDraftV1 } from './generated/user-memory-draft.v1';
+import type { VerticalAgentSelfTestSuiteV1 } from './generated/vertical-agent-self-test-suite.v1';
 import type { WorkDocumentCommandV1 } from './generated/work-document-command.v1';
 import type { WorkDocumentContextV1 } from './generated/work-document-context.v1';
 import type { WorkDocumentDetailV1 } from './generated/work-document-detail.v1';
@@ -164,6 +196,11 @@ export type {
   AgentGoalSettleRequestV1,
   AgentGoalSettleResultV1,
   AgentGoalUsageV1,
+  AgentLabCostReceiptV1,
+  AgentLabCostRequestV1,
+  AgentLabExperimentV1,
+  AgentLabPathSearchRequestV1,
+  AgentLabPathSearchV1,
   AgentLifecycleCancellationAuditV1,
   AgentMediaV1,
   AgentMemoryEvidenceV1,
@@ -177,6 +214,7 @@ export type {
   AgentRoleBookToolResultV1,
   AgentRoleBookV1,
   AgentRoleRoutingProfileV1,
+  AgentRoomConversationSnapshotV1,
   AgentRoomEventPageV1,
   AgentRoomEventV1,
   AgentRoomIntercomV1,
@@ -210,6 +248,14 @@ export type {
   DailyActivityTimelineV1,
   DailyConversationDigestV1,
   DeliveryGateObservationV1,
+  EvalLabRunListV1,
+  EvalRunV1,
+  EvalScheduleCreateV1,
+  EvalScheduleErrorV1,
+  EvalScheduleListV1,
+  EvalScheduleRunListV1,
+  EvalScheduleV1,
+  EvalSuiteListV1,
   ForegroundCommitV1,
   ForegroundContextV2,
   FrontendCapabilitiesV1,
@@ -241,9 +287,16 @@ export type {
   MemoryGraphV1,
   MemoryReadErrorV1,
   MemoryReferenceV1,
+  ObservabilityEvalListV1,
+  ObservabilityEvidenceEvalRequestV1,
+  ObservabilitySandboxRunListV1,
+  ObservabilityTraceErrorV1,
+  ObservabilityTraceGetV1,
   ObservationEventV1,
   ObservationSnapshotV1,
   OverlayConfigV1,
+  PawPluginUsageQueryV1,
+  PawPluginUsageV1,
   PiRuntimeManifestV1,
   PromptCompileReceiptV1,
   PromptPlanV1,
@@ -263,16 +316,27 @@ export type {
   RoomCommitV3,
   RoomDispatchEnvelopeV2,
   RoomEventEnvelopeV2,
+  RoomPermissionPolicyV1,
   RoomPostV2,
   RoomQualityGateReceiptV1,
   RoomRootExecutionV3,
   RoomShadowObservationV1,
   RoomTaskV3,
   RunnerVerificationReceiptV2,
+  SandboxRunV1,
   SessionMemoryRecallV1,
   SessionRecallEffectReceiptV1,
+  TraceDiagnosticInspectionV1,
+  TraceDiagnosticReportListV1,
+  TraceDiagnosticReportV1,
+  TraceDiagnosticResultV1,
+  TraceEnvelopeV1,
+  TraceRepairReceiptV1,
+  TraceReplayCaseV1,
+  TraceVerificationReceiptV1,
   TypedVerificationReceiptV1,
   UserMemoryDraftV1,
+  VerticalAgentSelfTestSuiteV1,
   WorkDocumentCommandV1,
   WorkDocumentContextV1,
   WorkDocumentDetailV1,
@@ -304,6 +368,11 @@ export interface ContractTypeMap {
   'agent-goal-settle-request.v1': AgentGoalSettleRequestV1;
   'agent-goal-settle-result.v1': AgentGoalSettleResultV1;
   'agent-goal-usage.v1': AgentGoalUsageV1;
+  'agent-lab-cost-receipt.v1': AgentLabCostReceiptV1;
+  'agent-lab-cost-request.v1': AgentLabCostRequestV1;
+  'agent-lab-experiment.v1': AgentLabExperimentV1;
+  'agent-lab-path-search-request.v1': AgentLabPathSearchRequestV1;
+  'agent-lab-path-search.v1': AgentLabPathSearchV1;
   'agent-lifecycle-cancellation-audit.v1': AgentLifecycleCancellationAuditV1;
   'agent-media.v1': AgentMediaV1;
   'agent-memory-evidence.v1': AgentMemoryEvidenceV1;
@@ -317,6 +386,7 @@ export interface ContractTypeMap {
   'agent-role-book-tool-result.v1': AgentRoleBookToolResultV1;
   'agent-role-book.v1': AgentRoleBookV1;
   'agent-role-routing-profile.v1': AgentRoleRoutingProfileV1;
+  'agent-room-conversation-snapshot.v1': AgentRoomConversationSnapshotV1;
   'agent-room-event-page.v1': AgentRoomEventPageV1;
   'agent-room-event.v1': AgentRoomEventV1;
   'agent-room-intercom.v1': AgentRoomIntercomV1;
@@ -350,6 +420,14 @@ export interface ContractTypeMap {
   'daily-activity-timeline.v1': DailyActivityTimelineV1;
   'daily-conversation-digest.v1': DailyConversationDigestV1;
   'delivery-gate-observation.v1': DeliveryGateObservationV1;
+  'eval-lab-run-list.v1': EvalLabRunListV1;
+  'eval-run.v1': EvalRunV1;
+  'eval-schedule-create.v1': EvalScheduleCreateV1;
+  'eval-schedule-error.v1': EvalScheduleErrorV1;
+  'eval-schedule-list.v1': EvalScheduleListV1;
+  'eval-schedule-run-list.v1': EvalScheduleRunListV1;
+  'eval-schedule.v1': EvalScheduleV1;
+  'eval-suite-list.v1': EvalSuiteListV1;
   'foreground-commit.v1': ForegroundCommitV1;
   'foreground-context.v2': ForegroundContextV2;
   'frontend-capabilities.v1': FrontendCapabilitiesV1;
@@ -381,9 +459,16 @@ export interface ContractTypeMap {
   'memory-graph.v1': MemoryGraphV1;
   'memory-read-error.v1': MemoryReadErrorV1;
   'memory-reference.v1': MemoryReferenceV1;
+  'observability-eval-list.v1': ObservabilityEvalListV1;
+  'observability-evidence-eval-request.v1': ObservabilityEvidenceEvalRequestV1;
+  'observability-sandbox-run-list.v1': ObservabilitySandboxRunListV1;
+  'observability-trace-error.v1': ObservabilityTraceErrorV1;
+  'observability-trace-get.v1': ObservabilityTraceGetV1;
   'observation-event.v1': ObservationEventV1;
   'observation-snapshot.v1': ObservationSnapshotV1;
   'overlay-config.v1': OverlayConfigV1;
+  'paw.plugin-usage-query.v1': PawPluginUsageQueryV1;
+  'paw.plugin-usage.v1': PawPluginUsageV1;
   'pi-runtime-manifest.v1': PiRuntimeManifestV1;
   'prompt-compile-receipt.v1': PromptCompileReceiptV1;
   'prompt-plan.v1': PromptPlanV1;
@@ -403,16 +488,27 @@ export interface ContractTypeMap {
   'room-commit.v3': RoomCommitV3;
   'room-dispatch-envelope.v2': RoomDispatchEnvelopeV2;
   'room-event-envelope.v2': RoomEventEnvelopeV2;
+  'room-permission-policy.v1': RoomPermissionPolicyV1;
   'room-post.v2': RoomPostV2;
   'room-quality-gate-receipt.v1': RoomQualityGateReceiptV1;
   'room-root-execution.v3': RoomRootExecutionV3;
   'room-shadow-observation.v1': RoomShadowObservationV1;
   'room-task.v3': RoomTaskV3;
   'runner-verification-receipt.v2': RunnerVerificationReceiptV2;
+  'sandbox-run.v1': SandboxRunV1;
   'session-memory-recall.v1': SessionMemoryRecallV1;
   'session-recall-effect-receipt.v1': SessionRecallEffectReceiptV1;
+  'trace-diagnostic-inspection.v1': TraceDiagnosticInspectionV1;
+  'trace-diagnostic-report-list.v1': TraceDiagnosticReportListV1;
+  'trace-diagnostic-report.v1': TraceDiagnosticReportV1;
+  'trace-diagnostic-result.v1': TraceDiagnosticResultV1;
+  'trace-envelope.v1': TraceEnvelopeV1;
+  'trace-repair-receipt.v1': TraceRepairReceiptV1;
+  'trace-replay-case.v1': TraceReplayCaseV1;
+  'trace-verification-receipt.v1': TraceVerificationReceiptV1;
   'typed-verification-receipt.v1': TypedVerificationReceiptV1;
   'user-memory-draft.v1': UserMemoryDraftV1;
+  'vertical-agent-self-test-suite.v1': VerticalAgentSelfTestSuiteV1;
   'work-document-command.v1': WorkDocumentCommandV1;
   'work-document-context.v1': WorkDocumentContextV1;
   'work-document-detail.v1': WorkDocumentDetailV1;

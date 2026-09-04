@@ -7,7 +7,7 @@ Runtime or personal data.
 
 ## What is real
 
-- The React components, PAWOS shell, eleven-App registry, App dispatch, styles,
+- The React components, PAWOS shell, twelve-App registry, App dispatch, styles,
   and browser/terminal presentation code are selected from the PAW product
   source identified in [`UPSTREAM.json`](UPSTREAM.json).
 - [`manifest/source-files.sha256`](manifest/source-files.sha256) records the
@@ -75,3 +75,16 @@ profiles, machine configuration, credentials, dependencies, build output, and
 installed applications. It does not currently grant an open-source license.
 Third-party visual attribution retained by the snapshot is documented next to
 the relevant assets.
+
+## Self-contained deployment boundary
+
+Package and deploy this repository root, not `paw-story-demo` by itself. The
+site build compiles the repository-owned `control-center-web` snapshot and
+embeds its static output under `/pawos/`; it never reads the adjacent private
+PAW checkout. The source PAW repository named in `UPSTREAM.json` is provenance
+only after synchronization.
+
+The public check rejects machine-specific paths, generated/private directories,
+and symlinks in the deployable source set. A deployment environment may install
+locked third-party dependencies, but all application source and build inputs
+must come from this repository.

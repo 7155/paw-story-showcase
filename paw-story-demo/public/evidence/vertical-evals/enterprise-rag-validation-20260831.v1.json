@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "paw.enterprise-rag-validation-receipt.v1",
+  "runId": "enterprise-rag-validation-20260831-v1",
+  "status": "evaluated_not_promoted",
+  "evaluationScope": "validation-only",
+  "heldOutEvaluated": false,
+  "decision": "candidate_selected_not_promoted",
+  "dataset": {
+    "source": "EnterpriseRAG-Bench",
+    "split": "validation",
+    "corpusDocumentCount": 5101,
+    "corpusIncluded": false
+  },
+  "sample": {"validationQueryCount": 16, "candidateCount": 14},
+  "configuration": {
+    "chunking": {"strategy": "general", "size": 1200, "overlap": 160},
+    "embedding": {"provider": "mlx-bert", "dimensions": 384, "bits": 8, "vectorCount": 29846, "vectorCoverage": 1.0, "backend": "sqlite-exact"},
+    "reranker": {"provider": "mlx-qwen3-reranker", "candidateDepth": 40, "finalDepth": 10, "scoredPairs": 935, "fallbackCount": 0, "errorCount": 0}
+  },
+  "metrics": {
+    "lexicalFloor": {"mrr": 0.6041666666666666, "ndcgAt10": 0.6128006234377468, "recallAt10": 0.671875},
+    "winner": {"mrr": 0.8671875, "ndcgAt10": 0.8872028251913067, "recallAt10": 0.9553571428571429}
+  },
+  "claim": {
+    "allowed": "On a frozen 16-query Enterprise RAG validation slice, 14 retrieval candidates were compared and one hybrid plus reranking configuration was selected.",
+    "forbidden": "Held-out passed, production improved, official leaderboard score, a promoted Keep decision, or generalization to every enterprise corpus."
+  }
+}

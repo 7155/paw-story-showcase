@@ -4,6 +4,7 @@ import {
   BriefcaseBusiness,
   ChevronRight,
   Clock3,
+  FlaskConical,
   FileText,
   FolderKanban,
   LibraryBig,
@@ -17,11 +18,12 @@ import { MemoryRouter, useLocation } from 'react-router-dom';
 import { useControlTransport } from '@/app/control-transport';
 import { openPawOsRoute, usePawOsDesktop } from '@/features/paw-os/surface-context';
 import { KnowledgeFeature } from '@/features/knowledge';
+import { EvalLabFeature } from '@/features/eval-lab';
 import { MemoryFeature } from '@/features/memory';
 import { useWorkDocumentWorkspace, type WorkDocumentScope } from '@/features/work-documents/api';
 import type { ControlPathId } from '@/platform/routes';
 import type { ControlRequest } from '@/platform/transport';
-import type { PawAppId } from '../runtime/app-registry';
+import type { PawOsAppId } from '@/features/paw-os/model/app-registry';
 import { pawApp } from '../runtime/app-registry';
 import { PawSystemAppsMigrated, isPawSystemAppId, type PawSystemAppId } from './PawSystemAppsMigrated';
 import { PawWorkbenchDocumentLifecycle } from './PawWorkbenchDocumentLifecycle';
@@ -29,7 +31,7 @@ import { PawWorkbenchMigrated, type PawWorkbenchPageId } from './PawWorkbenchMig
 import { PawWorkbenchDocumentRegisterDialog, PawWorkbenchGoalDialog, PawWorkbenchTaskDialog } from './PawWorkbenchOperations';
 import { PawWorkbenchPlanningTools } from './PawWorkbenchPlanningTools';
 
-export type PawNativeAppId = Exclude<PawAppId, 'agent' | 'browser' | 'files' | 'terminal'>;
+export type PawNativeAppId = Exclude<PawOsAppId, 'agent' | 'browser' | 'files' | 'terminal'>;
 type PawFeatureAppId = Exclude<PawNativeAppId, PawSystemAppId>;
 
 type NativePage = { id: string; label: string; icon: LucideIcon; route: string };
@@ -50,6 +52,9 @@ const pagesByApp: Record<PawFeatureAppId, readonly NativePage[]> = {
   ],
   knowledge: [
     { id: 'libraries', label: '知识库', icon: LibraryBig, route: '/knowledge' },
+  ],
+  'eval-lab': [
+    { id: 'eval-lab', label: '评测任务', icon: FlaskConical, route: '/eval-lab' },
   ],
 };
 
@@ -95,6 +100,7 @@ function NativeRouteReporter({ expectedRoute }: { expectedRoute: string }) {
 function NativeSurface({ appId, pageId, route }: { appId: PawFeatureAppId; pageId: string; route: string }) {
   if (appId === 'project-workbench') return <ProjectSurface pageId={pageId} route={route} />;
   if (appId === 'memory') return <MemoryFeature />;
+  if (appId === 'eval-lab') return <EvalLabFeature />;
   return <KnowledgeFeature />;
 }
 

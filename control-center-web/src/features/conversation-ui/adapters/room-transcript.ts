@@ -112,10 +112,17 @@ export function roomTranscript(
     }
     if (entry.kind === 'message') {
       const card = cardFor(entry.message.turnId, entry.message.participantId, entry.message.createdAtMs);
+      let text = entry.message.text;
+      if (entry.message.question?.options?.length && !text.includes('🔘') && !text.includes('⚪')) {
+        const optionLines = entry.message.question.options
+          .map((opt) => `\n> ${opt.recommended ? '🔘 **[建议]** ' : '⚪ '}${opt.label}`)
+          .join('');
+        text = `${text}\n${optionLines}`;
+      }
       card.blocks.push({
         id: `text:${entry.message.id}`,
         kind: 'text',
-        text: entry.message.text,
+        text,
         ...(entry.message.status === 'streaming' ? { streaming: true } : {}),
       });
       continue;
@@ -180,7 +187,7 @@ export function roomApprovalDecision(activity: RoomActivityProjection): {
 type RoomChronologyEntry =
   | { kind: 'message'; message: RoomMessageProjection; order: number; id: string }
   | { kind: 'activity'; activity: RoomActivityProjection; order: number; id: string }
-  | { kind: 'terminal'; turn: RoomTurnProjection; order: number; id: string };
+  | { kind: 'failure'; turn: RoomTurnProjection; order: number; id: string };
 
 function roomChronology(
   projection: RoomProjectionState,
@@ -189,7 +196,7 @@ function roomChronology(
   const entries: RoomChronologyEntry[] = [];
   for (const messageId of projection.messageOrder) {
     const message = projection.messagesById[messageId];
-    if (!message || message.projectionKind === 'execution') continue;
+    if (!message) continue;
     if (!message.text.trim() && !message.question) continue;
     if (participantId && !messageBelongsToParticipant(message, participantId, projection)) continue;
     entries.push({
@@ -215,10 +222,10 @@ function roomChronology(
       const turn = projection.turnsById[turnId];
       if (!turn || (turn.status !== 'failed' && turn.status !== 'aborted')) continue;
       entries.push({
-        kind: 'terminal',
+        kind: 'failure',
         turn,
         order: (turn.updatedAtMs || turn.createdAtMs) + 0.75,
-        id: `terminal:${turn.id}`,
+        id: `failure:${turn.id}`,
       });
     }
   }
@@ -238,6 +245,10 @@ function messageBelongsToParticipant(
 
 function activityBelongsToParticipant(activity: RoomActivityProjection, participantId: string): boolean {
   const target = text(activity.payload.targetParticipantId);
+  const source = text(activity.payload.sourceParticipantId) || activity.participantId;
+  if (target && source) {
+    return target === participantId || source === participantId;
+  }
   return target ? target === participantId : activity.participantId === participantId;
 }
 
@@ -284,14 +295,16 @@ function activityBlock(
   if (plan) {
     /* A route decision reads as the real dispatch — which planet pulled which,
      * and for what — never a dead「分派」label. */
-    const sourceName = options.actorName(roomDispatchSourceParticipantId(plan, dispatchPlans) || null);
-    const targetName = options.actorName(plan.targetParticipantId) || plan.targetDisplayName || '伙伴';
+    const sourceName = roomPublicPlanetName(
+      options.actorName(roomDispatchSourceParticipantId(plan, dispatchPlans) || null),
+    );
+    const targetName = roomPublicPlanetName(options.actorName(plan.targetParticipantId));
     const objective = plan.workItemId ? options.workItemObjective?.(plan.workItemId) ?? '' : '';
     const routingDetail = [
       objective ? `任务：${objective}` : '',
       plan.routingPolicyLabel,
       ...plan.candidates.map((candidate) => (
-        `${options.actorName(candidate.participantId) || candidate.displayName} · ${candidate.score.toFixed(1)}${candidate.selected ? ' · 已选择' : ''}${candidate.signals.length ? ` · ${candidate.signals.join('、')}` : ''}`
+        `${roomPublicPlanetName(options.actorName(candidate.participantId))} · ${candidate.score.toFixed(1)}${candidate.selected ? ' · 已选择' : ''}${candidate.signals.length ? ` · ${candidate.signals.join('、')}` : ''}`
       )),
       plan.dispatchId ? `分派 ${plan.dispatchId}` : '',
       plan.workItemId ? `任务 ${plan.workItemId}` : '',
@@ -337,6 +350,25 @@ function activityBlock(
       ...(evidence?.facts.length
         ? { output: evidence.facts.map((fact) => `${fact.label}：${fact.value}`).join('\n') }
         : {}),
+      startedAt: activity.createdAtMs,
+    };
+  }
+  if (eventType.startsWith('intercom') || text(activity.payload.activityKind) === 'intercom') {
+    const sourceName = roomPublicPlanetName(options.actorName(text(activity.payload.sourceParticipantId) || activity.participantId || null));
+    const targetName = roomPublicPlanetName(options.actorName(text(activity.payload.targetParticipantId) || null));
+    const title = sourceName && targetName ? `行星通信 · ${sourceName} → ${targetName}` : '行星通信';
+    return {
+      id: `intercom:${activity.id}`,
+      kind: 'tool',
+      name: title,
+      summary: compact(activity.summary) || '交付产品线接口合同与证据引用',
+      status: toolStatus(activity.status),
+      ...(text(activity.payload.resultSummary) || Array.isArray(activity.payload.contextRefs) ? {
+        output: [
+          text(activity.payload.resultSummary) ? `交付：${text(activity.payload.resultSummary)}` : '',
+          Array.isArray(activity.payload.contextRefs) ? `引用：${activity.payload.contextRefs.join('、')}` : '',
+        ].filter(Boolean).join('\n'),
+      } : {}),
       startedAt: activity.createdAtMs,
     };
   }
@@ -390,7 +422,9 @@ function roomWorkActivityReceipt(
       ? `r${currentRevision}`
       : '';
   const ownerParticipantId = text(payload.ownerParticipantId);
-  const owner = ownerParticipantId ? options.actorName(ownerParticipantId) || ownerParticipantId : '';
+  const owner = ownerParticipantId
+    ? roomPublicPlanetName(options.actorName(ownerParticipantId))
+    : '';
   return {
     summary: [title, revision, owner ? `负责人 ${owner}` : ''].filter(Boolean).join(' · '),
     detail: [
@@ -403,6 +437,14 @@ function roomWorkActivityReceipt(
 
 function positiveInteger(value: unknown): number {
   return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : 0;
+}
+
+/** Public Room dispatch copy is planet-only. Runtime display names are kept in
+ * the parsed plan for internal correlation, but they must never become a
+ * reader-facing fallback when a participant alias is unavailable. */
+function roomPublicPlanetName(value: string | undefined): string {
+  const name = value?.trim();
+  return name || '协作行星';
 }
 
 function toolStatus(status: RoomActivityProjection['status']): ToolStatus {

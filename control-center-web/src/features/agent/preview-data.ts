@@ -160,11 +160,30 @@ export const previewSessions: SessionSummary[] = [
     modelProfile: 'openai/gpt-5.4',
   },
   {
-    id: 'session-memory',
-    title: '记忆整理',
-    mode: 'assistant',
+    id: 'session-memory-greeting',
+    title: '今天聊聊 · 开场',
+    mode: 'coordinator',
     status: 'idle',
-    roleId: 'companion-future-v1',
+    roleId: 'companion-present-v1',
+    roleVersion: '1',
+    roleBookRevisionId: '',
+    toolProfileVersion: 'subagent-readonly-v1',
+    toolAllowlistMode: 'profile',
+    projectContextEnabled: false,
+    piSkillsEnabled: false,
+    codexSkillsEnabled: false,
+    updatedAtMs: previewNow - 43 * 60_000,
+    workspaceRoots: [],
+    messageCount: 2,
+    lastMessagePreview: '看起来是很有进展、也挺密的一天。要继续收尾，还是先缓一缓？',
+    modelProfile: 'openai/gpt-5.4',
+  },
+  {
+    id: 'session-memory',
+    title: '今天聊聊 · 继续',
+    mode: 'coordinator',
+    status: 'idle',
+    roleId: 'companion-present-v1',
     roleVersion: '1',
     roleBookRevisionId: '',
     toolProfileVersion: 'subagent-readonly-v1',
@@ -174,9 +193,28 @@ export const previewSessions: SessionSummary[] = [
     codexSkillsEnabled: false,
     updatedAtMs: previewNow - 42 * 60_000,
     workspaceRoots: [],
-    messageCount: 12,
-    lastMessagePreview: '已把最近输入整理为 3 个主题。',
-    modelProfile: 'deepseek/deepseek-v4',
+    messageCount: 4,
+    lastMessagePreview: '明天继续时，我会从今天的整理结果和交接记录接上。',
+    modelProfile: 'openai/gpt-5.4',
+  },
+  {
+    id: 'session-reliability',
+    title: 'Trace Skill · 只读诊断',
+    mode: 'coordinator',
+    status: 'idle',
+    roleId: 'companion-present-v1',
+    roleVersion: '1',
+    roleBookRevisionId: '',
+    toolProfileVersion: 'subagent-readonly-v1',
+    toolAllowlistMode: 'profile',
+    projectContextEnabled: true,
+    piSkillsEnabled: true,
+    codexSkillsEnabled: false,
+    updatedAtMs: previewNow - 18 * 60_000,
+    workspaceRoots: [],
+    messageCount: 2,
+    lastMessagePreview: '只读报告已定位第一根因；repair candidate 正在等待用户授权。',
+    modelProfile: 'openai/gpt-5.4',
   },
   {
     id: 'session-input',
@@ -349,6 +387,63 @@ export const previewSessions: SessionSummary[] = [
     workspaceRoots: ['/Users/example/Projects/personal-agent-workbench'],
     messageCount: 3,
     lastMessagePreview: '最终结果保持可见，推理与工具过程可按需展开。',
+    modelProfile: 'openai/gpt-5.4',
+  },
+  {
+    id: 'session-reliability-repair',
+    title: 'Repair Session · documentSync',
+    mode: 'coordinator',
+    status: 'idle',
+    roleId: 'companion-present-v1',
+    roleVersion: '1',
+    roleBookRevisionId: '',
+    toolProfileVersion: 'subagent-worker-v1',
+    toolAllowlistMode: 'profile',
+    projectContextEnabled: true,
+    piSkillsEnabled: true,
+    codexSkillsEnabled: false,
+    updatedAtMs: previewNow - 12 * 60_000,
+    workspaceRoots: ['/Users/example/Projects/personal-agent-workbench'],
+    messageCount: 2,
+    lastMessagePreview: '修复已 applied + tested；原 Case 尚未 Replay。',
+    modelProfile: 'openai/gpt-5.4',
+  },
+  {
+    id: 'session-reliability-incident',
+    title: 'Trace Skill · 事故复现',
+    mode: 'coordinator',
+    status: 'idle',
+    roleId: 'companion-present-v1',
+    roleVersion: '1',
+    roleBookRevisionId: '',
+    toolProfileVersion: 'subagent-worker-v1',
+    toolAllowlistMode: 'profile',
+    projectContextEnabled: true,
+    piSkillsEnabled: true,
+    codexSkillsEnabled: false,
+    updatedAtMs: previewNow - 24 * 60_000,
+    workspaceRoots: ['/Users/example/Projects/personal-agent-workbench'],
+    messageCount: 2,
+    lastMessagePreview: '旧 Workflow 已回滚真实文件，Agent 却误判“已安全结束”。',
+    modelProfile: 'openai/gpt-5.4',
+  },
+  {
+    id: 'session-reliability-verify',
+    title: 'Verification Session · 同题 Replay',
+    mode: 'coordinator',
+    status: 'idle',
+    roleId: 'companion-present-v1',
+    roleVersion: '1',
+    roleBookRevisionId: '',
+    toolProfileVersion: 'subagent-readonly-v1',
+    toolAllowlistMode: 'profile',
+    projectContextEnabled: true,
+    piSkillsEnabled: true,
+    codexSkillsEnabled: false,
+    updatedAtMs: previewNow - 6 * 60_000,
+    workspaceRoots: [],
+    messageCount: 2,
+    lastMessagePreview: '任务完成硬门槛通过，八项评分均已生成；保留并发 queue 残余风险。',
     modelProfile: 'openai/gpt-5.4',
   },
 ];
@@ -906,6 +1001,281 @@ export function previewBackgroundJobs(
   ];
 }
 
+function previewMemoryRecallSession(
+  sessionId: string,
+  mode: 'greeting' | 'continued' = 'continued',
+) {
+  const greetingTurn = `${sessionId}:turn-greeting`;
+  const tiredTurn = `${sessionId}:turn-tired`;
+  const base = previewNow - 210_000;
+  const messages = [
+    message(sessionId, greetingTurn, 'memory-user-greeting', 'user', [
+      block('memory-user-greeting-text', 'text', {
+        text: '嗨，今天怎么样？',
+      }),
+    ], base),
+    message(sessionId, greetingTurn, 'memory-assistant-greeting', 'assistant', [
+      block('memory-assistant-greeting-text', 'text', {
+        text: [
+          '嗨，我挺好。你今天其实推进了不少：',
+          '',
+          '- 早上先把输入法范围、真实前端和不发布边界收成了 **PAW 立项**约束；',
+          '- 中午把高频输入里的稳定偏好和一次性任务分开，理顺了 Memory 治理；',
+          '- 下午把 Input History → Memory → Agent 串进同一个真实 PAWOS；',
+          '- 后来又把几个 Agent 之间的接口、依赖和证据串成了完整交接；',
+          '- 收尾时还核对了 WorkPatch、Docs、Reviewer 和公开数据边界。',
+          '',
+          '看起来是很有进展、也挺密的一天。你现在更想趁着劲继续收尾，还是先缓一缓？',
+        ].join('\n'),
+      }),
+    ], base + 28_000),
+    message(sessionId, tiredTurn, 'memory-user-tired', 'user', [
+      block('memory-user-tired-text', 'text', {
+        text: '还行，就是今天有点累。',
+      }),
+    ], base + 64_000),
+    message(sessionId, tiredTurn, 'memory-assistant-tired', 'assistant', [
+      block('memory-assistant-tired-text', 'text', {
+        text: [
+          '那就先别硬撑了。你今天已经把几个 Agent 之间最难的交接跑通了，这件事本身就很消耗。',
+          '',
+          '而且你最近反复在意的不是“功能堆得多”，而是它要 **真实、有用**，新增时还不能把已经做好的东西弄丢。今天这一步做到了：几个 Agent 不只是同时开着，而是真的把接口、依赖和证据交给了下一个；Memory 也不是一张讲概念的卡片，而是在真实 App 里接住了输入记录、整理结果和这段对话。',
+          '',
+          '先到这里也可以。明天继续时，我会从今天的整理结果和交接记录接上，不用你再讲一遍。',
+        ].join('\n'),
+      }),
+    ], base + 102_000),
+  ];
+  const rows: Array<[string, UiAgentEvent['eventType'], Record<string, unknown>]> = [
+    [greetingTurn, 'tool_started', { toolCallId: 'memory-recall-today', toolId: 'memory', operation: 'recall', summary: '从“今天”与当前会话上下文召回最近活动时间线', args: { scope: 'today_timeline', limit: 1, rawInput: false } }],
+    [greetingTurn, 'tool_finished', { toolCallId: 'memory-recall-today', toolId: 'memory', operation: 'recall', summary: '自然对话命中 5 个已整理任务；未读取原始输入', status: 'completed', result: { sourceEvents: 1_284, includedTasks: 5, rawInputCopied: false } }],
+    [greetingTurn, 'turn_completed', { summary: '结合今日时间线回应寒暄，并询问当前状态' }],
+    [tiredTurn, 'tool_started', { toolCallId: 'memory-recall-preferences', toolId: 'memory', operation: 'recall', summary: '根据疲劳感受与当前项目进展召回相关交流偏好', args: { scope: 'user_preferences', query: '真实 有用 保留已有 多 Agent 交接', limit: 4 } }],
+    [tiredTurn, 'tool_finished', { toolCallId: 'memory-recall-preferences', toolId: 'memory', operation: 'recall', summary: '召回 3 条相关偏好，排除无关项目与 Runtime 状态', status: 'completed', result: { included: 3, excluded: 11, runtimeStateIncluded: false } }],
+    [tiredTurn, 'turn_completed', { summary: '结合偏好回应情绪，并保留明日续接点' }],
+  ];
+  const visibleMessageCount = mode === 'greeting' ? 2 : messages.length;
+  const visibleRows = mode === 'greeting' ? rows.slice(0, 3) : rows;
+  const events = visibleRows.map(([turnId, eventType, payload], index) => ({
+    schemaVersion: 'rag-ime.agent-event.v1',
+    eventId: `${sessionId}:memory-event-${index + 1}`,
+    sessionId,
+    turnId,
+    sequence: index + 1,
+    createdAtMs: base + 5_000 + index * 13_000,
+    payload,
+    resumeToken: `${sessionId}:${index + 1}`,
+    streamKind: 'agent',
+    eventType,
+  })) as UiAgentEvent[];
+  return { messages: messages.slice(0, visibleMessageCount), events };
+}
+
+/**
+ * Public, deterministic target-state fixture for the Reliability chapter.
+ * It deliberately keeps the repair behind a user authorization turn and only
+ * calls the result verified after the original frozen case is replayed. The
+ * values are illustrative preview data, not a PAW Runtime acceptance claim.
+ */
+function previewReliabilitySession(
+  sessionId: string,
+  mode: 'incident' | 'diagnostic' | 'repair' | 'verify',
+) {
+  const incidentTurn = `${sessionId}:turn-incident`;
+  const diagnoseTurn = `${sessionId}:turn-diagnose`;
+  const repairTurn = `${sessionId}:turn-repair`;
+  const verifyTurn = `${sessionId}:turn-verify`;
+  const base = previewNow - 330_000;
+  const usage = (input: number, output: number, cacheRead: number) => ({
+    input,
+    output,
+    cacheRead,
+    cacheWrite: 0,
+    totalTokens: input + output + cacheRead,
+  });
+  const incidentMessages = [
+    message(sessionId, incidentTurn, 'reliability-user-incident', 'user', [
+      block('reliability-user-incident-text', 'text', {
+        text: '执行已批准的 workspace_write，并把结果登记到 WorkDocument；完成后给出最终状态。',
+      }),
+    ], base),
+    message(sessionId, incidentTurn, 'reliability-assistant-unsafe-safe-end', 'assistant', [
+      block('reliability-assistant-unsafe-safe-end-text', 'text', {
+        text: [
+          '## Final Result · SAFE END（错误判定）',
+          '',
+          '- `workspace_write` 已获批并成功写入真实文件：`receipt:workspace-write-001`。',
+          '- `WorkDocument.register` 在登记前因 authority 过期失败：`workDocument.state=failed`。',
+          '- 旧 Workflow 随后执行补偿回滚，删除刚刚写入的真实文件：`artifactKept=false`。',
+          '',
+          'Agent 最终仍错误地报告：“已安全结束”。',
+        ].join('\n'),
+      }),
+    ], base + 62_000, { model: 'GPT-5.4 · Legacy Workflow', provider: 'pi-runtime', usage: usage(8_160, 640, 11_520) }),
+  ];
+  const allMessages = [
+    message(sessionId, diagnoseTurn, 'reliability-user-diagnose', 'user', [
+      block('reliability-user-diagnose-text', 'text', {
+        text: '请诊断这个冻结案例：Room Partner 的 workspace_write 已获批并写入成功，但 WorkDocument authority 在登记前过期；旧 Workflow 回滚了真实文件，Agent 仍说“已安全结束”。先读取 trace-agent-diagnostics Skill，只做只读取证；把 Tool 执行、安全、协作、上下文、Token 和八项评分都写进报告。在我授权前不要修改 Skill、Tool、Workflow 或业务源码。',
+      }),
+    ], base),
+    message(sessionId, diagnoseTurn, 'reliability-assistant-report', 'assistant', [
+      block('reliability-assistant-report-text', 'text', {
+        text: [
+          '## Trace Agent 评估报告 · READ ONLY',
+          '',
+          '**结论：原任务未完成。第一根因是 `workspace_write → WorkDocument.register` 的 Workflow 一致性策略，不是 Tool 越权，也不是 OS sandbox 失效。修复状态：`awaiting_authorization`。**',
+          '',
+          '### 冻结对象与操作边界',
+          '',
+          '- Target：`run:workspace-document-sync-before`；Case：`case:stale-workdoc-authority-001`。',
+          '- Skill：`trace-agent-diagnostics`；只加载诊断规则，不授予写权限。',
+          '- Tool：`trace_diagnostics.inspect` **只调用 1 次**；随后只读对照 Git、源码与测试。',
+          '- Security：诊断 Session 无 writable roots、network=off；未产生 approval、patch 或自动修复。',
+          '',
+          '### 八项评分',
+          '',
+          '| 评分行 | 分数 | 权威 | 关键证据 |',
+          '| --- | ---: | --- | --- |',
+          '| Task completion | **0 / 3** | ground_truth | 已获批文件最终不存在，硬门槛失败 |',
+          '| Evidence / diagnosis | 1 / 3 | ground_truth | 把“登记一致性”误写成“真实工作安全” |',
+          '| Tool / Runtime | 2 / 3 | deterministic | write 与 register 都有 receipt；补偿策略删除成果 |',
+          '| Context | 2 / 3 | deterministic | 需求和 workspace root 正确，遗漏“辅助文档不是事实源” |',
+          '| Room collaboration | 1 / 3 | ground_truth | Partner 已交付，辅助 authority 反向撤销真实工作 |',
+          '| Memory / RAG | N/A | — | 本例未使用，不补 0、不参与平均 |',
+          '| Efficiency | 1 / 3 | deterministic | 6 次重试 · 41,820 Token · 14m32s |',
+          '| Repair quality | N/A | — | 尚未授权或重跑 |',
+          '',
+          '### 责任层与安全判断',
+          '',
+          'Tool eligibility、workspaceRoots、resourceRevision、approval digest 与 OS sandbox 五层都按合同生效；失败发生在获批写入之后的 Workflow 补偿策略。`resourceRevision` 解决顺序陈旧写，`temp + fsync + replace` 解决半写入，它们都不等于同文件并发 mutation queue。',
+          '',
+          '建议修复：workspace mutation 保持事实源；WorkDocument 登记最多尝试一次，失败只留下 `documentSync pending/failed`、Trace 与残余提醒。当前 PAW 仍没有 per-file mutation queue，这个 OPEN GAP 不在本次修复里。',
+        ].join('\n'),
+      }),
+    ], base + 72_000, { model: 'GPT-5.4 · Trace Agent', provider: 'pi-runtime', usage: usage(12_480, 1_960, 17_720) }),
+    message(sessionId, repairTurn, 'reliability-user-authorize', 'user', [
+      block('reliability-user-authorize-text', 'text', {
+        text: '授权修复：另开普通 writable Session，只修改 agent_tools.py 里的 documentSync Workflow 和对应聚焦测试。保留 workspace_write 的 Tool eligibility、workspaceRoots、resourceRevision、approval digest 与 OS sandbox；WorkDocument 失败最多记录一次，不自动重试。不要修改 trace-agent-diagnostics Skill、WorkspaceHarness 或评测标签；测试通过也只能写 applied + tested。',
+      }),
+    ], base + 118_000),
+    message(sessionId, repairTurn, 'reliability-assistant-repair', 'assistant', [
+      block('reliability-assistant-repair-text', 'text', {
+        text: [
+          '## Change Receipt · APPLIED + TESTED',
+          '',
+          '- 授权目标：`rag_ime/agent_tools.py` + `tests/test_agent_tools.py`',
+          '- 行为：先应用真实写入；WorkDocument preflight/register 失败转成单次 `documentSync=failed|pending`，不回滚、不重试',
+          '- 安全链：Tool 资格、精确 workspace root、resourceRevision、R2 approval digest、network-off OS sandbox 全部保持',
+          '- 聚焦测试：`9 / 9 passed`；覆盖 authority advanced、archived authority、非 active receipt 与正常登记',
+          '- 未改：Trace Skill、WorkspaceHarness、Tool schema、Eval 标签、并发 queue',
+          '',
+          '现在只能标记 **applied + tested**。聚焦测试证明 owning seam 的行为，但还没有证明原任务在同一 fixture 下完成；下一步必须重跑 `case:stale-workdoc-authority-001`。',
+        ].join('\n'),
+      }),
+      block('reliability-workflow-diff', 'diff', {
+        fileName: 'rag_ime/agent_tools.py',
+        diff: '@@ workspace_write / WorkDocument sync @@\n- on registration_error: rollback_write(rollback_snapshot); raise\n+ on registration_error: documentSync = failed(reason, attemptCount=1)\n+ keep workspace mutation as source of truth\n+ publish Trace + residual warning; retryable = false\n',
+      }),
+    ], base + 188_000, { model: 'GPT-5.4 · Repair Session', provider: 'pi-runtime', usage: usage(9_220, 1_020, 14_040) }),
+    message(sessionId, verifyTurn, 'reliability-user-replay', 'user', [
+      block('reliability-user-replay-text', 'text', {
+        text: '现在用同一个 stale-authority Case、同一模型卡、同一 workspace fixture 和同一 Eval revision 重跑。比较完成度、Tool、安全、协作、Token、延迟和修复质量；如果 cohort 不可比就明确写 unknown。',
+      }),
+    ], base + 226_000),
+    message(sessionId, verifyTurn, 'reliability-assistant-verify', 'assistant', [
+      block('reliability-assistant-verify-text', 'text', {
+        text: [
+          '## Verification Receipt · VERIFIED FIXTURE',
+          '',
+          '**可比性：通过。** Case、需求、fixture、模型卡、Prompt、Skill revision、workspace root、网络策略、Eval revision 与计费单位一致；只改变已授权的 documentSync Workflow。',
+          '',
+          '| 八项评分 | Before | After | 权威 |',
+          '| --- | ---: | ---: | --- |',
+          '| Task completion · hard gate | 0 / 3 | **3 / 3** | ground_truth |',
+          '| Evidence / diagnosis | 1 / 3 | **3 / 3** | ground_truth |',
+          '| Tool / Runtime | 2 / 3 | **3 / 3** | deterministic |',
+          '| Context | 2 / 3 | **3 / 3** | deterministic |',
+          '| Room collaboration | 1 / 3 | **3 / 3** | ground_truth |',
+          '| Memory / RAG | N/A | N/A | not used |',
+          '| Efficiency | 1 / 3 | **3 / 3** | deterministic |',
+          '| Repair quality | N/A | **3 / 3** | ground_truth |',
+          '',
+          '| 同口径效率 | Before | After |',
+          '| --- | ---: | ---: |',
+          '| 总 Token | 41,820 | **26,400** |',
+          '| Wall clock | 14m32s | **8m05s** |',
+          '| Tool calls / retries | 18 / 6 | **11 / 1** |',
+          '| 重复上下文 / 无效委派 | 2 / 2 | **0 / 0** |',
+          '',
+          'Replay 结果：真实文件保留；`documentSync.state=failed`、`attemptCount=1`、`retryable=false` 与 Trace ID 可见；Agent 最终明确说“主交付已完成，辅助登记失败待处理”，没有把 partial state 写成全部成功。AI Judge 从 1.8 → 2.8 只作为语义估计，不能覆盖 Ground-truth hard gate。',
+          '',
+          '证据链：`run:before` → `trace:before` → `repair:workflow-001` → `change:test-9of9` → `run:after` → `eval:workspace-sync-v1` → `verification:preview-001`。回滚目标是已授权 Workflow patch；残余风险仍是 **同文件真正并发写缺 per-file mutation queue**。',
+          '',
+          '> 本页数字是公开冻结的 synthetic Replay，用来展示正确的产品合同与证据表达；不证明私有 PAW Runtime、安装态或真实前台已经自动修复。',
+        ].join('\n'),
+      }),
+    ], base + 300_000, { model: 'GPT-5.4 · Verification', provider: 'pi-runtime', usage: usage(7_980, 1_560, 16_860) }),
+  ];
+  const messages = mode === 'incident'
+    ? incidentMessages
+    : mode === 'diagnostic'
+      ? [allMessages[0], allMessages[1]]
+      : mode === 'repair'
+        ? [allMessages[2], allMessages[3]]
+        : [allMessages[4], allMessages[5]];
+  const incidentRows: Array<[string, UiAgentEvent['eventType'], Record<string, unknown>]> = [
+    [incidentTurn, 'tool_started', { toolCallId: 'reliability-incident-write', toolId: 'workspace_write', operation: 'apply', summary: '以已批准的精确 workspace root 写入真实文件', args: { approvalId: 'approval:legacy-workspace-write-001', target: 'rag_ime/agent_tools.py', networkAllowed: false } }],
+    [incidentTurn, 'tool_finished', { toolCallId: 'reliability-incident-write', toolId: 'workspace_write', operation: 'apply', summary: 'workspace_write 成功；真实文件已写入', status: 'completed', result: { mutationApplied: true, artifactKeptAtWrite: true, receiptId: 'receipt:workspace-write-001' } }],
+    [incidentTurn, 'tool_started', { toolCallId: 'reliability-incident-register', toolId: 'work_document', operation: 'register', summary: '登记辅助 WorkDocument', args: { authorityId: 'workdoc:authority-expired-001' } }],
+    [incidentTurn, 'tool_finished', { toolCallId: 'reliability-incident-register', toolId: 'work_document', operation: 'register', summary: 'WorkDocument 登记失败：authority 已过期', status: 'failed', result: { workDocumentState: 'failed', authorityExpired: true } }],
+    [incidentTurn, 'tool_started', { toolCallId: 'reliability-incident-rollback', toolId: 'legacy_workflow', operation: 'rollback', summary: '旧 Workflow 因辅助登记失败回滚已写入的真实文件', args: { sourceReceiptId: 'receipt:workspace-write-001' } }],
+    [incidentTurn, 'tool_finished', { toolCallId: 'reliability-incident-rollback', toolId: 'legacy_workflow', operation: 'rollback', summary: '旧 Workflow 已回滚真实文件', status: 'completed', result: { rollbackApplied: true, artifactKept: false, rollbackReason: 'work_document_register_failed' } }],
+    [incidentTurn, 'turn_completed', { summary: 'Agent 错误报告“已安全结束”；真实 workspace mutation 已被旧 Workflow 回滚' }],
+  ];
+  const allRows: Array<[string, UiAgentEvent['eventType'], Record<string, unknown>]> = [
+    [diagnoseTurn, 'tool_started', { toolCallId: 'reliability-skill-load', toolId: 'skill', operation: 'load', summary: '读取 trace-agent-diagnostics 诊断合同', args: { skillRef: 'trace-agent-diagnostics', access: 'read_only' } }],
+    [diagnoseTurn, 'tool_finished', { toolCallId: 'reliability-skill-load', toolId: 'skill', operation: 'load', summary: '已加载 trace-agent-diagnostics：八项评分、任务完成硬门槛与修复授权规则', status: 'completed', result: { skillRef: 'trace-agent-diagnostics', rows: 8, hardGate: 'task_completion', repairAllowed: false } }],
+    [diagnoseTurn, 'tool_started', { toolCallId: 'reliability-trace-inspect', toolId: 'trace_diagnostics', operation: 'inspect', summary: '一次读取冻结 Run、Trace、Tool 与 Room 证据', args: { targets: [{ kind: 'run', id: 'run:workspace-document-sync-before', title: 'stale authority rollback' }], mode: 'read_only' } }],
+    [diagnoseTurn, 'tool_finished', { toolCallId: 'reliability-trace-inspect', toolId: 'trace_diagnostics', operation: 'inspect', summary: '硬门槛失败；真实写入被辅助登记回滚', status: 'completed', result: { inspectCount: 1, taskCompletion: 0, artifactKept: false, toolReceipts: 3, totalTokens: 41820, wallClockMs: 872000 } }],
+    [diagnoseTurn, 'tool_started', { toolCallId: 'reliability-source-compare', toolId: 'workspace_read', operation: 'compare', summary: '只读对照旧策略、新策略与聚焦测试', args: { refs: ['7d9c5ebc:rag_ime/agent_tools.py', '43de6111:rag_ime/agent_tools.py', 'tests/test_agent_tools.py'] } }],
+    [diagnoseTurn, 'tool_finished', { toolCallId: 'reliability-source-compare', toolId: 'workspace_read', operation: 'compare', summary: '第一根因定位到 documentSync Workflow；记录并发 queue 残余', status: 'completed', result: { primaryOwner: 'workflow:workspace_write.document_sync', toolAuthorizationHealthy: true, perFileMutationQueue: false } }],
+    [diagnoseTurn, 'turn_completed', { summary: '只读 Trace 报告完成；repairCandidate 等待用户授权' }],
+    [repairTurn, 'approval_required', { approvalId: 'approval:workflow-document-sync-001', toolId: 'workspace_edit', operation: 'apply', riskLevel: 'R2', summary: '等待确认精确 Workflow 与测试范围', payloadSha256: 'a'.repeat(64), roots: ['/Users/example/Projects/personal-agent-workbench'] }],
+    [repairTurn, 'approval_resolved', { approvalId: 'approval:workflow-document-sync-001', state: 'approved', summary: '用户已确认精确路径、行为与禁止项' }],
+    [repairTurn, 'tool_started', { toolCallId: 'reliability-workflow-patch', toolId: 'workspace_edit', operation: 'apply', summary: '应用 documentSync best-effort Workflow 修复', args: { target: 'rag_ime/agent_tools.py', approvalId: 'approval:workflow-document-sync-001', networkAllowed: false } }],
+    [repairTurn, 'tool_finished', { toolCallId: 'reliability-workflow-patch', toolId: 'workspace_edit', operation: 'apply', summary: '真实写入保持事实源；失败转为单次 Trace 回执', status: 'completed', result: { changedFiles: 1, approvalDigestMatched: true, mutationApplied: true, receiptId: 'repair:workflow-001' } }],
+    [repairTurn, 'tool_started', { toolCallId: 'reliability-focused-tests', toolId: 'workspace_shell', operation: 'test', summary: '在 network-off sandbox 运行 documentSync 聚焦测试', args: { suite: 'tests.test_agent_tools.WorkspaceWriteDocumentSync', networkAllowed: false } }],
+    [repairTurn, 'tool_finished', { toolCallId: 'reliability-focused-tests', toolId: 'workspace_shell', operation: 'test', summary: '9 / 9 聚焦测试通过', status: 'completed', result: { passed: 9, failed: 0, verificationState: 'tested_not_verified', sandbox: 'workspace-harness' } }],
+    [repairTurn, 'turn_completed', { summary: '修复已 applied + tested；原 Case 尚未 Replay' }],
+    [verifyTurn, 'tool_started', { toolCallId: 'reliability-sandbox-replay', toolId: 'sandbox', operation: 'run', summary: '以同一 fixture 重跑 stale-authority Case', args: { suiteId: 'workspace-document-sync', suiteRevision: 'stale-authority-v1', modelCard: 'gpt-5.4-medium', networkAllowed: false } }],
+    [verifyTurn, 'tool_finished', { toolCallId: 'reliability-sandbox-replay', toolId: 'sandbox', operation: 'run', summary: 'SandboxRun 完成；新 Trace 与修复回执已绑定', status: 'completed', result: { sandboxRunId: 'sandbox:after:preview-001', replayTraceId: 'trace:after:preview-001', artifactKept: true, documentSync: 'failed', retries: 1, totalTokens: 26400, wallClockMs: 485000 } }],
+    [verifyTurn, 'tool_started', { toolCallId: 'reliability-eval', toolId: 'eval', operation: 'compare', summary: '用同一八项 Ground-truth Eval 比较前后', args: { beforeTraceId: 'trace:before:preview-001', afterTraceId: 'trace:after:preview-001', evalRevision: 'eval:workspace-sync-v1' } }],
+    [verifyTurn, 'tool_finished', { toolCallId: 'reliability-eval', toolId: 'eval', operation: 'compare', summary: '任务完成硬门槛通过，八项评分均已生成', status: 'completed', result: { comparable: true, verdict: 'verified_fixture', taskCompletion: 3, efficiency: 3, repairQuality: 3, aiJudgeEstimate: 2.8, verificationReceiptId: 'verification:preview-001' } }],
+    [verifyTurn, 'turn_completed', { summary: '同一 Case 重跑通过；保留 per-file mutation queue 残余风险' }],
+  ];
+  const rows: Array<[string, UiAgentEvent['eventType'], Record<string, unknown>]> = mode === 'incident'
+    ? incidentRows
+    : mode === 'diagnostic'
+      ? allRows.slice(0, 7)
+      : mode === 'repair'
+        ? allRows.slice(7, 14)
+        : allRows.slice(14);
+  const events = rows.map(([turnId, eventType, payload], index) => ({
+    schemaVersion: 'rag-ime.agent-event.v1',
+    eventId: `${sessionId}:reliability-event-${index + 1}`,
+    sessionId,
+    turnId,
+    sequence: index + 1,
+    createdAtMs: base + 8_000 + index * 19_000,
+    payload,
+    resumeToken: `${sessionId}:${index + 1}`,
+    streamKind: 'agent',
+    eventType,
+  })) as UiAgentEvent[];
+  return { messages, events };
+}
+
 export function previewAgentSnapshot(sessionId: string): AgentSnapshot {
   // The fresh demo session stays genuinely empty so the preview can render
   // the welcome state; every other id keeps the full scripted transcript.
@@ -1003,6 +1373,64 @@ export function previewAgentSnapshot(sessionId: string): AgentSnapshot {
           block('user-question-text', 'text', { text: '请把待审问答做成更清楚的协作界面。' }),
         ], previewNow - 20_000),
       ],
+    };
+  }
+  if (sessionId === 'session-memory' || sessionId === 'session-memory-greeting') {
+    const fixture = previewMemoryRecallSession(
+      sessionId,
+      sessionId === 'session-memory-greeting' ? 'greeting' : 'continued',
+    );
+    return {
+      lastSequence: fixture.events.length,
+      resumeToken: `${sessionId}:${fixture.events.length}`,
+      status: 'idle',
+      liveEvents: fixture.events,
+      todo: null,
+      messages: fixture.messages,
+    };
+  }
+  if (sessionId === 'session-reliability-incident') {
+    const fixture = previewReliabilitySession(sessionId, 'incident');
+    return {
+      lastSequence: fixture.events.length,
+      resumeToken: `${sessionId}:${fixture.events.length}`,
+      status: 'idle',
+      liveEvents: fixture.events,
+      todo: null,
+      messages: fixture.messages,
+    };
+  }
+  if (sessionId === 'session-reliability') {
+    const fixture = previewReliabilitySession(sessionId, 'diagnostic');
+    return {
+      lastSequence: fixture.events.length,
+      resumeToken: `${sessionId}:${fixture.events.length}`,
+      status: 'idle',
+      liveEvents: fixture.events,
+      todo: null,
+      messages: fixture.messages,
+    };
+  }
+  if (sessionId === 'session-reliability-repair') {
+    const fixture = previewReliabilitySession(sessionId, 'repair');
+    return {
+      lastSequence: fixture.events.length,
+      resumeToken: `${sessionId}:${fixture.events.length}`,
+      status: 'idle',
+      liveEvents: fixture.events,
+      todo: null,
+      messages: fixture.messages,
+    };
+  }
+  if (sessionId === 'session-reliability-verify') {
+    const fixture = previewReliabilitySession(sessionId, 'verify');
+    return {
+      lastSequence: fixture.events.length,
+      resumeToken: `${sessionId}:${fixture.events.length}`,
+      status: 'idle',
+      liveEvents: fixture.events,
+      todo: null,
+      messages: fixture.messages,
     };
   }
   if (sessionId === 'session-states') {
@@ -1181,7 +1609,7 @@ function previewStateEvents(sessionId: string): UiAgentEvent[] {
 }
 
 export function previewAgentEvents(sessionId: string): UiAgentEvent[] {
-  if (sessionId === 'session-fresh' || sessionId === 'session-input' || sessionId === 'session-work-disclosure') return [];
+  if (sessionId === 'session-fresh' || sessionId === 'session-input' || sessionId === 'session-memory' || sessionId === 'session-memory-greeting' || sessionId === 'session-reliability-incident' || sessionId === 'session-reliability' || sessionId === 'session-reliability-repair' || sessionId === 'session-reliability-verify' || sessionId === 'session-work-disclosure') return [];
   if (sessionId === 'session-states') return previewStateEvents(sessionId);
   // The snapshot already carries the whole thread; the default media-turn
   // events below would append an unrelated turn and muddy the comparison

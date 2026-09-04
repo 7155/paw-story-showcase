@@ -38,7 +38,7 @@ import { EvidenceEchoUsage } from '@/features/evidence-echo/EvidenceEchoUsage';
 import { useProductIdentity } from '@/features/identity/product-identity';
 import {
   openPawOsRoute,
-  usePawOsAppSurface,
+  usePawOsAppIdentity,
   usePawOsDesktop,
 } from '@/features/paw-os/surface-context';
 import {
@@ -98,7 +98,7 @@ function defaultMemoryStatus(kind: MemoryKind): string {
 export function MemoryFeature() {
   const queryClient = useQueryClient();
   const identity = useProductIdentity();
-  const appSurface = usePawOsAppSurface();
+  const appSurface = usePawOsAppIdentity();
   const desktop = usePawOsDesktop();
   const location = useLocation();
   const navigate = useNavigate();
@@ -637,7 +637,13 @@ function memoryViewStatus(
   if (view === 'roleBooks') return `${numberValue(summary.roleBookCount, numberValue(summary.roleBookRevisionCount))} 个伙伴记忆`;
   if (view === 'timeline') return `${numberValue(summary.activityTimelineCount, numberValue(summary.timelineCount))} 条活动记录`;
   if (view === 'relations') return `${numberValue(summary.memoryTagCount)} 个关系标签`;
-  return `${numberValue(summary.ownerCurationPendingSourceCount, numberValue(asRecord(summary.ownerCuration).pendingSourceCount))} 条待整理`;
+  return `${numberValue(
+    summary.ownerCurationPendingSourceCount,
+    numberValue(
+      summary.pendingGovernedEvidenceCount,
+      numberValue(asRecord(summary.ownerCuration).pendingSourceCount, numberValue(summary.pendingCompileEvents)),
+    ),
+  )} 条待整理`;
 }
 
 function normalizeMemoryRow(item: Record<string, unknown>): Record<string, unknown> {

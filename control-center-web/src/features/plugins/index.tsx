@@ -4,6 +4,7 @@ import {
   ChevronRight,
   CircleArrowUp,
   Clock3,
+  ExternalLink,
   History,
   MessageCircle,
   PackageCheck,
@@ -63,7 +64,12 @@ import {
 } from './capability-policy';
 import { usePluginCatalog } from './api';
 import { useProductIdentity } from '@/features/identity/product-identity';
-import { usePawOsAppSurface } from '@/features/paw-os/surface-context';
+import { openPawOsRoute, usePawOsAppActive, usePawOsAppIdentity, usePawOsDesktop } from '@/features/paw-os/surface-context';
+import { extensionAppInstallationMatches } from '@/paw-os/extensions/installation';
+import { extensionAppForPackage } from '@/paw-os/extensions/registry';
+import type { PawExtensionAppManifest } from '@/paw-os/extensions/types';
+import { PawAppIcon } from '@/paw-os/shell/PawAppIcon';
+import { usePageVisibility } from '@/platform/use-page-visibility';
 import './plugins.css';
 
 type ToolRecord = CapabilityCatalogItem;
@@ -84,6 +90,8 @@ const operationLabels: Record<string, string> = {
   abort: '停止任务', apply_settings: '应用输入设置', artifact: '查看任务产物', audit: '查看审计记录',
   cache_stats: '查看缓存状态', candidate_explain: '解释候选词', capabilities: '查看可用能力', catalog: '浏览目录',
   create_package: '创建 Pi Package', validate: '检查安装来源', propose_install: '提交安装提议',
+  propose_enable: '提交启用提议', propose_disable: '提交停用提议', propose_update: '提交更新提议',
+  propose_rollback: '提交回滚提议', propose_uninstall: '提交卸载提议',
   components: '检查运行组件', dashboard: '查看规划面板', deep_recall: '深度检索', delegate: '委派任务',
   diagnose: '运行诊断', export: '导出备份', export_preview: '预览备份', get_settings: '查看输入设置',
   health: '检查服务状态', history: '查看输入记录', lexicon_apply: '应用词库更新', lexicon_review: '审阅词库建议',
@@ -104,7 +112,10 @@ const operationLabels: Record<string, string> = {
 export function PluginsFeature() {
   const navigate = useNavigate();
   const identity = useProductIdentity();
-  const appSurface = usePawOsAppSurface();
+  const appSurface = usePawOsAppIdentity();
+  const surfaceActive = usePawOsAppActive();
+  const pageVisible = usePageVisibility();
+  const desktop = usePawOsDesktop();
   const [searchParams] = useSearchParams();
   const sessionContextId = searchParams.get('sessionId')?.trim() ?? '';
   const packageContextId = searchParams.get('packageId')?.trim() ?? '';
@@ -122,7 +133,7 @@ export function PluginsFeature() {
     updateProjectDefaults,
     updateLifecycle,
     refreshAll,
-  } = usePluginCatalog(sessionContextId);
+  } = usePluginCatalog(sessionContextId, (surfaceActive ?? true) && pageVisible);
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState<KindFilter>('all');
   const [availability, setAvailability] = useState<AvailabilityFilter>('all');
@@ -607,13 +618,25 @@ export function PluginsFeature() {
   const catalogRowsBlock = (
     <div className="plugin-catalog" aria-label="受管插件目录">
       {versionItems.map((item) => {
+        const id = stringValue(item.id);
+        const extensionApp = extensionAppForPackage(id);
         const security = asRecord(item.security);
         const source = asRecord(item.source);
+        const canOpenExtensionApp = Boolean(
+          extensionApp
+          && item.installed === true
+          && item.enabled === true
+          && extensionAppInstallationMatches(extensionApp, item),
+        );
         return (
-          <article className="plugin-catalog__row" key={stringValue(item.id)}>
+          <article className="plugin-catalog__row" key={id}>
             <span className="plugin-catalog__identity">
-              <strong>{publicPluginDisplayName(stringValue(item.displayName, stringValue(item.id)))}</strong>
-              <small>{publicPluginSourceLabel(stringValue(item.publisher))} · {publicPluginSourceLabel(stringValue(source.label))}</small>
+              {extensionApp ? <ExtensionAppIdentity app={extensionApp} /> : null}
+              <strong>{publicPluginDisplayName(stringValue(item.displayName, id))}</strong>
+              <small>
+                {publicPluginSourceLabel(stringValue(item.publisher))} · {publicPluginSourceLabel(stringValue(source.label))}
+                {extensionApp ? <ExtensionAppBadge /> : null}
+              </small>
               <span>{stringValue(item.description)}</span>
             </span>
             <span className="plugin-catalog__facts">
@@ -623,13 +646,33 @@ export function PluginsFeature() {
             </span>
             <span className="plugin-catalog__action">
               <StatusBadge {...catalogStateBadge(item)} />
-              <Button
-                disabled={item.actionable !== true || (item.installed === true && item.updateAvailable !== true) || lifecyclePending}
-                leadingIcon={<PackageCheck size={15} />}
-                loading={validate.isPending || preview.isPending}
-                onClick={() => void previewCatalogAction(item)}
-                size="small"
-              >{item.updateAvailable === true ? '查看更新内容' : item.installed === true ? '已安装' : item.actionable === true ? '查看安装内容' : '查看说明'}</Button>
+              {canOpenExtensionApp ? (
+                <>
+                  <Button
+                    leadingIcon={<ExternalLink size={15} />}
+                    onClick={() => openPawOsRoute(desktop, extensionApp!.route)}
+                    size="small"
+                  >打开 {extensionApp!.label}</Button>
+                  {item.updateAvailable === true ? (
+                    <Button
+                      disabled={lifecyclePending}
+                      leadingIcon={<PackageCheck size={15} />}
+                      loading={validate.isPending || preview.isPending}
+                      onClick={() => void previewCatalogAction(item)}
+                      size="small"
+                      variant="quiet"
+                    >查看更新内容</Button>
+                  ) : null}
+                </>
+              ) : (
+                <Button
+                  disabled={item.actionable !== true || (item.installed === true && item.updateAvailable !== true) || lifecyclePending}
+                  leadingIcon={<PackageCheck size={15} />}
+                  loading={validate.isPending || preview.isPending}
+                  onClick={() => void previewCatalogAction(item)}
+                  size="small"
+                >{item.updateAvailable === true ? '查看更新内容' : item.installed === true ? '已安装' : item.actionable === true ? '查看安装内容' : '查看说明'}</Button>
+              )}
             </span>
           </article>
         );
@@ -709,6 +752,21 @@ export function PluginsFeature() {
         </div>
         {pendingResourceCount ? <div><dt>Pi 资源</dt><dd>{pendingResourceCount} 项 · 新对话加载 Skill、Prompt 与主题</dd></div> : null}
         {stringValue(pendingSource.kind) ? <div><dt>来源</dt><dd>{publicPluginSourceLabel(stringValue(pendingSource.kind))}</dd></div> : null}
+        {stringValue(pendingSummary.recommendationReason)
+          ? <div><dt>推荐理由</dt><dd>{stringValue(pendingSummary.recommendationReason)}</dd></div>
+          : null}
+        {stringArray(pendingSummary.dependencies).length
+          ? <div><dt>运行依赖</dt><dd>{stringArray(pendingSummary.dependencies).join('、')}</dd></div>
+          : null}
+        {stringArray(pendingSummary.risks).length
+          ? <div><dt>风险提示</dt><dd>{stringArray(pendingSummary.risks).join('；')}</dd></div>
+          : null}
+        {stringArray(pendingSummary.capabilityOverlap).length
+          ? <div><dt>能力重复</dt><dd>{stringArray(pendingSummary.capabilityOverlap).join('；')}</dd></div>
+          : null}
+        {stringArray(pendingSummary.verificationPlan).length
+          ? <div><dt>验证计划</dt><dd>{stringArray(pendingSummary.verificationPlan).join('；')}</dd></div>
+          : null}
         {typeof pendingSummary.expectedEnabled === 'boolean'
           ? <div><dt>当前状态</dt><dd>{pendingSummary.expectedEnabled ? '已启用' : '已停用'}</dd></div>
           : null}
@@ -743,14 +801,36 @@ export function PluginsFeature() {
     <div className="plugin-lifecycle__installed">
       {installedItems.length ? installedItems.map((plugin) => {
         const pluginId = stringValue(plugin.id);
+        const extensionApp = extensionAppForPackage(pluginId);
         const displayName = publicPluginDisplayName(stringValue(plugin.displayName, pluginId));
         const enabled = plugin.enabled === true;
+        const canOpenExtensionApp = Boolean(
+          extensionApp
+          && enabled
+          && extensionAppInstallationMatches(extensionApp, plugin),
+        );
         const permissions = stringArray(plugin.permissions);
         const resourceCount = packageResourceCount(plugin.resources);
-        const sourceKind = stringValue(asRecord(plugin.source).kind);
+        const resourceSummary = packageResourceSummary(plugin.resources);
+        const source = asRecord(plugin.source);
+        const sourceKind = stringValue(source.kind);
+        const sourceRequested = stringValue(source.requested);
         const previousVersion = stringValue(plugin.previousVersion);
         const rollbackReady = plugin.rollbackAvailable === true;
         const update = availableUpdateFor(pluginId);
+        const usageSummary = asRecord(plugin.usage);
+        const loadedSessionCount = numberValue(usageSummary.loadedSessionCount);
+        const lastLoadedAtMs = numberValue(usageSummary.lastLoadedAtMs);
+        const invocationCount = numberValue(usageSummary.invocationCount);
+        const succeededCount = numberValue(usageSummary.succeededCount);
+        const failedCount = numberValue(usageSummary.failedCount);
+        const cancelledCount = numberValue(usageSummary.cancelledCount);
+        const averageDurationMs = numberValue(usageSummary.averageDurationMs);
+        const lastInvocation = asRecord(usageSummary.lastInvocation);
+        const lastInvocationAtMs = numberValue(lastInvocation.completedAtMs || lastInvocation.startedAtMs);
+        const lastInvocationResource = stringValue(lastInvocation.resourceName);
+        const lastInvocationDurationMs = numberValue(lastInvocation.durationMs);
+        const invoked = invocationCount > 0 && Boolean(lastInvocationResource);
         return (
           <article
             aria-label={`${displayName} Package`}
@@ -759,22 +839,43 @@ export function PluginsFeature() {
             key={pluginId}
           >
             <div className="installed-plugin__identity">
+              {extensionApp ? <ExtensionAppIdentity app={extensionApp} /> : null}
               <strong>{displayName}</strong>
               <small>
                 <span>v{stringValue(plugin.version)}</span>
+                {pluginId && pluginId !== displayName ? <span>{pluginId}</span> : null}
                 {sourceKind ? <span>{publicPluginSourceLabel(sourceKind)}</span> : null}
+                {sourceRequested ? <span>{sourceRequested}</span> : null}
+                {extensionApp ? <ExtensionAppBadge /> : null}
               </small>
             </div>
             <span className="installed-plugin__state">
               {update ? <StatusBadge label="有更新" tone="warning" /> : null}
               <StatusBadge label={enabled ? '已启用' : '已停用'} tone={enabled ? 'success' : 'neutral'} />
+              {loadedSessionCount > 0 ? <StatusBadge label={`已加载 · ${loadedSessionCount} 个对话`} tone="success" /> : null}
+              {invoked ? <StatusBadge label={`已调用 · ${lastInvocationResource}`} tone="success" /> : null}
             </span>
             <ul className="installed-plugin__facts">
               <li><ShieldCheck aria-hidden="true" size={13} />{permissions.length ? permissions.map(publicPluginPermissionLabel).join('、') : '无额外权限'}</li>
               <li><Boxes aria-hidden="true" size={13} />{resourceCount ? `${resourceCount} 项资源` : '无附带资源'}</li>
+              {resourceSummary ? <li><Boxes aria-hidden="true" size={13} />{resourceSummary}</li> : null}
               <li><History aria-hidden="true" size={13} />{rollbackReady && previousVersion ? `可恢复到 v${previousVersion}` : '没有可恢复的历史版本'}</li>
             </ul>
+            {Object.keys(usageSummary).length ? (
+              <dl className="installed-plugin__usage">
+                <div><dt>最近加载</dt><dd>{loadedSessionCount > 0 ? `${lastLoadedAtMs ? formatPluginTime(lastLoadedAtMs) : '时间未提供'} · ${loadedSessionCount} 个对话` : '尚无加载证据'}</dd></div>
+                <div><dt>调用统计</dt><dd>{invocationCount > 0 ? `${invocationCount} 次调用 · 成功 ${succeededCount} · 失败 ${failedCount} · 取消 ${cancelledCount} · 平均 ${averageDurationMs} ms` : '尚无调用证据'}</dd></div>
+                {invoked ? <div><dt>最近调用</dt><dd>{pluginInvocationStatusLabel(stringValue(lastInvocation.status))} · {lastInvocationDurationMs} ms{lastInvocationAtMs ? ` · ${formatPluginTime(lastInvocationAtMs)}` : ''} · {publicPluginResourceKindLabel(stringValue(lastInvocation.resourceKind))} {lastInvocationResource}</dd></div> : null}
+              </dl>
+            ) : null}
             <div className="installed-plugin__actions">
+              {canOpenExtensionApp ? (
+                <Button
+                  leadingIcon={<ExternalLink size={15} />}
+                  onClick={() => openPawOsRoute(desktop, extensionApp!.route)}
+                  size="small"
+                >打开 {extensionApp!.label}</Button>
+              ) : null}
               {update ? (
                 <Button
                   disabled={lifecyclePending}
@@ -1017,6 +1118,19 @@ export function PluginsFeature() {
       {nativeAppCenter ? nativeBody : webBody}
     </ManagementPage>
   );
+}
+
+function ExtensionAppIdentity({ app }: { app: PawExtensionAppManifest }) {
+  return (
+    <span aria-hidden="true" className="plugin-extension-app-identity">
+      <PawAppIcon appId={app.id} size={24} />
+      <span>{app.shortLabel}</span>
+    </span>
+  );
+}
+
+function ExtensionAppBadge() {
+  return <span className="plugin-extension-app-badge">PAWOS App</span>;
 }
 
 function NativeConsole({
@@ -1301,10 +1415,41 @@ function publicPluginPermissionLabel(permission: string): string {
   } as Record<string, string>)[permission] ?? permission;
 }
 function stringArray(value: unknown): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []; }
+function numberValue(value: unknown): number {
+  const parsed = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+}
 function packageResourceCount(value: unknown): number {
   const resources = asRecord(value);
   return ['extensions', 'skills', 'prompts', 'themes']
     .reduce((total, resourceKind) => total + stringArray(resources[resourceKind]).length, 0);
+}
+function packageResourceSummary(value: unknown): string {
+  const resources = asRecord(value);
+  return [
+    ['extensions', 'Extension'],
+    ['skills', 'Skill'],
+    ['prompts', 'Prompt'],
+    ['themes', 'Theme'],
+  ].map(([key, label]) => [label, stringArray(resources[key]).length] as const)
+    .filter(([, count]) => count > 0)
+    .map(([label, count]) => `${label} ${count}`)
+    .join(' · ');
+}
+function formatPluginTime(value: number): string {
+  return new Intl.DateTimeFormat('zh-CN', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
+function pluginInvocationStatusLabel(status: string): string {
+  if (status === 'succeeded') return '最近调用成功';
+  if (status === 'failed') return '最近调用失败';
+  if (status === 'cancelled' || status === 'canceled') return '最近调用取消';
+  return '最近调用终态未知';
+}
+function publicPluginResourceKindLabel(kind: string): string {
+  return ({ extension: 'Extension', tool: 'Tool', command: 'Command', skill: 'Skill', prompt: 'Prompt', theme: 'Theme' } as Record<string, string>)[kind] ?? kind;
 }
 function operationLabelsFor(item: ToolRecord): string[] { return stringArray(item.operations).map((operation) => operationLabels[operation]).filter((operation): operation is string => Boolean(operation)); }
 function availabilityBadge(item: ToolRecord): { label: string; tone: 'success' | 'warning' | 'danger' | 'neutral' } {

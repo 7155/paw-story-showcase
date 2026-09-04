@@ -5,7 +5,7 @@ import {
   isComposerAttachmentMimeType,
   isComposerImageMimeType,
 } from './attachment-policy';
-import type { AgentRoomEventPageV1, AgentRoomSnapshotV1, RoomPostV2 } from './generated';
+import type { AgentRoomConversationSnapshotV1, AgentRoomEventPageV1, AgentRoomSnapshotV1, RoomPostV2 } from './generated';
 import type { UiAgentMessage, UiRoomEvent } from './ui-events';
 import { parseContract, parseRoomEvent, tryParseAgentMessage } from './validators';
 
@@ -110,6 +110,12 @@ export interface RoomParticipantPublicProgressProjection {
 }
 export interface RoomTurnProjection {
   id: string;
+  /**
+   * UI-only identity for a turn that was first rendered optimistically. The
+   * Room event stream remains keyed by `id`; this alias lets projections keep
+   * the same logical round when the server replaces the local turn id.
+   */
+  logicalRootId?: string;
   rootId?: string;
   status: 'queued' | 'running' | 'completed' | 'failed' | 'aborted';
   messageIds: string[];
@@ -132,6 +138,12 @@ export interface RoomTurnProjection {
 
 export interface RoomProjectionState {
   roomId: string;
+  /**
+   * Authoritative Room moderator identity. This is populated from a replayed
+   * Room snapshot when available; legacy event-only projections intentionally
+   * leave it absent and trust the typed result post.
+   */
+  moderatorParticipantId?: string;
   lastSequence: number;
   lastEventId: string;
   resumeToken: string;
@@ -155,6 +167,14 @@ export interface RoomSnapshot {
 }
 
 export type RoomEventSnapshot = Omit<AgentRoomSnapshotV1, 'events'> & {
+  events: UiRoomEvent[];
+};
+
+export type RoomConversationSnapshot = Omit<
+AgentRoomConversationSnapshotV1,
+'room' | 'events'
+> & {
+  room: AgentRoomSnapshotV1['room'];
   events: UiRoomEvent[];
 };
 
@@ -237,7 +257,6 @@ export function reduceRoomEvent(
   next.lastEventId = event.eventId;
   next.resumeToken = event.resumeToken;
   const payload = publicRoomPayload(event.payload);
-
   if (isUnroutedParticipantSessionEvent(next, event, payload)) {
     appendDiagnostic(next, {
       id: `${event.eventId}:unrouted-session-event`,
@@ -250,16 +269,24 @@ export function reduceRoomEvent(
     return { state: next, disposition: 'applied' };
   }
 
+
   if (isExecutionEventAfterRootTerminal(next, event, payload)) {
-    appendDiagnostic(next, {
-      id: `${event.eventId}:after-root-terminal`,
-      streamKind: 'room',
-      eventType: 'room_event_after_root_terminal',
-      summary: 'A late Room execution event was ignored after the Root terminal fence.',
-      sequence: event.sequence,
-      payload,
-    });
-    return { state: next, disposition: 'applied' };
+    if (isAwaitedRoomFinal(next, event, payload)) {
+      // A formal Root can be terminal before its moderator's typed final
+      // publication is replayed. Admit that one awaited post so the final
+      // projection can complete the Root; all other late execution remains
+      // fenced and diagnostic.
+    } else {
+      appendDiagnostic(next, {
+        id: `${event.eventId}:after-root-terminal`,
+        streamKind: 'room',
+        eventType: 'room_event_after_root_terminal',
+        summary: 'A late Room execution event was ignored after the Root terminal fence.',
+        sequence: event.sequence,
+        payload,
+      });
+      return { state: next, disposition: 'applied' };
+    }
   }
 
   switch (event.eventType) {
@@ -589,12 +616,16 @@ export function applyRoomSnapshot(
   snapshot: RoomSnapshot,
 ): RoomProjectionState {
   const next = createRoomProjection(state.roomId);
+  if (state.moderatorParticipantId) {
+    next.moderatorParticipantId = state.moderatorParticipantId;
+  }
   next.lastSequence = Math.max(0, snapshot.lastSequence);
   next.lastEventId = snapshot.resumeToken;
   next.resumeToken = snapshot.resumeToken;
   const clientIds = new Set(snapshot.messages.map((message) => message.clientMessageId).filter(Boolean));
   for (const message of snapshot.messages) upsertMessage(next, message);
   preserveOptimisticMessages(state, next, clientIds);
+  preserveLogicalTurnAliases(state, next);
   return next;
 }
 
@@ -635,6 +666,53 @@ export function parseRoomEventSnapshot(value: unknown): RoomEventSnapshot {
     }
   }
   return { ...snapshot, events };
+}
+
+export function parseRoomConversationSnapshot(value: unknown): RoomConversationSnapshot {
+  const envelope = parseContract('agent-room-conversation-snapshot.v1', value);
+  const roomProbe = parseContract('agent-room-snapshot.v1', {
+    schemaVersion: 'rag-ime.agent-room-snapshot.v1',
+    ok: true,
+    room: envelope.room,
+    events: [],
+    firstSequence: 0,
+    lastSequence: 0,
+    resumeToken: '',
+    truncated: false,
+  });
+  const room = roomProbe.room;
+  const events = envelope.events.map((event) => parseRoomEvent(event));
+  if (room.lastEventSequence !== envelope.cursorSequence) {
+    throw new TypeError('Room conversation metadata cursor does not match cursorSequence');
+  }
+  const expectedResumeToken = envelope.cursorSequence
+    ? `${room.id}:${envelope.cursorSequence}`
+    : '';
+  if (envelope.resumeToken !== expectedResumeToken) {
+    throw new TypeError('Room conversation resume token does not match its cursor');
+  }
+  if (events.length === 0) {
+    if (envelope.firstEventSequence !== 0) {
+      throw new TypeError('Empty Room conversation snapshot must use a zero event bound');
+    }
+  } else if (events[0]?.sequence !== envelope.firstEventSequence) {
+    throw new TypeError('Room conversation snapshot first event bound does not match');
+  }
+  let previousSequence = 0;
+  for (const event of events) {
+    if (
+      event.roomId !== room.id
+      || event.sequence <= previousSequence
+      || event.sequence > envelope.cursorSequence
+    ) {
+      throw new TypeError('Room conversation events must be ordered and belong to the room cursor');
+    }
+    if (event.eventType === 'participant_activity') {
+      throw new TypeError('Room conversation snapshot must defer participant activity');
+    }
+    previousSequence = event.sequence;
+  }
+  return { ...envelope, room, events };
 }
 
 export function parseRoomEventPage(value: unknown): RoomEventPage {
@@ -680,6 +758,9 @@ export function replayRoomEventSnapshot(
     throw new TypeError('Room snapshot does not belong to the active Room');
   }
   let next = createRoomProjection(state.roomId);
+  if (snapshot.room.moderatorParticipantId) {
+    next.moderatorParticipantId = snapshot.room.moderatorParticipantId;
+  }
   if (snapshot.firstSequence > 1) next.lastSequence = snapshot.firstSequence - 1;
   for (const event of snapshot.events) {
     const reduced = reduceRoomEvent(next, event, { snapshotReplay: true });
@@ -699,7 +780,113 @@ export function replayRoomEventSnapshot(
       .filter((value): value is string => Boolean(value)),
   );
   preserveOptimisticMessages(state, next, clientIds);
+  preserveLogicalTurnAliases(state, next);
   return next;
+}
+
+export function replayRoomConversationSnapshot(
+  state: RoomProjectionState,
+  snapshot: RoomConversationSnapshot,
+): RoomProjectionState {
+  if (state.roomId !== snapshot.room.id) {
+    throw new TypeError('Room conversation snapshot does not belong to the active Room');
+  }
+  let next = createRoomProjection(state.roomId);
+  if (snapshot.room.moderatorParticipantId) {
+    next.moderatorParticipantId = snapshot.room.moderatorParticipantId;
+  }
+  for (const event of snapshot.events) {
+    // Conversation snapshots intentionally omit heavyweight activity events.
+    // Advance to the real event immediately before each retained event so the
+    // normal reducer still validates ordering without mistaking deferral for
+    // transport loss.
+    next.lastSequence = event.sequence - 1;
+    const reduced = reduceRoomEvent(next, event, { snapshotReplay: true });
+    if (reduced.disposition !== 'applied') {
+      throw new TypeError(`Room conversation snapshot replay failed: ${reduced.disposition}`);
+    }
+    next = reduced.state;
+  }
+  next.lastSequence = snapshot.cursorSequence;
+  next.lastEventId = snapshot.resumeToken;
+  next.resumeToken = snapshot.resumeToken;
+  next.needsSnapshot = false;
+  next.gap = undefined;
+  const clientIds = new Set(
+    Object.values(next.messagesById)
+      .map((message) => message.clientMessageId)
+      .filter((value): value is string => Boolean(value)),
+  );
+  preserveOptimisticMessages(state, next, clientIds);
+  preserveLogicalTurnAliases(state, next);
+  return next;
+}
+
+/**
+ * Snapshot replay rebuilds turns from authoritative events, so it cannot see
+ * the provisional turn that was replaced during the live stream. Carry the
+ * alias only from this in-memory projection, keyed by the user's client
+ * message id and explicit retry lineage; it is a UI continuity hint, never a
+ * persisted Room identity.
+ */
+function preserveLogicalTurnAliases(
+  previous: RoomProjectionState,
+  next: RoomProjectionState,
+): void {
+  const aliasesByClientMessageId = new Map<string, string>();
+  const aliasesByTurnId = new Map<string, string>();
+  for (const turn of Object.values(previous.turnsById)) {
+    const alias = turn.logicalRootId
+      || (!turn.retryOfRootId && turn.id.startsWith('local-room-turn:') ? turn.id : '');
+    if (!alias) continue;
+    aliasesByTurnId.set(turn.id, alias);
+    if (turn.rootId) aliasesByTurnId.set(turn.rootId, alias);
+    for (const messageId of turn.messageIds) {
+      const clientMessageId = previous.messagesById[messageId]?.clientMessageId;
+      if (clientMessageId) aliasesByClientMessageId.set(clientMessageId, alias);
+    }
+  }
+  /* A retry can itself be the only retained turn in the previous projection.
+   * Resolve its explicit parent to the same alias without treating ordinary
+   * new turns as descendants. */
+  for (const turn of Object.values(previous.turnsById)) {
+    if (aliasesByTurnId.has(turn.id)) continue;
+    const alias = retryLineageAlias(previous, turn.retryOfRootId, aliasesByTurnId);
+    if (!alias) continue;
+    aliasesByTurnId.set(turn.id, alias);
+    if (turn.rootId) aliasesByTurnId.set(turn.rootId, alias);
+    for (const messageId of turn.messageIds) {
+      const clientMessageId = previous.messagesById[messageId]?.clientMessageId;
+      if (clientMessageId) aliasesByClientMessageId.set(clientMessageId, alias);
+    }
+  }
+  if (!aliasesByClientMessageId.size && !aliasesByTurnId.size) return;
+  for (const turn of Object.values(next.turnsById)) {
+    const clientMessageId = turn.messageIds
+      .map((messageId) => next.messagesById[messageId]?.clientMessageId)
+      .find((value): value is string => Boolean(value));
+    const alias = (clientMessageId ? aliasesByClientMessageId.get(clientMessageId) : undefined)
+      || (turn.retryOfRootId ? aliasesByTurnId.get(turn.retryOfRootId) : undefined);
+    if (!alias || alias === turn.id) continue;
+    const writable = writableTurn(next, turn.id);
+    if (writable) writable.logicalRootId = alias;
+  }
+}
+
+function retryLineageAlias(
+  projection: RoomProjectionState,
+  retryOfRootId: string | undefined,
+  aliasesByTurnId: ReadonlyMap<string, string>,
+): string | undefined {
+  let current = retryOfRootId || '';
+  const visited = new Set<string>();
+  while (current && !visited.has(current)) {
+    visited.add(current);
+    const alias = aliasesByTurnId.get(current);
+    if (alias) return alias;
+    current = projection.turnsById[current]?.retryOfRootId || '';
+  }
+  return undefined;
 }
 
 function preserveOptimisticMessages(
@@ -758,7 +945,11 @@ function applyUserMessage(
   event: UiRoomEvent,
   payload: Record<string, unknown>,
 ): void {
-  const clientMessageId = text(payload.clientMessageId);
+  // A normal Room send is keyed by `clientMessageId`; an in-flight steer uses
+  // the same causal contract under `clientActionId`. Treat both as the one
+  // user-authored publication identity so a replay with a fresh event/message
+  // id replaces its earlier projection instead of printing another bubble.
+  const clientMessageId = text(payload.clientMessageId) || text(payload.clientActionId);
   const retryOfRootId = text(payload.retryOfRootId);
   const attachments = roomAttachmentReceipts(payload.attachmentReceipts, event.roomId);
   const rawAnswerText = text(payload.text ?? payload.message);
@@ -1154,6 +1345,13 @@ function applyRoomPost(
     upsertMessage(state, message, clientMessageId);
   }
   markPublishedDispatchTerminal(state, event, post);
+  if (
+    (post.kind === 'work_result' || post.kind === 'result')
+    && hasFormalWorkResultEvidence(state, post.rootId)
+  ) {
+    const turn = state.turnsById[post.rootId];
+    if (turn) settleRootWhenAllDispatchesTerminal(state, turn, event.createdAtMs);
+  }
 }
 
 
@@ -1442,9 +1640,21 @@ function upsertMessage(
     : undefined;
   const replacedId = optimisticId ?? acceptedId;
   let replacedExisting = false;
+  let replacedTurnId = '';
+  let replacedLogicalRootId = '';
   if (replacedId && replacedId !== message.id) {
     const index = state.messageOrder.indexOf(replacedId);
     const previous = state.messagesById[replacedId];
+    replacedTurnId = previous?.turnId ?? '';
+    replacedLogicalRootId = (replacedTurnId ? state.turnsById[replacedTurnId]?.logicalRootId : '')
+      || (previous
+      ? previous.rootId && previous.rootId !== previous.turnId
+        ? previous.rootId
+        : ''
+      : '');
+    if (!replacedLogicalRootId && replacedTurnId.startsWith('local-room-turn:')) {
+      replacedLogicalRootId = replacedTurnId;
+    }
     delete state.messagesById[replacedId];
     if (index >= 0) {
       state.messageOrder[index] = message.id;
@@ -1456,6 +1666,10 @@ function upsertMessage(
   if (!state.messagesById[message.id] && !replacedExisting) state.messageOrder.push(message.id);
   state.messagesById[message.id] = message;
   attachMessage(state, message);
+  if (replacedLogicalRootId) {
+    const turn = writableTurn(state, message.turnId);
+    if (turn) turn.logicalRootId = replacedLogicalRootId;
+  }
 }
 
 function upsertActivity(
@@ -1544,7 +1758,12 @@ function upsertActivity(
   const turn = ensureTurn(state, event.turnId, event.createdAtMs);
   turn.rootId = text(payload.rootId) || turn.rootId || event.turnId;
   const dispatchId = text(payload.dispatchId);
-  if (dispatchId) {
+  const introducesDispatch = event.eventType === 'route_decision'
+    || (
+      event.eventType === 'participant_activity'
+      && text(payload.activityKind) !== 'work'
+    );
+  if (dispatchId && introducesDispatch) {
     turn.dispatchIds ??= [];
     turn.dispatchParticipantIds ??= {};
     if (!turn.dispatchIds.includes(dispatchId)) turn.dispatchIds.push(dispatchId);
@@ -1623,7 +1842,16 @@ function mergeRoomActivityPayload(
 ): Record<string, unknown> {
   const previousPayload = previous?.payload ?? {};
   const sourceEventType = text(payload.sourceEventType);
-  if (!['tool_started', 'tool_progress', 'tool_finished'].includes(sourceEventType)) {
+  const recordsPublicHistory = [
+    'tool_started',
+    'tool_progress',
+    'tool_finished',
+    'reasoning_summary',
+    'current_progress',
+    'progress',
+    'status_changed',
+  ].includes(sourceEventType);
+  if (!recordsPublicHistory) {
     return { ...previousPayload, ...payload };
   }
   const suppliedHistory = Array.isArray(payload.progressHistory)
@@ -1631,12 +1859,13 @@ function mergeRoomActivityPayload(
     : Array.isArray(previousPayload.progressHistory)
       ? previousPayload.progressHistory
       : [];
+  const boundedHistory = suppliedHistory.slice(-20);
   const sourceEventId = text(payload.sourceEventId) || event.eventId;
-  const history = suppliedHistory.some((entry) => (
+  const history = boundedHistory.some((entry) => (
     text(record(entry).eventId ?? record(entry).sourceEventId) === sourceEventId
   ))
-    ? suppliedHistory
-    : [...suppliedHistory, {
+    ? boundedHistory
+    : [...boundedHistory, {
         eventId: sourceEventId,
         kind: sourceEventType,
         status,
@@ -1648,7 +1877,12 @@ function mergeRoomActivityPayload(
     ...payload,
     progressHistory: history,
   };
+  const isToolLifecycle = ['tool_started', 'tool_progress', 'tool_finished'].includes(
+    sourceEventType,
+  );
   if (
+    isToolLifecycle
+    &&
     Object.keys(record(payload.arguments ?? payload.args)).length === 0
     && Object.keys(record(previousPayload.arguments ?? previousPayload.args)).length > 0
   ) {
@@ -1667,12 +1901,12 @@ function attachMessage(state: RoomProjectionState, message: RoomMessageProjectio
   const turn = ensureTurn(state, message.turnId, message.createdAtMs);
   turn.rootId = message.rootId || turn.rootId || message.turnId;
   if (message.retryOfRootId) turn.retryOfRootId = message.retryOfRootId;
-  if (message.dispatchId) {
-    turn.dispatchIds ??= [];
+  // A message can carry a Runtime turn/wake correlation in `dispatchId`.
+  // Only route decisions, explicit room_commit publications and terminal
+  // events create execution obligations; otherwise a WorkDocument sync or
+  // final moderator post can invent a dispatch that never becomes terminal.
+  if (message.dispatchId && turn.dispatchIds?.includes(message.dispatchId)) {
     turn.dispatchParticipantIds ??= {};
-    if (!turn.dispatchIds.includes(message.dispatchId)) {
-      turn.dispatchIds.push(message.dispatchId);
-    }
     turn.dispatchParticipantIds[message.dispatchId] = message.participantId ?? '';
   }
   if (!turn.messageIds.includes(message.id)) turn.messageIds.push(message.id);
@@ -1734,6 +1968,16 @@ function completeParticipantTurn(
 ): void {
   const participantId = event.participantId ?? '';
   if (!participantId && !dispatchId) {
+    const turn = ensureTurn(state, event.turnId, nowMs);
+    if (
+      status === 'completed'
+      && hasFormalWorkResultEvidence(state, turn.rootId || turn.id)
+      && !formalRootReady(state, turn)
+    ) {
+      turn.status = 'running';
+      turn.updatedAtMs = Math.max(turn.updatedAtMs, nowMs);
+      return;
+    }
     completeTurn(state, event.turnId, status, nowMs, failure);
     return;
   }
@@ -1846,7 +2090,49 @@ function settleRootWhenAllDispatchesTerminal(
     : dispatchIds.some((dispatchId) => abortedDispatchIds.has(dispatchId))
       ? 'aborted'
       : 'completed';
+  if (status === 'completed' && !formalRootReady(state, turn)) {
+    turn.status = 'running';
+    return;
+  }
   completeTurn(state, turn.id, status, nowMs, turn.failure);
+}
+function formalRootReady(state: RoomProjectionState, turn: RoomTurnProjection): boolean {
+  const rootId = turn.rootId || turn.id;
+  if (!hasFormalWorkResultEvidence(state, rootId)) return true;
+  const dispatchIds = turn.dispatchIds ?? [];
+  if (
+    dispatchIds.length === 0
+    || !dispatchIds.every((dispatchId) => turn.terminalDispatchIds?.includes(dispatchId))
+  ) return false;
+  return hasModeratorFinalReport(state, rootId);
+}
+
+function hasFormalWorkResultEvidence(
+  state: RoomProjectionState,
+  rootId: string,
+): boolean {
+  return Object.values(state.messagesById).some((message) => (
+    message.role === 'assistant'
+    && message.projectionKind === 'post'
+    && message.postKind === 'work_result'
+    && (message.rootId === rootId || message.turnId === rootId)
+  ));
+}
+
+function hasModeratorFinalReport(
+  state: RoomProjectionState,
+  rootId: string,
+): boolean {
+  return Object.values(state.messagesById).some((message) => (
+    message.role === 'assistant'
+    && message.projectionKind === 'post'
+    && message.postKind === 'result'
+    && (message.rootId === rootId || message.turnId === rootId)
+    && (
+      !state.moderatorParticipantId
+      || message.participantId === state.moderatorParticipantId
+    )
+  ));
 }
 
 function completeTurn(
@@ -2093,6 +2379,26 @@ function isExecutionEventAfterRootTerminal(
   const post = record(payload.post);
   const rootId = text(payload.rootId) || text(post.rootId) || event.turnId;
   return state.turnsById[rootId]?.rootTerminalAtMs != null;
+}
+function isAwaitedRoomFinal(
+  state: RoomProjectionState,
+  event: UiRoomEvent,
+  payload: Record<string, unknown>,
+): boolean {
+  if (event.eventType !== 'room_post') return false;
+  const post = record(payload.post);
+  if (text(post.kind) !== 'result') return false;
+  const rootId = text(payload.rootId) || text(post.rootId) || event.turnId;
+  const turn = state.turnsById[rootId];
+  if (
+    !turn
+    || turn.status !== 'completed'
+    || turn.rootTerminalAtMs == null
+    || !hasFormalWorkResultEvidence(state, rootId)
+    || hasModeratorFinalReport(state, rootId)
+  ) return false;
+  return !state.moderatorParticipantId
+    || event.participantId === state.moderatorParticipantId;
 }
 
 function isUnroutedParticipantSessionEvent(

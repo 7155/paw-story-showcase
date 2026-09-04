@@ -20,6 +20,7 @@ import {
 import type { AssistantBlock, AssistantMessage } from '@/features/conversation-ui';
 import { roomCollaborationRoleLabel } from '@/features/rooms/room-copy';
 import type { RoomSummary } from '@/features/rooms/room-types';
+import { TraceAgentHandoffButton } from '@/features/trace-agent/handoff';
 import { runtimeToolWindowRequest } from '../runtime/runtime-tool-window';
 import { roomFocusCelestialName } from './room-focus-projection';
 import { roomToolEvidence } from './room-gravity-projection';
@@ -31,7 +32,7 @@ import { roomToolEvidence } from './room-gravity-projection';
  * loop, pending approvals decided inline, background processes reachable, the
  * structured tool reader, retry only for the newest unsuperseded failure — but
  * the reading craft (pinned scroll, variable-height virtualization, turn
- * cards, tool receipts) is now the same code the partner satellite and any
+ * cards, tool receipts) is now the same code the planet observer and any
  * other PAWOS conversation mount.
  */
 export function PawRoomConversation({
@@ -42,17 +43,21 @@ export function PawRoomConversation({
   onRetryTurn,
   participantId,
   projection,
+  readOnly = false,
   retryingTurn,
   room,
 }: {
-  onApprovalDecision: (approvalId: string, decision: 'approved' | 'rejected', payloadSha256: string) => Promise<void>;
+  onApprovalDecision?: (approvalId: string, decision: 'approved' | 'rejected', payloadSha256: string) => Promise<void>;
   onOpenProcessActivity?: (activity: RoomActivityProjection) => void;
   /** Only a mount that owns the Room composer can resend a failed request; a
-   *  satellite reads the same history without offering retry. */
+   *  planet observer reads the same history without offering retry. */
   onRetryTurn?: (message: string, rootId: string) => void;
-  /** Restrict the transcript to one partner's public lane (satellite view). */
+  /** Restrict the transcript to one partner's public lane (planet view). */
   participantId?: string;
   projection: RoomProjectionState;
+  /** Observation-only mounts keep approval state visible but do not expose a
+   * mutation control. The owning Room remains the intervention surface. */
+  readOnly?: boolean;
   retryingTurn?: boolean;
   room: RoomSummary;
   lead?: ReactNode;
@@ -102,16 +107,25 @@ export function PawRoomConversation({
   const renderBlockAction = useCallback((block: AssistantBlock) => {
     const activity = transcript.activityByBlockId[block.id];
     if (!activity) return undefined;
-    const approval = roomApprovalDecision(activity);
-    const processWindow = onOpenProcessActivity ? roomProcessWindowRequest(activity, room.id) : null;
+    const approval = !readOnly && onApprovalDecision ? roomApprovalDecision(activity) : undefined;
+    const processWindow = !readOnly && onOpenProcessActivity ? roomProcessWindowRequest(activity, room.id) : null;
     if (!approval && !processWindow) return undefined;
     return <>
-      {approval ? <RoomApprovalAction decision={onApprovalDecision} {...approval} /> : null}
+      {approval ? (
+        <RoomApprovalAction
+          decision={onApprovalDecision!}
+          participantId={activity.participantId}
+          roomId={room.id}
+          sourceSessionId={activity.sourceSessionId}
+          turnId={activity.turnId}
+          {...approval}
+        />
+      ) : null}
       {processWindow ? (
         <button onClick={() => onOpenProcessActivity?.(activity)} type="button">查看后台 Bash</button>
       ) : null}
     </>;
-  }, [onApprovalDecision, onOpenProcessActivity, room.id, transcript.activityByBlockId]);
+  }, [onApprovalDecision, onOpenProcessActivity, readOnly, room.id, transcript.activityByBlockId]);
 
   const controller = useMemo<ConversationSurfaceController>(() => ({
     conversationId: participantId ? `${room.id}:${participantId}` : room.id,
@@ -121,7 +135,7 @@ export function PawRoomConversation({
       /* A Room turn is retried by resending its request, so retry is the one
        * conversation-level action Runtime backs here. Fork, rewind and
        * message edit belong to a Session, not to shared Room history. */
-      retry: Boolean(onRetryTurn),
+      retry: Boolean(onRetryTurn) && !readOnly,
       edit: false,
       fork: false,
       rewind: false,
@@ -129,15 +143,17 @@ export function PawRoomConversation({
       copy: true,
     },
     canRetry: (message: AssistantMessage) => Boolean(
-      onRetryTurn && message.error && message.turnId && roomTranscriptRetrySource(projection, message.turnId),
+      !readOnly && onRetryTurn && message.error && message.turnId && roomTranscriptRetrySource(projection, message.turnId),
     ),
     retry: (message: AssistantMessage) => {
+      if (readOnly) return;
       const source = message.turnId ? roomTranscriptRetrySource(projection, message.turnId) : undefined;
       if (source) onRetryTurn?.(source.text, source.rootId);
     },
-    retryPending: Boolean(retryingTurn),
+    retryPending: !readOnly && Boolean(retryingTurn),
     renderBlockDetail,
     renderBlockAction,
+    readOnly,
     formatTimestamp: conversationClock,
   }), [
     onRetryTurn,
@@ -145,6 +161,7 @@ export function PawRoomConversation({
     projection,
     renderBlockAction,
     renderBlockDetail,
+    readOnly,
     retryingTurn,
     room.id,
     transcript.messages,
@@ -154,16 +171,20 @@ export function PawRoomConversation({
   return <ConversationSurface
     controller={controller}
     density={participantId ? 'compact' : 'comfortable'}
-    label={participantId ? '伙伴公开对话' : 'Room 公开对话'}
+    label={participantId ? '行星公开对话' : 'Room 公开对话'}
     {...(lead ? { lead } : {})}
     {...(empty ? { empty } : {})}
   />;
 }
 
-function RoomApprovalAction({ approvalId, decision, payloadSha256 }: {
+function RoomApprovalAction({ approvalId, decision, participantId, payloadSha256, roomId, sourceSessionId, turnId }: {
   approvalId: string;
   payloadSha256: string;
   decision: (approvalId: string, choice: 'approved' | 'rejected', payloadSha256: string) => Promise<void>;
+  participantId: string | null;
+  roomId: string;
+  sourceSessionId: string;
+  turnId: string;
 }) {
   const [submitting, setSubmitting] = useState<'' | 'approved' | 'rejected'>('');
   const [error, setError] = useState('');
@@ -182,7 +203,28 @@ function RoomApprovalAction({ approvalId, decision, payloadSha256 }: {
     <button disabled={Boolean(submitting)} onClick={() => decide('rejected')} type="button">
       {submitting === 'rejected' ? '正在拒绝' : '拒绝'}
     </button>
-    {error ? <small role="alert">{error}</small> : null}
+    {error ? (
+      <small role="alert">
+        {error}
+        <TraceAgentHandoffButton
+          handoff={{
+            kind: 'room',
+            entityId: approvalId,
+            title: 'Room 审批操作失败',
+            summary: error,
+            error,
+            ...(sourceSessionId ? { sessionId: sourceSessionId } : {}),
+            roomId,
+            sourceRoute: `/rooms?room=${encodeURIComponent(roomId)}`,
+            refs: {
+              approvalId,
+              participantId,
+              turnId,
+            },
+          }}
+        />
+      </small>
+    ) : null}
   </>;
 }
 

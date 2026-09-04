@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "paw.trace-agent-skill-envelope-validation-public.v1",
+  "runId": "trace-agent-skill-envelope-validation-20260901-v1",
+  "status": "source_local_validation_completed_not_installed",
+  "measuredAt": "2026-09-01",
+  "target": {
+    "runId": "cloudops-paw-baseline-root-20260901-v3",
+    "traceCount": 4,
+    "evidenceCount": 148,
+    "sourceAvailable": false,
+    "timelineCount": 0,
+    "usageProjection": "incomplete_or_unknown"
+  },
+  "preSkillAttempts": [
+    {"attempt": 1, "status": "failed", "failureClass": "generic_structured_report_contract_rejection"},
+    {"attempt": 2, "status": "failed", "failureClass": "finding_confidence_invalid"},
+    {"attempt": 3, "status": "completed_prompt_specific", "publicReceiptWritten": false}
+  ],
+  "skillRepair": {
+    "repair": "mandatory_exact_envelope_checklist",
+    "topLevelAllowlistPinned": true,
+    "additionalPropertiesForbidden": true,
+    "confidenceEnumPinned": true,
+    "unknownEvidenceBoundaryPinned": true,
+    "focusedTestsPassed": 22,
+    "focusedTestsFailed": 0
+  },
+  "candidate": {
+    "runtimeVersion": "pi-0.84.2-920e42b9c19f-raghost-be4e21f6d3",
+    "manifestSha256": "0e454dfb87b92cd4e3fe3e602c17cb5ef6fe536fd8ef82f09f196ad082b9e740",
+    "derivedFromPriorCandidate": true,
+    "productSourceClean": false,
+    "installedStateChangedByRun": false,
+    "stagedAcceptance": "passed_not_installed"
+  },
+  "postSkillTraceAgent": {
+    "reportStatus": "completed",
+    "promptContainsKnownRootCause": false,
+    "executionMode": "read_only",
+    "toolOrder": ["skill_load", "trace_diagnostics.inspect"],
+    "inspectHttpStatus": 200,
+    "findingCount": 0,
+    "taskCompletionGate": "unknown",
+    "unsupportedCompletionClaimGate": "unknown",
+    "usageMissingMeansUnknown": true
+  },
+  "installedStateObservation": {
+    "changedByThisRun": false,
+    "differsFromPriorRecordedRollbackTarget": true,
+    "attribution": "unknown_external_change"
+  },
+  "repairBoundary": {
+    "runtimeRepairApplied": false,
+    "fullTrustSessionCreated": false,
+    "heldOutObserved": false,
+    "foregroundAcceptance": false
+  },
+  "claim": {
+    "allowed": "Two retained report-contract failures led to an exact-envelope Skill repair. A fresh neutral read-only Trace Agent Session on a derived non-installed candidate then completed skill_load plus inspect, preserved missing usage as unknown and emitted no unsupported findings.",
+    "forbidden": "Trace Agent installed or rewrote itself, the dirty-source candidate is a canonical release, the installed Runtime changed because of this run, zero findings prove no defects, or CloudOps has complete observability."
+  }
+}

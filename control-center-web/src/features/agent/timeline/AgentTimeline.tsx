@@ -44,6 +44,7 @@ import {
 } from './agent-turn-work-model';
 import { useAgentLiveStore } from '../state/live-store';
 import { isAgentNetworkInterruption, publicAgentErrorText } from '../public-error';
+import { TraceAgentHandoffButton } from '@/features/trace-agent/handoff';
 
 export function isRoomPublicPostMessage(message: AgentMessageProjection): boolean {
   if (message.id.startsWith('room-post:')) return true;
@@ -57,12 +58,65 @@ export function isRoomPublicPostMessage(message: AgentMessageProjection): boolea
   ));
 }
 
-function isRenderableAssistantMessage(message: AgentMessageProjection): boolean {
-  if (message.role !== 'assistant' || isRoomPublicPostMessage(message)) return false;
+function isRenderableAssistantMessage(
+  message: AgentMessageProjection,
+  includeRoomPublicPosts = false,
+): boolean {
+  if (
+    message.role !== 'assistant'
+    || (!includeRoomPublicPosts && isRoomPublicPostMessage(message))
+  ) return false;
   return message.blocks.some((block) => (
     block.type !== 'error'
     && (block.type !== 'text' || Boolean(text(block.data.text).trim()))
   ));
+}
+
+function isProviderFailurePlaceholder(message: AgentMessageProjection): boolean {
+  if (!message.blocks.some((block) => block.type === 'error')) return false;
+  const visibleText = message.blocks
+    .filter((block) => block.type === 'text')
+    .map((block) => text(block.data.text))
+    .join('\n')
+    .trim();
+  return visibleText === '模型服务未能生成最终回复。请继续当前对话，或切换模型后继续。';
+}
+
+export function visibleAssistantMessages(
+  messages: AgentMessageProjection[],
+  includeRoomPublicPosts = false,
+): AgentMessageProjection[] {
+  return messages.filter((message) => (
+    isRenderableAssistantMessage(message, includeRoomPublicPosts)
+    && !isProviderFailurePlaceholder(message)
+  ));
+}
+
+export type AgentUserMessagePresentation = 'full' | 'request-tail';
+
+/** Vertical Apps send a governed instruction envelope to Pi, but their
+ * customer-facing transcript should only repeat the request the customer
+ * actually typed. The persisted message remains untouched; this is a display
+ * projection scoped explicitly by the embedding App. */
+export function projectUserMessageBlocks(
+  blocks: AgentMessageProjection['blocks'],
+  presentation: AgentUserMessagePresentation,
+): AgentMessageProjection['blocks'] {
+  if (presentation === 'full') return blocks;
+  return blocks.map((block) => {
+    if (block.type !== 'text') return block;
+    const data = { ...block.data };
+    let changed = false;
+    for (const field of ['text', 'markdown'] as const) {
+      const value = data[field];
+      if (typeof value !== 'string') continue;
+      const match = value.match(/(?:^|\n)\s*用户请求：\s*([\s\S]+)$/u);
+      if (!match?.[1]?.trim()) continue;
+      data[field] = match[1].trim();
+      changed = true;
+    }
+    return changed ? { ...block, data } : block;
+  });
 }
 
 export function agentTurnMarkerKind(
@@ -92,7 +146,9 @@ export function agentTurnMarkerKind(
  * rebuilding its own maps on every batched token commit. */
 type ProjectionDerivedViews = {
   visibleTurnIds?: string[];
+  visibleTurnIdsWithRoomPosts?: string[];
   retrySuccessors?: Map<string, string>;
+  retryChildren?: Set<string>;
   userMessagesByClientId?: Map<string, AgentMessageProjection>;
   retryRootUserIdsByTurn: Map<string, string[]>;
 };
@@ -108,15 +164,26 @@ function derivedViews(projection: AgentProjectionState): ProjectionDerivedViews 
   return views;
 }
 
-/** Room Posts remain in the durable transcript for audit/recovery, but their
- * public rendering belongs to the Room task card. A Session timeline only
- * owns direct user/assistant turns and their Runtime activities. */
-export function visibleAgentTurnIds(projection: AgentProjectionState): string[] {
+/** Room Posts remain in the durable transcript for audit/recovery. Ordinary
+ * Sessions leave the Room's public copy on its task card; a Room participant's
+ * full Session explicitly includes it so opening that chat never hides real
+ * messages that the Runtime persisted for the participant. */
+export function visibleAgentTurnIds(
+  projection: AgentProjectionState,
+  includeRoomPublicPosts = false,
+): string[] {
   const views = derivedViews(projection);
-  if (views.visibleTurnIds) return views.visibleTurnIds;
+  const cached = includeRoomPublicPosts
+    ? views.visibleTurnIdsWithRoomPosts
+    : views.visibleTurnIds;
+  if (cached) return cached;
   const retrySuccessors = retrySuccessorTurnIds(projection);
-  const retryChildren = new Set(retrySuccessors.values());
-  views.visibleTurnIds = projection.turnOrder.flatMap((turnId) => {
+  // More than one retry can be issued before the first receipt/snapshot
+  // settles. The successor map intentionally keeps the newest leaf, but all
+  // retry children still belong to that same logical slot; otherwise an older
+  // sibling renders as a second identical user bubble.
+  const retryChildren = retryChildTurnIds(projection);
+  const result = projection.turnOrder.flatMap((turnId) => {
     // A retry is a new idempotent Runtime attempt, but it remains the same
     // logical conversation turn. Keep the durable attempts for audit, replace
     // the root with its latest attempt, and preserve the root's visual slot.
@@ -126,11 +193,16 @@ export function visibleAgentTurnIds(projection: AgentProjectionState): string[] 
     if (!turn) return [];
     const hasVisibleMessage = turn.messageIds.some((messageId) => {
       const message = projection.messagesById[messageId];
-      return Boolean(message && !isRoomPublicPostMessage(message));
+      return Boolean(
+        message
+        && (includeRoomPublicPosts || !isRoomPublicPostMessage(message)),
+      );
     });
     return hasVisibleMessage || turn.activityIds.length > 0 ? [visibleTurnId] : [];
   });
-  return views.visibleTurnIds;
+  if (includeRoomPublicPosts) views.visibleTurnIdsWithRoomPosts = result;
+  else views.visibleTurnIds = result;
+  return result;
 }
 
 function retrySuccessorTurnIds(projection: AgentProjectionState): Map<string, string> {
@@ -147,6 +219,7 @@ function retrySuccessorTurnIds(projection: AgentProjectionState): Map<string, st
     }
   }
   const successors = new Map<string, string>();
+  const retryChildren = new Set<string>();
   for (const turnId of projection.turnOrder) {
     const turn = projection.turnsById[turnId];
     for (const messageId of turn?.messageIds ?? []) {
@@ -156,11 +229,20 @@ function retrySuccessorTurnIds(projection: AgentProjectionState): Map<string, st
         : undefined;
       if (predecessorTurnId && predecessorTurnId !== turnId) {
         successors.set(predecessorTurnId, turnId);
+        retryChildren.add(turnId);
       }
     }
   }
   views.retrySuccessors = successors;
+  views.retryChildren = retryChildren;
   return successors;
+}
+
+function retryChildTurnIds(projection: AgentProjectionState): Set<string> {
+  const views = derivedViews(projection);
+  if (views.retryChildren) return views.retryChildren;
+  retrySuccessorTurnIds(projection);
+  return views.retryChildren ?? new Set<string>();
 }
 
 function logicalRetryLeafTurnId(
@@ -302,6 +384,7 @@ function renderedTurnGeometry(
 }
 
 export function AgentTimeline({
+  active = true,
   sessionId,
   persona,
   loading = false,
@@ -321,11 +404,15 @@ export function AgentTimeline({
   onForkFromMessage,
   onEditMessage,
   activityPresentation = 'grouped',
+  userMessagePresentation = 'full',
+  failurePresentation = 'default',
   presentation = 'default',
   showConversationNavigation = true,
+  includeRoomPublicPosts = false,
   leadingContent,
 }: {
   assistantName?: string;
+  active?: boolean;
   sessionId: string;
   persona?: AgentPersonaV1;
   loading?: boolean;
@@ -349,9 +436,12 @@ export function AgentTimeline({
   onFollowStateChange?: (state: { following: boolean; unseenUpdates: number }) => void;
   onForkFromMessage?: (entryId: string) => void;
   onEditMessage?: (messageId: string) => void;
-  activityPresentation?: 'grouped' | 'atomic';
+  activityPresentation?: 'grouped' | 'atomic' | 'hidden';
+  userMessagePresentation?: AgentUserMessagePresentation;
+  failurePresentation?: 'default' | 'compact';
   presentation?: 'default' | 'fx';
   showConversationNavigation?: boolean;
+  includeRoomPublicPosts?: boolean;
   /** Conversation lead-in (e.g. Session context chips) rendered once above the
    * first turn. It scrolls with the transcript instead of stealing viewport. */
   leadingContent?: ReactNode;
@@ -400,13 +490,13 @@ export function AgentTimeline({
   const turnOrder = useAgentLiveStore(useShallow((state) => {
     const projection = state.projections[sessionId];
     if (!projection) return emptyIds;
-    return visibleAgentTurnIds(projection);
+    return visibleAgentTurnIds(projection, includeRoomPublicPosts);
   }));
   const hasActiveTurn = useAgentLiveStore((state) => turnOrder.some((turnId) => {
     const status = state.projections[sessionId]?.turnsById[turnId]?.status;
     return status === 'queued' || status === 'running' || status === 'waiting';
   }));
-  const memoryRecallReceipts = useMemoryRecallReceipts(sessionId, turnOrder, hasActiveTurn);
+  const memoryRecallReceipts = useMemoryRecallReceipts(sessionId, turnOrder, hasActiveTurn, active);
   const activeTurnIndex = Math.floor(
     (visibleRange.startIndex + visibleRange.endIndex) / 2,
   );
@@ -702,7 +792,7 @@ export function AgentTimeline({
       return (
         <div className="agent-timeline-loading" role="status" aria-label="正在打开对话" aria-live="polite">
           <CircleDashed aria-hidden="true" size={18} />
-          <span><strong>正在打开对话</strong><small>先恢复最近内容，完整记录会继续载入。</small></span>
+          <span><strong>正在打开对话</strong><small>先载入最近内容；完整记录可按需加载。</small></span>
         </div>
       );
     }
@@ -760,6 +850,7 @@ export function AgentTimeline({
             key={turnId}
             sessionId={sessionId}
             turnId={turnId}
+            includeRoomPublicPosts={includeRoomPublicPosts}
             persona={persona}
             modelSelectionAvailable={modelSelectionAvailable}
             turnRecoveryDisabled={turnRecoveryDisabled}
@@ -775,6 +866,8 @@ export function AgentTimeline({
             onForkFromMessage={onForkFromMessage}
             onEditMessage={onEditMessage}
             activityPresentation={activityPresentation}
+            userMessagePresentation={userMessagePresentation}
+            failurePresentation={failurePresentation}
             dayStartLabel={dayStartLabels[turnId] ?? ''}
             presentation={presentation}
             memoryRecallReceipt={memoryRecallReceipts[turnId]}
@@ -897,8 +990,11 @@ export const AgentTurn = memo(function AgentTurn({
   onForkFromMessage,
   onEditMessage,
   activityPresentation = 'grouped',
+  userMessagePresentation = 'full',
+  failurePresentation = 'default',
   dayStartLabel = '',
   presentation = 'default',
+  includeRoomPublicPosts = false,
   memoryRecallReceipt,
 }: {
   assistantName?: string;
@@ -921,9 +1017,12 @@ export const AgentTurn = memo(function AgentTurn({
   activeTargetId?: string;
   onForkFromMessage?: (entryId: string) => void;
   onEditMessage?: (messageId: string) => void;
-  activityPresentation?: 'grouped' | 'atomic';
+  activityPresentation?: 'grouped' | 'atomic' | 'hidden';
+  userMessagePresentation?: AgentUserMessagePresentation;
+  failurePresentation?: 'default' | 'compact';
   dayStartLabel?: string;
   presentation?: 'default' | 'fx';
+  includeRoomPublicPosts?: boolean;
   memoryRecallReceipt?: MemoryRecallReceiptView;
 }) {
   const turn = useAgentLiveStore((state) => state.projections[sessionId]?.turnsById[turnId]);
@@ -938,11 +1037,18 @@ export const AgentTurn = memo(function AgentTurn({
   }));
   const assistantMessages = useAgentLiveStore(useShallow((state) => {
     const projection = state.projections[sessionId];
-    return (projection?.turnsById[turnId]?.messageIds ?? [])
+    return visibleAssistantMessages((projection?.turnsById[turnId]?.messageIds ?? [])
       .map((id) => projection?.messagesById[id])
       .filter((message): message is AgentMessageProjection => (
-        Boolean(message && isRenderableAssistantMessage(message))
-      ));
+        Boolean(message)
+      )), includeRoomPublicPosts);
+  }));
+  const inlineUserMessages = useAgentLiveStore(useShallow((state) => {
+    const projection = state.projections[sessionId];
+    return logicalRetryRootUserIds(projection, turnId)
+      .slice(1)
+      .map((id) => projection?.messagesById[id])
+      .filter((message): message is AgentMessageProjection => Boolean(message));
   }));
   const activities = useAgentLiveStore(useShallow((state) => {
     const projection = state.projections[sessionId];
@@ -1030,33 +1136,47 @@ export const AgentTurn = memo(function AgentTurn({
   const retryRequested = retryRequestedFor === `${turnId}:${turn.status}`;
   const showWorking = turn.status === 'queued' || turn.status === 'running';
   const turnSettled = turn.status === 'completed' || turn.status === 'failed' || turn.status === 'aborted';
-  const timelineEntries = interleavedTurnEntries(assistantMessages, activities, activityPresentation);
+  const timelineEntries = interleavedTurnEntries(
+    [...assistantMessages, ...inlineUserMessages],
+    activities,
+    activityPresentation,
+  );
   const turnWorkModel = buildAgentTurnWorkModel(turn.status, timelineEntries);
   const streamingMessageId = activeStreamingMessageId(turn.status, assistantMessages);
   const renderTimelineEntry = (entry: AgentTurnSequenceEntry) => entry.kind === 'message' ? (
-    <div data-timeline-kind="message" key={entry.message.id}>
+    <div
+      data-timeline-kind={entry.message.role === 'user' ? 'user-message' : 'message'}
+      key={entry.message.id}
+    >
       <MessageView
         sessionId={sessionId}
         messageId={entry.message.id}
         presentation={presentation}
+        userMessagePresentation={userMessagePresentation}
+        user={entry.message.role === 'user'}
         forkAvailable={forkAvailable}
+        rewriteAvailable={rewriteAvailable}
         historyTarget={activeTargetId === entry.message.id}
         streaming={entry.message.id === streamingMessageId}
         onApprovalDecision={onApprovalDecision}
         onForkFromMessage={onForkFromMessage}
+        onEditMessage={onEditMessage}
       />
     </div>
   ) : presentation === 'fx' ? (
-    <FxActivityStack
-      key={entry.key}
-      activities={entry.activities}
-      onApprovalDecision={onApprovalDecision}
-      onOpenApproval={onOpenApproval}
-      onRequestPermission={onRequestPermission}
-    />
+    <div data-timeline-kind="activity" key={entry.key}>
+      <FxActivityStack
+        activities={entry.activities}
+        sessionId={sessionId}
+        onApprovalDecision={onApprovalDecision}
+        onOpenApproval={onOpenApproval}
+        onRequestPermission={onRequestPermission}
+      />
+    </div>
   ) : (
     <div data-timeline-kind="activity" key={entry.key}>
       <ActivityGroupView
+        sessionId={sessionId}
         activities={entry.activities}
         onApprovalDecision={onApprovalDecision}
         onOpenApproval={onOpenApproval}
@@ -1067,8 +1187,8 @@ export const AgentTurn = memo(function AgentTurn({
   return (
     <article className="agent-turn" data-agent-turn-id={turnId} data-turn-status={turn.status}>
       {dayStartLabel ? <div aria-hidden="true" className="agent-fx-day"><span>{dayStartLabel}</span></div> : null}
-      {userIds.map((messageId) => <MessageView key={messageId} sessionId={sessionId} messageId={messageId} user presentation={presentation} forkAvailable={forkAvailable} rewriteAvailable={rewriteAvailable} historyTarget={activeTargetId === messageId} onForkFromMessage={onForkFromMessage} onEditMessage={onEditMessage} />)}
-      {assistantMessages.length > 0 || activities.length > 0 || memoryRecallReceipt || failure || showWorking ? (
+      {userIds.slice(0, 1).map((messageId) => <MessageView key={messageId} sessionId={sessionId} messageId={messageId} user presentation={presentation} userMessagePresentation={userMessagePresentation} forkAvailable={forkAvailable} rewriteAvailable={rewriteAvailable} historyTarget={activeTargetId === messageId} onForkFromMessage={onForkFromMessage} onEditMessage={onEditMessage} />)}
+      {assistantMessages.length > 0 || inlineUserMessages.length > 0 || activities.length > 0 || memoryRecallReceipt || failure || showWorking ? (
         <div className="agent-assistant-turn">
           <div className="agent-assistant-turn__body">
             {/* fx keeps message side as identity (UR-075): no repeated
@@ -1078,7 +1198,6 @@ export const AgentTurn = memo(function AgentTurn({
               <header><strong>Agent</strong><span>{showWorking ? (stopping ? '正在停止' : '正在处理') : turnStatusLabel(turn.status)}</span></header>
             )}
             {memoryRecallReceipt ? <MemoryRecallReceipt receipt={memoryRecallReceipt} /> : null}
-            {showWorking ? <AssistantWorkingState activities={activities} startedAtMs={turn.createdAtMs} stopping={stopping} /> : null}
             {presentation === 'fx' ? (
               <AgentTurnWorkDisclosure
                 createdAtMs={turn.createdAtMs}
@@ -1094,13 +1213,37 @@ export const AgentTurn = memo(function AgentTurn({
                 {timelineEntries.map(renderTimelineEntry)}
               </div>
             )}
+            {/* The live marker is the current cursor, so it follows the newest
+                visible work instead of staying pinned above completed steps.
+                New entries inserted above naturally carry it to the tail. */}
+            {showWorking ? <AssistantWorkingState activities={activities} startedAtMs={turn.createdAtMs} stopping={stopping} /> : null}
             {turnSettled ? <AgentTurnUsage messages={assistantMessages} /> : null}
             {failure ? (
               <div className="agent-turn__failure" role="alert">
                 <TriangleAlert size={17} />
                 <span><strong>{failureTitle}</strong><small>{failureDetail}</small></span>
-                {onSwitchModel && !nonRetryableAdmission && latestTurnId === turnId ? (
+                {failurePresentation === 'default' || (onSwitchModel && !nonRetryableAdmission && latestTurnId === turnId) ? (
                   <div className="agent-turn__failure-actions">
+                  {failurePresentation === 'default' ? <TraceAgentHandoffButton
+                    handoff={{
+                      kind: 'session',
+                      entityId: `turn:${turnId}`,
+                      title: `${failureTitle} · ${turnId}`,
+                      summary: failureDetail,
+                      error: rawFailure || failure,
+                      sessionId,
+                      failureRef: terminalFailureActivity?.id || turnId,
+                      sourceRoute: `/agent?session=${encodeURIComponent(sessionId)}`,
+                      refs: {
+                        turnId,
+                        turnStatus: turn.status,
+                        failureKind: String(terminalFailureActivity?.payload.failureKind ?? ''),
+                        providerRetryAttempts,
+                      },
+                    }}
+                  /> : null}
+                  {onSwitchModel && !nonRetryableAdmission && latestTurnId === turnId ? (
+                    <>
                     {safeContinuation ? (
                       onContinueTurn && latestTurnId === turnId ? (
                         <Button
@@ -1114,7 +1257,7 @@ export const AgentTurn = memo(function AgentTurn({
                             }
                           }}
                         >
-                          {retryRequested ? '已提交继续' : '继续'}
+                          {retryRequested ? '已提交继续' : failurePresentation === 'compact' ? '继续问数' : '继续'}
                         </Button>
                       ) : null
                     ) : onRetryTurn ? (
@@ -1124,15 +1267,26 @@ export const AgentTurn = memo(function AgentTurn({
                         leadingIcon={<RefreshCcw size={14} />}
                         disabled={turnRecoveryDisabled || retryRequested}
                         onClick={() => {
-                          if (onRetryTurn(turnId, () => setRetryRequestedFor(''))) {
-                            setRetryRequestedFor(`${turnId}:${turn.status}`);
-                          }
+                          const retryKey = `${turn.id}:${turn.status}`;
+                          const rollback = () => {
+                            setRetryRequestedFor((current) => (
+                              current === retryKey ? '' : current
+                            ));
+                          };
+                          // Mark the request before entering the host callback.
+                          // A synchronous conflict can call rollback before the
+                          // callback returns; the keyed update must not clear a
+                          // newer request.
+                          setRetryRequestedFor(retryKey);
+                          if (!onRetryTurn(turn.id, rollback)) rollback();
                         }}
                       >
                         {retryRequested ? '已提交重试' : '重试本轮'}
                       </Button>
                     ) : null}
-                    <Button size="small" variant="quiet" leadingIcon={<BrainCircuit size={14} />} disabled={turnRecoveryDisabled || !modelSelectionAvailable} onClick={onSwitchModel}>切换模型</Button>
+                    {failurePresentation === 'default' ? <Button size="small" variant="quiet" leadingIcon={<BrainCircuit size={14} />} disabled={turnRecoveryDisabled || !modelSelectionAvailable} onClick={onSwitchModel}>切换模型</Button> : null}
+                    </>
+                  ) : null}
                   </div>
                 ) : null}
               </div>
@@ -1163,7 +1317,7 @@ export type InterleavedTurnEntry = AgentTurnSequenceEntry;
 export function interleavedTurnEntries(
   messages: AgentMessageProjection[],
   activities: AgentActivityProjection[],
-  activityPresentation: 'grouped' | 'atomic' = 'grouped',
+  activityPresentation: 'grouped' | 'atomic' | 'hidden' = 'grouped',
 ): InterleavedTurnEntry[] {
   const historicalReasoningSequenceByMessage = new Map<string, number>();
   for (const activity of activities) {
@@ -1188,10 +1342,10 @@ export function interleavedTurnEntries(
       // retain `sourceMessageId`, so anchor that durable body immediately
       // after the last matching reasoning event instead of falling back to
       // the message-first array order when both share one timestamp.
-      sequence: message.timelineSequence
-        ?? derivedHistoricalMessageSequence(
-          historicalReasoningSequenceByMessage.get(message.id),
-        ),
+      sequence: historicalMessageSequence(
+        message.timelineSequence,
+        historicalReasoningSequenceByMessage.get(message.id),
+      ),
       fallbackOrder: index,
     })),
     ...activities.map((activity, index): TurnTimelineItem => ({
@@ -1209,6 +1363,7 @@ export function interleavedTurnEntries(
       entries.push({ kind: 'message', message: item.message });
       return entries;
     }
+    if (activityPresentation === 'hidden') return entries;
     const previous = entries[entries.length - 1];
     if (activityPresentation === 'grouped' && previous?.kind === 'activity-group') {
       previous.activities.push(item.activity);
@@ -1223,8 +1378,19 @@ export function interleavedTurnEntries(
   }, []);
 }
 
-function derivedHistoricalMessageSequence(reasoningSequence: number | undefined): number | undefined {
-  return reasoningSequence === undefined ? undefined : reasoningSequence + 0.5;
+function historicalMessageSequence(
+  messageSequence: number | undefined,
+  reasoningSequence: number | undefined,
+): number | undefined {
+  if (reasoningSequence === undefined) return messageSequence;
+  if (messageSequence === undefined || messageSequence <= reasoningSequence) {
+    // Pi's durable assistant row and its public reasoning receipt can share
+    // one JSONL append ordinal. The receipt is emitted with a fractional
+    // suffix, so move the durable body after that receipt instead of letting
+    // the provider's integer anchor put the final before its own thinking.
+    return reasoningSequence + 0.5;
+  }
+  return messageSequence;
 }
 
 function activeStreamingMessageId(
@@ -1289,6 +1455,7 @@ function MessageView({
   onApprovalDecision,
   onForkFromMessage,
   onEditMessage,
+  userMessagePresentation = 'full',
   presentation = 'default',
 }: {
   sessionId: string;
@@ -1304,11 +1471,14 @@ function MessageView({
   onApprovalDecision?: (approvalId: string, decision: 'approved' | 'rejected', hash: string) => void;
   onForkFromMessage?: (entryId: string) => void;
   onEditMessage?: (messageId: string) => void;
+  userMessagePresentation?: AgentUserMessagePresentation;
   presentation?: 'default' | 'fx';
 }) {
   const message = useAgentLiveStore((state) => state.projections[sessionId]?.messagesById[messageId]);
   if (!message) return null;
-  const visibleBlocks = user ? message.blocks : message.blocks.filter((block) => block.type !== 'error');
+  const visibleBlocks = user
+    ? projectUserMessageBlocks(message.blocks, userMessagePresentation)
+    : message.blocks.filter((block) => block.type !== 'error');
   const delivery = user
     ? text(message.blocks.find((block) => block.type === 'text')?.data.delivery)
     : '';
@@ -1545,11 +1715,13 @@ function AgentTurnUsage({ messages }: { messages: AgentMessageProjection[] }) {
 }
 
 function ActivityGroupView({
+  sessionId,
   activities,
   onApprovalDecision,
   onOpenApproval,
   onRequestPermission,
 }: {
+  sessionId: string;
   activities: AgentActivityProjection[];
   onApprovalDecision: (approvalId: string, decision: 'approved' | 'rejected', hash: string) => void;
   onOpenApproval?: (activity: AgentActivityProjection) => void;
@@ -1570,6 +1742,7 @@ function ActivityGroupView({
           <ActivitySummary
             key={`ordinary:${run.activities[0]?.id}`}
             activities={run.activities}
+            sessionId={sessionId}
             inline
             onApprovalDecision={onApprovalDecision}
             onOpenApproval={onOpenApproval}
@@ -1619,12 +1792,36 @@ function ContextCompactionNotice({ activity }: { activity: AgentActivityProjecti
   const before = numberValue(activity.payload.tokensBefore);
   const after = numberValue(activity.payload.estimatedTokensAfter);
   const reason = text(activity.payload.reason);
-  const reasonLabel = reason === 'manual' ? '手动触发' : reason === 'overflow' ? '溢出恢复' : '达到自动阈值';
+  const automatic = reason === 'threshold' || reason === 'automatic';
+  const reasonLabel = reason === 'manual'
+    ? '手动触发'
+    : reason === 'overflow'
+      ? '溢出恢复'
+      : automatic
+        ? '达到上下文阈值'
+        : 'Runtime 触发';
+  const stateLabel = running ? '自动压缩中' : failed ? '自动压缩失败' : '自动压缩完成';
+  const title = automatic
+    ? `Autocompact · ${stateLabel}`
+    : running
+      ? '正在压缩上下文'
+      : failed
+        ? '上下文压缩失败'
+        : '上下文压缩完成';
   return (
-    <div className="agent-compaction-notice" data-state={activity.status} role="status" aria-live="polite">
-      <span className="agent-compaction-notice__mark" aria-hidden="true"><RefreshCcw size={15} /></span>
+    <div
+      aria-label={automatic ? `Autocompact ${stateLabel}` : title}
+      aria-live="polite"
+      className="agent-compaction-notice"
+      data-kind={automatic ? 'autocompact' : 'compaction'}
+      data-state={activity.status}
+      role="status"
+    >
+      <span className="agent-compaction-notice__mark" aria-hidden="true">
+        <span className="agent-compaction-notice__fold"><i /><i /><i /></span>
+      </span>
       <span>
-        <strong>{running ? '正在压缩上下文' : failed ? '上下文压缩失败' : '上下文已压缩'}</strong>
+        <strong>{title}</strong>
         <small>
           {running
             ? `${reasonLabel}，正在生成可继续对话的摘要`
@@ -1633,7 +1830,6 @@ function ContextCompactionNotice({ activity }: { activity: AgentActivityProjecti
               : `${reasonLabel}，下一轮响应后校准实际占用`}
         </small>
       </span>
-      {running ? <i className="agent-compaction-notice__pulse" aria-hidden="true" /> : null}
     </div>
   );
 }

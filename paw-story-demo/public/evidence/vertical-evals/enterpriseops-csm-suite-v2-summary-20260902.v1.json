@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "paw.enterpriseops-csm-suite-v2-public-summary.v1",
+  "runId": "enterpriseops-csm-suite-v2-summary-20260902-v1",
+  "measuredAt": "2026-09-02",
+  "scenario": "EnterpriseOps customer-support state-changing workflow",
+  "candidateHistory": [
+    {
+      "candidateId": "suite-v2-baseline",
+      "changedLayer": "none; frozen Validation baseline",
+      "model": "gpt-5.6-sol",
+      "result": {
+        "taskSuccess": "2/3",
+        "verifierPass": "28/31",
+        "toolCalls": 72,
+        "failedToolCalls": 0,
+        "latencySeconds": 529.35,
+        "databaseCleanup": "3/3"
+      },
+      "decision": "baseline"
+    },
+    {
+      "candidateId": "state-contract-v1",
+      "changedLayer": "workflow: explicit state contract and terminal verification",
+      "model": "gpt-5.6-sol",
+      "result": {
+        "taskSuccess": "3/3",
+        "verifierPass": "31/31",
+        "toolCalls": 64,
+        "failedToolCalls": 0,
+        "latencySeconds": 758.44,
+        "databaseCleanup": "3/3"
+      },
+      "delta": {
+        "taskSuccessPercentagePoints": 33.3333,
+        "verifierPassPercentagePoints": 9.6774,
+        "toolCalls": -8,
+        "latencySeconds": 229.09
+      },
+      "decision": "keep_as_validation_winner"
+    },
+    {
+      "candidateId": "state-contract-v1-one-shot-held-out",
+      "changedLayer": "no tuning; one-shot Held-out gate",
+      "model": "gpt-5.6-sol",
+      "result": {
+        "taskSuccess": "1/8",
+        "verifierPass": "54/65",
+        "toolCalls": 140,
+        "failedToolCalls": 2,
+        "terminalCompletion": "8/8",
+        "databaseCleanup": "8/8"
+      },
+      "decision": "reject_promotion",
+      "rerunAllowed": false
+    },
+    {
+      "candidateId": "luna-v0-runtime-incompatible",
+      "changedLayer": "model only",
+      "model": "gpt-5.6-luna",
+      "result": {
+        "taskSuccess": "0/3",
+        "verifierPass": "3/31",
+        "toolCalls": 0,
+        "providerUsageAvailable": false
+      },
+      "failureClass": "unsupported_runtime_parameter",
+      "decision": "invalid_not_a_model_quality_score"
+    },
+    {
+      "candidateId": "luna-v1-provider-compatible",
+      "changedLayer": "Runtime Provider compatibility; business Prompt, Skill, Tool, Workflow and Validation suite frozen",
+      "model": "gpt-5.6-luna",
+      "result": {
+        "taskSuccess": "3/3",
+        "verifierPass": "31/31",
+        "toolCalls": 66,
+        "failedToolCalls": 0,
+        "latencySeconds": 1034.79,
+        "databaseCleanup": "3/3",
+        "reportedTokens": 3153571,
+        "providerResponses": 81,
+        "apiPriceEstimateUsd": 0.14585536
+      },
+      "comparisonToSolValidationWinner": {
+        "quality": "same frozen Validation gates",
+        "toolCallDelta": 2,
+        "latencyIncreasePercent": 36.44,
+        "reportedTokenDelta": -1002305,
+        "apiPriceEstimateBaselineUsd": 4.08523,
+        "apiPriceEstimateDecreasePercent": 96.43
+      },
+      "decision": "keep_as_quality_gated_cost_candidate"
+    }
+  ],
+  "conversationEvidence": {
+    "availableInAgentLab": true,
+    "runId": "enterpriseops-local--enterpriseops-csm-luna-max-validation-20260902-v2",
+    "sessionCount": 3,
+    "transcriptCount": 3,
+    "access": "read-only public projection; user and assistant messages, Tool calls/results, environment and verifier outcomes",
+    "excluded": [
+      "private reasoning",
+      "system Prompt",
+      "hidden gold",
+      "raw SQL",
+      "credentials and absolute host paths"
+    ]
+  },
+  "costBoundary": {
+    "authority": "deterministic estimate from reported usage and a frozen pricing snapshot",
+    "providerBillAvailable": false,
+    "heldOutUsedForModelCostComparison": false,
+    "productionRuntimeInstalled": false
+  },
+  "sourceReceiptSha256s": {
+    "validationWinner": "df4d2c4e3074ab9311fdf38b59a337626df7087bed5ce37f847c1d977e2c35a1",
+    "oneShotHeldOut": "446c7acf76fbd0b939fd14eb8275e7316ff58c8fb789a6b05ae4440e81f69ea5",
+    "lunaValidation": "e4b0a144635e55815dad03e3358f23d457716bc2c5ae93a65ffedde6f08b19a0",
+    "lunaUsage": "c069c21f5a8831d864f6eb2f330a4d699741029d94616280e04f781eb0b6f9a5",
+    "lunaCostEstimate": "6f554048a6b3467e2ae5ed3e2378c9302d1137d86f67886b3ace9bf6ee1fff54"
+  },
+  "claims": {
+    "allowed": "State-contract won the three-task Validation comparison, but failed its one-shot eight-task Held-out. On the same three-task Validation, Luna Max matched Sol quality and reduced the API price estimate by 96.43% while increasing latency by 36.44%.",
+    "forbidden": [
+      "production or stable 100%",
+      "Held-out success or a Held-out rerun",
+      "Provider billed savings",
+      "an installed PAWOS Runtime acceptance",
+      "a claim that Luna V0 measured model quality"
+    ]
+  }
+}

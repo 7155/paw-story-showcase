@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "paw.enterprise-rag-answer-evidence-validation-reject.v1",
+  "runId": "enterprise-rag-answer-validation-v16-20260901",
+  "status": "rejected",
+  "evaluationScope": "validation-only",
+  "evaluationMode": "answer-only",
+  "heldOutEvaluated": false,
+  "formalAcceptancePassed": false,
+  "elapsedMs": 1880388,
+  "evidenceContract": {
+    "name": "host-private-fact-qrels-exact-source-chunk-v1",
+    "highLevelCaseCount": 2,
+    "verifiedHighLevelFactCount": 9,
+    "unavailableHighLevelFactCount": 0,
+    "supportGroupCount": 11,
+    "sourceChunkQuoteBindingCount": 13,
+    "qrelsVisibleToAgentOrJudge": false
+  },
+  "lanes": {
+    "baseline": {"answerJudgeCorrectnessRate": 0.5, "citationFactCoverage": 0.2222222222222222, "answerableCitationSupportRate": 0.0, "latencyMs": 63693.186, "toolCalls": 6},
+    "skill": {"answerJudgeCorrectnessRate": 0.5, "citationFactCoverage": 0.2222222222222222, "answerableCitationSupportRate": 0.0, "latencyMs": 224479.982, "toolCalls": 7},
+    "tuned": {"answerJudgeCorrectnessRate": 0.5, "citationFactCoverage": 0.2222222222222222, "answerableCitationSupportRate": 0.0, "latencyMs": 210666.32, "toolCalls": 7},
+    "agentic": {"answerJudgeCorrectnessRate": 0.0, "citationFactCoverage": 0.0, "answerableCitationSupportRate": 0.0, "latencyMs": 600604.956, "toolCalls": 13, "terminalCompletionPassed": false}
+  },
+  "claim": {
+    "allowed": "A fresh four-lane Sol Validation run first verified that all 9 required facts had exact host evidence, then rejected every lane because citation support was insufficient or terminal completion failed.",
+    "forbidden": "Held-out passed, retrieval quality did not improve, Skill or tuned improved final answer quality, or the Agentic lane used zero tokens."
+  }
+}

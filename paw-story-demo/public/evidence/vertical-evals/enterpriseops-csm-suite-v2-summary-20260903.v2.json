@@ -1,0 +1,190 @@
+{
+  "schemaVersion": "paw.enterpriseops-csm-suite-v2-public-summary.v2",
+  "runId": "enterpriseops-csm-suite-v2-summary-20260903-v2",
+  "measuredAt": "2026-09-03",
+  "scenario": "EnterpriseOps customer-support state-changing workflow",
+  "supersedes": {
+    "ref": "/evidence/vertical-evals/enterpriseops-csm-suite-v2-summary-20260902.v1.json",
+    "reason": "The earlier model-cost paragraph compared runs with different thinking/source provenance. Its workflow and one-shot Held-out history remain evidence, but its Sol/Luna single-factor cost conclusion is not current."
+  },
+  "candidateHistory": [
+    {
+      "candidateId": "suite-v2-baseline",
+      "changedLayer": "none; frozen Validation baseline",
+      "model": "gpt-5.6-sol",
+      "result": {
+        "taskSuccess": "2/3",
+        "verifierPass": "28/31",
+        "toolCalls": 72,
+        "failedToolCalls": 0,
+        "latencySeconds": 529.35,
+        "databaseCleanup": "3/3"
+      },
+      "decision": "baseline"
+    },
+    {
+      "candidateId": "state-contract-v1",
+      "changedLayer": "workflow: explicit state contract and terminal verification",
+      "model": "gpt-5.6-sol",
+      "result": {
+        "taskSuccess": "3/3",
+        "verifierPass": "31/31",
+        "toolCalls": 64,
+        "failedToolCalls": 0,
+        "latencySeconds": 758.44,
+        "databaseCleanup": "3/3"
+      },
+      "delta": {
+        "taskSuccessPercentagePoints": 33.3333,
+        "verifierPassPercentagePoints": 9.6774,
+        "toolCalls": -8,
+        "latencySeconds": 229.09
+      },
+      "decision": "keep_as_validation_winner"
+    },
+    {
+      "candidateId": "state-contract-v1-one-shot-held-out",
+      "changedLayer": "no tuning; one-shot Held-out gate",
+      "model": "gpt-5.6-sol",
+      "result": {
+        "taskSuccess": "1/8",
+        "verifierPass": "54/65",
+        "toolCalls": 140,
+        "failedToolCalls": 2,
+        "terminalCompletion": "8/8",
+        "databaseCleanup": "8/8"
+      },
+      "decision": "reject_promotion",
+      "rerunAllowed": false
+    },
+    {
+      "candidateId": "luna-v0-runtime-incompatible",
+      "changedLayer": "model only",
+      "model": "gpt-5.6-luna",
+      "result": {
+        "taskSuccess": "0/3",
+        "verifierPass": "3/31",
+        "toolCalls": 0,
+        "providerUsageAvailable": false
+      },
+      "failureClass": "unsupported_runtime_parameter",
+      "decision": "invalid_not_a_model_quality_score"
+    },
+    {
+      "candidateId": "luna-20260902-legacy-cost-comparison",
+      "changedLayer": "Runtime Provider compatibility relative to Luna V0",
+      "model": "gpt-5.6-luna",
+      "result": {
+        "taskSuccess": "3/3",
+        "verifierPass": "31/31",
+        "toolCalls": 66,
+        "failedToolCalls": 0,
+        "latencySeconds": 1034.79,
+        "databaseCleanup": "3/3"
+      },
+      "decision": "superseded_not_a_single_factor_model_cost_comparison",
+      "reason": "Its prior Sol comparator did not share thinking and current source provenance."
+    },
+    {
+      "candidateId": "sol-max-controlled-20260903",
+      "changedLayer": "none; controlled model-cost incumbent",
+      "model": "gpt-5.6-sol",
+      "thinking": "max",
+      "result": {
+        "taskSuccess": "3/3",
+        "verifierPass": "31/31",
+        "toolCalls": 87,
+        "failedToolCalls": 1,
+        "latencySeconds": 1112.65,
+        "databaseCleanup": "3/3",
+        "reportedTokens": 3964517,
+        "apiPriceEstimateUsd": 3.243385
+      },
+      "decision": "keep_as_quality_incumbent"
+    },
+    {
+      "candidateId": "luna-max-controlled-20260903",
+      "changedLayer": "model only",
+      "model": "gpt-5.6-luna",
+      "thinking": "max",
+      "result": {
+        "taskSuccess": "2/3",
+        "verifierPass": "30/31",
+        "toolCalls": 66,
+        "failedToolCalls": 0,
+        "latencySeconds": 929.66,
+        "databaseCleanup": "3/3",
+        "reportedTokens": 3609609,
+        "apiPriceEstimateUsd": 0.725239
+      },
+      "comparisonToControlledSol": {
+        "taskSuccessPercentagePoints": -33.3333,
+        "verifierPassPercentagePoints": -3.2258,
+        "toolCallDelta": -21,
+        "latencyDecreasePercent": 16.45,
+        "reportedTokenDecreasePercent": 8.95,
+        "apiPriceEstimateDecreasePercent": 77.64
+      },
+      "decision": "reject_quality_gate",
+      "reason": "Lower price, latency and Tool count cannot offset task and Host-private verifier regression."
+    }
+  ],
+  "controlledModelContract": {
+    "split": "validation",
+    "taskCount": 3,
+    "verifierCount": 31,
+    "thinking": "max",
+    "timeoutSeconds": 900,
+    "taskManifestSha256": "d5ef3eb648678fd6abd92879b1a3c946ba335da32f2e26c775792fad8e038fec",
+    "overlaySha256": "40ac966afefb0a71bb1f3e04560bdbf4953fac2788ce2ba90e05b86cfe26677b",
+    "promptContractSha256": "5a2bc14cc2eb05badd053061e2345587a08abc4d6e0ad6ca3d7d07a2987f6580",
+    "toolCatalogSha256": "349a40e3804bbe16ffa3d5dd80a2fe1298f34b5cd7e3395a27162d5a8db30077",
+    "runnerSha256": "ecd133ef4674a6311807bfa3370638b5717110c81b57ad23de19e076934d1b5a",
+    "runtimeProvenanceSha256": "97be9f351511b7aefa6c85a1b9e971357cd0b482c8cab517780dd17d7133acaf"
+  },
+  "conversationEvidence": {
+    "availableInAgentLab": true,
+    "runIds": [
+      "enterpriseops-local--enterpriseops-csm-sol-max-validation-20260903-v1",
+      "enterpriseops-local--enterpriseops-csm-luna-max-validation-20260903-v3"
+    ],
+    "sessionCount": 6,
+    "transcriptCount": 6,
+    "access": "read-only public projection; user and assistant messages, Tool calls/results, environment and verifier outcomes",
+    "excluded": [
+      "private reasoning",
+      "system Prompt",
+      "hidden gold",
+      "raw SQL",
+      "credentials and absolute host paths"
+    ]
+  },
+  "costBoundary": {
+    "authority": "deterministic estimate from Runtime DB Provider usage and one frozen pricing source",
+    "pricingPublishedDate": "2026-09-01",
+    "providerBillAvailable": false,
+    "heldOutUsedForModelCostComparison": false,
+    "productionRuntimeInstalled": false,
+    "predeclaredCostTargetMet": false
+  },
+  "sourceReceiptSha256s": {
+    "validationWinner": "df4d2c4e3074ab9311fdf38b59a337626df7087bed5ce37f847c1d977e2c35a1",
+    "oneShotHeldOut": "446c7acf76fbd0b939fd14eb8275e7316ff58c8fb789a6b05ae4440e81f69ea5",
+    "legacyLunaValidation": "e4b0a144635e55815dad03e3358f23d457716bc2c5ae93a65ffedde6f08b19a0",
+    "controlledSolValidation": "75cd4bc94ce355089d242023e39da7987530b8cd52d85f2372cd6c3ad218af05",
+    "controlledSolCostEstimate": "85d704c6d27ea6846d57c1cc45a5429a6371134e588fce7d594ae23b75b79df0",
+    "controlledLunaValidation": "1975a02b3c78024908e5be25ec7c45479d02d834af067ed6f386ca0eda611fff",
+    "controlledLunaCostEstimate": "0fc72b0aab21fca85edc6d6ea6e9b66e27e77442227c703170645ec73eca1303"
+  },
+  "claims": {
+    "allowed": "On matched current-source Validation receipts, Luna Max reduced the API price estimate by 77.64% and latency by 16.45%, but regressed from 3/3 to 2/3 tasks and from 31/31 to 30/31 Host-private verifiers, so the quality gate rejected it and retained Sol Max.",
+    "forbidden": [
+      "production or stable 100%",
+      "Held-out success or a Held-out rerun",
+      "Provider billed savings",
+      "an installed PAWOS Runtime acceptance",
+      "a claim that Luna V0 measured model quality",
+      "the superseded 2026-09-02 cost comparison as a single-factor result"
+    ]
+  }
+}

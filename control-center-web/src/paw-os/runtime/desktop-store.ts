@@ -1,9 +1,29 @@
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { PawOsWindowTarget } from '@/features/paw-os/model/desktop';
-import { pawApp, type PawAppId } from './app-registry';
+import { pawApp, pawDockAppIds, type PawAppId } from './app-registry';
+import { isPawExtensionAppId } from '../extensions/registry';
+import type { PawExtensionAppId } from '../extensions/types';
 
 export type PawWindowBounds = { x: number; y: number; width: number; height: number };
 export type PawWindowPlacement = 'maximized' | 'left' | 'right';
+export type PawExtensionAppGateStatus = 'loading' | 'ready' | 'unavailable';
+export type PawExtensionAppGate = {
+  status: PawExtensionAppGateStatus;
+  enabledExtensionIds: ReadonlySet<PawExtensionAppId>;
+};
+
+/**
+ * PAWOS-only Wayfinder decoration state. These coordinates and buckets are a
+ * visual desktop projection; they never rename, move, archive or delete the
+ * canonical Session/Room records behind the icons.
+ */
+export type PawWayfinderIconPosition = { x: number; y: number };
+export type PawWayfinderState = {
+  layoutVersion: 3;
+  iconPositions: Record<string, PawWayfinderIconPosition>;
+  archived: string[];
+  projectAssignments: Record<string, string>;
+};
 
 /* A window is an App container with a floor, not a free-floating page. Below
    these sizes the titlebar can no longer hold its three verbs beside an App's
@@ -11,17 +31,15 @@ export type PawWindowPlacement = 'maximized' | 'left' | 'right';
 export const PAW_WINDOW_MIN_WIDTH = 280;
 export const PAW_WINDOW_MIN_HEIGHT = 210;
 
-/* Window bounds are `.paw-window-layer` coordinates, and that layer is a real
-   chrome box: the menu bar sits above it and the Dock gutter below it
-   (`inset: 0 0 76px` inside `.paw-desktop-viewport`, whose own top is
-   `--paw-menu-h`). Every owner that fits, snaps, clamps or lays out a window
-   resolves this one box — when they disagree, a "fitted" window still lands
-   under the Dock where the pointer cannot reach its bottom edge. */
+/* Ordinary window bounds are `.paw-window-layer` coordinates. The menu bar
+   sits above that layer (`--paw-menu-h`); the Dock is a resident overlay, so
+   it never steals usable window height. Collaboration focus deliberately uses
+   the same Dock-free plane; its viewport helper is kept separate below. */
 const PAW_MENU_BAR_HEIGHT = 34;
-const PAW_DOCK_GUTTER_HEIGHT = 76;
 const PAW_WINDOW_AREA_INSET = 8;
 const PAW_WINDOW_REACHABLE_GRIP_WIDTH = 120;
 const PAW_WINDOW_TITLEBAR_HEIGHT = 40;
+const EMPTY_EXTENSION_IDS: ReadonlySet<PawExtensionAppId> = new Set<PawExtensionAppId>();
 
 /** Usable size of the window layer itself, in layer coordinates. */
 export function pawWindowLayerSize(): { width: number; height: number } {
@@ -29,7 +47,21 @@ export function pawWindowLayerSize(): { width: number; height: number } {
   const height = typeof window === 'undefined' ? 800 : window.innerHeight;
   return {
     width: Math.max(PAW_WINDOW_MIN_WIDTH, width),
-    height: Math.max(PAW_WINDOW_MIN_HEIGHT, height - PAW_MENU_BAR_HEIGHT - PAW_DOCK_GUTTER_HEIGHT),
+    height: Math.max(PAW_WINDOW_MIN_HEIGHT, height - PAW_MENU_BAR_HEIGHT),
+  };
+}
+
+/**
+ * The collaboration layer is the whole usable desktop. Its mode bar is
+ * inside that layer; the ordinary desktop uses the same full menu-below plane
+ * because its Dock is an overlay rather than a reserved gutter.
+ */
+export function pawFocusWindowLayerSize(): { width: number; height: number } {
+  const width = typeof window === 'undefined' ? 1280 : window.innerWidth;
+  const height = typeof window === 'undefined' ? 800 : window.innerHeight;
+  return {
+    width: Math.max(PAW_WINDOW_MIN_WIDTH, width),
+    height: Math.max(PAW_WINDOW_MIN_HEIGHT, height - PAW_MENU_BAR_HEIGHT),
   };
 }
 
@@ -98,11 +130,15 @@ export type PawDesktopState = {
   windows: Record<string, PawWindowNode>;
   stack: string[];
   activeWindowId: string | null;
+  dockAppIds: PawAppId[];
+  wayfinder: PawWayfinderState;
   collaborationFocusGroup: string | null;
   collaborationFocusReturnWindowId: string | null;
   launchpadOpen: boolean;
   overviewOpen: boolean;
+  extensionAppGate: PawExtensionAppGate;
   openApp: (appId: PawAppId, options?: { background?: boolean; entityId?: string; initialRoute?: string; title?: string; target?: PawOsWindowTarget }) => string;
+  setExtensionAppGate: (status: PawExtensionAppGateStatus, enabledExtensionIds: ReadonlySet<PawExtensionAppId>) => void;
   bindAgentMain: (
     windowId: string,
     target?: Extract<PawOsWindowTarget, { kind: 'session' | 'room' }>,
@@ -114,6 +150,13 @@ export type PawDesktopState = {
   minimizeWindow: (windowId: string) => void;
   focusWindow: (windowId: string) => void;
   commitBounds: (windowId: string, bounds: PawWindowBounds) => void;
+  pinDockApp: (appId: PawAppId) => void;
+  unpinDockApp: (appId: PawAppId) => void;
+  arrangeWayfinderIcons: () => void;
+  setWayfinderIconPositions: (positions: Record<string, PawWayfinderIconPosition>) => void;
+  setWayfinderIconPosition: (iconId: string, position: PawWayfinderIconPosition) => void;
+  setWayfinderArchived: (iconId: string, archived: boolean) => void;
+  setWayfinderProjectAssignment: (iconId: string, projectId: string | null) => void;
   fitWindowsToViewport: () => void;
   snapWindow: (windowId: string, placement: PawWindowPlacement) => void;
   toggleMaximize: (windowId: string) => void;
@@ -124,23 +167,44 @@ export type PawDesktopState = {
 };
 
 export type PawDesktopStore = StoreApi<PawDesktopState>;
-export type PawDesktopSnapshot = Pick<PawDesktopState, 'windows' | 'stack' | 'activeWindowId'>;
+export type PawPersistedWayfinderState = Omit<PawWayfinderState, 'layoutVersion'> & { layoutVersion?: 2 | 3 };
+export type PawDesktopSnapshot = Pick<PawDesktopState, 'windows' | 'stack' | 'activeWindowId'> & {
+  dockAppIds?: PawAppId[];
+  wayfinder?: PawPersistedWayfinderState;
+};
 
 export function createPawDesktopStore(initialAppId?: PawAppId | null, initialRoute?: string, snapshot?: PawDesktopSnapshot): PawDesktopStore {
+  const initialWindows = extensionGatedWindows(snapshot?.windows ?? {}, EMPTY_EXTENSION_IDS);
+  const initialStack = (snapshot?.stack ?? []).filter((windowId) => Boolean(initialWindows[windowId]));
+  const initialActiveWindowId = snapshot?.activeWindowId && initialWindows[snapshot.activeWindowId]
+    ? snapshot.activeWindowId
+    : null;
+  const initialDockAppIds = snapshot?.dockAppIds ? [...snapshot.dockAppIds] : [...pawDockAppIds];
   const store = createStore<PawDesktopState>((set, get) => ({
-    windows: snapshot?.windows ?? {},
-    stack: snapshot?.stack ?? [],
-    activeWindowId: snapshot?.activeWindowId ?? null,
+    windows: initialWindows,
+    stack: initialStack,
+    activeWindowId: initialActiveWindowId,
+    dockAppIds: initialDockAppIds,
+    wayfinder: {
+      layoutVersion: 3,
+      iconPositions: snapshot?.wayfinder?.layoutVersion === 2 || snapshot?.wayfinder?.layoutVersion === 3
+        ? snapshot.wayfinder.iconPositions ?? {}
+        : {},
+      archived: snapshot?.wayfinder?.archived ?? [],
+      projectAssignments: snapshot?.wayfinder?.projectAssignments ?? {},
+    },
     collaborationFocusGroup: null,
     collaborationFocusReturnWindowId: null,
     launchpadOpen: false,
     overviewOpen: false,
+    extensionAppGate: { status: 'unavailable', enabledExtensionIds: EMPTY_EXTENSION_IDS },
     openApp(appId, options = {}) {
+      if (!canOpenApp(appId, get().extensionAppGate)) return '';
       const windowId = options.entityId ? `${appId}:${options.entityId}` : appId;
       const current = get().windows[windowId];
       if (current) {
         set((state) => {
-          const nextFocusGroup = satelliteGroup(options.target);
+          const nextFocusGroup = runtimeSatelliteFocusGroup(options.target);
           return ({
           windows: current.minimized || options.initialRoute !== undefined || options.target !== undefined || options.title !== undefined
             ? {
@@ -194,7 +258,7 @@ export function createPawDesktopStore(initialAppId?: PawAppId | null, initialRou
       };
       set((state) => {
         const windows = { ...state.windows, [windowId]: node };
-        const nextFocusGroup = satelliteGroup(options.target);
+        const nextFocusGroup = runtimeSatelliteFocusGroup(options.target);
         return {
           windows,
           stack: options.background
@@ -210,6 +274,44 @@ export function createPawDesktopStore(initialAppId?: PawAppId | null, initialRou
         };
       });
       return windowId;
+    },
+    setExtensionAppGate(status, enabledExtensionIds) {
+      set((state) => {
+        /* Inventory polling enters `loading` every time it refreshes. That is
+         * not an uninstall receipt and must not tear down a running App. Keep
+         * the last authoritative enabled set and mounted windows until the
+         * refresh produces either a new ready projection or an explicit
+         * unavailable result. */
+        if (status === 'loading') {
+          if (state.extensionAppGate.status === 'loading') return state;
+          return {
+            extensionAppGate: {
+              status,
+              enabledExtensionIds: state.extensionAppGate.enabledExtensionIds,
+            },
+          };
+        }
+        const nextEnabledIds = status === 'ready'
+          ? new Set([...enabledExtensionIds].filter(isPawExtensionAppId))
+          : EMPTY_EXTENSION_IDS;
+        const gateUnchanged = state.extensionAppGate.status === status
+          && sameExtensionIds(state.extensionAppGate.enabledExtensionIds, nextEnabledIds);
+        const windows = extensionGatedWindows(state.windows, nextEnabledIds);
+        const dockAppIds = state.dockAppIds.filter((appId) => (
+          !isPawExtensionAppId(appId) || nextEnabledIds.has(appId)
+        ));
+        const windowsUnchanged = Object.keys(windows).length === Object.keys(state.windows).length;
+        const dockUnchanged = dockAppIds.length === state.dockAppIds.length;
+        if (gateUnchanged && windowsUnchanged && dockUnchanged) return state;
+        const cleaned = windowsUnchanged ? state : closeWindowsWhere(state, (node) => (
+          isPawExtensionAppId(node.appId) && !nextEnabledIds.has(node.appId)
+        ));
+        return {
+          ...cleaned,
+          dockAppIds,
+          extensionAppGate: { status, enabledExtensionIds: nextEnabledIds },
+        };
+      });
     },
     bindAgentMain(windowId, target) {
       set((state) => {
@@ -317,17 +419,12 @@ export function createPawDesktopStore(initialAppId?: PawAppId | null, initialRou
       if (state.activeWindowId === windowId) return;
       const node = state.windows[windowId];
       if (!node) return;
-      const nextFocusGroup = satelliteGroup(node.target);
       set({
         windows: node.minimized
           ? { ...state.windows, [windowId]: { ...node, minimized: false } }
           : state.windows,
         stack: [...state.stack.filter((id) => id !== windowId), windowId],
         activeWindowId: windowId,
-        collaborationFocusGroup: nextFocusGroup || state.collaborationFocusGroup,
-        collaborationFocusReturnWindowId: nextFocusGroup && !state.collaborationFocusGroup
-          ? state.activeWindowId
-          : state.collaborationFocusReturnWindowId,
         overviewOpen: false,
       });
     },
@@ -336,6 +433,62 @@ export function createPawDesktopStore(initialAppId?: PawAppId | null, initialRou
         const node = state.windows[windowId];
         if (!node || sameBounds(node.bounds, bounds)) return state;
         return { windows: { ...state.windows, [windowId]: { ...node, bounds, restoreBounds: undefined, placement: undefined } } };
+      });
+    },
+    pinDockApp(appId) {
+      set((state) => state.dockAppIds.includes(appId)
+        ? state
+        : { dockAppIds: [...state.dockAppIds, appId] });
+    },
+    unpinDockApp(appId) {
+      set((state) => state.dockAppIds.includes(appId)
+        ? { dockAppIds: state.dockAppIds.filter((id) => id !== appId) }
+        : state);
+    },
+    arrangeWayfinderIcons() {
+      set((state) => Object.keys(state.wayfinder.iconPositions).length
+        ? { wayfinder: { ...state.wayfinder, iconPositions: {} } }
+        : state);
+    },
+    setWayfinderIconPositions(positions) {
+      set((state) => sameWayfinderIconPositions(state.wayfinder.iconPositions, positions)
+        ? state
+        : { wayfinder: { ...state.wayfinder, iconPositions: positions } });
+    },
+    setWayfinderIconPosition(iconId, position) {
+      set((state) => {
+        const current = state.wayfinder.iconPositions[iconId];
+        if (current?.x === position.x && current.y === position.y) return state;
+        return {
+          wayfinder: {
+            ...state.wayfinder,
+            iconPositions: { ...state.wayfinder.iconPositions, [iconId]: position },
+          },
+        };
+      });
+    },
+    setWayfinderArchived(iconId, archived) {
+      set((state) => {
+        const hasIcon = state.wayfinder.archived.includes(iconId);
+        if (hasIcon === archived) return state;
+        return {
+          wayfinder: {
+            ...state.wayfinder,
+            archived: archived
+              ? [...state.wayfinder.archived, iconId]
+              : state.wayfinder.archived.filter((id) => id !== iconId),
+          },
+        };
+      });
+    },
+    setWayfinderProjectAssignment(iconId, projectId) {
+      set((state) => {
+        const assignments = { ...state.wayfinder.projectAssignments };
+        if (projectId) assignments[iconId] = projectId;
+        else delete assignments[iconId];
+        if (assignments[iconId] === state.wayfinder.projectAssignments[iconId]
+          && Object.keys(assignments).length === Object.keys(state.wayfinder.projectAssignments).length) return state;
+        return { wayfinder: { ...state.wayfinder, projectAssignments: assignments } };
       });
     },
     fitWindowsToViewport() {
@@ -441,6 +594,40 @@ export function createPawDesktopStore(initialAppId?: PawAppId | null, initialRou
   return store;
 }
 
+function sameWayfinderIconPositions(
+  left: Readonly<Record<string, PawWayfinderIconPosition>>,
+  right: Readonly<Record<string, PawWayfinderIconPosition>>,
+): boolean {
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  return leftKeys.length === rightKeys.length && leftKeys.every((id) => (
+    right[id]?.x === left[id]?.x && right[id]?.y === left[id]?.y
+  ));
+}
+
+function canOpenApp(appId: PawAppId, gate: PawExtensionAppGate): boolean {
+  if (!isPawExtensionAppId(appId)) return true;
+  return gate.status === 'ready' && gate.enabledExtensionIds.has(appId);
+}
+
+function extensionGatedWindows(
+  windows: Record<string, PawWindowNode>,
+  enabledExtensionIds: ReadonlySet<PawExtensionAppId>,
+): Record<string, PawWindowNode> {
+  return Object.fromEntries(Object.entries(windows).filter(([, node]) => (
+    !isPawExtensionAppId(node.appId) || enabledExtensionIds.has(node.appId)
+  )));
+}
+
+function sameExtensionIds(
+  left: ReadonlySet<PawExtensionAppId>,
+  right: ReadonlySet<PawExtensionAppId>,
+): boolean {
+  if (left.size !== right.size) return false;
+  for (const id of right) if (!left.has(id)) return false;
+  return true;
+}
+
 function initialWindowBounds(offset: number): PawWindowBounds {
   const viewport = pawWindowArea();
   const inset = Math.min(48, (offset % 5) * 16);
@@ -500,6 +687,11 @@ export function satelliteGroup(target?: PawOsWindowTarget): string {
   if (target?.kind === 'subagent') return `session:${target.sessionId}`;
   if ((target?.kind === 'process-terminal' || target?.kind === 'browser-target') && target.roomId) return `room:${target.roomId}`;
   return '';
+}
+
+function runtimeSatelliteFocusGroup(target?: PawOsWindowTarget): string {
+  if (target?.kind !== 'process-terminal' && target?.kind !== 'browser-target') return '';
+  return satelliteGroup(target);
 }
 
 /**
@@ -589,7 +781,13 @@ function roomParticipantWindowBounds(index: number): PawWindowBounds {
 
 function placementBounds(placement: PawWindowPlacement): PawWindowBounds {
   const viewport = pawWindowArea();
-  if (placement === 'maximized') return viewport;
+  /* Maximize is the one state that deliberately removes the ordinary 8px
+     breathing room. It fills the whole menu-below work plane; the Dock can
+     then float above it when revealed, exactly like a macOS overlay. */
+  if (placement === 'maximized') {
+    const layer = pawWindowLayerSize();
+    return { x: 0, y: 0, width: layer.width, height: layer.height };
+  }
   const gap = 6;
   const width = (viewport.width - gap) / 2;
   return {

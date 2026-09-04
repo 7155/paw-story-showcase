@@ -97,6 +97,7 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
   const windowChromeTarget = usePawWindowChromeTarget();
   const requested = useMemo(() => requestedWorkspaceFile(initialRoute), [initialRoute]);
   const generationRef = useRef(0);
+  const directoryGenerationRef = useRef(0);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState('');
   const [sessionsLoading, setSessionsLoading] = useState(true);
@@ -114,6 +115,7 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
   const [treeFocusPath, setTreeFocusPath] = useState('');
   const [filterQuery, setFilterQuery] = useState('');
   const [copiedAction, setCopiedAction] = useState<'' | 'path' | 'content'>('');
+  const [copyError, setCopyError] = useState('');
   const treeItemRefs = useRef(new Map<string, HTMLButtonElement>());
   const treeRef = useRef<HTMLElement | null>(null);
   const workspaceRef = useRef<HTMLDivElement | null>(null);
@@ -202,24 +204,30 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
   }, [requested.sessionId, transport]);
 
   const loadDirectory = useCallback(async (path: string, force = false) => {
-    if (!selectedSessionId || loadingPaths.has(path) || (!force && entries[path])) return;
+    if (!selectedSessionId || (!force && (loadingPaths.has(path) || entries[path]))) return;
+    const requestGeneration = directoryGenerationRef.current;
+    const requestSessionId = selectedSessionId;
     setLoadingPaths((current) => new Set(current).add(path));
     setPathErrors((current) => omitKey(current, path));
     try {
       const response = await transport.request({
         pathId: 'agent.session.workspace.list',
-        params: { sessionId: selectedSessionId },
+        params: { sessionId: requestSessionId },
         query: { path, depth: 1, limit: 240 },
       });
+      if (requestGeneration !== directoryGenerationRef.current) return;
       setEntries((current) => ({ ...current, [path]: workspaceListing(response) }));
     } catch (error) {
+      if (requestGeneration !== directoryGenerationRef.current) return;
       setPathErrors((current) => ({ ...current, [path]: publicError(error, '目录读取失败。') }));
     } finally {
-      setLoadingPaths((current) => {
-        const next = new Set(current);
-        next.delete(path);
-        return next;
-      });
+      if (requestGeneration === directoryGenerationRef.current) {
+        setLoadingPaths((current) => {
+          const next = new Set(current);
+          next.delete(path);
+          return next;
+        });
+      }
     }
   }, [entries, loadingPaths, selectedSessionId, transport]);
 
@@ -227,7 +235,9 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
 
   useEffect(() => {
     generationRef.current += 1;
+    directoryGenerationRef.current += 1;
     setEntries({});
+    setLoadingPaths(new Set());
     setPathErrors({});
     setExpanded(new Set(roots));
     setSelectedFile(null);
@@ -235,7 +245,7 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
     setPreviewError('');
     setPreviewMoreError('');
     setFilterQuery('');
-    for (const root of roots) void loadDirectory(root);
+    for (const root of roots) void loadDirectory(root, true);
     // Directory state is intentionally reset whenever Session authority changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSessionId, roots.join('\u0000')]);
@@ -244,7 +254,7 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
      它的目录链并直接打开它。只走一次——之后这扇窗属于翻看它的人。 */
   const openedRequestRef = useRef('');
   useEffect(() => {
-    const path = requested.path;
+    const path = resolveRequestedWorkspacePath(requested.path, roots);
     if (!path || !selectedSessionId || !roots.length) return;
     const chain = ancestorDirectories(path, roots);
     if (!chain.length) return;
@@ -253,6 +263,16 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
     openedRequestRef.current = request;
     setExpanded((current) => new Set([...current, ...chain]));
     for (const directory of chain) if (!roots.includes(directory)) void loadDirectory(directory, true);
+    if (roots.includes(path)) {
+      // 深链指名的是一个工作区根目录（项目桌面的“在 Files 中打开”走这里）。
+      // 目录不是文件，不进入读取链：展开它、把目录树焦点交给它，预览面板
+      // 保持空态，由翻看的人自己选文件。
+      setSelectedFile(null);
+      setPreview(null);
+      setPreviewError('');
+      pendingFocusPathRef.current = path;
+      return;
+    }
     setSelectedFile({ path, name: pathName(path), kind: 'file' });
     // loadDirectory changes identity with every listing; the one-shot guard,
     // not the dependency list, is what keeps this from re-opening the file.
@@ -295,6 +315,7 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
     setPreviewError('');
     setPreviewMoreError('');
     setCopiedAction('');
+    setCopyError('');
     try {
       const response = await transport.request({
         pathId: 'agent.session.workspace.read',
@@ -417,13 +438,16 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
     if (!selectedFile) return;
     const value = action === 'path' ? selectedFile.path : preview?.content ?? '';
     if (!value) return;
+    setCopyError('');
     try {
       await writeClipboardText(value);
       setCopiedAction(action);
       window.setTimeout(() => setCopiedAction((current) => current === action ? '' : current), 1_500);
     } catch {
-      // The full path and content remain readable in place when the clipboard
-      // is denied; the inspection flow is never blocked by copy.
+      setCopiedAction('');
+      setCopyError(action === 'path'
+        ? '无法访问剪贴板，文件路径没有复制。'
+        : '无法访问剪贴板，文件内容没有复制。');
     }
   }
 
@@ -665,6 +689,11 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
                             data-kind={directory ? 'directory' : symlink ? 'symlink' : undefined}
                             data-selected={!directory && entry.path === selectedFile?.path || undefined}
                             onClick={() => openFilterMatch(entry)}
+                            onFocus={() => setTreeFocusPath(entry.path)}
+                            ref={(node) => {
+                              if (node) treeItemRefs.current.set(entry.path, node);
+                              else treeItemRefs.current.delete(entry.path);
+                            }}
                             title={entry.path}
                             type="button"
                           >
@@ -720,7 +749,7 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
             ) : null}
           </div>
         </aside>
-        <main className="paw-files-preview" onKeyDown={(event) => { if (event.key === 'Escape' && treeHidden()) goBackToTree(); }}>
+        <section aria-label="文件预览" className="paw-files-preview" onKeyDown={(event) => { if (event.key === 'Escape' && treeHidden()) goBackToTree(); }} role="region">
           {!selectedFile ? (
             <div className="paw-files-preview__empty">
               <div aria-hidden="true" className="paw-files-preview__empty-art">
@@ -796,6 +825,12 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
                   </button>
                 </div>
               </header>
+              {copyError ? (
+                <div className="paw-files-preview__copy-error" role="alert">
+                  <TriangleAlert aria-hidden="true" size={14} />
+                  <span>{copyError}</span>
+                </div>
+              ) : null}
               <div className="paw-files-preview__body" key={`body:${selectedFile.path}`}>
                 {previewLoading ? (
                   <div className="paw-files-preview__state paw-files-preview__state--loading" role="status">
@@ -841,7 +876,7 @@ export function PawOsFilesApp({ initialRoute = '' }: { initialRoute?: string } =
               <EvidenceEchoUsage appId="files" entityId={selectedFile.path} entityLabel={selectedFile.name} />
             </>
           )}
-        </main>
+        </section>
         </div>
         <footer className="paw-files-statusbar" aria-live="polite">
           <span>已加载 {visibleEntryCount} 项</span>
@@ -912,8 +947,29 @@ function requestedWorkspaceFile(initialRoute: string): { sessionId: string; path
   const path = (query.get('path') ?? '').trim();
   return {
     sessionId: (query.get('session') ?? '').trim().slice(0, 200),
-    path: path.startsWith('/') ? path.slice(0, 1_000) : '',
+    path: path.slice(0, 1_000),
   };
+}
+
+/** Markdown in a Session usually names files relative to its workspace. The
+ * workspace route still uses an absolute path internally so directory listing
+ * and reads keep one canonical identity. A root-name prefix remains supported
+ * for the common `repository/src/file.ts` form. */
+function resolveRequestedWorkspacePath(path: string, roots: string[]): string {
+  const normalized = path.trim();
+  if (!normalized) return '';
+  if (normalized.startsWith('/')) return normalized;
+  const relative = normalized.replace(/^\.\//u, '');
+  if (!relative || relative.split('/').some((segment) => !segment || segment === '..')) return '';
+  const namedRoot = roots.find((root) => (
+    relative === pathName(root) || relative.startsWith(`${pathName(root)}/`)
+  ));
+  if (namedRoot) {
+    const suffix = relative.slice(pathName(namedRoot).length).replace(/^\//u, '');
+    return suffix ? `${namedRoot}/${suffix}` : namedRoot;
+  }
+  const root = roots[0];
+  return root ? `${root}/${relative}` : '';
 }
 
 function authorizedRoots(session: SessionSummary | null): string[] {

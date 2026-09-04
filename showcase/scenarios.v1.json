@@ -11,14 +11,14 @@
     },
     {
       "id": "agent",
-      "routes": ["/agent?session=session-preview", "/rooms?room=room-preview"],
+      "routes": ["/agent?session=session-preview", "/agent?session=session-memory", "/agent?session=session-reliability", "/agent?room=room-preview", "/rooms?room=room-preview"],
       "renderOwner": "control-center-web/src/paw-os/apps/PawAgentApp.tsx",
       "scenarioSources": ["control-center-web/src/features/agent/preview-data.ts", "control-center-web/src/app/preview-room-data.ts"],
       "claim": "synthetic-preview"
     },
     {
       "id": "memory",
-      "routes": ["/memory"],
+      "routes": ["/memory", "/memory?view=organize", "/memory?layer=timelines"],
       "renderOwner": "control-center-web/src/features/memory/index.tsx",
       "scenarioSources": ["control-center-web/src/app/preview-memory-data.ts"],
       "claim": "synthetic-preview"
@@ -50,6 +50,14 @@
       "renderOwner": "control-center-web/src/paw-os/apps/PawSystemAppsMigrated.tsx",
       "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
       "claim": "synthetic-preview"
+    },
+    {
+      "id": "eval-lab",
+      "routes": ["/eval-lab"],
+      "renderOwner": "control-center-web/src/features/eval-lab/index.tsx",
+      "scenarioSources": ["control-center-web/src/app/preview-eval-lab-data.ts", "control-center-web/src/features/eval-lab/eval-lab.css"],
+      "claim": "synthetic-preview",
+      "boundary": "The Agent Lab is a public, read-only evidence showcase. It does not launch a private PAW Runtime, consume Held-out data, or expose source-local transcripts."
     },
     {
       "id": "system-settings",

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "paw.story.trace-defect-inventory.v1",
+  "measuredAt": "2026-09-01",
+  "countingPolicy": "one unique root cause with retained failure or rejection evidence plus repair and verification boundary",
+  "summary": {
+    "closedLoopDefects": 11,
+    "mainRepositoryValidationBacked": 3,
+    "sourceLocalCandidateBacked": 8,
+    "additionalSourceTestOnlyRepairs": 5,
+    "skillIssuesFound": 3,
+    "skillIssuesStructurallyFixed": 2,
+    "skillIssuesDiagnosedOnly": 1,
+    "workflowImprovements": 6,
+    "toolRuntimeContractImprovements": 9,
+    "overlappingCategoriesMayNotBeSummed": true
+  },
+  "closedLoopDefectIds": [
+    "RAG-IFACE-001",
+    "RAG-ATTEMPT-001",
+    "RAG-EVIDENCE-001",
+    "PI-CODEX-WIRE-001",
+    "TRACE-SKILL-ENV-001",
+    "CLOUDOPS-TRANSPORT-001",
+    "EVAL-MODEL-ID-001",
+    "CLOUDOPS-HASH-001",
+    "CLOUDOPS-SEARCH-CONTRACT-001",
+    "CLOUDOPS-USAGE-PROJECTION-001",
+    "CLOUDOPS-OBS-ID-001"
+  ],
+  "claim": {
+    "allowed": "Eleven unique contract defects have retained failure evidence plus repair and verification boundaries. Three are backed by main-repository Validation or control-plane evidence and eight by non-installed source-local candidate replay.",
+    "forbidden": "Trace Agent autonomously found and fixed every defect, test counts equal bug counts, source-local candidates were installed, or the overlapping category counts can be added together."
+  }
+}

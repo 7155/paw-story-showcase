@@ -8,7 +8,8 @@ import {
   Search,
   ShieldCheck,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Button,
   Dialog,
@@ -52,11 +53,13 @@ import './history.css';
 
 export function HistoryFeature() {
   const identity = useProductIdentity();
+  const location = useLocation();
   const [draftQuery, setDraftQuery] = useState('');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('');
   const [selectedId, setSelectedId] = useState('');
   const [detailEventId, setDetailEventId] = useState<number | null>(null);
+  const requestedEventId = Number(new URLSearchParams(location.search).get('event') ?? 0);
   const { pages } = useHistoryPages(query, filter);
   const mutationBoundary = useHistoryMutationBoundary();
   const rows = useMemo(() => (pages.data?.pages ?? [])
@@ -69,6 +72,7 @@ export function HistoryFeature() {
     } as Record<string, unknown>)), [pages.data]);
   const sources = new Set(rows.map((row) => stringValue(row.source)).filter(Boolean));
   const rawRuntimeRevision = asRecord(pages.data?.pages[0]).runtimeRevision;
+  const totalCount = numberValue(asRecord(pages.data?.pages[0]).totalCount, rows.length);
   const runtimeRevision = typeof rawRuntimeRevision === 'number'
     && Number.isInteger(rawRuntimeRevision)
     && rawRuntimeRevision >= 0
@@ -86,6 +90,12 @@ export function HistoryFeature() {
     setDetailEventId(eventId);
   };
 
+  useEffect(() => {
+    if (!Number.isInteger(requestedEventId) || requestedEventId <= 0) return;
+    setSelectedId(String(requestedEventId));
+    setDetailEventId(requestedEventId);
+  }, [requestedEventId]);
+
   return (
     <ManagementPage
       actions={<Button leadingIcon={<RefreshCw size={15} />} loading={pages.isRefetching} onClick={() => void pages.refetch()} size="small">刷新</Button>}
@@ -97,7 +107,9 @@ export function HistoryFeature() {
       <QueryState error={pages.error as Error | null} isPending={pages.isPending} onRetry={() => void pages.refetch()}>
         <ManagementSection title="当前记录">
           <MetricStrip items={[
-            { label: '已显示', value: rows.length, detail: '这一页', icon: History },
+            totalCount > rows.length
+              ? { label: '今日完整输入', value: totalCount, detail: `当前页 ${rows.length} 条代表记录`, icon: History }
+              : { label: '已显示', value: rows.length, detail: '这一页', icon: History },
             { label: '来源', value: sources.size, detail: '不同来源', icon: MessageSquareText },
             { label: '原文保护', value: '仅摘要', detail: '脱敏显示', icon: ShieldCheck, tone: 'success' },
           ]} />

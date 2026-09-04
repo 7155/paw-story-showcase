@@ -51,6 +51,14 @@ export const CONTROL_ROUTES = {
     body: ['rollbackId'],
     requiredBody: ['rollbackId'],
   },
+  // This bounded frame feed is intentionally local-only: debug configuration
+  // may expose owner-local text in the response, while the input page projects
+  // only identity and lane metadata.
+  'input.prediction.liveTrace': {
+    method: 'GET',
+    path: '/api/prediction/live-trace',
+    query: ['limit', 'sessionId'],
+  },
   'observability.snapshot': {
     method: 'GET',
     path: '/api/observability/snapshot',
@@ -60,10 +68,253 @@ export const CONTROL_ROUTES = {
       'sessionId',
       'roomId',
       'traceId',
+      'runId',
       'category',
       'status',
     ],
     responseContract: 'observation-snapshot.v1',
+  },
+  'observability.trace.get': {
+    method: 'GET',
+    path: '/api/observability/traces/:traceId',
+    params: { traceId: null },
+    query: ['limit', 'beforeSequence'],
+    responseContract: 'observability-trace-get.v1',
+  },
+  'observability.evals.list': {
+    method: 'GET',
+    path: '/api/observability/evals',
+    query: ['traceId', 'limit'],
+    requiredQuery: ['traceId'],
+    responseContract: 'observability-eval-list.v1',
+  },
+  'observability.traceDiagnosticReports.list': {
+    method: 'GET',
+    path: '/api/observability/trace-diagnostic-reports',
+    query: ['limit'],
+    responseContract: 'trace-diagnostic-report-list.v1',
+  },
+  'observability.traceDiagnosticReports.create': {
+    method: 'POST',
+    path: '/api/observability/trace-diagnostic-reports',
+    body: ['diagnosticSessionId', 'title', 'targets'],
+    requiredBody: ['diagnosticSessionId', 'targets'],
+    responseContract: 'trace-diagnostic-report.v1',
+  },
+  'observability.traceDiagnosticReport.get': {
+    method: 'GET',
+    path: '/api/observability/trace-diagnostic-reports/:reportId',
+    params: { reportId: null },
+    responseContract: 'trace-diagnostic-report.v1',
+  },
+  'observability.traceDiagnosticReport.finalize': {
+    method: 'POST',
+    path: '/api/observability/trace-diagnostic-reports/:reportId/finalize',
+    params: { reportId: null },
+    body: ['expectedRevision'],
+    requiredBody: ['expectedRevision'],
+    responseContract: 'trace-diagnostic-report.v1',
+  },
+  'observability.traceDiagnosticReport.repairAuthorize': {
+    method: 'POST',
+    path: '/api/observability/trace-diagnostic-reports/:reportId/repair-authorize',
+    params: { reportId: null },
+    body: ['expectedRevision', 'findingId', 'sourceScope', 'sourceTraceId', 'failureRef', 'repairSessionId'],
+    requiredBody: ['expectedRevision', 'findingId', 'sourceScope', 'sourceTraceId', 'failureRef', 'repairSessionId'],
+    responseContract: 'trace-diagnostic-report.v1',
+  },
+  'observability.traceDiagnosticReport.repairVerify': {
+    method: 'POST',
+    path: '/api/observability/trace-diagnostic-reports/:reportId/repair-verify',
+    params: { reportId: null },
+    body: ['expectedRevision', 'repairReceiptId'],
+    requiredBody: ['expectedRevision', 'repairReceiptId'],
+    responseContract: 'trace-diagnostic-report.v1',
+  },
+  'observability.evalSuites.list': {
+    method: 'GET',
+    path: '/api/observability/eval-suites',
+    query: ['limit'],
+    responseContract: 'eval-suite-list.v1',
+  },
+  'observability.sandboxRuns.list': {
+    method: 'GET',
+    path: '/api/observability/sandbox-runs',
+    query: ['limit'],
+    responseContract: 'observability-sandbox-run-list.v1',
+  },
+  'observability.sandboxRun.get': {
+    method: 'GET',
+    path: '/api/observability/sandbox-runs/:sandboxRunId',
+    params: { sandboxRunId: null },
+    responseContract: 'sandbox-run.v1',
+  },
+  'extension.sandbox.experiment.run': {
+    method: 'POST',
+    path: '/api/extensions/sandbox/experiments',
+    body: ['sessionId', 'ownerAppId', 'experimentId', 'candidateBindingSha256', 'requestedDecision'],
+    requiredBody: ['sessionId', 'ownerAppId', 'experimentId', 'candidateBindingSha256', 'requestedDecision'],
+  },
+  'observability.evals.evidence.run': {
+    method: 'POST',
+    path: '/api/observability/evals/evidence-ground-truth',
+    body: [
+      'schemaVersion',
+      'traceId',
+      'requiredEvidenceIds',
+      'datasetId',
+      'labelRevision',
+      'truthKind',
+    ],
+    requiredBody: [
+      'schemaVersion',
+      'traceId',
+      'requiredEvidenceIds',
+      'datasetId',
+      'labelRevision',
+      'truthKind',
+    ],
+    responseContract: 'eval-run.v1',
+  },
+  'observability.evals.aiJudge.run': {
+    method: 'POST',
+    path: '/api/observability/evals/ai-judge',
+    body: ['traceId', 'evaluator', 'provider', 'model', 'thinking', 'displayName'],
+    requiredBody: ['traceId'],
+    responseContract: 'eval-run.v1',
+  },
+  // Trace repair evidence is an ordered, loopback-only write pipeline. The
+  // server issues evidence and receipt identities.
+  'observability.traceRepair.changeEvidence': {
+    method: 'POST',
+    path: '/api/observability/trace-repair/evidence/change',
+    body: ['schemaVersion', 'repairSessionId', 'repairTraceId'],
+    requiredBody: ['schemaVersion', 'repairSessionId', 'repairTraceId'],
+  },
+  'observability.traceRepair.testEvidence': {
+    method: 'POST',
+    path: '/api/observability/trace-repair/evidence/test',
+    body: ['schemaVersion', 'repairSessionId', 'repairTraceId'],
+    requiredBody: ['schemaVersion', 'repairSessionId', 'repairTraceId'],
+  },
+  'observability.traceRepair.receipt.create': {
+    method: 'POST',
+    path: '/api/observability/trace-repair/receipts',
+    body: [
+      'schemaVersion',
+      'sourceScope',
+      'sourceTraceId',
+      'failureRef',
+      'changeReceiptId',
+      'testEvidenceId',
+      'repairTraceId',
+      'repairSessionId',
+    ],
+    requiredBody: [
+      'schemaVersion',
+      'sourceScope',
+      'sourceTraceId',
+      'failureRef',
+      'changeReceiptId',
+      'testEvidenceId',
+      'repairTraceId',
+      'repairSessionId',
+    ],
+  },
+  'observability.traceRepair.receipt.get': {
+    method: 'GET',
+    path: '/api/observability/trace-repair/receipts/:repairReceiptId',
+    params: { repairReceiptId: null },
+  },
+  'observability.traceRepair.recheck': {
+    method: 'POST',
+    path: '/api/observability/trace-repair/recheck',
+    body: ['schemaVersion', 'repairReceiptId'],
+    requiredBody: ['schemaVersion', 'repairReceiptId'],
+  },
+  'observability.traceReplay.case.create': {
+    method: 'POST',
+    path: '/api/observability/trace-replay/cases',
+    body: [
+      'schemaVersion',
+      'sourceScope',
+      'failureRef',
+      'sourceTraceId',
+      'baselineEvalRunId',
+      'baselineSandboxRunId',
+      'successMetric',
+      'successThreshold',
+      'rollbackTarget',
+    ],
+    requiredBody: [
+      'schemaVersion',
+      'sourceScope',
+      'failureRef',
+      'sourceTraceId',
+      'baselineEvalRunId',
+      'baselineSandboxRunId',
+      'successMetric',
+      'successThreshold',
+      'rollbackTarget',
+    ],
+  },
+  'observability.traceReplay.case.get': {
+    method: 'GET',
+    path: '/api/observability/trace-replay/cases/:replayCaseId',
+    params: { replayCaseId: null },
+  },
+  'observability.traceReplay.verify': {
+    method: 'POST',
+    path: '/api/observability/trace-replay/verify',
+    body: [
+      'schemaVersion',
+      'replayCaseId',
+      'repairReceiptId',
+      'repairEvalRunId',
+      'repairSandboxRunId',
+      'regressionEvalRunIds',
+    ],
+    requiredBody: [
+      'schemaVersion',
+      'replayCaseId',
+      'repairReceiptId',
+      'repairEvalRunId',
+      'repairSandboxRunId',
+      'regressionEvalRunIds',
+    ],
+  },
+  'observability.traceReplay.verification.get': {
+    method: 'GET',
+    path: '/api/observability/trace-replay/verifications/:verificationReceiptId',
+    params: { verificationReceiptId: null },
+  },
+  'observability.evalSchedules.list': {
+    method: 'GET',
+    path: '/api/observability/eval-schedules',
+    query: ['limit'],
+    responseContract: 'eval-schedule-list.v1',
+  },
+  'observability.evalSchedules.create': {
+    method: 'POST',
+    path: '/api/observability/eval-schedules',
+    body: [
+      'scheduleId',
+      'suiteId',
+      'suiteRevision',
+      'recurrenceKind',
+      'recurrenceInterval',
+      'maxRuns',
+      'nextDueAtMs',
+    ],
+    requiredBody: ['suiteId', 'suiteRevision', 'recurrenceKind', 'nextDueAtMs'],
+    responseContract: 'eval-schedule-create.v1',
+  },
+  'observability.evalSchedule.runs': {
+    method: 'GET',
+    path: '/api/observability/eval-schedules/:scheduleId/runs',
+    params: { scheduleId: null },
+    query: ['limit'],
+    responseContract: 'eval-schedule-run-list.v1',
   },
   'observability.events': {
     method: 'GET',
@@ -73,6 +324,7 @@ export const CONTROL_ROUTES = {
       'sessionId',
       'roomId',
       'traceId',
+      'runId',
       'category',
       'status',
     ],
@@ -127,7 +379,29 @@ export const CONTROL_ROUTES = {
   'agent.sessions.list': {
     method: 'GET',
     path: '/api/agent/sessions',
-    query: ['includeArchived', 'includeInternal', 'limit'],
+    query: [
+      'includeArchived',
+      'includeInternal',
+      'limit',
+      'beforeUpdatedAtMs',
+      'beforeId',
+      'surfaceKind',
+      'ownerAppId',
+      'surfaceKey',
+      'projectionOnly',
+    ],
+  },
+  'agent.eval-lab.runs': {
+    method: 'GET',
+    path: '/api/agent/eval-lab/runs',
+    // The local feature guard owns this seam until the generated contract is
+    // added; the route must still remain visible to native/HTTP capability
+    // negotiation now.
+  },
+  'agent.eval-lab.evidence': {
+    method: 'GET',
+    path: '/api/agent/eval-lab/evidence',
+    query: ['runId', 'taskIndex'],
   },
   'agent.sessions.create': {
     method: 'POST',
@@ -138,12 +412,36 @@ export const CONTROL_ROUTES = {
       'roleId',
       'roleVersion',
       'modelProfile',
+      '_modelRoute',
       'toolProfileVersion',
       'executionMode',
       'workspaceRoots',
       'workspaceScopeConfirmation',
       'dangerousModeConfirmation',
+      'toolAllowlistMode',
+      'allowedTools',
+      'projectContextEnabled',
+      'piSkillsEnabled',
+      'codexSkillsEnabled',
+      'surfaceKind',
+      'ownerAppId',
+      'surfaceKey',
     ],
+  },
+  'agent.sessions.surface.ensure': {
+    method: 'POST',
+    path: '/api/agent/sessions/surface/ensure',
+    body: [
+      'title',
+      'mode',
+      'toolProfileVersion',
+      'executionMode',
+      'workspaceRoots',
+      'surfaceKind',
+      'ownerAppId',
+      'surfaceKey',
+    ],
+    requiredBody: ['title', 'surfaceKind', 'ownerAppId', 'surfaceKey'],
   },
   'agent.session.snapshot': {
     method: 'GET',
@@ -399,7 +697,7 @@ export const CONTROL_ROUTES = {
   'agent.rooms.list': {
     method: 'GET',
     path: '/api/agent/rooms',
-    query: ['includeArchived', 'limit'],
+    query: ['includeArchived', 'limit', 'beforeUpdatedAtMs', 'beforeId', 'projectionOnly', 'ownerAppId', 'surfaceKey'],
   },
   'agent.rooms.create': {
     method: 'POST',
@@ -415,9 +713,11 @@ export const CONTROL_ROUTES = {
       'routingConfig',
       'moderatorRoleId',
       'workspaceRoots',
-      'executionMode',
+      'permissionPolicy',
       'workspaceScopeConfirmation',
       'dangerousModeConfirmation',
+      'ownerAppId',
+      'surfaceKey',
     ],
     requiredBody: ['participants'],
   },
@@ -431,6 +731,12 @@ export const CONTROL_ROUTES = {
     path: '/api/agent/rooms/:roomId/snapshot',
     params: { roomId: null },
     responseContract: 'agent-room-snapshot.v1',
+  },
+  'agent.room.conversationSnapshot': {
+    method: 'GET',
+    path: '/api/agent/rooms/:roomId/conversation',
+    params: { roomId: null },
+    responseContract: 'agent-room-conversation-snapshot.v1',
   },
   'agent.room.history': {
     method: 'GET',
@@ -453,7 +759,8 @@ export const CONTROL_ROUTES = {
       'routingPolicy',
       'routingConfig',
       'moderatorParticipantId',
-      'executionMode',
+      'permissionPolicy',
+      'workspaceRoots',
       'workspaceScopeConfirmation',
       'dangerousModeConfirmation',
     ],
@@ -501,6 +808,17 @@ export const CONTROL_ROUTES = {
       'answerToRootId',
     ],
     requiredBody: ['message'],
+  },
+  'agent.room.startGate.get': {
+    method: 'GET',
+    path: '/api/agent/rooms/:roomId/start-gate',
+    params: { roomId: null },
+  },
+  'agent.room.startGate.confirm': {
+    method: 'POST',
+    path: '/api/agent/rooms/:roomId/start-gate',
+    params: { roomId: null },
+    body: ['gateId', 'decision', 'action'],
   },
   'agent.room.participant.steer': {
     method: 'POST',
@@ -625,6 +943,13 @@ export const CONTROL_ROUTES = {
     body: ['actorParticipantId', 'targetParticipantId', 'reason'],
     requiredBody: ['actorParticipantId', 'targetParticipantId'],
   },
+  'agent.room.workItem.resume': {
+    method: 'POST',
+    path: '/api/agent/rooms/:roomId/work-items/:workItemId/resume',
+    params: { roomId: null, workItemId: null },
+    body: ['actorParticipantId', 'clientActionId', 'phase', 'timeoutSeconds'],
+    requiredBody: ['actorParticipantId'],
+  },
   'agent.roles.list': { method: 'GET', path: '/api/agent/roles' },
   'agent.roles.create': {
     method: 'POST',
@@ -691,7 +1016,22 @@ export const CONTROL_ROUTES = {
   },
   'agent.tools.list': { method: 'GET', path: '/api/agent/tools', query: ['sessionId'] },
   'agent.extensions.list': { method: 'GET', path: '/api/agent/extensions' },
+  'agent.extensions.usage': {
+    method: 'GET',
+    path: '/api/agent/extensions/usage',
+    query: ['packageId', 'resourceKind', 'sessionId', 'sinceMs', 'limit'],
+  },
   'agent.extensions.catalog': { method: 'GET', path: '/api/agent/extensions/catalog' },
+  'agent.extensions.skills.list': {
+    method: 'GET',
+    path: '/api/agent/extensions/skills',
+  },
+  'agent.extensions.skills.get': {
+    method: 'GET',
+    path: '/api/agent/extensions/skills/detail',
+    query: ['skillId'],
+    requiredQuery: ['skillId'],
+  },
   'agent.extensions.create': {
     method: 'POST',
     path: '/api/agent/extensions/drafts',
@@ -747,7 +1087,7 @@ export const CONTROL_ROUTES = {
   'agent.memoryMaintenance.run': {
     method: 'GET',
     path: '/api/agent/memory-maintenance',
-    query: ['runId', 'jobId', 'project', 'limit'],
+    query: ['runId', 'jobId', 'project', 'limit', 'projectionOnly'],
   },
   'agent.memoryMaintenance.trigger': {
     method: 'POST',
@@ -1441,7 +1781,7 @@ export function resolveControlPath(
   let resolved = route.path;
   for (const key of requiredKeys) {
     const value = params[key];
-    if (!isSafeRouteParameter(value)) {
+    if (!isSafeRouteParameter(value, key)) {
       throw new ControlRoutePolicyError(pathId, `invalid ${key} path parameter`);
     }
     const allowedValues = policy[key];
@@ -1517,6 +1857,8 @@ export class ControlRoutePolicyError extends Error {
   }
 }
 
-function isSafeRouteParameter(value: unknown): value is string {
-  return typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/u.test(value);
+function isSafeRouteParameter(value: unknown, key: string): value is string {
+  const maximumTailLength = key === 'traceId' ? 159 : 127;
+  return typeof value === 'string'
+    && new RegExp(`^[A-Za-z0-9][A-Za-z0-9._:-]{0,${maximumTailLength}}$`, 'u').test(value);
 }

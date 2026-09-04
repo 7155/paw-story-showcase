@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "paw.story.zhanggui-extension-sandbox.v1",
+  "measuredAt": "2026-09-01",
+  "status": "source_candidate_sandbox_verified_not_installed",
+  "candidate": {
+    "appId": "extension:zhanggui-wenshu",
+    "version": "0.2.0",
+    "packageId": "@paw/zhanggui-wenshu",
+    "installActionPerformed": false,
+    "foregroundAccepted": false
+  },
+  "faultInjection": {
+    "kind": "binding_digest_mismatch",
+    "status": "rejected_before_sandbox",
+    "sandboxExecuted": false
+  },
+  "repair": {
+    "action": "restore_exact_manifest_binding_digest",
+    "sameVersion": true,
+    "sameSuiteRevision": true,
+    "status": "sandbox_verified"
+  },
+  "sourceAndBuild": {
+    "frontendFocusedTestsPassed": 8,
+    "frontendFocusedTestsFailed": 0,
+    "productionBuildPassed": true
+  },
+  "sandbox": {
+    "suiteId": "sgg",
+    "suiteRevision": "fixture-v2",
+    "fixtureCount": 1,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "providerCalls": 0,
+    "network": "blocked",
+    "productionWriteBlocked": true,
+    "truthVisibleToProvider": false,
+    "linkedTraceEvalSandbox": true
+  },
+  "textToSqlFrontier": {
+    "dataset": "Spider 2.0-Lite",
+    "localSourceAvailable": true,
+    "questionCount": 547,
+    "goldSqlCount": 256,
+    "executionDatabaseAvailable": false,
+    "formalScoreProduced": false
+  },
+  "claim": {
+    "allowed": "The source-isolated App, Package and Skill passed source validation, eight focused frontend tests and a production build. An intentional binding fault failed closed before sandbox execution; restoring the exact binding produced linked Trace, Eval and Sandbox receipts on the same deterministic fixture.",
+    "forbidden": "The one-fixture F1 is real Text-to-SQL accuracy, Spider 2.0 was evaluated, real business data was used, or the App was installed and accepted in the foreground."
+  }
+}

@@ -3,20 +3,55 @@ import { lazy, Suspense } from 'react';
 import type { PawOsWindowTarget } from '@/features/paw-os/model/desktop';
 import type { PawAppId } from '../runtime/app-registry';
 import { pawApp } from '../runtime/app-registry';
-import { PawAgentApp } from './PawAgentApp';
-import { PawBrowserApp } from './PawBrowserApp';
-import { PawNativeApp, type PawNativeAppId } from './PawNativeApps';
-import { PawOsSatelliteHost } from '@/features/paw-os/PawOsSatelliteHost';
-import { PawResultWindow } from '@/features/paw-os/PawResultWindow';
+import { isPawExtensionAppId } from '../extensions/registry';
+import { PawExtensionAppHost } from '../extensions/ExtensionAppHost';
 import { PawAppIcon } from '../shell/PawAppIcon';
 import './paw-apps.css';
 
-const FilesApp = lazy(async () => ({
+type PawNativeAppId = Extract<PawAppId,
+  | 'project-workbench'
+  | 'memory'
+  | 'knowledge'
+  | 'input-studio'
+  | 'app-center'
+  | 'system-monitor'
+  | 'eval-lab'
+  | 'system-settings'>;
+
+const loadPawAgentApp = () => import('./entries/PawAgentAppEntry');
+const loadPawBrowserApp = () => import('./entries/PawBrowserAppEntry');
+const loadPawNativeApp = () => import('./entries/PawNativeAppEntry');
+const loadPawOsSatelliteHost = () => import('./entries/PawSatelliteEntry');
+const loadPawResultWindow = () => import('./entries/PawResultWindowEntry');
+const loadFilesApp = async () => ({
   default: (await import('@/features/files/PawOsFilesApp')).PawOsFilesApp,
-}));
-const TerminalApp = lazy(async () => ({
+});
+const loadTerminalApp = async () => ({
   default: (await import('@/features/terminal/PawOsTerminalApp')).PawOsTerminalApp,
-}));
+});
+
+const PawAgentApp = lazy(loadPawAgentApp);
+const PawBrowserApp = lazy(loadPawBrowserApp);
+const PawNativeApp = lazy(loadPawNativeApp);
+const PawOsSatelliteHost = lazy(loadPawOsSatelliteHost);
+const PawResultWindow = lazy(loadPawResultWindow);
+const FilesApp = lazy(loadFilesApp);
+const TerminalApp = lazy(loadTerminalApp);
+
+export function warmPawAppBody(appId: PawAppId): void {
+  const load = appId === 'agent'
+    ? loadPawAgentApp
+    : appId === 'browser'
+    ? loadPawBrowserApp
+    : appId === 'files'
+    ? loadFilesApp
+    : appId === 'terminal'
+    ? loadTerminalApp
+    : isPawExtensionAppId(appId)
+    ? undefined
+    : loadPawNativeApp;
+  if (load) void load().catch(() => undefined);
+}
 
 export function PawAppBody({
   appId,
@@ -37,8 +72,15 @@ export function PawAppBody({
 }
 
 function renderApp(appId: PawAppId, entityId?: string, initialRoute?: string, target?: PawOsWindowTarget) {
+  if (isPawExtensionAppId(appId)) {
+    return <PawExtensionAppHost appId={appId} entityId={entityId} initialRoute={initialRoute} target={target} />;
+  }
   if (target?.kind === 'result') return <PawResultWindow target={target} />;
   if (target?.kind === 'process-terminal') return <PawOsSatelliteHost target={target} />;
+  /* A Room participant is a planet observation window, not its full Session
+   * workspace. Keep the participant target for Room grouping and the
+   * Earth/Mars titleplate; the compact host retains the public timeline and
+   * exposes Trace/full-Session navigation when intervention is needed. */
   if (
     (target?.kind === 'room' && Boolean(target.panel))
     || target?.kind === 'participant'
@@ -63,6 +105,7 @@ function renderApp(appId: PawAppId, entityId?: string, initialRoute?: string, ta
     case 'input-studio':
     case 'app-center':
     case 'system-monitor':
+    case 'eval-lab':
     case 'system-settings':
       return <PawNativeApp appId={appId as PawNativeAppId} initialRoute={initialRoute} />;
   }

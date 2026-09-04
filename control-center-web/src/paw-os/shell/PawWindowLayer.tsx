@@ -1,6 +1,5 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react';
+import { lazy, memo, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react';
 import { ChevronRight, Maximize2, Minimize2, Minus, X } from 'lucide-react';
-import { useControlTransport } from '@/app/control-transport';
 import { Disclosure } from '@/components/primitives';
 import {
   PawOsAppSurfaceProvider,
@@ -13,6 +12,7 @@ import {
   PAW_WINDOW_MIN_HEIGHT,
   PAW_WINDOW_MIN_WIDTH,
   fitReachablePawWindowBounds,
+  pawFocusWindowLayerSize,
   pawWindowArea,
   pawWindowLayerSize,
   satelliteGroup,
@@ -23,11 +23,12 @@ import {
 import { PawAppProcess } from '../apps/PawApps';
 import { PawAppIcon } from './PawAppIcon';
 import { PawWindowChromeProvider } from './PawWindowChrome';
-import { pulsePawComposition, pulsePawCompositionForRuntimeEvents } from '../runtime/composition-pulse';
-import { useRoomLiveStore } from '@/features/rooms/state/live-store';
-import { useRoomLiveSession } from '@/features/rooms/runtime/use-room-live-session';
-import { roomActivityFlowKind } from '@/features/rooms/room-flow-projection';
+import { pulsePawComposition } from '../runtime/composition-pulse';
+import { useRoomProjectionBridge } from '@/features/rooms/state/projection-bridge';
+import { roomActivityFlowKind, roomWorkReviewFlow } from '@/features/rooms/room-flow-projection';
 import type { RoomProjectionState } from '@/contracts/room-reducer';
+
+const PawRoomProjectionKeeper = lazy(() => import('./PawRoomProjectionKeeper'));
 
 const noRoomProjections: Record<string, RoomProjectionState> = {};
 const selectRoomProjections = (state: { projections: Record<string, RoomProjectionState> }) => state.projections;
@@ -54,7 +55,7 @@ export function PawWindowLayer() {
     .join('\u0000'));
   const wantsRoomProjections = Boolean(collaborationFocusGroup?.startsWith('room:'))
     || Boolean(participantSignature);
-  const projections = useRoomLiveStore(wantsRoomProjections ? selectRoomProjections : selectNoRoomProjections);
+  const projections = useRoomProjectionBridge(wantsRoomProjections ? selectRoomProjections : selectNoRoomProjections);
   /* Live window geometry is the layer's most expensive input: the whole
    * windows record changes identity on every bounds commit, focus change and
    * runtime title bind. Only collaboration focus frames and Room flow paths
@@ -66,11 +67,12 @@ export function PawWindowLayer() {
   const wantsWindowGeometry = Boolean(collaborationFocusGroup) || Boolean(participantSignature);
   const windows = usePawDesktopStore(wantsWindowGeometry ? selectWindows : selectNoWindows);
   const ids = useMemo(() => idSignature.split('\u0000').filter(Boolean), [idSignature]);
-  /* Focus and overview frames are laid out in window-layer coordinates, so
-   * the layer measures the layer — the same chrome-aware box the store fits
-   * ordinary windows into — instead of the raw browser viewport. */
-  const [viewport, setViewport] = useState(() => pawWindowLayerSize());
+  /* Focus and overview frames are laid out in window-layer coordinates. Both
+   * planes use the full menu-below viewport; the resident Dock is an overlay
+   * instead of reserving a permanent gutter. */
+  const [viewport, setViewport] = useState(() => collaborationFocusGroup ? pawFocusWindowLayerSize() : pawWindowLayerSize());
   const [focusFrameOverrides, setFocusFrameOverrides] = useState<Record<string, PawWindowBounds>>({});
+  const [flowLedgerOpen, setFlowLedgerOpen] = useState(false);
   /* Keepalive identity is answered inside the subscription so the layer sees a
    * stable string: geometry churn cannot re-render it, and only an actual
    * Room window open/close/minimize produces a new value. */
@@ -79,22 +81,39 @@ export function PawWindowLayer() {
   );
   const keptRoomIds = useMemo(() => keptRoomSignature.split('\u0000').filter(Boolean), [keptRoomSignature]);
   const focusedRoomId = collaborationFocusGroup?.startsWith('room:') ? collaborationFocusGroup.slice('room:'.length) : '';
+  const focusReservation = useMemo(() => focusedRoomId
+    ? { modeBarHeight: 46, ledgerHeight: 0 }
+    : {}, [focusedRoomId]);
+  useEffect(() => {
+    setFlowLedgerOpen(false);
+  }, [focusedRoomId]);
   const computedFocusFrames = useMemo(() => collaborationFocusGroup
     ? layoutCollaborationFocus(
         Object.values(windows).filter((node) => windowBelongsToFocus(node, collaborationFocusGroup)),
         viewport,
-        focusedRoomId ? { modeBarHeight: 46, ledgerHeight: 0 } : {},
+        focusReservation,
       )
-    : new Map<string, PawWindowBounds>(), [collaborationFocusGroup, focusedRoomId, viewport, windows]);
-  const focusFrames = useMemo(() => new Map([...computedFocusFrames].map(([id, frame]) => [
-    id,
-    focusFrameOverrides[id] ?? frame,
-  ])), [computedFocusFrames, focusFrameOverrides]);
+    : new Map<string, PawWindowBounds>(), [collaborationFocusGroup, focusReservation, viewport, windows]);
+  const focusFrames = useMemo(() => normalizeCollaborationFocusFrames(
+    computedFocusFrames,
+    focusFrameOverrides,
+    viewport,
+    focusReservation,
+    Boolean(focusedRoomId),
+  ), [computedFocusFrames, focusFrameOverrides, focusReservation, focusedRoomId, viewport]);
   const focusedRoomNodes = useMemo(() => focusedRoomId
     ? Object.values(windows).filter((node) => windowBelongsToFocus(node, `room:${focusedRoomId}`))
     : [], [focusedRoomId, windows]);
   const focusedRoomSatellites = useMemo(() => focusedRoomNodes.filter(isCollaborationSatellite), [focusedRoomNodes]);
-  const focusedRoomMain = focusedRoomNodes.find((node) => !isCollaborationSatellite(node));
+  /* In a Room focus, participant targets are the complete planet Sessions.
+     They are deliberately not `isCollaborationSatellite` (that name belongs
+     only to a subagent), but a narrow perimeter still needs to move them into
+     the same scrollable rail when the canvas cannot fit them. */
+  const focusedRoomPlanets = useMemo(
+    () => focusedRoomNodes.filter((node) => node.target?.kind === 'participant'),
+    [focusedRoomNodes],
+  );
+  const focusedRoomMain = focusedRoomNodes.find((node) => node.target?.kind === 'room' && !node.target.panel);
   const focusedRoomProjection = focusedRoomId ? projections[focusedRoomId] : undefined;
   const focusedRoomStatus = roomFocusStatus(focusedRoomProjection);
   const focusedRoomPlanetCount = focusedRoomNodes.filter((node) => node.target?.kind === 'participant').length;
@@ -103,14 +122,15 @@ export function PawWindowLayer() {
     focusFrames.has(id) ? { ...node, bounds: focusFrames.get(id)! } : node,
   ])), [focusFrames, windows]);
   const flowGroups = useMemo(() => roomWindowFlowGroups(flowWindows, projections), [flowWindows, projections]);
-  const flowTrackedWindowIds = useMemo(
-    () => new Set(flowGroups.flatMap((group) => [...group.windowIds.values()])),
-    [flowGroups],
-  );
   const flowPulse = useWindowFlowPulse(flowGroups);
   const roomFocusRail = useMemo(
-    () => roomFocusRailMetrics(focusedRoomSatellites, focusFrames, viewport, { modeBarHeight: 46, ledgerHeight: 0 }),
-    [focusFrames, focusedRoomSatellites, viewport],
+    () => roomFocusRailMetrics(
+      focusedRoomPlanets.length ? focusedRoomPlanets : focusedRoomSatellites,
+      focusFrames,
+      viewport,
+      { modeBarHeight: 46, ledgerHeight: 0 },
+    ),
+    [focusFrames, focusedRoomPlanets, focusedRoomSatellites, viewport],
   );
   const roomFocusRailIds = useMemo(() => new Set(roomFocusRail?.satelliteIds ?? []), [roomFocusRail]);
   useEffect(() => {
@@ -125,7 +145,7 @@ export function PawWindowLayer() {
     const apply = () => {
       frame = 0;
       setViewport((current) => {
-        const next = pawWindowLayerSize();
+        const next = collaborationFocusGroup ? pawFocusWindowLayerSize() : pawWindowLayerSize();
         return current.width === next.width && current.height === next.height ? current : next;
       });
       api.getState().fitWindowsToViewport();
@@ -139,7 +159,7 @@ export function PawWindowLayer() {
       window.removeEventListener('resize', update);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [api]);
+  }, [api, collaborationFocusGroup]);
   const overviewFrames = useMemo(() => {
     if (!overviewOpen) return new Map<string, OverviewFrame>();
     const state = api.getState();
@@ -170,6 +190,12 @@ export function PawWindowLayer() {
   const bindRoomMain = useCallback((target: Extract<PawOsWindowRequest['target'], { kind: 'room' }>) => {
     api.getState().bindRoomMain(target);
   }, [api]);
+  const setCollaborationFocusGroup = useCallback((group: string | null) => {
+    api.getState().setCollaborationFocusGroup(group);
+  }, [api]);
+  const closeWindow = useCallback((windowId: string) => {
+    api.getState().closeWindow(windowId);
+  }, [api]);
   const bindAgentMain = useCallback((
     windowId: string,
     target?: Extract<PawOsWindowRequest['target'], { kind: 'session' | 'room' }>,
@@ -179,9 +205,9 @@ export function PawWindowLayer() {
   const commitFocusFrame = useCallback((windowId: string, bounds: PawWindowBounds) => {
     setFocusFrameOverrides((current) => ({
       ...current,
-      [windowId]: clampFocusBounds(bounds, viewport, focusedRoomId ? { modeBarHeight: 46, ledgerHeight: 0 } : {}),
+      [windowId]: clampFocusBounds(bounds, viewport, focusReservation),
     }));
-  }, [focusedRoomId, viewport]);
+  }, [focusReservation, viewport]);
   const commitFocusRailFrame = useCallback((windowId: string, bounds: PawWindowBounds) => {
     if (!roomFocusRail) return;
     const localBounds = clampRoomFocusRailBounds(bounds, roomFocusRail);
@@ -191,7 +217,7 @@ export function PawWindowLayer() {
     }));
   }, [roomFocusRail]);
   return (
-    <FeatureDesktopProvider bindAgentMain={bindAgentMain} bindRoomMain={bindRoomMain} openApp={openFeatureApp} openRoute={openFeatureRoute} openWindow={openFeatureWindow}>
+    <FeatureDesktopProvider bindAgentMain={bindAgentMain} bindRoomMain={bindRoomMain} closeWindow={closeWindow} openApp={openFeatureApp} openRoute={openFeatureRoute} openWindow={openFeatureWindow} setCollaborationFocusGroup={setCollaborationFocusGroup}>
       <div className="paw-window-layer" data-overview={overviewOpen || undefined} data-room-focus={focusedRoomId || undefined}>
         {focusedRoomId ? <>
           <div aria-hidden="true" className="paw-room-focus-plane" />
@@ -200,13 +226,16 @@ export function PawWindowLayer() {
             <span><i data-status={focusedRoomStatus.key} />{focusedRoomStatus.label}{focusedRoomPlanetCount ? ` · ${focusedRoomPlanetCount} 颗行星` : ''}</span>
           </header>
         </> : null}
-        {keptRoomIds.map((roomId) => <PawRoomProjectionKeeper key={roomId} roomId={roomId} />)}
-        {!overviewOpen ? <PawRoomWindowFlowLayer activePulseKeys={flowPulse.packetPulseKeys} focusGroup={collaborationFocusGroup} groups={flowGroups} /> : null}
+        {keptRoomIds.length ? (
+          <Suspense fallback={null}>
+            {keptRoomIds.map((roomId) => <PawRoomProjectionKeeper key={roomId} roomId={roomId} />)}
+          </Suspense>
+        ) : null}
+        {!overviewOpen ? <PawRoomWindowFlowLayer focusGroup={collaborationFocusGroup} groups={flowGroups} ledgerOpen={flowLedgerOpen} onLedgerOpenChange={setFlowLedgerOpen} /> : null}
         {ids.filter((id) => !roomFocusRailIds.has(id)).map((id) => (
           <PawWindow
             collaborationFocusGroup={collaborationFocusGroup}
             flowState={flowPulse.targetWindowIds.has(id) ? 'arrival' : flowPulse.sourceWindowIds.has(id) ? 'source' : undefined}
-            flowTracked={flowTrackedWindowIds.has(id)}
             focusFrame={focusFrames.get(id)}
             key={id}
             onFocusFrameCommit={commitFocusFrame}
@@ -222,7 +251,6 @@ export function PawWindowLayer() {
               return <PawWindow
                 collaborationFocusGroup={collaborationFocusGroup}
                 flowState={flowPulse.targetWindowIds.has(id) ? 'arrival' : flowPulse.sourceWindowIds.has(id) ? 'source' : undefined}
-                flowTracked={flowTrackedWindowIds.has(id)}
                 focusFrame={frame ? roomFocusRailLocalFrame(frame, roomFocusRail.top) : undefined}
                 key={id}
                 onFocusFrameCommit={commitFocusRailFrame}
@@ -277,22 +305,6 @@ function clampRoomFocusRailBounds(bounds: PawWindowBounds, rail: RoomFocusRailMe
   };
 }
 
-function PawRoomProjectionKeeper({ roomId }: { roomId: string }) {
-  const transport = useControlTransport();
-  useRoomLiveSession({
-    roomId,
-    transport,
-    onLoadingChange: () => undefined,
-    onSnapshot: () => undefined,
-    onMetadata: () => undefined,
-    onConnectionRestored: () => undefined,
-    onConnectionError: () => undefined,
-    onRecoveryState: () => undefined,
-    onEvents: (_roomId, events) => pulsePawCompositionForRuntimeEvents('room', events.map((event) => event.eventType)),
-  });
-  return null;
-}
-
 function roomProjectionKeepaliveIds(windows: Record<string, PawWindowNode>, overviewOpen: boolean): string[] {
   const mainVisible = new Set<string>();
   const auxiliary = new Set<string>();
@@ -323,157 +335,24 @@ function roomFocusStatus(projection?: RoomProjectionState): { key: string; label
   return { key: 'synced', label: '已同步' };
 }
 
-/** UR-057：拖动/resize 期间路径跟随窗口 transform 的实时几何，
- *  不回写窗口布局，也不重放已见过的到达特效。 */
-export const PAW_WINDOW_FLOW_GEOMETRY_EVENT = 'paw-window-flow-geometry';
-
-type WindowFlowGeometryDetail = { windowId: string; point: WindowFlowPoint | null };
-
-/* Only windows that actually sit in a Room flow group carry data-flow-tracked.
- * Dragging any other window must stay a pure compositor transform: no rect
- * reads, no event dispatch and no per-frame React state in the flow layer. */
-function publishLiveWindowFlowPoint(shell: HTMLElement, clear = false): void {
-  const windowId = shell.dataset.pawWindowId;
-  if (!windowId) return;
-  let point: WindowFlowPoint | null = null;
-  if (!clear) {
-    if (!shell.dataset.flowTracked) return;
-    const layer = shell.closest('.paw-window-layer');
-    if (!layer) return;
-    const rect = shell.getBoundingClientRect();
-    const layerRect = layer.getBoundingClientRect();
-    point = {
-      x: rect.left - layerRect.left + rect.width / 2,
-      y: rect.top - layerRect.top + rect.height / 2,
-    };
-  }
-  window.dispatchEvent(new CustomEvent<WindowFlowGeometryDetail>(PAW_WINDOW_FLOW_GEOMETRY_EVENT, {
-    detail: { windowId, point },
-  }));
-}
-
-export function windowFlowGroupsWithLivePoints(
-  groups: WindowFlowGroup[],
-  livePointsByWindowId: Record<string, WindowFlowPoint>,
-): WindowFlowGroup[] {
-  if (!Object.keys(livePointsByWindowId).length) return groups;
-  return groups.map((group) => {
-    let changed = false;
-    const points = new Map(group.points);
-    for (const [actor, windowId] of group.windowIds) {
-      const livePoint = livePointsByWindowId[windowId];
-      if (!livePoint) continue;
-      points.set(actor, livePoint);
-      changed = true;
-    }
-    return changed ? { ...group, points } : group;
-  });
-}
-
-function useLiveWindowFlowPoints(): Record<string, WindowFlowPoint> {
-  const [livePoints, setLivePoints] = useState<Record<string, WindowFlowPoint>>({});
-  useEffect(() => {
-    let frame = 0;
-    const pending = new Map<string, WindowFlowPoint | null>();
-    const apply = (batch: ReadonlyArray<readonly [string, WindowFlowPoint | null]>) => {
-      setLivePoints((current) => {
-        let next: Record<string, WindowFlowPoint> | null = null;
-        for (const [windowId, point] of batch) {
-          const base: Record<string, WindowFlowPoint> = next ?? current;
-          if (point) {
-            const prior = base[windowId];
-            if (prior && prior.x === point.x && prior.y === point.y) continue;
-            next = { ...base, [windowId]: point };
-          } else if (windowId in base) {
-            const copy = { ...base };
-            delete copy[windowId];
-            next = copy;
-          }
-        }
-        return next ?? current;
-      });
-    };
-    const flush = () => {
-      frame = 0;
-      if (!pending.size) return;
-      const batch = [...pending];
-      pending.clear();
-      apply(batch);
-    };
-    /* Leading edge applies synchronously: the publisher already paces one
-     * geometry event per frame per window (it fires from the drag gesture's
-     * own rAF render), so the common path is one immediate React write per
-     * frame with zero added latency. The trailing rAF slot only exists to
-     * fold a same-frame burst — several windows repositioned at once — into
-     * one write. Clears flush through immediately so release never paints a
-     * stale path. */
-    const handle = (event: Event) => {
-      const detail = (event as CustomEvent<WindowFlowGeometryDetail>).detail;
-      if (!detail?.windowId) return;
-      pending.set(detail.windowId, detail.point);
-      if (!detail.point) {
-        if (frame) {
-          window.cancelAnimationFrame(frame);
-          frame = 0;
-        }
-        flush();
-        return;
-      }
-      if (!frame) {
-        flush();
-        frame = window.requestAnimationFrame(flush);
-      }
-    };
-    window.addEventListener(PAW_WINDOW_FLOW_GEOMETRY_EVENT, handle);
-    return () => {
-      window.removeEventListener(PAW_WINDOW_FLOW_GEOMETRY_EVENT, handle);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
-  return livePoints;
-}
-
-export function PawRoomWindowFlowLayer({ activePulseKeys, focusGroup, groups: committedGroups }: {
-  activePulseKeys: ReadonlySet<string>;
+export function PawRoomWindowFlowLayer({ focusGroup, groups, ledgerOpen = false, onLedgerOpenChange }: {
   focusGroup: string | null;
   groups: WindowFlowGroup[];
+  ledgerOpen?: boolean;
+  onLedgerOpenChange?: (open: boolean) => void;
 }) {
-  const livePoints = useLiveWindowFlowPoints();
-  const groups = useMemo(
-    () => windowFlowGroupsWithLivePoints(committedGroups, livePoints),
-    [committedGroups, livePoints],
-  );
   if (!groups.length) return null;
   const focusedRoomId = focusGroup?.startsWith('room:') ? focusGroup.slice('room:'.length) : '';
   const focusedGroup = groups.find((group) => group.roomId === focusedRoomId);
   return (
     <>
-      <svg aria-hidden="true" className="paw-room-window-flow" height="100%" width="100%">
-        {groups.flatMap((group) => group.packets.flatMap((packet, packetIndex) => packet.targetIds.flatMap((targetId, targetIndex) => {
-          const source = group.points.get(packet.sourceId);
-          const target = group.points.get(targetId);
-          if (!source || !target || packet.sourceId === targetId) return [];
-          const path = windowFlowPath(source, target, packetIndex + targetIndex);
-          const delay = targetIndex * 90;
-          const live = activePulseKeys.has(packet.pulseKey);
-          return <g data-kind={packet.kind} data-live={live || undefined} key={`${group.roomId}:${packet.id}:${targetId}`}>
-            <path className="paw-room-window-flow__base" d={path} />
-            {live ? <>
-              <path className="paw-room-window-flow__live" d={path} pathLength="1" style={{ animationDelay: `${delay}ms` }} />
-              <circle className="paw-room-window-flow__source" cx={source.x} cy={source.y} r="7" style={{ animationDelay: `${delay}ms` }} />
-              <circle className="paw-room-window-flow__packet" r="4.5">
-                <animateMotion begin={`${delay}ms`} dur="720ms" fill="freeze" path={path} />
-              </circle>
-              <text className="paw-room-window-flow__label" textAnchor="middle" x={(source.x + target.x) / 2} y={(source.y + target.y) / 2 - 8}>{windowFlowKindLabel(packet.kind)}</text>
-              <circle className="paw-room-window-flow__arrival" cx={target.x} cy={target.y} r="8" style={{ animationDelay: `${delay + 590}ms` }} />
-            </> : null}
-          </g>;
-        })))}
-      </svg>
       {focusedGroup?.packets.length ? (
         <Disclosure
           aria-label="Room 流转记录"
           className="paw-room-window-flow-ledger"
+          defaultOpen={ledgerOpen}
+          key={focusedRoomId}
+          onOpenChange={onLedgerOpenChange}
           summary={<><span><strong>流转记录</strong><small>{focusedGroup.packets.length} 条</small></span><ChevronRight aria-hidden="true" size={14} /></>}
         >
           {focusedGroup.packets.map((packet) => (
@@ -499,9 +378,11 @@ export type WindowFlowPacket = {
   pulseKey: string;
   sourceId: WindowFlowActor;
   targetIds: WindowFlowActor[];
-  kind: 'request' | 'question' | 'answer' | 'result' | 'context' | 'dispatch' | 'approval';
+  kind: 'request' | 'intercom' | 'question' | 'answer' | 'result' | 'context' | 'dispatch' | 'approval' | 'review';
   summary?: string;
   status?: string;
+  workItemId?: string;
+  refs?: string[];
   createdAtMs?: number;
 };
 export type WindowFlowGroup = {
@@ -540,9 +421,15 @@ export function roomWindowFlowGroups(
       if (!activity) continue;
       const kind = roomActivityFlowKind(activity);
       if (!kind) continue;
-      const targetId = kind === 'approval' ? 'root' : stringValue(activity.payload.targetParticipantId) || activity.participantId || '';
+      const review = kind === 'review' ? roomWorkReviewFlow(activity) : undefined;
+      const targetId = kind === 'approval'
+        ? 'root'
+        : kind === 'review'
+          ? review?.targetParticipantId || reviewTargetParticipantId(activity.payload)
+          : stringValue(activity.payload.targetParticipantId) || activity.participantId || '';
       if (!points.has(targetId)) continue;
-      const sourceId = stringValue(activity.payload.sourceParticipantId)
+      const sourceId = review?.sourceParticipantId
+        || stringValue(activity.payload.sourceParticipantId)
         || stringValue(activity.payload.actorParticipantId)
         || (kind === 'approval' ? activity.participantId : '')
         || 'root';
@@ -553,7 +440,9 @@ export function roomWindowFlowGroups(
         targetIds: [targetId],
         kind,
         summary: activity.summary,
-        status: activity.status,
+        status: review?.status ?? activity.status,
+        ...(review?.workItemId ? { workItemId: review.workItemId } : {}),
+        ...(review?.refs.length ? { refs: review.refs } : {}),
         createdAtMs: activity.createdAtMs,
       });
     }
@@ -630,19 +519,21 @@ export function windowFlowArrivalPulse(
 }
 
 export function isCollaborationSatellite(node: PawWindowNode): boolean {
-  if (node.minimized || !node.target) return false;
-  if (node.target.kind === 'participant' || node.target.kind === 'subagent') return true;
-  if (node.target.kind === 'process-terminal' || node.target.kind === 'browser-target') return true;
-  if (node.target.kind === 'room') return Boolean(node.target.panel);
-  return node.target.kind === 'work-document' || node.target.kind === 'result';
+  return !node.minimized && node.target?.kind === 'subagent';
 }
 
 export function windowBelongsToFocus(node: PawWindowNode, group: string): boolean {
   if (node.minimized) return false;
-  if (satelliteGroup(node.target) === group) return true;
-  if (group.startsWith('room:') && node.target?.kind === 'room') {
-    return node.target.id === group.slice('room:'.length);
+  /* A Room focus is a composition of the Room main and compact participant
+     planet observers. Runtime projections (terminal/browser), documents,
+     results and Room tool panels stay ordinary desktop windows; only a
+     Session-created subagent is ever a satellite. */
+  if (group.startsWith('room:')) {
+    const roomId = group.slice('room:'.length);
+    if (node.target?.kind === 'room') return node.target.id === roomId && !node.target.panel;
+    return node.target?.kind === 'participant' && node.target.roomId === roomId;
   }
+  if (satelliteGroup(node.target) === group) return true;
   if (group.startsWith('session:') && node.target?.kind === 'session') {
     return node.target.id === group.slice('session:'.length);
   }
@@ -656,17 +547,26 @@ export function layoutCollaborationFocus(
 ): Map<string, PawWindowBounds> {
   const frames = new Map<string, PawWindowBounds>();
   if (!nodes.length) return frames;
+  const roomMain = nodes.find((node) => node.target?.kind === 'room' && !node.target.panel);
+  if (roomMain) return layoutRoomCollaborationFocus(nodes, roomMain, viewport, reserved);
   const inset = 10;
   const gap = 10;
   const modeBarHeight = Math.max(0, reserved.modeBarHeight ?? 0);
-  const ledgerSpace = nodes.length > 1 && viewport.height >= 420 ? Math.max(0, reserved.ledgerHeight ?? 48) : 0;
+  /* The ledger is an absolute overlay. It never reserves focus geometry,
+     whether collapsed or open. */
+  const ledgerSpace = 0;
   const usableTop = modeBarHeight;
   const usableBottom = Math.max(usableTop, viewport.height - ledgerSpace);
   const usableHeight = usableBottom - usableTop;
   const main = nodes.find((node) => !isCollaborationSatellite(node)) ?? nodes[0]!;
   const satellites = nodes.filter((node) => node.id !== main.id);
   if (!satellites.length) {
-    frames.set(main.id, { x: inset, y: usableTop + inset, width: viewport.width - inset * 2, height: usableHeight - inset * 2 });
+    frames.set(main.id, {
+      x: inset,
+      y: usableTop + inset,
+      width: Math.max(PAW_WINDOW_MIN_WIDTH, viewport.width - inset * 2),
+      height: Math.max(PAW_WINDOW_MIN_HEIGHT, usableHeight - inset * 2),
+    });
     return frames;
   }
   if (usesHorizontalFocusRail(satellites.length, viewport.width, usableHeight, inset, gap)) {
@@ -688,53 +588,71 @@ export function layoutCollaborationFocus(
   }
   if (viewport.width < 720) {
     const mainRatio = satellites.length >= 5 ? .49 : .58;
-    const mainHeight = satellites.length ? Math.max(210, Math.round(usableHeight * mainRatio)) : usableHeight - inset * 2;
-    frames.set(main.id, { x: inset, y: usableTop + inset, width: viewport.width - inset * 2, height: mainHeight });
-    if (!satellites.length) return frames;
+    const mainHeight = Math.max(PAW_WINDOW_MIN_HEIGHT, Math.round(usableHeight * mainRatio));
+    const mainWidth = Math.max(PAW_WINDOW_MIN_WIDTH, viewport.width - inset * 2);
     const columns = Math.min(2, satellites.length);
     const rows = Math.ceil(satellites.length / columns);
     const auxiliaryTop = usableTop + inset + mainHeight + gap;
     const auxiliaryHeight = Math.max(0, usableBottom - auxiliaryTop - inset);
     const cellWidth = (viewport.width - inset * 2 - gap * (columns - 1)) / columns;
     const cellHeight = (auxiliaryHeight - gap * (rows - 1)) / rows;
+    /* Two columns are attractive until the cards stop fitting. At that point
+     * keeping their CSS min-size in the grid only makes the layer clip the
+     * right-hand cards; the horizontal rail below preserves every card's
+     * identity and gives the user an explicit scroll affordance. */
+    if (cellWidth < PAW_WINDOW_MIN_WIDTH || cellHeight < PAW_WINDOW_MIN_HEIGHT) {
+      return layoutHorizontalSatelliteRail(frames, main, satellites, viewport, usableTop, usableBottom, inset, gap);
+    }
+    frames.set(main.id, { x: inset, y: usableTop + inset, width: mainWidth, height: mainHeight });
     satellites.forEach((node, index) => frames.set(node.id, {
       x: inset + (index % columns) * (cellWidth + gap),
       y: auxiliaryTop + Math.floor(index / columns) * (cellHeight + gap),
-      width: cellWidth,
-      height: cellHeight,
+      width: Math.max(PAW_WINDOW_MIN_WIDTH, cellWidth),
+      height: Math.max(PAW_WINDOW_MIN_HEIGHT, cellHeight),
     }));
     return frames;
   }
   if (viewport.width < 1000) {
-    const railWidth = Math.min(300, Math.max(240, viewport.width * .34));
+    const railWidth = Math.min(320, Math.max(PAW_WINDOW_MIN_WIDTH, Math.round(viewport.width * .34)));
+    const height = (usableHeight - inset * 2 - gap * (satellites.length - 1)) / satellites.length;
+    const mainWidth = viewport.width - inset * 2 - railWidth - gap;
+    if (height < PAW_WINDOW_MIN_HEIGHT || mainWidth < PAW_WINDOW_MIN_WIDTH) {
+      return layoutHorizontalSatelliteRail(frames, main, satellites, viewport, usableTop, usableBottom, inset, gap);
+    }
     frames.set(main.id, {
       x: inset,
       y: usableTop + inset,
-      width: viewport.width - railWidth - gap - inset * 2,
-      height: usableHeight - inset * 2,
+      width: Math.max(PAW_WINDOW_MIN_WIDTH, mainWidth),
+      height: Math.max(PAW_WINDOW_MIN_HEIGHT, usableHeight - inset * 2),
     });
-    const height = (usableHeight - inset * 2 - gap * (satellites.length - 1)) / satellites.length;
     satellites.forEach((node, index) => frames.set(node.id, {
       x: viewport.width - inset - railWidth,
       y: usableTop + inset + index * (height + gap),
       width: railWidth,
-      height,
+      height: Math.max(PAW_WINDOW_MIN_HEIGHT, height),
     }));
     return frames;
   }
-  const railWidth = Math.min(320, Math.max(260, viewport.width * .21));
-  const mainX = railWidth + gap * 2;
+  const railWidth = Math.min(320, Math.max(PAW_WINDOW_MIN_WIDTH, Math.round(viewport.width * .21)));
+  const mainX = inset + railWidth + gap;
+  const mainWidth = viewport.width - inset * 2 - railWidth * 2 - gap * 2;
   frames.set(main.id, {
     x: mainX,
     y: usableTop + inset,
-    width: Math.max(420, viewport.width - mainX * 2),
-    height: Math.max(320, usableHeight - inset * 2),
+    width: Math.max(PAW_WINDOW_MIN_WIDTH, mainWidth),
+    height: Math.max(PAW_WINDOW_MIN_HEIGHT, usableHeight - inset * 2),
   });
   const left = satellites.filter((_, index) => index % 2 === 0);
   const right = satellites.filter((_, index) => index % 2 === 1);
+  const maximumSideCount = Math.max(left.length, right.length);
+  const sideHeight = (usableHeight - inset * 2 - gap * (maximumSideCount - 1)) / maximumSideCount;
+  if (mainWidth < PAW_WINDOW_MIN_WIDTH || sideHeight < PAW_WINDOW_MIN_HEIGHT) {
+    frames.clear();
+    return layoutHorizontalSatelliteRail(frames, main, satellites, viewport, usableTop, usableBottom, inset, gap);
+  }
   const placeRail = (items: PawWindowNode[], x: number) => {
     if (!items.length) return;
-    const height = Math.max(96, (usableHeight - inset * 2 - gap * (items.length - 1)) / items.length);
+    const height = Math.max(PAW_WINDOW_MIN_HEIGHT, (usableHeight - inset * 2 - gap * (items.length - 1)) / items.length);
     items.forEach((node, index) => frames.set(node.id, {
       x,
       y: usableTop + inset + index * (height + gap),
@@ -744,6 +662,158 @@ export function layoutCollaborationFocus(
   };
   placeRail(left, inset);
   placeRail(right, viewport.width - inset - railWidth);
+  return frames;
+}
+
+/**
+ * Room collaboration is a different composition from a Session's optional
+ * subagent popup: the Room stays a reduced, complete central workspace and
+ * participant windows are compact planet observers placed around it. Auxiliary
+ * projections never reach this function because `windowBelongsToFocus` keeps
+ * them out of the `room:<id>` group.
+ */
+function layoutRoomCollaborationFocus(
+  nodes: PawWindowNode[],
+  main: PawWindowNode,
+  viewport: { width: number; height: number },
+  reserved: { modeBarHeight?: number; ledgerHeight?: number },
+): Map<string, PawWindowBounds> {
+  const frames = new Map<string, PawWindowBounds>();
+  const inset = 10;
+  const gap = 12;
+  const modeBarHeight = Math.max(0, reserved.modeBarHeight ?? 0);
+  const usableTop = modeBarHeight + inset;
+  const usableBottom = Math.max(usableTop + PAW_WINDOW_MIN_HEIGHT, viewport.height - inset);
+  const usableWidth = Math.max(PAW_WINDOW_MIN_WIDTH, viewport.width - inset * 2);
+  const usableHeight = Math.max(PAW_WINDOW_MIN_HEIGHT, usableBottom - usableTop);
+  const planets = nodes
+    .filter((node) => node.id !== main.id && node.target?.kind === 'participant')
+    .slice()
+    .sort((left, right) => (
+      (left.target?.title ?? '').localeCompare(right.target?.title ?? '')
+      || left.id.localeCompare(right.id)
+    ));
+
+  if (!planets.length) {
+    const mainWidth = Math.min(
+      usableWidth,
+      Math.max(PAW_WINDOW_MIN_WIDTH, Math.round(usableWidth * .54)),
+    );
+    const mainHeight = Math.min(
+      usableHeight,
+      Math.max(PAW_WINDOW_MIN_HEIGHT, Math.round(usableHeight * .7)),
+    );
+    frames.set(main.id, {
+      x: inset + Math.max(0, (usableWidth - mainWidth) / 2),
+      y: usableTop + Math.max(0, (usableHeight - mainHeight) / 2),
+      width: mainWidth,
+      height: mainHeight,
+    });
+    return frames;
+  }
+
+  /* The perimeter is a real layout region, not a set of thumbnail cards. Let
+     planet slots grow with the available desktop so a wide focus canvas does
+     not leave a second band of unused space beside tiny fixed windows. The
+     shared minimum still protects the complete Session chrome on small screens. */
+  const planetWidth = Math.min(
+    380,
+    Math.max(PAW_WINDOW_MIN_WIDTH, Math.round(usableWidth * .18)),
+  );
+  const planetRows = Math.max(1, Math.ceil(planets.length / 2));
+  const planetHeight = Math.max(
+    PAW_WINDOW_MIN_HEIGHT,
+    Math.floor((usableHeight + gap) / planetRows - gap),
+  );
+  const sideCapacity = Math.floor((usableHeight + gap) / (planetHeight + gap)) * 2;
+  const sideReserve = planetWidth + gap;
+  const sideMainWidth = usableWidth - sideReserve * 2;
+
+  /* Two side columns are the most useful composition when the vertical space
+     is tight: unlike the old bottom rail, the Room remains central and every
+     participant keeps a compact observation frame. */
+  if (planets.length <= sideCapacity && sideMainWidth >= PAW_WINDOW_MIN_WIDTH) {
+    const left = planets.filter((_, index) => index % 2 === 0);
+    const right = planets.filter((_, index) => index % 2 === 1);
+    const mainHeight = usableHeight;
+    const mainX = inset + sideReserve;
+    frames.set(main.id, {
+      x: mainX,
+      y: usableTop,
+      width: sideMainWidth,
+      height: mainHeight,
+    });
+    const placeSide = (items: PawWindowNode[], x: number) => {
+      if (!items.length) return;
+      const totalHeight = items.length * planetHeight + (items.length - 1) * gap;
+      const top = usableTop + Math.max(0, (usableHeight - totalHeight) / 2);
+      items.forEach((node, index) => frames.set(node.id, {
+        x,
+        y: top + index * (planetHeight + gap),
+        width: planetWidth,
+        height: planetHeight,
+      }));
+    };
+    placeSide(left, inset);
+    placeSide(right, viewport.width - inset - planetWidth);
+    return frames;
+  }
+
+  const rowCapacity = Math.max(1, Math.floor((usableWidth + gap) / (planetWidth + gap)));
+  const topCount = Math.min(rowCapacity, Math.ceil(planets.length / 2));
+  const bottomCount = Math.min(rowCapacity, planets.length - topCount);
+  const remaining = planets.slice(topCount + bottomCount);
+  const left = remaining.filter((_, index) => index % 2 === 0);
+  const right = remaining.filter((_, index) => index % 2 === 1);
+  const topSpace = topCount ? planetHeight + gap : 0;
+  const bottomSpace = bottomCount ? planetHeight + gap : 0;
+  const centralHeight = usableHeight - topSpace - bottomSpace;
+  const centralWidth = usableWidth - (left.length ? sideReserve : 0) - (right.length ? sideReserve : 0);
+
+  /* If the requested number of planet observation windows cannot physically surround a
+     Room at this viewport, preserve the same ownership and z-order contract
+     with a bounded stack. This branch is only for genuinely undersized
+     canvases; normal desktop sizes use the perimeter composition above. */
+  if (centralHeight < PAW_WINDOW_MIN_HEIGHT || centralWidth < PAW_WINDOW_MIN_WIDTH) {
+    /* A rail is the narrow-screen fallback, not an overflowing grid. The
+       WindowLayer extracts these frames into a real scroll container so the
+       main Room remains bounded and every planet stays reachable. */
+    return layoutHorizontalSatelliteRail(frames, main, planets, viewport, usableTop, usableBottom, inset, gap);
+  }
+
+  const preferredMainWidth = Math.round(usableWidth * .54);
+  const mainWidth = Math.min(centralWidth, Math.max(PAW_WINDOW_MIN_WIDTH, preferredMainWidth));
+  const mainX = inset + (usableWidth - mainWidth) / 2;
+  const mainY = usableTop + topSpace + Math.max(0, (centralHeight - Math.min(centralHeight, Math.round(usableHeight * .7))) / 2);
+  const mainHeight = Math.min(centralHeight, Math.max(PAW_WINDOW_MIN_HEIGHT, Math.round(usableHeight * .7)));
+  frames.set(main.id, { x: mainX, y: mainY, width: mainWidth, height: mainHeight });
+
+  const placeRow = (items: PawWindowNode[], y: number) => {
+    if (!items.length) return;
+    const rowWidth = items.length * planetWidth + (items.length - 1) * gap;
+    const start = Math.max(inset, (viewport.width - rowWidth) / 2);
+    items.forEach((node, index) => frames.set(node.id, {
+      x: start + index * (planetWidth + gap),
+      y,
+      width: planetWidth,
+      height: planetHeight,
+    }));
+  };
+  placeRow(planets.slice(0, topCount), usableTop);
+  placeRow(planets.slice(topCount, topCount + bottomCount), usableBottom - planetHeight);
+  const placeSide = (items: PawWindowNode[], x: number) => {
+    if (!items.length) return;
+    const totalHeight = items.length * planetHeight + (items.length - 1) * gap;
+    const top = usableTop + Math.max(0, (usableHeight - totalHeight) / 2);
+    items.forEach((node, index) => frames.set(node.id, {
+      x,
+      y: top + index * (planetHeight + gap),
+      width: planetWidth,
+      height: planetHeight,
+    }));
+  };
+  placeSide(left, inset);
+  placeSide(right, viewport.width - inset - planetWidth);
   return frames;
 }
 
@@ -763,6 +833,44 @@ function usesHorizontalFocusRail(
   return viewportWidth < 720 || projectedHeight < PAW_WINDOW_MIN_HEIGHT;
 }
 
+const PAW_ROOM_FOCUS_RAIL_HEIGHT = 220;
+
+/**
+ * Lay out satellites in one scrollable strip when a side/grid projection
+ * cannot honor the window floor. The strip deliberately overflows in the x
+ * axis; PawRoomFocusRail owns that overflow and exposes every stable window
+ * identity through keyboard and pointer scrolling.
+ */
+function layoutHorizontalSatelliteRail(
+  frames: Map<string, PawWindowBounds>,
+  main: PawWindowNode,
+  satellites: PawWindowNode[],
+  viewport: { width: number; height: number },
+  usableTop: number,
+  usableBottom: number,
+  inset: number,
+  gap: number,
+): Map<string, PawWindowBounds> {
+  const mainTop = usableTop + inset;
+  const railHeight = Math.max(PAW_ROOM_FOCUS_RAIL_HEIGHT, Math.min(260, Math.round((usableBottom - usableTop) * .32)));
+  const railTop = Math.max(mainTop + PAW_WINDOW_MIN_HEIGHT + gap, usableBottom - inset - railHeight);
+  const mainHeight = Math.max(PAW_WINDOW_MIN_HEIGHT, railTop - gap - mainTop);
+  const mainWidth = Math.max(PAW_WINDOW_MIN_WIDTH, viewport.width - inset * 2);
+  const satelliteWidth = Math.max(PAW_WINDOW_MIN_WIDTH, Math.min(320, Math.round(viewport.width * .34)));
+  frames.set(main.id, {
+    x: inset,
+    y: mainTop,
+    width: mainWidth,
+    height: mainHeight,
+  });
+  satellites.forEach((node, index) => frames.set(node.id, {
+    x: inset + index * (satelliteWidth + gap),
+    y: railTop,
+    width: satelliteWidth,
+    height: railHeight,
+  }));
+  return frames;
+}
 type RoomFocusRailMetrics = {
   height: number;
   satelliteIds: string[];
@@ -781,13 +889,19 @@ function roomFocusRailMetrics(
     - Math.max(0, reserved.modeBarHeight ?? 0)
     - Math.max(0, reserved.ledgerHeight ?? 0),
   );
-  if (!usesHorizontalFocusRail(satellites.length, viewport.width, usableHeight)) return null;
+  if (usableHeight <= 0) return null;
   const satelliteFrames = satellites.flatMap((node) => {
     const frame = frames.get(node.id);
     return frame ? [{ id: node.id, frame }] : [];
   });
   if (satelliteFrames.length !== satellites.length) return null;
   const top = Math.min(...satelliteFrames.map(({ frame }) => frame.y));
+  /* A user may drag one card a few pixels while it is in the rail. The
+   * overflow itself is the stable layout marker; requiring equal y values
+   * would unmount the rail on the next render and swap the interaction back
+   * to the ordinary focus clamp. */
+  const horizontalRail = satelliteFrames.some(({ frame }) => frame.x + frame.width > viewport.width);
+  if (!horizontalRail) return null;
   const bottom = Math.max(...satelliteFrames.map(({ frame }) => frame.y + frame.height));
   const trackWidth = Math.max(viewport.width, ...satelliteFrames.map(({ frame }) => frame.x + frame.width + 10));
   return { height: bottom - top + 12, satelliteIds: satelliteFrames.map(({ id }) => id), top, trackWidth };
@@ -810,22 +924,93 @@ function clampFocusBounds(
   };
 }
 
+type CollaborationRail = {
+  ids: ReadonlySet<string>;
+  trackWidth: number;
+};
+
+function collaborationHorizontalRail(
+  frames: ReadonlyMap<string, PawWindowBounds>,
+  viewport: { width: number; height: number },
+): CollaborationRail | null {
+  /* A focus rail is the only collaboration layout that intentionally lets
+   * several same-row frames run past the viewport. Looking only for an
+   * overflowing frame would mistake a stale one-window override for that
+   * layout, so require a real same-row run with at least two members. */
+  const rows = new Map<number, Array<[string, PawWindowBounds]>>();
+  for (const entry of frames) {
+    const row = Math.round(entry[1].y);
+    const current = rows.get(row) ?? [];
+    current.push(entry);
+    rows.set(row, current);
+  }
+  for (const row of rows.values()) {
+    if (row.length < 2 || !row.some(([, frame]) => frame.x + frame.width > viewport.width)) continue;
+    const ordered = row.slice().sort((left, right) => left[1].x - right[1].x);
+    return {
+      ids: new Set(ordered.map(([id]) => id)),
+      trackWidth: Math.max(viewport.width, ...ordered.map(([, frame]) => frame.x + frame.width + 10)),
+    };
+  }
+  return null;
+}
+
+function clampCollaborationRailBounds(
+  bounds: PawWindowBounds,
+  viewport: { width: number; height: number },
+  reserved: { modeBarHeight?: number; ledgerHeight?: number },
+  trackWidth: number,
+): PawWindowBounds {
+  const top = Math.max(0, reserved.modeBarHeight ?? 0);
+  const bottom = Math.max(top, viewport.height - Math.max(0, reserved.ledgerHeight ?? 0));
+  const width = Math.min(Math.max(PAW_WINDOW_MIN_WIDTH, bounds.width), Math.max(PAW_WINDOW_MIN_WIDTH, trackWidth));
+  const height = Math.min(Math.max(PAW_WINDOW_MIN_HEIGHT, bounds.height), Math.max(PAW_WINDOW_MIN_HEIGHT, bottom - top));
+  return {
+    x: Math.min(Math.max(0, bounds.x), Math.max(0, trackWidth - width)),
+    y: Math.min(Math.max(top, bounds.y), Math.max(top, bottom - height)),
+    width,
+    height,
+  };
+}
+
+/**
+ * Merge user-adjusted focus frames while keeping ordinary Room grid frames
+ * inside the desktop after roster or viewport changes. A horizontal Room rail
+ * is an intentional scroll region: its frames may extend past the viewport,
+ * but stale overrides are still bounded to that rail's reachable track.
+ */
+export function normalizeCollaborationFocusFrames(
+  computed: ReadonlyMap<string, PawWindowBounds>,
+  overrides: Readonly<Record<string, PawWindowBounds>>,
+  viewport: { width: number; height: number },
+  reserved: { modeBarHeight?: number; ledgerHeight?: number },
+  containRoomFrames = false,
+): Map<string, PawWindowBounds> {
+  const rail = containRoomFrames ? collaborationHorizontalRail(computed, viewport) : null;
+  return new Map([...computed].map(([id, frame]) => [
+    id,
+    containRoomFrames
+      ? rail?.ids.has(id)
+        ? clampCollaborationRailBounds(overrides[id] ?? frame, viewport, reserved, rail.trackWidth)
+        : clampFocusBounds(overrides[id] ?? frame, viewport, reserved)
+      : overrides[id] ?? frame,
+  ]));
+}
+
 function windowCenter(bounds: PawWindowBounds): WindowFlowPoint {
   return { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
 }
 
-function windowFlowPath(source: WindowFlowPoint, target: WindowFlowPoint, index: number): string {
-  const dx = target.x - source.x;
-  const dy = target.y - source.y;
-  const length = Math.max(1, Math.hypot(dx, dy));
-  const bend = (index % 2 ? -1 : 1) * Math.min(46, length * .11);
-  const controlX = (source.x + target.x) / 2 - dy / length * bend;
-  const controlY = (source.y + target.y) / 2 + dx / length * bend;
-  return `M ${source.x} ${source.y} Q ${controlX} ${controlY} ${target.x} ${target.y}`;
+function windowFlowKindLabel(kind: WindowFlowPacket['kind']): string {
+  return ({ request: '需求', intercom: '伙伴请求', question: '问题', answer: '答复', result: '结果', context: '上下文', dispatch: '分派', approval: '审批', review: '复核' } as const)[kind];
 }
 
-function windowFlowKindLabel(kind: WindowFlowPacket['kind']): string {
-  return ({ request: '需求', question: '问题', answer: '答复', result: '结果', context: '上下文', dispatch: '分派', approval: '审批' } as const)[kind];
+function reviewTargetParticipantId(payload: Record<string, unknown>): string {
+  return stringValue(payload.targetParticipantId)
+    || stringValue(payload.reviewerParticipantId)
+    || stringValue(payload.verifierParticipantId)
+    || stringValue(payload.reviewedParticipantId)
+    || stringValue(payload.revieweeParticipantId);
 }
 
 function windowFlowClock(timestamp?: number): string {
@@ -855,10 +1040,9 @@ function stringValue(value: unknown): string { return typeof value === 'string' 
  * tree. memo bails untouched windows out at the frame boundary; each window's
  * own store slice (its node, stack position, active flag) still re-renders
  * exactly the window that changed. */
-const PawWindow = memo(function PawWindow({ collaborationFocusGroup, flowState, flowTracked, focusFrame, onFocusFrameCommit, overview, overviewFrame, windowId }: {
+const PawWindow = memo(function PawWindow({ collaborationFocusGroup, flowState, focusFrame, onFocusFrameCommit, overview, overviewFrame, windowId }: {
   collaborationFocusGroup: string | null;
   flowState?: 'source' | 'arrival';
-  flowTracked?: boolean;
   focusFrame?: PawWindowBounds;
   onFocusFrameCommit: (windowId: string, bounds: PawWindowBounds) => void;
   overview: boolean;
@@ -891,11 +1075,11 @@ const PawWindow = memo(function PawWindow({ collaborationFocusGroup, flowState, 
   const surfaceHeight = Math.max(0, focusFrame?.height ?? node?.bounds.height ?? 0);
   const appSurface = useMemo(() => (appId ? (
     <div className="paw-window-route-surface" onClick={openLinkedRoute}>
-      <PawOsAppSurfaceProvider appId={appId} height={surfaceHeight} width={surfaceWidth} windowId={windowId}>
+      <PawOsAppSurfaceProvider active={active && !overview} appId={appId} height={surfaceHeight} width={surfaceWidth} windowId={windowId}>
         <PawAppProcess appId={appId} entityId={entityId} initialRoute={initialRoute} target={target} />
       </PawOsAppSurfaceProvider>
     </div>
-  ) : null), [appId, entityId, initialRoute, openLinkedRoute, surfaceHeight, surfaceWidth, target, windowId]);
+  ) : null), [active, appId, entityId, initialRoute, openLinkedRoute, overview, surfaceHeight, surfaceWidth, target, windowId]);
   if (!node || (node.minimized && !overview)) return null;
   const app = pawApp(node.appId);
   const inFocus = collaborationFocusGroup ? windowBelongsToFocus(node, collaborationFocusGroup) : false;
@@ -915,9 +1099,12 @@ const PawWindow = memo(function PawWindow({ collaborationFocusGroup, flowState, 
       collaborationRole={collaborationRole}
       deferPointerInteractionUntilFocused={!collaborationFocusGroup && Boolean(satelliteGroup(node.target))}
       flowState={flowState}
-      flowTracked={flowTracked}
       focusFrame={focusFrame}
-      frameMode={focusFrame && collaborationRole === 'satellite' ? 'focus-card' : 'window'}
+      frameMode={focusFrame && target?.kind === 'participant'
+        ? 'planet'
+        : focusFrame && collaborationRole === 'satellite'
+          ? 'focus-card'
+          : 'window'}
       onBoundsCommit={(bounds) => {
         if (focusFrame) {
           onFocusFrameCommit(windowId, bounds);
@@ -952,6 +1139,7 @@ const PawWindow = memo(function PawWindow({ collaborationFocusGroup, flowState, 
       overviewFrame={overviewFrame}
       appId={node.appId}
       title={node.title || app.label}
+      subtitle={node.target?.subtitle}
       targetKind={node.target?.kind}
       windowChrome={node.target?.kind === 'room' && !node.target.panel ? 'room-workspace' : node.appId === 'agent' ? 'agent-session' : node.appId === 'browser' ? 'browser-tabs' : node.appId === 'files' ? 'files-tools' : node.appId === 'terminal' ? 'terminal-tabs' : undefined}
       windowId={windowId}
@@ -962,7 +1150,7 @@ const PawWindow = memo(function PawWindow({ collaborationFocusGroup, flowState, 
   );
 });
 
-function openDesktopRoute(api: ReturnType<typeof usePawDesktopApi>, route: string): void {
+export function openDesktopRoute(api: ReturnType<typeof usePawDesktopApi>, route: string): void {
   const normalized = route.replace(/^#/, '');
   if (normalized.split(/[?#]/, 1)[0] === '/project-field') {
     api.getState().showWayfinder();
@@ -997,7 +1185,7 @@ function openDesktopRoute(api: ReturnType<typeof usePawDesktopApi>, route: strin
   api.getState().openApp(app.id, { initialRoute: normalized, title: app.label });
 }
 
-export function PawWindowFrame({ active, appId, bounds, children, collaborationRole, deferPointerInteractionUntilFocused = false, flowState, flowTracked = false, focusFrame, frameMode = 'window', onBoundsCommit, onClose, onFocus, onMinimize, onOpenFromOverview, onSnap, onToggleMaximize, overview = false, overviewFrame, placement, targetKind, title, windowChrome, windowId, zIndex }: {
+export function PawWindowFrame({ active, appId, bounds, children, collaborationRole, deferPointerInteractionUntilFocused = false, flowState, focusFrame, frameMode = 'window', onBoundsCommit, onClose, onFocus, onMinimize, onOpenFromOverview, onSnap, onToggleMaximize, overview = false, overviewFrame, placement, subtitle, targetKind, title, windowChrome, windowId, zIndex }: {
   active: boolean;
   appId: PawAppId;
   bounds: PawWindowBounds;
@@ -1005,9 +1193,8 @@ export function PawWindowFrame({ active, appId, bounds, children, collaborationR
   collaborationRole?: 'primary' | 'satellite' | 'unrelated' | 'hidden';
   deferPointerInteractionUntilFocused?: boolean;
   flowState?: 'source' | 'arrival';
-  flowTracked?: boolean;
   focusFrame?: PawWindowBounds;
-  frameMode?: 'window' | 'focus-card';
+  frameMode?: 'window' | 'focus-card' | 'planet';
   onBoundsCommit: (bounds: PawWindowBounds) => void;
   onClose: () => void;
   onFocus: () => void;
@@ -1018,6 +1205,7 @@ export function PawWindowFrame({ active, appId, bounds, children, collaborationR
   overview?: boolean;
   overviewFrame?: OverviewFrame;
   placement?: PawWindowPlacement;
+  subtitle?: string;
   targetKind?: PawOsWindowRequest['target']['kind'];
   title: string;
   windowChrome?: string;
@@ -1029,18 +1217,55 @@ export function PawWindowFrame({ active, appId, bounds, children, collaborationR
   const [windowChromeTarget, setWindowChromeTarget] = useState<HTMLElement | null>(null);
   const maximized = placement === 'maximized';
   const identityIconId = targetKind === 'room' ? 'room' : appId;
+  const planetFrame = frameMode === 'planet' && !overview;
   const interactionBounds = focusFrame ?? bounds;
   /* A focus frame or rail slot is laid out by its owning mode and clamped on
    * commit against that mode's own box, so only an ordinary desktop window
    * answers to the shared desktop area. */
   const containToDesktop = !focusFrame;
   const drag = useWindowDrag(shellRef, interactionBounds, onBoundsCommit, onFocus, focusFrame ? undefined : onSnap, active, deferPointerInteractionUntilFocused, containToDesktop);
-  const exit = useWindowExit(shellRef);
+  const exit = useWindowExit(shellRef, appId);
+  /* Windows arrive the way a real OS opens them: a short scale-up fade on the
+   * inner surface (the shell's transform belongs to drag, snap and overview).
+   * The same mount path covers restore-from-minimize, so a restored window
+   * reads as returning instead of popping. Room-flow arrivals and
+   * collaboration satellites carry their own authored choreography and are
+   * left to it. */
+  const authoredArrival = Boolean(flowState) || collaborationRole === 'satellite';
+  useLayoutEffect(() => {
+    const shell = shellRef.current;
+    if (!active || overview || collaborationRole === 'hidden' || !shell || shell.contains(document.activeElement)) return;
+    /* Opening or restoring a window changes the keyboard context too. Focus
+     * the frame itself before child effects run; an App may still promote a
+     * more specific autofocus target, while Tab naturally enters titlebar and
+     * content controls from here. */
+    shell.focus({ preventScroll: true });
+  // The frame only owns the mount transition. Later activation by pointer is
+  // already focused through the pressed descendant and must not be stolen.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (authoredArrival) return;
+    const surface = shellRef.current?.querySelector<HTMLElement>('.paw-window');
+    if (!surface || typeof surface.animate !== 'function' || pawWindowReducedMotion()) return;
+    surface.animate([
+      { opacity: .6, transform: 'translate3d(0, 6px, 0) scale(.98)' },
+      { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' },
+    ], { duration: 150, easing: 'cubic-bezier(.2, .85, .25, 1)' });
+    // Mount-only by design: re-running on prop drift would re-arrive a window
+    // that is already on stage.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const transform = focusFrame
     ? `translate3d(${focusFrame.x}px, ${focusFrame.y}px, 0)`
     : overview && overviewFrame
     ? `translate3d(${overviewFrame.x}px, ${overviewFrame.y}px, 0) scale(${overviewFrame.scale})`
     : `translate3d(${bounds.x}px, ${bounds.y}px, 0)`;
+  useWindowPlacementFlip(shellRef, {
+    bounds,
+    enabled: !focusFrame && !overview && frameMode === 'window',
+    placement,
+  });
   const shellStyle = {
     width: focusFrame?.width ?? bounds.width,
     height: focusFrame?.height ?? bounds.height,
@@ -1054,32 +1279,53 @@ export function PawWindowFrame({ active, appId, bounds, children, collaborationR
   } as CSSProperties;
   return (
     <PawWindowChromeProvider leading={windowLeadingChromeTarget} trailing={windowChromeTarget}>
-      <section aria-label={`${title}窗口`} className="paw-window-shell" data-active={active || undefined} data-app={appId} data-collaboration-role={collaborationRole} data-flow-state={flowState} data-flow-tracked={flowTracked || undefined} data-focus-layout={focusFrame ? true : undefined} data-frame-mode={frameMode} data-overview={overview || undefined} data-paw-window-id={windowId} data-placement={placement} data-window-target={targetKind} onPointerDown={() => { if (!overview && !active) onFocus(); }} ref={shellRef} style={shellStyle}>
-        <div className="paw-window">
-          <header className="paw-window-titlebar" data-window-chrome={windowChrome} onDoubleClick={overview || focusFrame ? undefined : onToggleMaximize} onPointerDown={overview ? undefined : drag}>
-            {/* One chrome language: every window — main Room, collaboration
-              * focus primary and focus-card satellite alike — opens with the
-              * same red/yellow/green cluster in the same slot. The lights stay
-              * the first children so the shared nth-child colour rules keep
-              * mapping onto close/minimize/maximize; App-owned leading chrome
-              * docks after them instead of pushing them out of position.
-              * Inside the collaboration focus layout the layout owns geometry,
-              * so the maximize verb drops for primary and satellite together
-              * rather than only for satellites. */}
-            <div className="paw-traffic-lights" onDoubleClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
-              <button aria-label="关闭窗口" data-action="close" onClick={() => exit('close', onClose)} title="关闭" type="button"><X size={9} /></button>
-              <button aria-label="最小化窗口" data-action="minimize" onClick={() => exit('minimize', onMinimize)} title="最小化" type="button"><Minus size={9} /></button>
-              {focusFrame ? null : <button aria-label={maximized ? '还原窗口' : '最大化窗口'} data-action={maximized ? 'restore' : 'maximize'} onClick={onToggleMaximize} title={maximized ? '还原' : '最大化'} type="button">{maximized ? <Minimize2 size={8} /> : <Maximize2 size={8} />}</button>}
-              {windowChrome ? <div className="paw-window-leading-slot" onDoubleClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()} ref={setWindowLeadingChromeTarget} /> : null}
-            </div>
-            <div className="paw-window-title"><PawAppIcon appId={identityIconId} size={16} /><strong>{title}</strong></div>
-            {windowChrome ? <div className="paw-window-chrome-slot" onDoubleClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()} ref={setWindowChromeTarget} /> : null}
-          </header>
-          <MemoizedWindowBody>{children}</MemoizedWindowBody>
-        </div>
+      <section aria-label={`${title}${subtitle ? ` · ${subtitle}` : ''}窗口`} className="paw-window-shell" data-active={active || undefined} data-app={appId} data-collaboration-role={collaborationRole} data-flow-state={flowState} data-focus-layout={focusFrame ? true : undefined} data-frame-mode={frameMode} data-overview={overview || undefined} data-paw-window-id={windowId} data-placement={placement} data-window-target={targetKind} onPointerDown={() => { if (!overview && !active) onFocus(); }} ref={shellRef} style={shellStyle} tabIndex={-1}>
+        {planetFrame ? (
+          <div className="paw-planet-surface" data-flow-state={flowState}>
+            <header className="paw-planet-identity" onPointerDown={drag}>
+              <span aria-hidden="true" className="paw-planet-identity-mark" />
+              <strong>{title}</strong>
+              {subtitle ? <small>{subtitle}</small> : null}
+              <button
+                aria-label={`关闭${title}行星窗口`}
+                className="paw-planet-close"
+                onClick={() => exit('close', onClose)}
+                onPointerDown={(event) => event.stopPropagation()}
+                title="关闭行星窗口"
+                type="button"
+              >
+                <X aria-hidden="true" size={12} />
+              </button>
+            </header>
+            <MemoizedWindowBody>{children}</MemoizedWindowBody>
+          </div>
+        ) : (
+          <div aria-hidden={overview || undefined} className="paw-window" inert={overview ? true : undefined}>
+            <header className="paw-window-titlebar" data-window-chrome={windowChrome} onDoubleClick={overview || focusFrame ? undefined : onToggleMaximize} onPointerDown={overview ? undefined : drag}>
+              {/* One chrome language: every window — main Room, collaboration
+                * focus primary and focus-card satellite alike — opens with the
+                * same red/yellow/green cluster in the same slot. The lights stay
+                * the first children so the shared nth-child colour rules keep
+                * mapping onto close/minimize/maximize; App-owned leading chrome
+                * docks after them instead of pushing them out of position.
+                * Inside the collaboration focus layout the layout owns geometry,
+                * so the maximize verb drops for primary and satellite together
+                * rather than only for satellites. */}
+              <div className="paw-traffic-lights" onDoubleClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
+                <button aria-label="关闭窗口" data-action="close" onClick={() => exit('close', onClose)} title="关闭" type="button"><X size={9} /></button>
+                <button aria-label="最小化窗口" data-action="minimize" onClick={() => exit('minimize', onMinimize)} title="最小化" type="button"><Minus size={9} /></button>
+                {focusFrame ? null : <button aria-label={maximized ? '还原窗口' : '最大化窗口'} data-action={maximized ? 'restore' : 'maximize'} onClick={onToggleMaximize} title={maximized ? '还原' : '最大化'} type="button">{maximized ? <Minimize2 size={8} /> : <Maximize2 size={8} />}</button>}
+                {windowChrome ? <div className="paw-window-leading-slot" onDoubleClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()} ref={setWindowLeadingChromeTarget} /> : null}
+              </div>
+              <div className="paw-window-title"><PawAppIcon appId={identityIconId} size={16} /><strong>{title}</strong>{subtitle ? <small>{subtitle}</small> : null}</div>
+              {windowChrome ? <div className="paw-window-chrome-slot" onDoubleClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()} ref={setWindowChromeTarget} /> : null}
+            </header>
+            <MemoizedWindowBody>{children}</MemoizedWindowBody>
+          </div>
+        )}
         {overview ? (
           <button aria-label={`打开 ${title}`} className="paw-overview-window-target" onClick={onOpenFromOverview} type="button"><PawAppIcon appId={identityIconId} size={24} /><span>{title}</span></button>
-        ) : (
+        ) : planetFrame ? null : (
           <PawWindowResizeHandles active={active} bounds={interactionBounds} containToDesktop={containToDesktop} deferPointerInteractionUntilFocused={deferPointerInteractionUntilFocused} onBoundsCommit={onBoundsCommit} onFocus={onFocus} shellRef={shellRef} />
         )}
       </section>
@@ -1196,28 +1442,125 @@ const MemoizedWindowBody = memo(function WindowBody({ children }: { children: Re
   return <div className="paw-window-body">{children}</div>;
 });
 
-function useWindowExit(ref: RefObject<HTMLElement | null>) {
+function pawWindowReducedMotion(): boolean {
+  if (document.documentElement.getAttribute('data-reduce-motion') === 'true') return true;
+  return typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+type PawWindowPlacementFrame = {
+  bounds: PawWindowBounds;
+  placement?: PawWindowPlacement;
+};
+
+/* Maximize, restore and snap are layout changes, but their visible trip does
+ * not have to be. React commits the destination width/height once; this FLIP
+ * animation paints the previous rectangle through an inverse transform and
+ * lets the compositor carry it to the destination. Live drag/resize never
+ * enters this path, and overview/focus layouts keep their own choreography. */
+function useWindowPlacementFlip(
+  ref: RefObject<HTMLElement | null>,
+  next: PawWindowPlacementFrame & { enabled: boolean },
+): void {
+  const previousRef = useRef<PawWindowPlacementFrame | undefined>(undefined);
+  useLayoutEffect(() => {
+    const previous = previousRef.current;
+    previousRef.current = { bounds: next.bounds, placement: next.placement };
+    const shell = ref.current;
+    if (
+      !previous
+      || !next.enabled
+      || previous.placement === next.placement
+      || !shell
+      || typeof shell.animate !== 'function'
+      || pawWindowReducedMotion()
+      || next.bounds.width <= 0
+      || next.bounds.height <= 0
+    ) return undefined;
+
+    const scaleX = previous.bounds.width / next.bounds.width;
+    const scaleY = previous.bounds.height / next.bounds.height;
+    shell.dataset.placementAnimation = 'true';
+    const animation = shell.animate([
+      {
+        transform: `translate3d(${previous.bounds.x}px, ${previous.bounds.y}px, 0) scale(${scaleX}, ${scaleY})`,
+      },
+      {
+        transform: `translate3d(${next.bounds.x}px, ${next.bounds.y}px, 0) scale(1, 1)`,
+      },
+    ], {
+      duration: 180,
+      easing: 'cubic-bezier(.23, 1, .32, 1)',
+    });
+    const clear = () => {
+      if (shell.dataset.placementAnimation) delete shell.dataset.placementAnimation;
+    };
+    const finished = (animation as unknown as { finished?: Promise<Animation> }).finished;
+    const fallbackTimer = finished ? 0 : window.setTimeout(clear, 180);
+    if (finished) void finished.then(clear, clear);
+    return () => {
+      if (fallbackTimer) window.clearTimeout(fallbackTimer);
+      animation.cancel();
+      clear();
+    };
+  }, [next.bounds.height, next.bounds.width, next.bounds.x, next.bounds.y, next.enabled, next.placement, ref]);
+}
+
+function useWindowExit(ref: RefObject<HTMLElement | null>, appId: PawAppId) {
   return useCallback((kind: 'close' | 'minimize', finish: () => void) => {
     const surface = ref.current?.querySelector<HTMLElement>('.paw-window');
-    if (!surface || typeof surface.animate !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!surface || typeof surface.animate !== 'function' || pawWindowReducedMotion()) {
       finish();
       return;
     }
     if (surface.dataset.exiting) return;
     surface.dataset.exiting = kind;
-    const target = kind === 'minimize'
-      ? 'translate3d(0, 34px, 0) scale(.9)'
-      : 'translate3d(0, 10px, 0) scale(.97)';
+    let duration = 160;
+    let easing = 'cubic-bezier(.77, 0, .175, 1)';
+    let target = 'translate3d(0, 10px, 0) scale(.97)';
+    if (kind === 'minimize') {
+      duration = 180;
+      target = 'translate3d(0, 34px, 0) scale(.9)';
+      /* Minimize flies to the App's Dock tile, the way the reference genie
+       * reads: window centre travels to the tile centre while the frame
+       * scales toward the tile, 280ms on the shared genie curve. When the
+       * Dock is hidden (a maximized window owns the desktop) or the tile
+       * cannot be measured, the window keeps the older sink-in-place exit. */
+      const genie = dockTileGenieDelta(appId, surface);
+      if (genie) {
+        target = `translate3d(${genie.dx.toFixed(1)}px, ${genie.dy.toFixed(1)}px, 0) scale(${genie.scale.toFixed(3)})`;
+        duration = 280;
+        easing = 'cubic-bezier(.4, 0, .2, 1)';
+      }
+    }
     const animation = surface.animate([
       { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' },
       { opacity: 0, transform: target },
     ], {
-      duration: kind === 'minimize' ? 180 : 160,
-      easing: 'cubic-bezier(.77, 0, .175, 1)',
+      duration,
+      easing,
       fill: 'forwards',
     });
     void animation.finished.then(finish, finish);
-  }, [ref]);
+  }, [ref, appId]);
+}
+
+/* The one genie geometry, shared by both directions of the minimize round
+ * trip: the delta from the window's centre to its App's Dock tile centre and
+ * the scale that lands the frame on the tile. Null when the tile cannot be
+ * measured (the Dock is hidden while a maximized window owns the desktop), so
+ * both callers can fall back to their in-place choreography. */
+function dockTileGenieDelta(appId: PawAppId, surface: HTMLElement): { dx: number; dy: number; scale: number } | null {
+  const tile = document.querySelector<HTMLElement>(`.paw-dock [data-desktop-app="${appId}"]`);
+  if (!tile) return null;
+  const windowRect = surface.getBoundingClientRect();
+  const tileRect = tile.getBoundingClientRect();
+  if (windowRect.width <= 0 || tileRect.width <= 0) return null;
+  return {
+    dx: tileRect.left + tileRect.width / 2 - (windowRect.left + windowRect.width / 2),
+    dy: tileRect.top + tileRect.height / 2 - (windowRect.top + windowRect.height / 2),
+    scale: Math.max(.06, Math.min(.24, tileRect.width / windowRect.width)),
+  };
 }
 
 function useWindowDrag(ref: RefObject<HTMLElement | null>, bounds: PawWindowBounds, commit: (bounds: PawWindowBounds) => void, focus: () => void, snap: ((placement: PawWindowPlacement) => void) | undefined, active: boolean, deferPointerInteractionUntilFocused: boolean, containToDesktop: boolean) {
@@ -1244,7 +1587,6 @@ function useWindowDrag(ref: RefObject<HTMLElement | null>, bounds: PawWindowBoun
     const render = () => {
       frame = 0;
       shell.style.transform = `translate3d(${next.x}px, ${next.y}px, 0)`;
-      publishLiveWindowFlowPoint(shell);
     };
     const move = (moveEvent: PointerEvent) => {
       const travelled = { ...bounds, x: bounds.x + moveEvent.clientX - origin.x, y: bounds.y + moveEvent.clientY - origin.y };
@@ -1266,11 +1608,9 @@ function useWindowDrag(ref: RefObject<HTMLElement | null>, bounds: PawWindowBoun
       const placement = snapPlacement(finishEvent.clientX, finishEvent.clientY);
       if (placement && snap) {
         snap(placement);
-        publishLiveWindowFlowPoint(shell, true);
         return;
       }
       commit(next);
-      publishLiveWindowFlowPoint(shell, true);
     };
     const cancel = () => {
       if (frame) window.cancelAnimationFrame(frame);
@@ -1281,7 +1621,6 @@ function useWindowDrag(ref: RefObject<HTMLElement | null>, bounds: PawWindowBoun
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', finish);
       window.removeEventListener('pointercancel', cancel);
-      publishLiveWindowFlowPoint(shell, true);
     };
     // The move stream never calls preventDefault; passive keeps the
     // compositor thread free while the pointer drives the transform.
@@ -1331,6 +1670,8 @@ function useWindowResize(ref: RefObject<HTMLElement | null>, bounds: PawWindowBo
     const desktopRoot = shell.closest<HTMLElement>('.paw-desktop-root');
     event.currentTarget.setPointerCapture(event.pointerId);
     shell.dataset.interaction = 'resizing';
+    shell.style.transformOrigin = '0 0';
+    shell.style.willChange = 'transform';
     setWindowInteraction(desktopRoot, true);
     const origin = { x: event.clientX, y: event.clientY };
     const area = containToDesktop ? pawWindowArea() : undefined;
@@ -1338,10 +1679,7 @@ function useWindowResize(ref: RefObject<HTMLElement | null>, bounds: PawWindowBo
     let frame = 0;
     const render = () => {
       frame = 0;
-      shell.style.width = `${next.width}px`;
-      shell.style.height = `${next.height}px`;
-      shell.style.transform = `translate3d(${next.x}px, ${next.y}px, 0)`;
-      publishLiveWindowFlowPoint(shell);
+      shell.style.transform = `translate3d(${next.x}px, ${next.y}px, 0) scale(${next.width / bounds.width}, ${next.height / bounds.height})`;
     };
     const move = (moveEvent: PointerEvent) => {
       next = resizeWindowBounds(bounds, handle, moveEvent.clientX - origin.x, moveEvent.clientY - origin.y, area);
@@ -1349,14 +1687,20 @@ function useWindowResize(ref: RefObject<HTMLElement | null>, bounds: PawWindowBo
     };
     const finish = () => {
       if (frame) window.cancelAnimationFrame(frame);
-      render();
+      /* The pointer stream only touched a compositor transform. Commit the
+       * final geometry once, then remove the preview scale; this is the sole
+       * live-resize layout pass. */
+      shell.style.width = `${next.width}px`;
+      shell.style.height = `${next.height}px`;
+      shell.style.transform = `translate3d(${next.x}px, ${next.y}px, 0)`;
+      shell.style.transformOrigin = '';
+      shell.style.willChange = '';
       delete shell.dataset.interaction;
       setWindowInteraction(desktopRoot, false);
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', finish);
       window.removeEventListener('pointercancel', finish);
       commit(next);
-      publishLiveWindowFlowPoint(shell, true);
     };
     window.addEventListener('pointermove', move, { passive: true });
     window.addEventListener('pointerup', finish);

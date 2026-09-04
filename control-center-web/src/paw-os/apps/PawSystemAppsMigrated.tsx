@@ -3,9 +3,8 @@ import {
   Bot,
   BookOpen,
   CircleAlert,
-  Eye,
   Fingerprint,
-  FolderCog,
+  FlaskConical,
   Gauge,
   History,
   Keyboard,
@@ -75,6 +74,7 @@ import {
   type ModelRouteId,
 } from '@/features/roles/role-model';
 import { ObservabilityFeature } from '@/features/observability';
+import { TraceAgentFeature } from '@/features/trace-agent';
 import { VoiceFeature } from '@/features/voice';
 import type { PawAppId } from '../runtime/app-registry';
 import { pawApp } from '../runtime/app-registry';
@@ -96,6 +96,7 @@ type SystemPage = {
   group?: string;
   /** One line of purpose, carried by the stage chrome instead of a hero header. */
   purpose: string;
+  external?: boolean;
 };
 
 const systemPages: Record<PawSystemAppId, readonly SystemPage[]> = {
@@ -107,12 +108,15 @@ const systemPages: Record<PawSystemAppId, readonly SystemPage[]> = {
   ],
   'app-center': [
     { id: 'installed', label: '已安装', icon: PackageOpen, route: '/plugins', purpose: '已安装 Package 的启用、更新与移除' },
+    { id: 'skills', label: 'Skills', icon: BookOpen, route: '/plugins?view=skills', purpose: '查看 Bundled、项目与 Package Skill 的正文和来源' },
     { id: 'catalog', label: '目录', icon: LibraryBig, route: '/plugins?view=catalog', purpose: '安装之前先看清来源、权限与版本' },
     { id: 'proposals', label: '建议', icon: Sparkles, route: '/plugins?view=proposals', purpose: 'Agent 提出的安装建议，逐项等你确认' },
   ],
   'system-monitor': [
     { id: 'activity', label: '活动', icon: Activity, route: '/observability', group: '实时', purpose: 'Runtime 正在发生的事件与调用' },
+    { id: 'evolution-report', label: '优化报告', icon: FlaskConical, route: '/evolution-report', group: '实验', purpose: '在独立网页读懂冻结实验、指标与 Keep / Reject 边界', external: true },
     { id: 'context', label: '上下文', icon: Network, route: '/context-debug', group: '排查', purpose: '逐轮查看模型实际收到的上下文' },
+    { id: 'trace-agent', label: 'Trace Agent', icon: Search, route: '/trace-agent', group: '排查', purpose: '选择一段对话，让 Agent 解释失败、浪费与改进方向' },
     { id: 'diagnostics', label: '诊断', icon: Gauge, route: '/diagnostics', group: '排查', purpose: '各组件自报的状态与可执行的检查' },
   ],
   'system-settings': [
@@ -171,9 +175,11 @@ export function PawSystemAppsMigrated({
           <nav aria-label={`${app.label}页面`}>
             {pages.map((candidate, index) => {
               const Icon = candidate.icon;
-              const current = candidate.id === page.id;
+              const current = !candidate.external && candidate.id === page.id;
               const badge = railSignal && candidate.id === railSignal.pageId ? railSignal.count : 0;
-              const name = badge && railSignal
+              const name = candidate.external
+                ? `${candidate.label}（网页）`
+                : badge && railSignal
                 ? `${candidate.label}（${railSignal.describe(badge)}）`
                 : candidate.label;
               return (
@@ -186,7 +192,9 @@ export function PawSystemAppsMigrated({
                   <button
                     aria-current={current ? 'page' : undefined}
                     aria-label={name}
-                    onClick={() => openPawOsRoute(desktop, candidate.route)}
+                    onClick={() => candidate.external
+                      ? openStandalonePage(candidate.route)
+                      : openPawOsRoute(desktop, candidate.route)}
                     title={name}
                     type="button"
                   >
@@ -266,6 +274,7 @@ function PawSystemSurface({ appId, pageId }: { appId: PawSystemAppId; pageId: st
   }
   if (appId === 'system-monitor') {
     if (pageId === 'context') return <ContextDebugFeature />;
+    if (pageId === 'trace-agent') return <TraceAgentFeature />;
     if (pageId === 'diagnostics') return <DiagnosticsFeature />;
     return <ObservabilityFeature />;
   }
@@ -289,8 +298,8 @@ function PawAppearanceSettings() {
 }
 
 /**
- * Execution permission as four honest positions, not a dropdown of jargon.
- * Whatever is chosen, R2/R3 operations still stop at the approvals desk.
+ * Execution permission uses the two user-facing coordinator profiles. Legacy
+ * values remain readable in stored settings but are not offered as choices.
  */
 const agentExecutionModes: readonly {
   value: AgentExecutionMode;
@@ -299,10 +308,19 @@ const agentExecutionModes: readonly {
   icon: LucideIcon;
   recommended?: boolean;
 }[] = [
-  { value: 'per_action', title: '按风险确认', detail: '低风险直接做；高风险先停在审批中心问你。', icon: ShieldCheck, recommended: true },
-  { value: 'read_only', title: '只读', detail: '只查看、只回答，不改动文件和设置。', icon: Eye },
-  { value: 'workspace_managed', title: '工作区托管', detail: '在授权的工作区里自己安排；越界的操作仍会先问你。', icon: FolderCog },
-  { value: 'full_trust', title: '全自动', detail: '不再逐项确认，只受本机保护规则约束。', icon: Zap },
+  {
+    value: 'per_action',
+    title: '全权限',
+    detail: '整个系统与所有 Tool 可用；有影响的操作逐项请求确认。',
+    icon: ShieldCheck,
+    recommended: true,
+  },
+  {
+    value: 'full_trust',
+    title: '全自动',
+    detail: '整个系统与所有 Tool 可用；每个动作自动批准，仍受操作系统边界约束。',
+    icon: Zap,
+  },
 ];
 
 function PawAgentSettings() {
@@ -337,7 +355,7 @@ function PawAgentSettings() {
   return (
     <ManagementPage
       actions={<Button leadingIcon={<RefreshCw size={15} />} loading={resource.loading || authority.isPending || modelRouting.isPending} onClick={() => { resource.reload(); authority.reload(); modelRouting.reload(); }} size="small">刷新</Button>}
-      description="决定新对话、Room 行星伙伴和私有卫星默认用哪个模型、想多深，以及动手之前要不要先问你。改动只影响之后开始的运行。"
+      description="决定新对话、Trace 诊断、Room 行星伙伴和私有卫星默认用哪个模型、想多深，以及动手之前要不要先问你。改动只影响之后开始的运行。"
       eyebrow="新对话的起点"
       routeId="agent-settings"
       title="Agent"
@@ -421,8 +439,8 @@ function PawAgentSettings() {
           {modelRouting.saveError ? <InlineNotice title="模型分工没有保存" tone="danger">{modelRouting.saveError}</InlineNotice> : null}
 
           <ManagementSection
-            description="无论选哪一档，高风险操作都会先停在审批中心，逐项问过你。"
-            title="动手之前，问不问你"
+            description="全权限覆盖整个系统与所有 Tool，有影响的操作逐项请求确认；全自动则自动批准每个动作，仍受操作系统边界约束。"
+            title="Agent 执行权限"
           >
             <div aria-label="Agent 执行权限" className="paw-agent-modes" role="radiogroup">
               {agentExecutionModes.map((mode) => {
@@ -431,7 +449,9 @@ function PawAgentSettings() {
                   <label className="paw-agent-mode" key={mode.value}>
                     <input
                       aria-label={mode.title}
-                      checked={preferences.executionMode === mode.value}
+                      checked={mode.value === 'full_trust'
+                        ? preferences.executionMode === 'full_trust'
+                        : preferences.executionMode !== 'full_trust'}
                       disabled={controlsDisabled}
                       name="paw-agent-execution-mode"
                       onChange={() => { void authority.save({ executionMode: mode.value }); }}
@@ -829,15 +849,21 @@ function componentAttentionCount(value: unknown): number {
 }
 
 function systemPageForRoute(pages: readonly SystemPage[], route: string): SystemPage {
-  const exact = pages.find((page) => page.route === route);
+  const internalPages = pages.filter((page) => !page.external);
+  const exact = internalPages.find((page) => page.route === route);
   if (exact) return exact;
   const view = new URLSearchParams(route.split('?', 2)[1] ?? '').get('view');
   if (view) {
-    const byView = pages.find((page) => page.id === view);
+    const byView = internalPages.find((page) => page.id === view);
     if (byView) return byView;
   }
   const path = route.split('?', 1)[0];
-  return pages.find((page) => page.route.split('?', 1)[0] === path) ?? pages[0];
+  return internalPages.find((page) => page.route.split('?', 1)[0] === path) ?? internalPages[0];
+}
+
+function openStandalonePage(path: string): void {
+  const target = new URL(path, window.location.origin).toString();
+  window.open(target, '_blank', 'noopener,noreferrer');
 }
 
 function thinkingLabel(value: string): string {

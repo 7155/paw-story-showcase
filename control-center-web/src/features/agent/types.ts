@@ -19,6 +19,7 @@ export type SessionSummary = Pick<
   Partial<Pick<
     AgentSessionV1,
     | 'lastMessagePreview'
+    | 'lastTerminalTurnId'
     | 'messageCount'
     | 'modelProfile'
     | 'toolProfileVersion'
@@ -30,12 +31,23 @@ export type SessionSummary = Pick<
     | 'piSkillsEnabled'
     | 'codexSkillsEnabled'
     | 'roomParticipant'
+    | 'surfaceKind'
+    | 'ownerAppId'
+    | 'surfaceKey'
+    | 'evaluationSnapshot'
   >>;
 
 export interface AgentPermissionSelection {
   mode: 'assistant' | 'coordinator';
-  toolProfileVersion: 'control-center-v1' | 'subagent-readonly-v1' | 'control-center-auto-approve-v1';
+  toolProfileVersion: (
+    | 'control-center-v1'
+    | 'control-center-full-access-v1'
+    | 'subagent-readonly-v1'
+    | 'control-center-auto-approve-v1'
+  );
   executionMode: 'read_only' | 'per_action' | 'workspace_managed' | 'full_trust';
+  /** The selected project may stay as context, but `/` is always granted. */
+  workspaceRoots?: string[];
   workspaceScopeConfirmed?: boolean;
   dangerousModeConfirmed?: boolean;
 }
@@ -90,7 +102,10 @@ export interface AgentCommand {
   source: AgentCommandSource;
 }
 
-export function sessionItems(value: unknown): SessionSummary[] {
+export function sessionItems(
+  value: unknown,
+  options: { includeAppOwned?: boolean } = {},
+): SessionSummary[] {
   if (!isRecord(value)) return [];
   const source = Array.isArray(value.items)
     ? value.items
@@ -101,22 +116,24 @@ export function sessionItems(value: unknown): SessionSummary[] {
   // they are not user conversations. Keep them out of the conversation rail
   // even when an older backend includes them in the generic session response.
   return source.filter((item): item is SessionSummary => (
-    isSessionSummary(item) && !isTransientSubagentSession(item)
+    isSessionSummary(item)
+    && !isTransientSubagentSession(item)
+    && (options.includeAppOwned || !isAppOwnedSession(item))
   ));
 }
 
 export function sessionPermissionLabel(session: SessionSummary): string {
+  if (session.toolProfileVersion === 'control-center-full-access-v1') return '全权限';
+  if (session.toolProfileVersion === 'control-center-auto-approve-v1') return '全自动';
   const executionMode = session.executionMode
-    ?? (session.toolProfileVersion === 'control-center-auto-approve-v1'
-      ? 'full_trust'
-      : session.toolProfileVersion === 'subagent-readonly-v1'
-        ? 'read_only'
-        : 'per_action');
+    ?? (session.toolProfileVersion === 'subagent-readonly-v1'
+      ? 'read_only'
+      : 'per_action');
   return {
     read_only: '只读',
-    per_action: '写入与命令确认',
-    workspace_managed: '工作区托管',
-    full_trust: '全自动',
+    per_action: '写入与命令确认（旧配置）',
+    workspace_managed: '工作区托管（旧配置）',
+    full_trust: '全自动（旧配置）',
   }[executionMode];
 }
 
@@ -166,6 +183,11 @@ function isSessionSummary(value: unknown): value is SessionSummary {
 
 function isTransientSubagentSession(value: unknown): boolean {
   return isRecord(value) && value.sessionKind === 'subagent_runtime';
+}
+
+function isAppOwnedSession(value: unknown): boolean {
+  if (!isRecord(value) || typeof value.surfaceKind !== 'string') return false;
+  return Boolean(value.surfaceKind) && value.surfaceKind !== 'agent';
 }
 
 function isAgentCommand(value: unknown): value is AgentCommand {

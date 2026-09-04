@@ -100,18 +100,20 @@ function previewWorkDocument(
   const historical = documentId === ARCHIVED_DOCUMENT_ID;
   return {
     documentId,
-    authorityKind: historical ? 'session_goal' : 'session_todo',
-    authorityId: historical ? 'goal-preview' : 'session-preview',
+    authorityKind: 'session_goal',
+    authorityId: historical ? 'goal-public-data-archive' : 'goal-public-data',
     authorityRevision: 7,
-    authorityKey: historical ? 'goal:preview' : 'todo:preview',
+    authorityKey: historical ? 'goal:public-data-archive' : 'goal:public-data',
     documentRevision: revision,
     contentSha256: historical ? '5'.repeat(64) : '4'.repeat(64),
-    workspaceRoot: '/Users/preview/PersonalAgentWorkbench',
-    path: archived ? 'archive/session-preview/todo.md' : 'docs/agent/todo.md',
-    activePath: 'docs/agent/todo.md',
-    archivePath: 'archive/session-preview/todo.md',
+    workspaceRoot: '/workspace/paw-story-showcase',
+    path: archived
+      ? 'archive/SHOWCASE_DATA.md'
+      : 'SHOWCASE_DATA.md',
+    activePath: 'SHOWCASE_DATA.md',
+    archivePath: 'archive/SHOWCASE_DATA.md',
     state,
-    title: historical ? '输入法前台验收目标' : '控制中心发布任务',
+    title: historical ? '公开数据合同上一轮归档' : 'PAW 公开数据合同',
     terminalReceiptId,
     error: '',
     createdAtMs: Date.now() - 172_800_000,

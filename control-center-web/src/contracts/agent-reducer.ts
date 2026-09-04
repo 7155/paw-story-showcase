@@ -122,6 +122,7 @@ export interface AgentSnapshot {
   resumeToken: string;
   snapshotScope?: 'recent';
   partial?: boolean;
+  runtimeQuiescent?: boolean;
   status?: string;
   telemetry?: unknown;
   messageQueue?: unknown;
@@ -297,6 +298,9 @@ export function reduceAgentEvent(
           ? 'failed'
           : 'completed';
       upsertActivity(next, event, payload, reasoningStatus);
+      if (reasoningStatus !== 'failed') {
+        reopenProvisionalTurn(next, event.turnId, event.createdAtMs);
+      }
       if (reasoningStatus === 'running') next.status = 'analyzing';
       break;
     }
@@ -314,6 +318,9 @@ export function reduceAgentEvent(
         && text(payload.toolCallId).startsWith('subagent:')
       ) break;
       upsertActivity(next, event, payload, payload.isError === true ? 'failed' : 'running');
+      if (payload.isError !== true) {
+        reopenProvisionalTurn(next, event.turnId, event.createdAtMs);
+      }
       next.status = payload.isError === true ? 'failed' : 'working';
       break;
     case 'tool_finished': {
@@ -671,6 +678,37 @@ export function abortAgentTurn(
   return next;
 }
 
+/**
+ * A recent snapshot is a bounded view, not a replacement transcript. Keep
+ * durable messages already projected locally and let the recent response
+ * overwrite only matching ids or append newer rows.
+ */
+function mergeBoundedRecentMessages(
+  state: AgentProjectionState,
+  recentMessages: readonly unknown[],
+): unknown[] {
+  const merged: unknown[] = [];
+  const positions = new Map<string, number>();
+  for (const messageId of state.messageOrder) {
+    const message = state.messagesById[messageId];
+    if (!message || message.id.startsWith('local:')) continue;
+    positions.set(message.id, merged.length);
+    merged.push(message);
+  }
+  for (const rawMessage of recentMessages) {
+    const rawId = record(rawMessage).id;
+    const id = typeof rawId === 'string' ? rawId : '';
+    const existingIndex = id ? positions.get(id) : undefined;
+    if (existingIndex !== undefined) {
+      merged[existingIndex] = rawMessage;
+      continue;
+    }
+    if (id) positions.set(id, merged.length);
+    merged.push(rawMessage);
+  }
+  return merged;
+}
+
 export function applyAgentSnapshot(
   state: AgentProjectionState,
   snapshot: AgentSnapshot,
@@ -697,7 +735,10 @@ export function applyAgentSnapshot(
 
   const serverClientIds = new Set<string>();
   const transcriptMessageIds = new Set<string>();
-  for (const rawMessage of snapshot.messages) {
+  const snapshotMessages = snapshot.snapshotScope === 'recent' && snapshot.partial === true
+    ? mergeBoundedRecentMessages(state, snapshot.messages)
+    : snapshot.messages;
+  for (const rawMessage of snapshotMessages) {
     const parsed = tryParseAgentMessage(rawMessage);
     if (!parsed.ok || parsed.value.sessionId !== state.sessionId) {
       appendDiagnostic(next, {
@@ -771,11 +812,10 @@ export function applyAgentSnapshot(
   // active-but-quiescent snapshot as terminal so reopening an old conversation
   // cannot turn its last completed answer into a multi-day "thinking" turn.
   const replayStatus = next.status;
-  if (
-    !snapshot.partial
-    && snapshot.status
-    && ['idle', 'ready', 'stopped', 'active'].includes(snapshot.status)
-  ) {
+  const authoritativeQuiescent = (snapshot.runtimeQuiescent === true || !snapshot.partial)
+    && Boolean(snapshot.status)
+    && ['idle', 'ready', 'stopped', 'active'].includes(snapshot.status ?? '');
+  if (authoritativeQuiescent && snapshot.status) {
     next.status = snapshot.status;
     // `status` is the Runtime's authoritative process boundary. A bounded
     // event journal can end after `message_completed` without retaining the
@@ -825,12 +865,36 @@ export function applyAgentSnapshot(
     const previousTurn = state.turnsById[optimistic.turnId];
     const restoredTurn = next.turnsById[optimistic.turnId];
     if (previousTurn && restoredTurn) {
-      next.turnsById[optimistic.turnId] = {
-        ...restoredTurn,
-        status: previousTurn.status,
-        updatedAtMs: Math.max(restoredTurn.updatedAtMs, previousTurn.updatedAtMs),
-        failure: previousTurn.failure,
-      };
+      const restoredAtMs = Math.max(restoredTurn.updatedAtMs, previousTurn.updatedAtMs);
+      if (
+        authoritativeQuiescent
+        && ['queued', 'running', 'waiting'].includes(previousTurn.status)
+      ) {
+        // A full quiescent snapshot is the Runtime boundary: if it contains
+        // neither this local admission nor a live turn, retaining `queued`
+        // would resurrect the composer spinner forever. Keep the user's text
+        // visible and retryable, but settle the unmatched admission honestly.
+        next.messagesById[messageId] = {
+          ...optimistic,
+          status: 'failed',
+          completedAtMs: restoredAtMs,
+        };
+        completeTurn(
+          next,
+          optimistic.turnId,
+          'failed',
+          restoredAtMs,
+          '未收到助手回复。',
+          true,
+        );
+      } else {
+        next.turnsById[optimistic.turnId] = {
+          ...restoredTurn,
+          status: previousTurn.status,
+          updatedAtMs: restoredAtMs,
+          failure: previousTurn.failure,
+        };
+      }
     }
   }
   reconcileSnapshotTurnStatuses(next);
@@ -928,6 +992,7 @@ function reconcileTranscriptReplayMessages(
   serverClientIds: Set<string>,
 ): void {
   const transcriptByFingerprint = new Map<string, AgentMessageProjection[]>();
+  const transcriptByMediaShapeFingerprint = new Map<string, AgentMessageProjection[]>();
   for (const messageId of transcriptMessageIds) {
     const message = state.messagesById[messageId];
     const fingerprint = message ? replayFingerprint(message) : '';
@@ -935,6 +1000,11 @@ function reconcileTranscriptReplayMessages(
     transcriptByFingerprint.set(
       fingerprint,
       [...(transcriptByFingerprint.get(fingerprint) ?? []), message],
+    );
+    const mediaShapeFingerprint = replayMediaShapeFingerprint(message);
+    transcriptByMediaShapeFingerprint.set(
+      mediaShapeFingerprint,
+      [...(transcriptByMediaShapeFingerprint.get(mediaShapeFingerprint) ?? []), message],
     );
   }
 
@@ -946,14 +1016,39 @@ function reconcileTranscriptReplayMessages(
     if (!replay || replay.status !== 'completed' || replay.timelineSequence === undefined) continue;
     const fingerprint = replayFingerprint(replay);
     if (!fingerprint) continue;
-    const candidate = (transcriptByFingerprint.get(fingerprint) ?? [])
+    const nearbyCandidates = (
+      messages: AgentMessageProjection[],
+      maxDistanceMs = 5_000,
+    ) => messages
       .filter((message) => !claimedTranscriptIds.has(message.id))
       .map((message) => ({
         message,
         distance: Math.abs(message.createdAtMs - replay.createdAtMs),
       }))
-      .filter(({ distance }) => distance <= 5_000)
-      .sort((left, right) => left.distance - right.distance)[0]?.message;
+      .filter(({ distance }) => distance <= maxDistanceMs)
+      .sort((left, right) => left.distance - right.distance);
+    const exactCandidate = nearbyCandidates(
+      transcriptByFingerprint.get(fingerprint) ?? [],
+    )[0]?.message;
+    /* The accepted upload and Pi's persisted inline image can be imported as
+       two managed-media receipts with different ids. The event-proven
+       clientMessageId, exact visible text, equal attachment count, one nearby
+       transcript candidate, and a tighter one-second media window together
+       identify one send without broadly folding later same-text messages. */
+    const mediaShapeCandidates = (
+      replay.role === 'user'
+      && Boolean(replay.clientMessageId)
+      && replay.attachments.length > 0
+    )
+      ? nearbyCandidates(
+          transcriptByMediaShapeFingerprint.get(replayMediaShapeFingerprint(replay)) ?? [],
+          1_000,
+        )
+      : [];
+    const mediaShapeCandidate = mediaShapeCandidates.length === 1
+      ? mediaShapeCandidates[0]?.message
+      : undefined;
+    const candidate = exactCandidate ?? mediaShapeCandidate;
     if (!candidate) continue;
 
     claimedTranscriptIds.add(candidate.id);
@@ -1105,18 +1200,32 @@ function reconcileReplayTurnAnchors(
 }
 
 function replayFingerprint(message: AgentMessageProjection): string {
-  const visibleText = message.blocks
-    .map((block) => text(record(block.data).text))
-    .filter(Boolean)
-    .join('\n')
-    .replace(/\s+/gu, ' ')
-    .trim();
+  const visibleText = replayVisibleText(message);
   if (!visibleText) return '';
   return JSON.stringify([
     message.role,
     visibleText,
     [...message.attachments],
   ]);
+}
+
+function replayMediaShapeFingerprint(message: AgentMessageProjection): string {
+  const visibleText = replayVisibleText(message);
+  if (!visibleText) return '';
+  return JSON.stringify([
+    message.role,
+    visibleText,
+    message.attachments.length,
+  ]);
+}
+
+function replayVisibleText(message: AgentMessageProjection): string {
+  return message.blocks
+    .map((block) => text(record(block.data).text))
+    .filter(Boolean)
+    .join('\n')
+    .replace(/\s+/gu, ' ')
+    .trim();
 }
 
 function removeProjectedMessage(
@@ -1146,6 +1255,7 @@ export function agentSnapshotFromResponse(value: unknown): AgentSnapshot {
     resumeToken: text(payload.resumeToken ?? payload.lastEventId),
     ...(payload.snapshotScope === 'recent' ? { snapshotScope: 'recent' as const } : {}),
     ...(payload.partial === true ? { partial: true } : {}),
+    ...(payload.runtimeQuiescent === true ? { runtimeQuiescent: true } : {}),
     ...(typeof payload.status === 'string' ? { status: payload.status } : {}),
     ...(payload.telemetry === undefined ? {} : { telemetry: payload.telemetry }),
     ...(payload.messageQueue === undefined ? {} : { messageQueue: payload.messageQueue }),
@@ -1212,10 +1322,10 @@ function applyTextDelta(
         citations: [],
         createdAtMs: event.createdAtMs,
         completedAtMs: null,
-        timelineSequence: event.sequence,
+        timelineSequence: sourceTimelineSequence(event),
       };
   upsertMessage(state, message);
-  touchTurn(state, event.turnId, 'running', event.createdAtMs);
+  reopenProvisionalTurn(state, event.turnId, event.createdAtMs);
   state.status = 'responding';
 }
 
@@ -1249,22 +1359,106 @@ function applyCompletedMessage(
     : parsed.value;
   const completedMessage = enriched.role === 'assistant'
     ? completedAssistantSegment(state, event, enriched)
-    : { ...parsed.value, timelineSequence: event.sequence };
+    : {
+        ...parsed.value,
+        timelineSequence: parsed.value.timelineSequence ?? sourceTimelineSequence(event),
+      };
+  // A Session is navigated into before Pi has appended its first user row.
+  // That row may arrive as a durable `message_completed` SSE event without the
+  // product clientMessageId, leaving a local optimistic bubble beside the real
+  // row. Reconcile one bounded local admission by its exact message fingerprint
+  // and nearby Runtime timestamp; failed, pending, ambiguous, and unrelated
+  // external admissions stay auditable and untouched.
+  const inferredClientMessageId = clientMessageId || (
+    completedMessage.role === 'user'
+      ? matchingLocalOptimisticClientMessageId(state, completedMessage)
+        || matchingRoomMirrorClientMessageId(state, completedMessage)
+      : ''
+  );
   upsertMessage(
     state,
-    clientMessageId ? { ...completedMessage, clientMessageId } : completedMessage,
-    clientMessageId,
+    inferredClientMessageId
+      ? { ...completedMessage, clientMessageId: inferredClientMessageId }
+      : completedMessage,
+    inferredClientMessageId,
   );
-  touchTurn(
-    state,
-    parsed.value.turnId,
-    parsed.value.status === 'failed'
-      ? 'failed'
-      : parsed.value.status === 'aborted'
-        ? 'aborted'
-        : 'running',
-    event.createdAtMs,
+  if (parsed.value.status === 'failed' || parsed.value.status === 'aborted') {
+    touchTurn(
+      state,
+      parsed.value.turnId,
+      parsed.value.status === 'failed' ? 'failed' : 'aborted',
+      event.createdAtMs,
+    );
+  } else {
+    reopenProvisionalTurn(state, parsed.value.turnId, event.createdAtMs);
+  }
+}
+
+function matchingLocalOptimisticClientMessageId(
+  state: AgentProjectionState,
+  durableMessage: AgentMessageProjection,
+): string {
+  const fingerprint = replayFingerprint(durableMessage);
+  if (!fingerprint) return '';
+  const candidates = Object.entries(state.optimisticByClientMessageId)
+    .flatMap(([clientMessageId, messageId]) => {
+      const optimistic = state.messagesById[messageId];
+      if (
+        !optimistic
+        || !isLocalAdmissionClientMessageId(clientMessageId)
+        || optimistic.role !== 'user'
+        || optimistic.status !== 'queued'
+        || optimistic.admissionState
+        || replayFingerprint(optimistic) !== fingerprint
+        || Math.abs(optimistic.createdAtMs - durableMessage.createdAtMs) > 5_000
+      ) return [];
+      return [{ clientMessageId, distance: Math.abs(optimistic.createdAtMs - durableMessage.createdAtMs) }];
+    })
+    .sort((left, right) => left.distance - right.distance);
+  // Two equal nearby prompts are not enough evidence to assign identity. The
+  // next snapshot has the broader transcript reconciliation with the same
+  // conservative rule, so do not silently merge a legitimate duplicate here.
+  if (!candidates[0] || candidates[0].distance === candidates[1]?.distance) return '';
+  return candidates[0].clientMessageId;
+}
+
+function isLocalAdmissionClientMessageId(clientMessageId: string): boolean {
+  // These prefixes are minted by the Home, PAWOS, and web Agent composers.
+  // Keep the inference opt-in: arbitrary client ids must not be merged by text
+  // and time alone, and Room mirrors have their own source-bound matcher.
+  return (
+    clientMessageId.startsWith('session-')
+    || clientMessageId.startsWith('paw-')
+    || clientMessageId.startsWith('web-')
   );
+}
+
+function matchingRoomMirrorClientMessageId(
+  state: AgentProjectionState,
+  durableMessage: AgentMessageProjection,
+): string {
+  const fingerprint = replayFingerprint(durableMessage);
+  if (!fingerprint) return '';
+  const candidates = state.messageOrder
+    .map((messageId) => state.messagesById[messageId])
+    .filter((message): message is AgentMessageProjection => (
+      Boolean(message)
+      && message.role === 'user'
+      && Boolean(message.clientMessageId)
+      && message.blocks.some((block) => block.source?.kind === 'room_event')
+      && replayFingerprint(message) === fingerprint
+      && Math.abs(message.createdAtMs - durableMessage.createdAtMs) <= 60_000
+    ))
+    .sort((left, right) => (
+      Math.abs(left.createdAtMs - durableMessage.createdAtMs)
+      - Math.abs(right.createdAtMs - durableMessage.createdAtMs)
+    ));
+  if (!candidates[0]) return '';
+  const firstDistance = Math.abs(candidates[0].createdAtMs - durableMessage.createdAtMs);
+  const secondDistance = candidates[1]
+    ? Math.abs(candidates[1].createdAtMs - durableMessage.createdAtMs)
+    : -1;
+  return firstDistance === secondDistance ? '' : candidates[0].clientMessageId ?? '';
 }
 
 function upsertCompactionActivity(
@@ -1281,7 +1475,7 @@ function upsertCompactionActivity(
     });
   const id = runningId ?? `compaction:${event.eventId}`;
   const previous = state.activitiesById[id];
-  const reason = text(payload.reason) || 'threshold';
+  const reason = text(payload.reason);
   const activity: AgentActivityProjection = {
     id,
     turnId: previous?.turnId || event.turnId || `maintenance:${event.sequence}`,
@@ -1291,7 +1485,7 @@ function upsertCompactionActivity(
     payload: { ...previous?.payload, ...payload },
     createdAtMs: previous?.createdAtMs ?? event.createdAtMs,
     updatedAtMs: event.createdAtMs,
-    timelineSequence: previous?.timelineSequence ?? event.sequence,
+    timelineSequence: previous?.timelineSequence ?? sourceTimelineSequence(event),
   };
   activity.summary = status === 'failed'
     ? '上下文压缩失败'
@@ -1307,7 +1501,8 @@ function upsertCompactionActivity(
 function compactionReasonLabel(reason: string): string {
   if (reason === 'manual') return '手动触发';
   if (reason === 'overflow') return '溢出恢复';
-  return '达到自动阈值';
+  if (reason === 'threshold' || reason === 'automatic') return '达到上下文阈值';
+  return 'Runtime 触发';
 }
 
 function parseTelemetry(value: unknown): AgentSessionTelemetryV1 | undefined {
@@ -1362,8 +1557,8 @@ function completedAssistantSegment(
     id: targetId,
     createdAtMs: latest?.status === 'streaming' ? latest.createdAtMs : message.createdAtMs,
     timelineSequence: latest?.status === 'streaming'
-      ? latest.timelineSequence ?? event.sequence
-      : event.sequence,
+      ? latest.timelineSequence ?? message.timelineSequence ?? sourceTimelineSequence(event)
+      : message.timelineSequence ?? sourceTimelineSequence(event),
   };
 }
 
@@ -1393,18 +1588,25 @@ function upsertMessage(
   const optimisticId = clientMessageId
     ? state.optimisticByClientMessageId[clientMessageId]
     : undefined;
+  const correlatedId = clientMessageId
+    ? state.messageOrder.find((messageId) => (
+      messageId !== message.id
+      && state.messagesById[messageId]?.clientMessageId === clientMessageId
+    ))
+    : undefined;
+  const replaceableId = optimisticId ?? correlatedId;
   let replacedOptimistic = false;
   let projectedMessage = message;
-  if (optimisticId && optimisticId !== message.id) {
-    const index = state.messageOrder.indexOf(optimisticId);
-    const optimistic = state.messagesById[optimisticId];
-    if (optimistic && message.role === 'user') {
-      projectedMessage = inheritLocalDeliveryProjection(message, optimistic);
+  if (replaceableId && replaceableId !== message.id) {
+    const index = state.messageOrder.indexOf(replaceableId);
+    const replaced = state.messagesById[replaceableId];
+    if (replaced && message.role === 'user') {
+      projectedMessage = inheritLocalDeliveryProjection(message, replaced);
     }
-    delete state.messagesById[optimisticId];
-    delete state.optimisticByClientMessageId[clientMessageId];
+    delete state.messagesById[replaceableId];
+    if (optimisticId) delete state.optimisticByClientMessageId[clientMessageId];
     if (index >= 0) state.messageOrder[index] = message.id;
-    if (optimistic) detachMessageFromTurn(state, optimistic);
+    if (replaced) detachMessageFromTurn(state, replaced);
     replacedOptimistic = index >= 0;
   }
 
@@ -1481,6 +1683,135 @@ function messageDelivery(message: AgentMessageProjection): 'steer' | 'followUp' 
   return delivery === 'steer' || delivery === 'followUp' ? delivery : '';
 }
 
+/** Recover the exact delivery identity persisted in the visible user message.
+ * Prompt is intentionally represented by the absence of a delivery field in
+ * the wire contract, while Steer/Follow-up are stored on the text block. */
+export function agentMessageDelivery(
+  message: AgentMessageProjection,
+): 'prompt' | 'steer' | 'followUp' {
+  return messageDelivery(message) || 'prompt';
+}
+/**
+ * Resolve the user input that a failed turn should replay.
+ *
+ * The Runtime normally links the user row through `turn.messageIds`, but a
+ * provider failure can publish the assistant error before the user mirror is
+ * attached to that turn. Keep recovery anchored to the current projection:
+ * prefer an explicitly linked user, then a same-turn/client-id mirror, and
+ * finally a directly adjacent user row in canonical message order.
+ */
+export function resolveAgentTurnUserMessage(
+  projection: AgentProjectionState | undefined,
+  turnId: string,
+): AgentMessageProjection | undefined {
+  if (!projection || !turnId) return undefined;
+  const turn = projection.turnsById[turnId];
+  if (!turn) return undefined;
+  const messages = projection.messageOrder
+    .map((messageId) => projection.messagesById[messageId])
+    .filter((message): message is AgentMessageProjection => Boolean(message));
+  const users = messages.filter((message) => message.role === 'user');
+  const turnMessageIds = new Set(turn.messageIds);
+  const turnMessages = turn.messageIds
+    .map((messageId) => projection.messagesById[messageId])
+    .filter((message): message is AgentMessageProjection => Boolean(message));
+  const meaningful = (message: AgentMessageProjection): boolean => (
+    Boolean(replayVisibleText(message).trim())
+    || message.attachments.length > 0
+  );
+  const rank = (message: AgentMessageProjection): number => (
+    (
+      message.admissionState === 'ambiguous'
+        ? 6
+        : message.status === 'failed'
+          ? 4
+          : message.admissionState
+            ? 2
+            : 0
+    ) + (meaningful(message) ? 1 : 0)
+  );
+  const choose = (
+    candidates: AgentMessageProjection[],
+  ): AgentMessageProjection | undefined => {
+    let preferredMessage: AgentMessageProjection | undefined;
+    let preferredRank = -1;
+    for (const message of candidates) {
+      const messageRank = rank(message);
+      // Equal-rank messages belong to the same turn; the later delivery is
+      // the one the user most recently asked to retry.
+      if (messageRank >= preferredRank) {
+        preferredMessage = message;
+        preferredRank = messageRank;
+      }
+    }
+    return preferredMessage && meaningful(preferredMessage)
+      ? preferredMessage
+      : undefined;
+  };
+
+  const linkedUsers = turnMessages.filter((message) => message.role === 'user');
+  const linked = choose(linkedUsers);
+  if (linked) return linked;
+
+  const sameTurn = users.filter((message) => (
+    message.turnId === turnId && !turnMessageIds.has(message.id)
+  ));
+  const sameTurnUser = choose(sameTurn);
+  if (sameTurnUser) return sameTurnUser;
+
+  const relatedClientMessageIds = new Set(
+    turnMessages.flatMap((message) => [
+      message.clientMessageId,
+      message.retryOfClientMessageId,
+    ]).filter((value): value is string => Boolean(value)),
+  );
+  if (relatedClientMessageIds.size > 0) {
+    const mirrored = users.filter((message) => (
+      typeof message.clientMessageId === 'string'
+      && relatedClientMessageIds.has(message.clientMessageId)
+    ));
+    const mirroredUser = choose(mirrored);
+    if (mirroredUser) return mirroredUser;
+  }
+
+  const anchorIndexes = turn.messageIds
+    .map((messageId) => projection.messageOrder.indexOf(messageId))
+    .filter((index) => index >= 0);
+  if (anchorIndexes.length > 0) {
+    const adjacent = users
+      .map((message) => ({
+        message,
+        distance: Math.min(...anchorIndexes.map((index) => (
+          Math.abs(projection.messageOrder.indexOf(message.id) - index)
+        ))),
+      }))
+      .filter(({ distance }) => distance === 1)
+      .sort((left, right) => rank(right.message) - rank(left.message));
+    const adjacentUser = choose(adjacent.map(({ message }) => message));
+    if (adjacentUser) return adjacentUser;
+  }
+
+  // Durable failure/activity projections can arrive as a separate turn with
+  // no messageIds. In that case the nearest preceding user turn is the only
+  // replayable input identity and is preferable to a dead-end retry button.
+  const turnIndex = projection.turnOrder.indexOf(turnId);
+  if (turnIndex > 0) {
+    for (let index = turnIndex - 1; index >= 0; index -= 1) {
+      const prior = projection.turnsById[projection.turnOrder[index]!];
+      if (!prior) continue;
+      const priorUser = choose(prior.messageIds
+        .map((messageId) => projection.messagesById[messageId])
+        .filter((message): message is AgentMessageProjection => message?.role === 'user'));
+      if (priorUser) return priorUser;
+    }
+  }
+
+  return [...users]
+    .filter((message) => message.createdAtMs <= turn.updatedAtMs && meaningful(message))
+    .sort((left, right) => right.createdAtMs - left.createdAtMs)[0];
+}
+
+
 function normalizedQueueText(value: string): string {
   return value.replace(/\s+/gu, ' ').trim();
 }
@@ -1516,7 +1847,7 @@ function upsertActivity(
     payload: activityPayload,
     createdAtMs: previous?.createdAtMs ?? event.createdAtMs,
     updatedAtMs: event.createdAtMs,
-    timelineSequence: previous?.timelineSequence ?? event.sequence,
+    timelineSequence: previous?.timelineSequence ?? sourceTimelineSequence(event),
   };
   if (!previous) state.activityOrder.push(id);
   state.activitiesById[id] = activity;
@@ -1778,6 +2109,27 @@ function touchTurn(
   const turn = ensureTurn(state, turnId, nowMs);
   turn.status = status;
   turn.updatedAtMs = nowMs;
+}
+
+/** A Provider transport failure can be persisted as a failed assistant
+ * message before Pi's retry continues the same logical turn. Later reasoning,
+ * text or Tool work proves that message was an attempt failure, not the turn's
+ * terminal fence. Reopen only failures without an authoritative turn_failed
+ * activity so a genuinely terminal turn cannot be revived by a late receipt. */
+function reopenProvisionalTurn(
+  state: AgentProjectionState,
+  turnId: string,
+  nowMs: number,
+): void {
+  if (!turnId) return;
+  const turn = ensureTurn(state, turnId, nowMs);
+  const hasTerminalFailure = turn.activityIds.some(
+    (activityId) => state.activitiesById[activityId]?.kind === 'turn_failed',
+  );
+  if (turn.status === 'failed' && hasTerminalFailure) return;
+  turn.status = 'running';
+  turn.updatedAtMs = nowMs;
+  delete turn.failure;
 }
 
 function completeTurn(
@@ -2382,6 +2734,13 @@ function updateAgentTodoFromActivity(
 
 function text(value: unknown): string {
   return typeof value === 'string' ? value : '';
+}
+
+function sourceTimelineSequence(event: UiAgentEvent): number {
+  return typeof event.timelineSequence === 'number'
+    && Number.isFinite(event.timelineSequence)
+    ? event.timelineSequence
+    : event.sequence;
 }
 
 function integer(value: unknown): number {

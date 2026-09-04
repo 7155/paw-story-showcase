@@ -16,11 +16,13 @@ import {
   type MockControlTransportOptions,
   type MockRouteHandler,
 } from '@/test/mock-transport';
+import { isPawMemoryFlowShowcase } from '@/paw-os/showcase/memory-flow-script';
 import {
   PAW_ROOM_FLOW_SHOWCASE_EVENT,
   PAW_ROOM_FLOW_SHOWCASE_ID,
   isPawRoomFlowShowcase,
-  pawRoomFlowShowcaseDelayMs,
+  pawRoomFlowShowcaseDelayBeforeSequenceMs,
+  pawRoomFlowShowcaseReviewerGateHoldMs,
   type PawRoomFlowShowcaseEventDetail,
 } from '@/paw-os/showcase/room-flow-script';
 import {
@@ -46,6 +48,7 @@ import {
   previewMemoryCurationStatus,
   previewMemoryEntity,
   previewMemoryGraph,
+  previewLocalDate,
   previewMemoryPage,
   previewMemoryReference,
   previewMemorySummary,
@@ -76,9 +79,18 @@ type PreviewRoomFlowPlayback = {
   roomId: string;
 };
 
+function isReliabilitySession(sessionId: string): boolean {
+  return sessionId.startsWith('session-reliability');
+}
+
+function reliabilityExecutionMode(sessionId: string): 'read_only' | 'per_action' {
+  return sessionId === 'session-reliability-repair' ? 'per_action' : 'read_only';
+}
+
 class PreviewControlTransport extends MockControlTransport {
   private readonly roomFlowPlayback?: PreviewRoomFlowPlayback;
   private roomFlowStarted = false;
+  private roomFlowTimer: number | null = null;
 
   constructor(options: MockControlTransportOptions & { roomFlowPlayback?: PreviewRoomFlowPlayback }) {
     const { roomFlowPlayback, ...transportOptions } = options;
@@ -146,10 +158,17 @@ class PreviewControlTransport extends MockControlTransport {
     const playback = this.roomFlowPlayback;
     if (!playback) return;
     const events = playback.events.filter((event) => Number(event.sequence) > lastSequence);
-    const delayMs = pawRoomFlowShowcaseDelayMs();
-    events.forEach((event, index) => {
-      window.setTimeout(() => {
-        const sequence = Number(event.sequence);
+    const reviewerGateHoldMs = pawRoomFlowShowcaseReviewerGateHoldMs();
+    const schedule = (index: number) => {
+      const event = events[index];
+      if (!event) {
+        this.roomFlowTimer = null;
+        return;
+      }
+      const sequence = Number(event.sequence);
+      const delayMs = pawRoomFlowShowcaseDelayBeforeSequenceMs(sequence)
+        + (sequence === 58 ? reviewerGateHoldMs : 0);
+      this.roomFlowTimer = window.setTimeout(() => {
         if (!Number.isInteger(sequence)) return;
         playback.onSequence(sequence);
         this.emit('agent.room.events', event);
@@ -164,10 +183,42 @@ class PreviewControlTransport extends MockControlTransport {
             },
           },
         ));
-      }, delayMs * (index + 1));
-    });
+        if (index + 1 < events.length) {
+          schedule(index + 1);
+          return;
+        }
+        this.roomFlowTimer = window.setTimeout(() => {
+          this.emit('agent.room.events', {
+            ...event,
+            eventId: `${playback.roomId}:showcase-final-snapshot`,
+            eventType: 'snapshot_required',
+            payload: { reason: 'showcase_final_state' },
+          });
+          this.roomFlowTimer = null;
+        }, 600);
+      }, delayMs);
+    };
+    schedule(0);
   }
 }
+
+// Real project documents of this repository, indexed as the public knowledge base.
+const previewKnowledgeDocuments: Record<string, unknown>[] = [
+  { id: 'file:preview-readme', baseId: 'kb:preview-project-docs', fileName: 'README.md', mimeType: 'text/markdown', byteSize: 2_918, status: 'ready', stage: 'ready', chunkCount: 5, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 300_000 },
+  { id: 'file:preview-data-contract', baseId: 'kb:preview-project-docs', fileName: 'SHOWCASE_DATA.md', mimeType: 'text/markdown', byteSize: 5_412, status: 'ready', stage: 'ready', chunkCount: 9, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 290_000 },
+  { id: 'file:preview-upstream', baseId: 'kb:preview-project-docs', fileName: 'UPSTREAM.json', mimeType: 'application/json', byteSize: 3_246, status: 'ready', stage: 'ready', chunkCount: 5, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 280_000 },
+  { id: 'file:preview-story-readme', baseId: 'kb:preview-project-docs', fileName: 'paw-story-demo/README.md', mimeType: 'text/markdown', byteSize: 6_681, status: 'ready', stage: 'ready', chunkCount: 11, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 270_000 },
+  { id: 'file:preview-scenarios', baseId: 'kb:preview-project-docs', fileName: 'showcase/scenarios.v1.json', mimeType: 'application/json', byteSize: 3_940, status: 'ready', stage: 'ready', chunkCount: 7, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 250_000 },
+  { id: 'file:preview-trace-contract', baseId: 'kb:preview-project-docs', fileName: 'control-center-web/src/contracts/generated/trace-envelope.v1.ts', mimeType: 'text/typescript', byteSize: 1_913, status: 'ready', stage: 'ready', chunkCount: 4, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 230_000 },
+  { id: 'file:preview-room-script', baseId: 'kb:preview-project-docs', fileName: 'control-center-web/src/paw-os/showcase/room-flow-script.ts', mimeType: 'text/typescript', byteSize: 6_008, status: 'ready', stage: 'ready', chunkCount: 10, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 210_000 },
+  { id: 'file:preview-memory-script', baseId: 'kb:preview-project-docs', fileName: 'control-center-web/src/paw-os/showcase/memory-flow-script.ts', mimeType: 'text/typescript', byteSize: 2_951, status: 'ready', stage: 'ready', chunkCount: 5, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 190_000 },
+  { id: 'file:preview-paper-iceshelf', baseId: 'kb:preview-project-docs', fileName: 'papers/冰架基底融化反演-物理残差学习.pdf', mimeType: 'application/pdf', byteSize: 4_218_000, status: 'ready', stage: 'ready', chunkCount: 96, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 540_000 },
+  { id: 'file:preview-paper-iceocean', baseId: 'kb:preview-project-docs', fileName: 'papers/ice-shelf-ocean-interaction-review-2025.pdf', mimeType: 'application/pdf', byteSize: 2_864_000, status: 'ready', stage: 'ready', chunkCount: 64, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 560_000 },
+  { id: 'file:preview-paper-rag', baseId: 'kb:preview-project-docs', fileName: 'papers/retrieval-augmented-generation-survey-2026.pdf', mimeType: 'application/pdf', byteSize: 1_936_000, status: 'ready', stage: 'ready', chunkCount: 48, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 580_000 },
+  { id: 'file:preview-scorecard', baseId: 'kb:preview-project-docs', fileName: 'data/scorecard.v1.json', mimeType: 'application/json', byteSize: 11_327, status: 'ready', stage: 'ready', chunkCount: 8, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 600_000 },
+  { id: 'file:preview-optimizer-cases', baseId: 'kb:preview-project-docs', fileName: 'data/memory_optimizer_cases.jsonl', mimeType: 'application/x-ndjson', byteSize: 12_147, status: 'ready', stage: 'ready', chunkCount: 16, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 620_000 },
+  { id: 'file:preview-qrels', baseId: 'kb:preview-project-docs', fileName: 'data/rag-eval-qrels.jsonl', mimeType: 'application/x-ndjson', byteSize: 9_420, status: 'ready', stage: 'ready', chunkCount: 12, parserProvider: 'builtin', revision: 1, updatedAtMs: Date.now() - 640_000 },
+  ];
 
 export function createPreviewTransport(): MockControlTransport {
   let nextSessionId = 1;
@@ -175,6 +226,7 @@ export function createPreviewTransport(): MockControlTransport {
   let nextWakeScheduleId = 1;
   let nextRoomId = 1;
   const roomFlowShowcase = isPawRoomFlowShowcase();
+  const memoryFlowShowcase = isPawMemoryFlowShowcase();
   const previewRoomBaseTimeMs = Date.now() - 60_000;
   const completeRoomFlowSnapshot = previewRoomSnapshot(PAW_ROOM_FLOW_SHOWCASE_ID, {
     baseTimeMs: previewRoomBaseTimeMs,
@@ -191,7 +243,7 @@ export function createPreviewTransport(): MockControlTransport {
     ],
   ]);
   let previewEvidenceDisposition = 'not_for_memory';
-  let previewMemoryRunStatus = 'draft';
+  let previewMemoryRunStatus = memoryFlowShowcase ? 'applied' : 'draft';
   let previewMemoryJob: Record<string, unknown> = {};
   let previewWorkflow = previewWorkflowState('session-preview');
   let previewInstalledExtensions = previewInstalledExtensionItems();
@@ -200,9 +252,9 @@ export function createPreviewTransport(): MockControlTransport {
   let previewLifecyclePolicies = previewLifecyclePolicyItems();
   let previewApprovals = previewApprovalItems();
   const previewTimelineStatuses = new Map<string, string>([
-    [new Date().toISOString().slice(0, 10), 'draft'],
+    [previewLocalDate(), memoryFlowShowcase ? 'approved' : 'draft'],
   ]);
-  const previewMemorySelections = new Map<number, boolean>([[1, true], [2, false], [3, true]]);
+  const previewMemorySelections = new Map<number, boolean>([[1, true], [2, memoryFlowShowcase], [3, true]]);
   let previewConfiguration = previewConfigurationValues();
   let previousPreviewConfiguration: Record<string, unknown> | undefined;
   let previewConfigurationRevision = 12;
@@ -213,19 +265,7 @@ export function createPreviewTransport(): MockControlTransport {
   let previewTerminals: Record<string, unknown>[] = [];
   const previewTerminalOutput = new Map<string, string>();
   let previewKnowledgeBases = [previewKnowledgeBase()];
-  const previewKnowledgeDocuments: Record<string, unknown>[] = [{
-    id: 'file:preview-yuxi',
-    baseId: 'kb:preview-project-docs',
-    fileName: '伙伴运行笔记.md',
-    mimeType: 'text/markdown',
-    byteSize: 48_320,
-    status: 'ready',
-    stage: 'ready',
-    chunkCount: 36,
-    parserProvider: 'builtin',
-    revision: 1,
-    updatedAtMs: Date.now() - 180_000,
-  }];
+
   let previewKnowledgeJobs: Record<string, unknown>[] = [];
   let previewTransport: MockControlTransport | undefined;
   const previewBackgroundJobsBySession: Record<string, AgentBackgroundJobV1[]> = {
@@ -243,15 +283,24 @@ export function createPreviewTransport(): MockControlTransport {
     previewSession('session-states', '状态与恢复', 'companion-present-v1', Date.now() - 120_000, '1', { messageCount: 3, lastMessagePreview: '运行中、失败与已停止三种状态。' }),
     previewSession('session-report', '报告交付', 'companion-present-v1', Date.now() - 240_000, '1', { messageCount: 2, lastMessagePreview: '生成的 HTML 报告与原始数据一并交付。' }),
     previewSession('session-models', '模型切换', 'companion-present-v1', Date.now() - 180_000, '1', { messageCount: 4, lastMessagePreview: '同一串对话里从快模型换到强模型。' }),
-    previewSession('session-memory', '记忆整理', 'companion-present-v1', Date.now() - 360_000, '1', { messageCount: 12, lastMessagePreview: '已把最近输入整理为 3 个主题。' }),
+    previewSession('session-memory-greeting', '今天聊聊 · 开场', 'companion-present-v1', Date.now() - 365_000, '1', { messageCount: 2, lastMessagePreview: '看起来是很有进展、也挺密的一天。要继续收尾，还是先缓一缓？' }),
+    previewSession('session-memory', '今天聊聊 · 继续', 'companion-present-v1', Date.now() - 360_000, '1', { messageCount: 4, lastMessagePreview: '明天继续时，我会从今天的整理结果和交接记录接上。' }),
+    previewSession('session-reliability-incident', 'Tool error · Workflow 事故', 'companion-present-v1', Date.now() - 24 * 60_000, '1', { status: 'faulted', messageCount: 2, lastMessagePreview: 'workspace_write 成功后，旧 Workflow 因辅助登记失败回滚了真实产物。', workspaceRoots: ['/Users/example/Projects/personal-agent-workbench'], toolProfileVersion: 'subagent-readonly-v1', executionMode: 'read_only', piSkillsEnabled: true, projectContextEnabled: true }),
+    previewSession('session-reliability-slow', '耗时过长 · 14m32s', 'companion-present-v1', Date.now() - 22 * 60_000, '1', { status: 'busy', messageCount: 8, lastMessagePreview: '6 次重试 · 41,820 Token · 长时间没有有效进展。', workspaceRoots: ['/Users/example/Projects/personal-agent-workbench'], toolProfileVersion: 'subagent-readonly-v1', executionMode: 'read_only', piSkillsEnabled: true, projectContextEnabled: true }),
+    previewSession('session-reliability-foreground', 'Sub Agent 前台化', 'companion-present-v1', Date.now() - 20 * 60_000, '1', { status: 'faulted', messageCount: 5, lastMessagePreview: '后台 Sub Agent 被错误提升到前台，主 Session 阻塞。', workspaceRoots: ['/Users/example/Projects/personal-agent-workbench'], toolProfileVersion: 'subagent-readonly-v1', executionMode: 'read_only', piSkillsEnabled: true, projectContextEnabled: true }),
+    previewSession('session-reliability-skill-eval', 'Skill 测评 · 目标漂移', 'companion-present-v1', Date.now() - 19 * 60_000, '1', { status: 'faulted', messageCount: 6, lastMessagePreview: 'Reviewer 只检查 Worker 自我总结，漏掉用户原始需求与程序行为。', workspaceRoots: ['/Users/example/Projects/personal-agent-workbench'], toolProfileVersion: 'subagent-readonly-v1', executionMode: 'read_only', piSkillsEnabled: true, projectContextEnabled: true }),
+    previewSession('session-reliability', 'Trace Skill · 只读诊断', 'companion-present-v1', Date.now() - 18 * 60_000, '1', { messageCount: 2, lastMessagePreview: '只读报告已定位第一根因；repair candidate 正在等待用户授权。', workspaceRoots: [], toolProfileVersion: 'subagent-readonly-v1', executionMode: 'read_only', piSkillsEnabled: true, projectContextEnabled: true }),
+    previewSession('session-reliability-repair', 'Repair Session · documentSync', 'companion-present-v1', Date.now() - 12 * 60_000, '1', { messageCount: 2, lastMessagePreview: '修复已 applied + tested；原 Case 尚未 Replay。', workspaceRoots: ['/Users/example/Projects/personal-agent-workbench'], toolProfileVersion: 'subagent-worker-v1', executionMode: 'per_action', piSkillsEnabled: true, projectContextEnabled: true }),
+    previewSession('session-reliability-verify', 'Verification Session · 同题 Replay', 'companion-present-v1', Date.now() - 6 * 60_000, '1', { messageCount: 2, lastMessagePreview: '同一 Case 已重跑；任务完成硬门槛通过，八项评分均已生成。', workspaceRoots: ['/Users/example/Projects/personal-agent-workbench'], toolProfileVersion: 'subagent-readonly-v1', executionMode: 'read_only', piSkillsEnabled: true, projectContextEnabled: true }),
     previewSession('session-work-disclosure', '过程折叠验收', 'companion-present-v1', Date.now() - 90_000, '1', { messageCount: 3, lastMessagePreview: '最终结果保持可见，推理与工具过程可按需展开。', workspaceRoots: ['/Users/example/Projects/personal-agent-workbench'] }),
   ];
   const roomSessions: Record<string, unknown>[] = [
-    previewRoomSession('session-room-facilitator', 'PAW 展示页制作 · Sol', 'companion-present-v1', 'participant-facilitator'),
-    previewRoomSession('session-room-input', 'PAW 展示页制作 · Earth', 'companion-present-v1', 'participant-input'),
-    previewRoomSession('session-room-memory', 'PAW 展示页制作 · Mars', 'companion-firstlight-v1', 'participant-memory'),
-    previewRoomSession('session-room-room', 'PAW 展示页制作 · Venus', 'companion-future-v1', 'participant-room'),
-    previewRoomSession('session-room-review', 'PAW 展示页制作 · Jupiter', 'companion-firstlight-v1', 'participant-review'),
+    previewRoomSession('session-room-facilitator', 'PAW 立项 · Sol', 'companion-present-v1', 'participant-facilitator'),
+    previewRoomSession('session-room-input', 'PAW 立项 · Mars / 输入法', 'companion-present-v1', 'participant-input'),
+    previewRoomSession('session-room-runtime', 'PAW 立项 · Venus / Memory', 'companion-firstlight-v1', 'participant-runtime'),
+    previewRoomSession('session-room-context', 'PAW 立项 · Jupiter / 多 Agent', 'companion-firstlight-v1', 'participant-context'),
+    previewRoomSession('session-room-room', 'PAW 立项 · Saturn / PAWOS', 'companion-future-v1', 'participant-room'),
+    previewRoomSession('session-room-review', 'PAW 立项 · Neptune / Reviewer', 'companion-firstlight-v1', 'participant-review'),
   ];
   let personas: AgentPersonaV1[] = previewPersonas.map((persona) => ({
     ...persona,
@@ -269,6 +318,17 @@ export function createPreviewTransport(): MockControlTransport {
     roleVersion: '1',
   };
   const wakeSchedules: Record<string, unknown>[] = [];
+  let previewEvalRunsByTrace: Record<string, Record<string, unknown>[]> = {};
+  let previewEvalSchedules: Record<string, unknown>[] = [
+    previewEvalSchedule('eval-schedule:sgg'),
+  ];
+  let nextPreviewEvalScheduleId = 1;
+  const previewEvalScheduleRuns = new Map<string, Record<string, unknown>[]>([
+    [
+      'eval-schedule:sgg',
+      [previewEvalScheduleRun('eval-schedule:sgg', 'eval:sgg:preview', 'trace:turn:preview')],
+    ],
+  ]);
   const routes = Object.fromEntries(
     (Object.keys(CONTROL_ROUTES) as ControlPathId[])
       .filter((pathId) => !controlRoute(pathId).subscription)
@@ -277,6 +337,120 @@ export function createPreviewTransport(): MockControlTransport {
   routes['agent.session.snapshot'] = (request: ControlRequest) => (
     previewAgentSnapshot(stringValue(record(request.params).sessionId) || 'session-preview')
   );
+  routes['observability.trace.get'] = (request: ControlRequest) => previewCanonicalTrace(
+    stringValue(record(request.params).traceId) || 'trace:turn:preview',
+  );
+  routes['observability.sandboxRuns.list'] = () => ({
+    schemaVersion: 'rag-ime.observability-sandbox-run-list.v1',
+    ok: true,
+    items: [{
+      schemaVersion: 'rag-ime.sandbox-run.v1',
+      sandboxRunId: 'sandbox:sgg:preview',
+      appId: 'sgg',
+      status: 'completed',
+      policy: {
+        workspaceBindingId: 'workspace-binding:vertical-sandbox:sgg',
+        workspaceFingerprint: `sha256:${'0'.repeat(64)}`,
+        mutationMode: 'read_only',
+        network: 'blocked',
+        productionWriteBlocked: true,
+      },
+      traceIds: ['trace:turn:preview'],
+      evalRunIds: ['eval:sgg:preview'],
+      createdAtMs: 1_800_000_000_000,
+      updatedAtMs: 1_800_000_000_100,
+    }],
+    total: 1,
+  });
+  routes['observability.evals.list'] = (request: ControlRequest) => {
+    const traceId = stringValue(record(request.query).traceId) || 'trace:turn:preview';
+    return previewEvalList(traceId, previewEvalRunsByTrace[traceId] ?? []);
+  };
+  routes['observability.evals.evidence.run'] = (request: ControlRequest) => {
+    const body = record(request.body);
+    const traceId = stringValue(body.traceId) || 'trace:turn:preview';
+    const evalRun = previewEvidenceEvalRun(
+      body,
+      traceId,
+      previewEvalRunsByTrace[traceId]?.length ?? 0,
+    );
+    const summary = previewEvalSummary(evalRun);
+    previewEvalRunsByTrace = {
+      ...previewEvalRunsByTrace,
+      [traceId]: [...(previewEvalRunsByTrace[traceId] ?? []), summary],
+    };
+    return evalRun;
+  };
+  routes['observability.evalSuites.list'] = () => previewEvalSuiteList();
+  routes['observability.evalSchedules.list'] = () => ({
+    schemaVersion: 'rag-ime.eval-schedule-list.v1',
+    ok: true,
+    items: previewEvalSchedules,
+  });
+  routes['observability.evalSchedule.runs'] = (request: ControlRequest) => {
+    const scheduleId = stringValue(record(request.params).scheduleId);
+    const schedule = previewEvalSchedules.find((item) => stringValue(item.id) === scheduleId)
+      ?? previewEvalSchedules[0];
+    if (!schedule) throw new Error('Preview Eval schedule is unavailable.');
+    return {
+      schemaVersion: 'rag-ime.eval-schedule-run-list.v1',
+      ok: true,
+      schedule,
+      items: previewEvalScheduleRuns.get(stringValue(schedule.id)) ?? [],
+    };
+  };
+  routes['observability.evalSchedules.create'] = (request: ControlRequest) => {
+    const body = record(request.body);
+    const suiteId = stringValue(body.suiteId) || 'sgg';
+    const suiteRevision = stringValue(body.suiteRevision) || 'fixture-v2';
+    const scheduleId = stringValue(body.scheduleId)
+      || `eval-schedule:${suiteId}:${nextPreviewEvalScheduleId++}`;
+    const now = Date.now();
+    const requestedNextDueAtMs = Number(body.nextDueAtMs);
+    const nextDueAtMs = Number.isFinite(requestedNextDueAtMs)
+      ? requestedNextDueAtMs
+      : now + 60_000;
+    const maxRuns = Number(body.maxRuns) || 30;
+    const oneShot = maxRuns === 1 && nextDueAtMs <= now + 1_500;
+    const runTraceId = suiteId === 'zhanggui-wenshu'
+      ? 'trace:room-turn:preview'
+      : 'trace:turn:preview';
+    const completedRun = oneShot
+      ? previewEvalScheduleRun(scheduleId, `eval:${suiteId}:preview:one-shot`, runTraceId)
+      : undefined;
+    const schedule = previewEvalSchedule(scheduleId, {
+      suiteId,
+      suiteRevision,
+      recurrenceKind: stringValue(body.recurrenceKind) === 'weekly' ? 'weekly' : 'daily',
+      recurrenceInterval: Number(body.recurrenceInterval) || 1,
+      maxRuns,
+      runCount: oneShot ? 1 : 0,
+      status: oneShot ? 'completed' : 'scheduled',
+      initialDueAtMs: nextDueAtMs,
+      nextDueAtMs,
+      ...(completedRun ? { latestRun: previewEvalLatestRun(completedRun) } : {}),
+      createdAtMs: now,
+      updatedAtMs: now,
+    });
+    previewEvalSchedules = [...previewEvalSchedules, schedule];
+    previewEvalScheduleRuns.set(scheduleId, completedRun ? [completedRun] : []);
+    if (completedRun) {
+      const summary = previewScheduledEvalSummary({
+        evalRunId: stringValue(completedRun.evalRunId),
+        suiteId,
+        suiteRevision,
+      });
+      previewEvalRunsByTrace = {
+        ...previewEvalRunsByTrace,
+        [runTraceId]: [...(previewEvalRunsByTrace[runTraceId] ?? []), summary],
+      };
+    }
+    return {
+      schemaVersion: 'rag-ime.eval-schedule-create.v1',
+      ok: true,
+      schedule,
+    };
+  };
   routes['terminal.sessions.list'] = () => ({ schemaVersion: 'rag-ime.system-terminal.v1', ok: true, items: previewTerminals });
   routes['terminal.session.create'] = (request: ControlRequest) => {
     const body = record(request.body);
@@ -538,7 +712,7 @@ export function createPreviewTransport(): MockControlTransport {
   });
   routes['memory.summary'] = () => previewMemorySummary(previewTimelineStatuses);
   routes['memory.activityTimeline.get'] = (request: ControlRequest) => {
-    const date = stringValue(record(request.query).date) || new Date().toISOString().slice(0, 10);
+    const date = stringValue(record(request.query).date) || previewLocalDate();
     return {
       ok: true,
       timeline: previewActivityTimeline(date, previewTimelineStatuses.get(date) || 'draft'),
@@ -549,7 +723,7 @@ export function createPreviewTransport(): MockControlTransport {
     return previewActivityTimelineCalendar(month, previewTimelineStatuses);
   };
   routes['memory.activityTimeline.build'] = (request: ControlRequest) => {
-    const date = stringValue(record(request.body).date) || new Date().toISOString().slice(0, 10);
+    const date = stringValue(record(request.body).date) || previewLocalDate();
     previewTimelineStatuses.set(date, 'draft');
     return {
       schemaVersion: 'rag-ime.daily-activity-timeline-build.v1',
@@ -596,7 +770,7 @@ export function createPreviewTransport(): MockControlTransport {
       ? previewMemoryJob
       : stringValue(record(request.query).runId)
       ? previewMemoryCurationRun(previewMemorySelections, previewMemoryRunStatus)
-      : previewMemoryCurationStatus(previewMemoryRunStatus);
+      : previewMemoryCurationStatus(previewMemoryRunStatus, memoryFlowShowcase);
   routes['agent.memoryMaintenance.trigger'] = (request: ControlRequest) => {
     const body = record(request.body);
     const jobId = `memory-maintenance:preview:${Date.now()}`;
@@ -1134,6 +1308,12 @@ export function createPreviewTransport(): MockControlTransport {
     if (!snapshot) throw new Error('这个协作空间已经不存在，请刷新列表。');
     return snapshot;
   };
+  routes['agent.room.conversationSnapshot'] = (request: ControlRequest) => {
+    const roomId = stringValue(record(request.params).roomId);
+    const snapshot = previewRoomSnapshots.get(roomId);
+    if (!snapshot) throw new Error('这个协作空间已经不存在，请刷新列表。');
+    return previewRoomConversationSnapshot(snapshot);
+  };
   routes['agent.room.topic.create'] = (request: ControlRequest) => {
     const roomId = stringValue(record(request.params).roomId);
     const snapshot = previewRoomSnapshots.get(roomId);
@@ -1239,13 +1419,13 @@ export function createPreviewTransport(): MockControlTransport {
         {
           chunkId: 'chunk:preview-settings-1',
           ordinal: 0,
-          content: `# Agent Runtime\n使用 ${strategy} 策略生成的首个预览片段。`,
+          content: `# Graph + Tag / Rerank 边界\n使用 ${strategy} 策略生成的公开清洗预览片段。`,
           page: 1,
         },
         {
           chunkId: 'chunk:preview-settings-2',
           ordinal: 1,
-          content: 'Tool 只按需检索这个文档知识库，不会读取个人记忆。',
+          content: 'BM25、Dense 与 Time 继续负责检索；Graph + Tag 目标是裁剪候选并替代模型 reranker。',
           page: 3,
         },
       ],
@@ -1524,6 +1704,48 @@ function previewResponse(pathId: ControlPathId): unknown {
       return (request: ControlRequest) => {
         const sessionId = stringValue(record(request.params).sessionId) || 'session-preview';
         const now = Date.now();
+        if (sessionId === 'session-memory' || sessionId === 'session-memory-greeting') {
+          const turnSuffixes = sessionId === 'session-memory-greeting'
+            ? ['turn-greeting']
+            : ['turn-greeting', 'turn-tired'];
+          return {
+            ok: true,
+            items: turnSuffixes.map((suffix, index) => ({
+              traceId: `context-trace:${sessionId}:${suffix}`,
+              sessionId,
+              turnId: `${sessionId}:${suffix}`,
+              sourceKind: 'user',
+              status: 'accepted',
+              finalFingerprint: `sha256:${'9'.repeat(64)}`,
+              nodeCount: index === 0 ? 7 : 6,
+              createdAtMs: now - (20_000 - index * 3_000),
+              updatedAtMs: now - (19_000 - index * 3_000),
+            })),
+          };
+        }
+        if (isReliabilitySession(sessionId)) {
+          const turnIds = sessionId === 'session-reliability-incident'
+            ? [`${sessionId}:turn-incident`]
+            : sessionId === 'session-reliability'
+              ? [`${sessionId}:turn-diagnose`]
+              : sessionId === 'session-reliability-repair'
+                ? [`${sessionId}:turn-repair`]
+                : [`${sessionId}:turn-verify`];
+          return {
+            ok: true,
+            items: turnIds.map((turnId, index) => ({
+              traceId: `context-trace:${turnId}`,
+              sessionId,
+              turnId,
+              sourceKind: 'user',
+              status: 'accepted',
+              finalFingerprint: `sha256:${'b'.repeat(64)}`,
+              nodeCount: 6,
+              createdAtMs: now - (18_000 - index * 2_000),
+              updatedAtMs: now - (17_000 - index * 2_000),
+            })),
+          };
+        }
         return {
           ok: true,
           items: ['turn-initial', 'turn-steady', 'turn-recovered'].map((turnId, index) => ({
@@ -1561,6 +1783,10 @@ function previewResponse(pathId: ControlPathId): unknown {
       return { ok: true, rooms: [previewRoomSnapshot('room-preview').room] };
     case 'agent.room.snapshot':
       return (request: ControlRequest) => previewRoomSnapshot(String(request.params?.roomId ?? 'room-preview'));
+    case 'agent.room.conversationSnapshot':
+      return (request: ControlRequest) => previewRoomConversationSnapshot(
+        previewRoomSnapshot(String(request.params?.roomId ?? 'room-preview')) as unknown as Record<string, unknown>,
+      );
     case 'agent.roles.list':
       return { ok: true, roles: [] };
     case 'agent.tools.list':
@@ -1607,7 +1833,7 @@ function previewResponse(pathId: ControlPathId): unknown {
     case 'agent.artifact.get':
       return previewSubagentArtifact();
     case 'planning.dashboard':
-      return { ok: true, date: new Date().toISOString().slice(0, 10), tasks: [], goals: [] };
+      return { ok: true, date: previewLocalDate(), tasks: [], goals: [] };
     case 'memory.summary':
       return {
         ok: true,
@@ -1637,21 +1863,7 @@ function previewResponse(pathId: ControlPathId): unknown {
     case 'knowledgeBases.documents.list':
       return {
         ok: true,
-        items: [
-          {
-            id: 'file:preview-yuxi',
-            baseId: 'kb:preview-project-docs',
-            fileName: '伙伴运行笔记.md',
-            mimeType: 'text/markdown',
-            byteSize: 48_320,
-            status: 'ready',
-            stage: 'ready',
-            chunkCount: 36,
-            parserProvider: 'builtin',
-            revision: 1,
-            updatedAtMs: Date.now() - 180_000,
-          },
-        ],
+        items: previewKnowledgeDocuments.map((document) => ({ ...document })),
       };
     case 'knowledgeBases.jobs.list':
       return { ok: true, items: [] };
@@ -1660,13 +1872,31 @@ function previewResponse(pathId: ControlPathId): unknown {
         ok: true,
         items: [
           {
-            chunkId: 'chunk:preview-agent-loop',
-            documentId: 'file:preview-yuxi',
-            documentName: '伙伴运行笔记.md',
-            heading: 'Agent Tool 边界',
-            content: '文档知识库通过只读 Tool 按需检索，不会进入输入法候选热路径。',
-            score: 0.92,
-            citation: { page: 3, heading: 'Agent Tool 边界' },
+            chunkId: 'chunk:preview-public-data-boundary',
+            documentId: 'file:preview-data-contract',
+            documentName: 'SHOWCASE_DATA.md',
+            heading: '公开数据边界',
+            content: '公开页面复用真实前端组件；人物、Room 事件、输入、记忆与 Replay 指标使用清洗后的合成场景。',
+            score: 1,
+            citation: { page: 1, heading: '公开数据边界' },
+          },
+          {
+            chunkId: 'chunk:preview-paper-ice-method',
+            documentId: 'file:preview-paper-iceshelf',
+            documentName: 'papers/冰架基底融化反演-物理残差学习.pdf',
+            heading: '模型方法',
+            content: '网络以 m_raw、冰厚、速度及其空间梯度等 12 个通道为输入，同时预测残差项 δm 与对数方差 logσ²。',
+            score: .94,
+            citation: { page: 14, heading: '模型方法' },
+          },
+          {
+            chunkId: 'chunk:preview-upstream-authority',
+            documentId: 'file:preview-upstream',
+            documentName: 'UPSTREAM.json',
+            heading: 'authority',
+            content: 'derivative-showcase-not-product-source：展示项目不能反向成为 PAW 产品的第二权威。',
+            score: .92,
+            citation: { page: 1, heading: 'authority' },
           },
         ],
       };
@@ -1679,20 +1909,43 @@ function previewResponse(pathId: ControlPathId): unknown {
         status: 'ready',
         updatedAtMs: Date.now() - 60_000,
         nodes: [
-          { id: 'doc:runtime', label: '伙伴运行笔记.md', kind: 'document', documentId: 'file:preview-yuxi', documentName: '伙伴运行笔记.md', weight: 1 },
-          { id: 'topic:tools', label: 'Agent Tool 边界', kind: 'topic', weight: .9 },
-          { id: 'entity:worker', label: 'Knowledge Worker', kind: 'entity', weight: .84 },
+          { id: 'doc:readme', label: 'README.md', kind: 'document', documentId: 'file:preview-readme', documentName: 'README.md', weight: 1 },
+          { id: 'doc:data-contract', label: 'SHOWCASE_DATA.md', kind: 'document', documentId: 'file:preview-data-contract', documentName: 'SHOWCASE_DATA.md', weight: .96 },
+          { id: 'doc:upstream', label: 'UPSTREAM.json', kind: 'document', documentId: 'file:preview-upstream', documentName: 'UPSTREAM.json', weight: .92 },
+          { id: 'doc:scenarios', label: 'scenarios.v1.json', kind: 'document', documentId: 'file:preview-scenarios', documentName: 'showcase/scenarios.v1.json', weight: .88 },
+          { id: 'doc:trace-contract', label: 'trace-envelope.v1.ts', kind: 'document', documentId: 'file:preview-trace-contract', documentName: 'control-center-web/src/contracts/generated/trace-envelope.v1.ts', weight: .86 },
+          { id: 'doc:room-script', label: 'room-flow-script.ts', kind: 'document', documentId: 'file:preview-room-script', documentName: 'control-center-web/src/paw-os/showcase/room-flow-script.ts', weight: .84 },
+          { id: 'doc:memory-script', label: 'memory-flow-script.ts', kind: 'document', documentId: 'file:preview-memory-script', documentName: 'control-center-web/src/paw-os/showcase/memory-flow-script.ts', weight: .82 },
+          { id: 'topic:public-evidence', label: '公开作品证据', kind: 'topic', weight: .98 },
+          { id: 'entity:real-frontend', label: '真实 PAWOS 前端', kind: 'entity', weight: .92 },
+          { id: 'entity:synthetic-data', label: '合成数据边界', kind: 'entity', weight: .88 },
+          { id: 'entity:room-flow', label: 'Room 协作流程', kind: 'entity', weight: .86 },
+          { id: 'entity:trace-evidence', label: 'Trace 证据合同', kind: 'entity', weight: .86 },
+          { id: 'entity:governed-context', label: '治理上下文', kind: 'entity', weight: .84 },
+          { id: 'doc:paper-rag', label: 'rag-survey-2026.pdf', kind: 'document', documentId: 'file:preview-paper-rag', documentName: 'papers/retrieval-augmented-generation-survey-2026.pdf', weight: .82 },
+          { id: 'doc:qrels', label: 'rag-eval-qrels.jsonl', kind: 'document', documentId: 'file:preview-qrels', documentName: 'data/rag-eval-qrels.jsonl', weight: .86 },
+          { id: 'entity:rag-eval', label: 'RAG 评测基线', kind: 'entity', weight: .88 },
         ],
         edges: [
-          { id: 'edge:doc-topic', source: 'doc:runtime', target: 'topic:tools', kind: 'contains', label: '包含', weight: .9 },
-          { id: 'edge:topic-worker', source: 'topic:tools', target: 'entity:worker', kind: 'mentions', label: '提及', weight: .84 },
+          { id: 'edge:readme-evidence', source: 'doc:readme', target: 'topic:public-evidence', kind: 'contains', label: '定义公开范围', weight: .96 },
+          { id: 'edge:contract-synth', source: 'doc:data-contract', target: 'entity:synthetic-data', kind: 'contains', label: '约束边界', weight: .92 },
+          { id: 'edge:upstream-real', source: 'doc:upstream', target: 'entity:real-frontend', kind: 'contains', label: '固定来源', weight: .88 },
+          { id: 'edge:scenarios-synth', source: 'doc:scenarios', target: 'entity:synthetic-data', kind: 'contains', label: '声明场景', weight: .88 },
+          { id: 'edge:trace-contract', source: 'doc:trace-contract', target: 'entity:trace-evidence', kind: 'contains', label: '定义证据', weight: .9 },
+          { id: 'edge:room-script', source: 'doc:room-script', target: 'entity:room-flow', kind: 'contains', label: '驱动协作', weight: .88 },
+          { id: 'edge:memory-script', source: 'doc:memory-script', target: 'entity:governed-context', kind: 'contains', label: '驱动召回', weight: .86 },
+          { id: 'edge:evidence-real', source: 'topic:public-evidence', target: 'entity:real-frontend', kind: 'requires', label: '核对来源', weight: .9 },
+          { id: 'edge:evidence-synth', source: 'topic:public-evidence', target: 'entity:synthetic-data', kind: 'requires', label: '标注合成', weight: .88 },
+          { id: 'edge:paper-eval', source: 'doc:paper-rag', target: 'entity:rag-eval', kind: 'contains', label: '方法基线', weight: .84 },
+          { id: 'edge:qrels-eval', source: 'doc:qrels', target: 'entity:rag-eval', kind: 'contains', label: '标注查询', weight: .88 },
+          { id: 'edge:eval-evidence', source: 'entity:rag-eval', target: 'topic:public-evidence', kind: 'supports', label: '提供基线', weight: .82 },
         ],
         stats: {
-          nodeCount: 4,
-          edgeCount: 3,
-          documentCount: 1,
-          chunkCount: 1,
-          indexedDocumentCount: 1,
+          nodeCount: 11,
+          edgeCount: 10,
+          documentCount: 16,
+          chunkCount: 496,
+          indexedDocumentCount: 16,
           pendingDocumentCount: 0,
         },
         truncated: false,
@@ -1702,7 +1955,7 @@ function previewResponse(pathId: ControlPathId): unknown {
     case 'knowledgeBases.open':
       return { ok: true, items: [] };
     case 'knowledgeWorker.health':
-      return { ok: true, available: true, status: 'ready', readyDocumentCount: 1 };
+      return { ok: true, available: true, status: 'ready', readyDocumentCount: 16 };
     case 'knowledgeParsers.list':
       return {
         ok: true,
@@ -1975,6 +2228,7 @@ function previewObservationSnapshot(filters: Record<string, unknown> = {}) {
     && (!stringValue(filters.sessionId) || item.sessionId === stringValue(filters.sessionId))
     && (!stringValue(filters.roomId) || item.roomId === stringValue(filters.roomId))
     && (!stringValue(filters.traceId) || item.traceId === stringValue(filters.traceId))
+    && (!stringValue(filters.runId) || item.runId === stringValue(filters.runId))
   ));
   const byCategory: Record<string, number> = {};
   const byStatus: Record<string, number> = {};
@@ -2001,14 +2255,388 @@ function previewObservationSnapshot(filters: Record<string, unknown> = {}) {
   };
 }
 
+function previewCanonicalTrace(traceId: string): Record<string, unknown> {
+  const now = Date.now();
+  const isRag = traceId.includes('active-rag');
+  const isRoom = traceId.includes('room-turn');
+  const binding = isRag
+    ? { sessionId: 'active-rag:preview', caseId: 'case:rag-memory:preview' }
+    : isRoom
+      ? {
+          sessionId: 'session-room-present',
+          roomId: 'room-preview',
+          turnId: 'turn-room-preview',
+          workItemId: 'work:room-preview',
+        }
+      : {
+          sessionId: 'session-preview',
+          turnId: 'turn-preview',
+          workItemId: 'work:sgg-preview',
+          caseId: 'case:sgg-preview',
+        };
+  const relatedTraceId = isRag ? 'trace:turn:preview' : 'trace:active-rag:preview';
+  return {
+    schemaVersion: 'rag-ime.observability-trace-get.v1',
+    traceId,
+    trace: {
+      schemaVersion: 'rag-ime.trace-envelope.v1',
+      traceId,
+      sourceKind: isRag ? 'active_rag' : isRoom ? 'room' : 'agent',
+      status: 'completed',
+      binding,
+      parentTraceId: null,
+      links: [{ traceId: relatedTraceId, relation: 'related', targetKind: 'trace' }],
+      input: {
+        fingerprint: `sha256:${'1'.repeat(64)}`,
+        contentPolicy: 'redacted',
+        normalization: 'unicode_nfc',
+      },
+      spans: [
+        {
+          spanId: `${traceId}:span:turn`,
+          name: 'agent.turn',
+          parentSpanId: null,
+          status: 'completed',
+          startedAtMs: now - 2_200,
+          endedAtMs: now - 400,
+          durationMs: 1_800,
+          recorded: true,
+          unavailableReason: '',
+          metrics: { inputTokens: 1_024, outputTokens: 312 },
+          attributes: { provider: 'preview-provider', model: 'preview-agent-v1' },
+        },
+        {
+          spanId: `${traceId}:span:retrieval`,
+          name: 'active_rag.retrieve',
+          parentSpanId: `${traceId}:span:turn`,
+          status: 'completed',
+          startedAtMs: now - 1_900,
+          endedAtMs: now - 1_600,
+          durationMs: 300,
+          recorded: true,
+          unavailableReason: '',
+          metrics: { candidateCount: 12, selectedCount: 3 },
+          attributes: { provider: 'preview-rag', lane: 'hybrid' },
+        },
+        {
+          spanId: `${traceId}:span:memory`,
+          name: 'memory.recall',
+          parentSpanId: `${traceId}:span:retrieval`,
+          status: 'completed',
+          startedAtMs: now - 1_500,
+          endedAtMs: now - 1_300,
+          durationMs: 200,
+          recorded: true,
+          unavailableReason: '',
+          metrics: { recalledCount: 2 },
+          attributes: { store: 'preview-memory' },
+        },
+      ],
+      evidence: [
+        {
+          evidenceId: 'evidence:rag:1',
+          sourceKind: 'knowledge',
+          sourceRef: 'kb:preview-project-docs/chunk:12',
+          sourceLane: 'hybrid',
+          evidenceStage: 'retrieval_output',
+          disposition: 'included',
+          scores: { hybrid: 0.91 },
+          rankBefore: 2,
+          rankAfter: 1,
+          omissionReason: '',
+        },
+        {
+          evidenceId: 'evidence:memory:1',
+          sourceKind: 'memory',
+          sourceRef: 'memory:preview:room-semantics',
+          sourceLane: 'lexical',
+          evidenceStage: 'retrieval_output',
+          disposition: 'omitted',
+          scores: { lexical: 0.42 },
+          rankBefore: 4,
+          rankAfter: null,
+          omissionReason: '低于当前回答阈值',
+        },
+      ],
+      artifacts: [
+        {
+          artifactId: `artifact:${traceId}:eval-report`,
+          kind: 'eval_report',
+          mediaType: 'application/json',
+          sha256: 'b'.repeat(64),
+          byteSize: 2_048,
+          recordCount: 3,
+        },
+      ],
+      createdAtMs: now - 2_200,
+      updatedAtMs: now - 400,
+    },
+    truncated: false,
+    projectionSource: 'observation_journal',
+    observationWindow: {
+      firstSequence: 1,
+      lastSequence: 8,
+      resumeToken: 'observation:8',
+      nextBeforeSequence: null,
+    },
+  };
+}
+
+function previewEvalList(
+  traceId: string,
+  additionalItems: Record<string, unknown>[] = [],
+): Record<string, unknown> {
+  const now = Date.now();
+  const suite = previewSuiteForTrace(traceId);
+  const items = [
+    ...(suite ? [{
+        evalRunId: `eval:${suite.suiteId}:preview`,
+        mode: 'ground_truth',
+        metricAuthority: 'ground_truth',
+        truthStatus: 'frozen',
+        datasetId: `dataset:${suite.suiteId}:fixture`,
+        labelRevision: suite.suiteRevision,
+        evaluatorDisplayName: suite.displayName,
+        suiteBinding: {
+          suiteId: suite.suiteId,
+          suiteRevision: suite.suiteRevision,
+        },
+        metrics: { evidenceRecall: 0.92, answerGrounding: 0.88 },
+        status: 'completed',
+        createdAtMs: now - 1_800,
+        updatedAtMs: now - 1_700,
+      }] : []),
+    {
+      evalRunId: suite ? `eval:ai-judge:${suite.suiteId}:preview` : 'eval:ai-judge:rag-preview',
+      mode: 'ai_judge',
+      metricAuthority: 'ai_judge_estimate',
+      truthStatus: 'none',
+      datasetId: suite ? `dataset:${suite.suiteId}:judge` : 'dataset:rag-memory:trace-evidence',
+      labelRevision: 'judge:preview',
+      evaluatorDisplayName: suite ? 'Preview AI Judge' : 'Preview AI Judge · RAG/Memory',
+      metrics: { qualityEstimate: 0.84 },
+      status: 'completed',
+      createdAtMs: now - 1_600,
+      updatedAtMs: now - 1_500,
+    },
+    ...additionalItems,
+  ];
+  return {
+    schemaVersion: 'rag-ime.observability-eval-list.v1',
+    traceId,
+    total: items.length,
+    truncated: false,
+    items,
+  };
+}
+
+function previewEvidenceEvalRun(
+  body: Record<string, unknown>,
+  traceId: string,
+  existingCount: number,
+): Record<string, unknown> {
+  const now = Date.now();
+  const datasetId = stringValue(body.datasetId) || `manual:${traceId}`;
+  const labelRevision = stringValue(body.labelRevision) || 'manual:1';
+  return {
+    schemaVersion: 'rag-ime.eval-run.v1',
+    evalRunId: `eval:human:${traceId}:${existingCount + 1}`,
+    traceIds: [traceId],
+    mode: 'ground_truth',
+    metricAuthority: 'ground_truth',
+    truth: { status: 'human', datasetId, labelRevision },
+    evaluator: {
+      provider: 'human',
+      model: 'manual',
+      thinking: 'manual',
+      displayName: '人工标注',
+    },
+    metrics: { evidenceRecall: 1, evidencePrecision: 1 },
+    status: 'completed',
+    createdAtMs: now,
+    updatedAtMs: now,
+  };
+}
+
+function previewEvalSummary(run: Record<string, unknown>): Record<string, unknown> {
+  const truth = record(run.truth);
+  const evaluator = record(run.evaluator);
+  const mode = stringValue(run.mode) === 'ai_judge' ? 'ai_judge' : 'ground_truth';
+  return {
+    evalRunId: stringValue(run.evalRunId),
+    mode,
+    metricAuthority: mode === 'ai_judge' ? 'ai_judge_estimate' : 'ground_truth',
+    truthStatus: stringValue(truth.status) || 'human',
+    datasetId: stringValue(truth.datasetId),
+    labelRevision: stringValue(truth.labelRevision),
+    evaluatorDisplayName: stringValue(evaluator.displayName) || '人工标注',
+    metrics: record(run.metrics),
+    status: stringValue(run.status) || 'completed',
+    createdAtMs: Number(run.createdAtMs) || Date.now(),
+    updatedAtMs: Number(run.updatedAtMs) || Date.now(),
+  };
+}
+
+function previewScheduledEvalSummary({
+  evalRunId,
+  suiteId,
+  suiteRevision,
+}: {
+  evalRunId: string;
+  suiteId: string;
+  suiteRevision: string;
+}): Record<string, unknown> {
+  const now = Date.now();
+  const evaluatorDisplayName = suiteId === 'zhanggui-wenshu'
+    ? '掌柜问数'
+    : suiteId === 'sgg'
+      ? 'SGG 示例垂直 Agent'
+      : '垂直 Agent 自测';
+  return {
+    evalRunId,
+    mode: 'ground_truth',
+    metricAuthority: 'ground_truth',
+    truthStatus: 'frozen',
+    datasetId: `dataset:${suiteId}:fixture`,
+    labelRevision: suiteRevision,
+    evaluatorDisplayName,
+    suiteBinding: { suiteId, suiteRevision },
+    metrics: { evidencePrecision: 1, evidenceRecall: 1, evidenceF1: 1 },
+    status: 'completed',
+    createdAtMs: now,
+    updatedAtMs: now,
+  };
+}
+
+function previewSuiteForTrace(traceId: string): {
+  suiteId: string;
+  suiteRevision: string;
+  displayName: string;
+} | null {
+  if (traceId.includes('active-rag')) {
+    return null;
+  }
+  if (traceId.includes('room-turn')) {
+    return { suiteId: 'zhanggui-wenshu', suiteRevision: 'fixture-v2', displayName: '掌柜问数' };
+  }
+  return { suiteId: 'sgg', suiteRevision: 'fixture-v2', displayName: 'SGG 示例垂直 Agent' };
+}
+
+function previewEvalSuiteList(): Record<string, unknown> {
+  return {
+    schemaVersion: 'rag-ime.eval-suite-list.v1',
+    ok: true,
+    items: [
+      {
+        suiteId: 'sgg',
+        suiteRevision: 'fixture-v2',
+        displayName: 'SGG 示例垂直 Agent',
+        fixtureCount: 2,
+        capabilities: ['trace.emit', 'rag.retrieval', 'memory.recall', 'sandbox.self_test', 'eval.ground_truth'],
+      },
+      {
+        suiteId: 'zhanggui-wenshu',
+        suiteRevision: 'fixture-v2',
+        displayName: '掌柜问数',
+        fixtureCount: 2,
+        capabilities: ['trace.emit', 'rag.retrieval', 'memory.recall', 'sandbox.self_test', 'eval.ground_truth'],
+      },
+    ],
+  };
+}
+
+function previewEvalSchedule(
+  id: string,
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
+  const now = Date.now();
+  const nextDueAtMs = now + 60 * 60 * 1_000;
+  const suiteId = stringValue(overrides.suiteId) || 'sgg';
+  const suiteRevision = stringValue(overrides.suiteRevision) || 'fixture-v2';
+  const latestRun = suiteId === 'sgg' && id === 'eval-schedule:sgg'
+    ? {
+        id: `${id}:run:1`,
+        scheduleId: id,
+        attempt: 1,
+        state: 'succeeded',
+        dueAtMs: now - 3_600_000,
+        claimedAtMs: now - 3_599_000,
+        finishedAtMs: now - 3_598_000,
+        evalRunId: 'eval:sgg:preview',
+        errorCode: '',
+      }
+    : {};
+  const requestedLatestRun = record(overrides.latestRun);
+  const resolvedLatestRun = Object.keys(requestedLatestRun).length
+    ? requestedLatestRun
+    : latestRun;
+  const requestedStatus = stringValue(overrides.status);
+  const status = requestedStatus === 'running'
+    || requestedStatus === 'completed'
+    || requestedStatus === 'failed'
+    ? requestedStatus
+    : 'scheduled';
+  return {
+    id,
+    suiteId,
+    suiteRevision,
+    recurrenceKind: overrides.recurrenceKind === 'weekly' ? 'weekly' : 'daily',
+    recurrenceInterval: Number(overrides.recurrenceInterval) || 1,
+    maxRuns: Number(overrides.maxRuns) || 30,
+    runCount: Number(overrides.runCount) || (Object.keys(latestRun).length ? 1 : 0),
+    status,
+    initialDueAtMs: Number(overrides.initialDueAtMs) || nextDueAtMs,
+    nextDueAtMs: Number(overrides.nextDueAtMs) || nextDueAtMs,
+    lastErrorCode: '',
+    createdAtMs: Number(overrides.createdAtMs) || now - 3_600_000,
+    updatedAtMs: Number(overrides.updatedAtMs) || now,
+    latestRun: resolvedLatestRun,
+  };
+}
+
+function previewEvalScheduleRun(
+  scheduleId: string,
+  evalRunId: string,
+  traceId: string,
+): Record<string, unknown> {
+  const now = Date.now();
+  return {
+    id: `${scheduleId}:run:1`,
+    scheduleId,
+    attempt: 1,
+    state: 'succeeded',
+    dueAtMs: now - 3_600_000,
+    claimedAtMs: now - 3_599_000,
+    finishedAtMs: now - 3_598_000,
+    evalRunId,
+    errorCode: '',
+    traceIds: [traceId],
+    traceIdsTruncated: false,
+  };
+}
+
+function previewEvalLatestRun(run: Record<string, unknown>): Record<string, unknown> {
+  return {
+    id: run.id,
+    scheduleId: run.scheduleId,
+    attempt: run.attempt,
+    state: run.state,
+    dueAtMs: run.dueAtMs,
+    claimedAtMs: run.claimedAtMs,
+    finishedAtMs: run.finishedAtMs,
+    evalRunId: run.evalRunId,
+    errorCode: run.errorCode,
+  };
+}
+
 
 function previewKnowledgeBase(): Record<string, unknown> {
   return {
     id: 'kb:preview-project-docs',
-    name: '伙伴运行资料',
-    description: '独立加载的项目文档与上游源码笔记。',
-    documentCount: 1,
-    chunkCount: 36,
+    name: 'PAW Story Showcase · 项目知识库',
+    description: '本仓库真实文档、研究论文 PDF 与整理好的评测数据。',
+    documentCount: 16,
+    chunkCount: 496,
     status: 'ready',
     agentEnabled: true,
     parserMode: 'auto',
@@ -2688,35 +3316,50 @@ function previewContextTrace(
   sessionId: string,
   traceId: string,
 ): Record<string, unknown> {
+  if (sessionId === 'session-memory' && traceId === 'context-trace:memory-failure') {
+    return previewMemoryFailureContextTrace(sessionId, traceId);
+  }
   const createdAtMs = Date.now() - 18_000;
   const traceTurnId = traceId.startsWith('context-trace:')
     ? traceId.slice('context-trace:'.length)
     : '';
-  const turnId = ['turn-initial', 'turn-steady', 'turn-recovered'].includes(traceTurnId)
+  const reliabilitySession = isReliabilitySession(sessionId);
+  const turnId = reliabilitySession && traceTurnId.startsWith(`${sessionId}:turn-`)
     ? traceTurnId
-    : 'turn-recovered';
+    : ['turn-initial', 'turn-steady', 'turn-recovered'].includes(traceTurnId)
+      ? traceTurnId
+      : 'turn-recovered';
   const nodes = [
     previewContextNode('node:1:input', 1, 'input', '当前消息', 'user', '收到本轮用户输入', 126, 32, 0, createdAtMs),
     previewContextNode('node:2:session', 2, 'session', '角色与会话', 'gateway', '装配角色、模型和会话策略', 860, 215, 2, createdAtMs + 2),
     previewContextNode('node:3:tools', 3, 'tools', '工具目录', 'gateway', '按权限暴露本轮可用工具', 1_420, 355, 4, createdAtMs + 4),
-    previewContextNode(
-      'node:4:memory-recall',
-      4,
-      'memory_recall',
-      '个人记忆召回',
-      'memory_bootstrap',
-      '召回 1 本主题书与 2 条已治理事实',
-      742,
-      186,
-      3,
-      createdAtMs + 5,
-      'included',
-      {
-        itemCount: 3,
-        memoryBookId: 'book-provider-context-order',
-        memoryAtomIds: 'atom-context-order-verified,atom-foreground-acceptance',
-      },
-    ),
+    reliabilitySession
+      ? previewContextNode(
+          'node:4:memory-recall', 4, 'memory_recall', 'Memory / RAG', 'context_runtime',
+          '本案例未使用；评分保持 N/A，不补 0', 0, 0, 1, createdAtMs + 5, 'omitted',
+          { itemCount: 0, scoring: 'not_applicable' },
+        )
+      : previewContextNode(
+          'node:4:memory-recall',
+          4,
+          'memory_recall',
+          '个人记忆召回',
+          'memory_bootstrap',
+          '召回 1 本主题书与 2 条已治理事实',
+          742,
+          186,
+          3,
+          createdAtMs + 5,
+          'included',
+          {
+            itemCount: 3,
+            hitCount: 3,
+            sourceTitles: '今日 5 个可核对任务,一天输入很多，不代表每条都应该成为长期记忆,真实、有用并保留已有内容',
+            memoryBookId: 'book-provider-context-order',
+            memoryAtomIds: 'atom-context-order-verified,atom-foreground-acceptance',
+            memoryTimelineId: `timeline:${previewLocalDate()}`,
+          },
+        ),
     previewContextNode('node:5:inbox', 5, 'inbox', '异步上下文', 'context_runtime', '没有等待注入的异步结果', 0, 0, 1, createdAtMs + 6, 'omitted'),
     previewContextNode(
       'node:6:runtime-request',
@@ -2756,9 +3399,105 @@ function previewContextTrace(
   };
 }
 
+function previewMemoryFailureContextTrace(
+  sessionId: string,
+  traceId: string,
+): Record<string, unknown> {
+  const createdAtMs = Date.now() - 14_000;
+  const taskId = 'memory-maintenance:364e72ae-f8f1-437b-9d76-01040ff1e745';
+  const request = previewContextNode(
+    'node:memory-request', 1, 'maintenance_request', '周期记忆整理', 'schedule',
+    '准备补齐 37 天活动时间线', 86, 22, 0, createdAtMs,
+    'included', { taskId, requestedDays: '37' },
+  );
+  const range = previewContextNode(
+    'node:memory-range', 2, 'date_range', '首日任务', 'memory_maintenance',
+    '从 2026-07-17 开始；当前进度 0 / 37', 64, 16, 1, createdAtMs + 2,
+    'included', { firstDate: '2026-07-17', progress: '0/37' },
+  );
+  const identity = previewContextNode(
+    'node:memory-runtime-identity', 3, 'runtime_identity', '内部 Session 身份', 'pi_runtime',
+    '维护任务复用了仍有 active turn 的内部记忆 Session', 92, 23, 2, createdAtMs + 4,
+    'included', { lifecycleRisk: 'active_turn_reuse' },
+  );
+  const failure = {
+    ...previewContextNode(
+      'node:memory-failure-root', 4, 'runtime_failure', '确定根因', 'pi_runtime',
+      'Session already has an active turn', 34, 9, 1, createdAtMs + 6,
+    ),
+    disposition: 'failed',
+    fingerprint: '',
+    reason: 'Session already has an active turn',
+    metadata: {
+      taskId,
+      firstDate: '2026-07-17',
+      progress: '0/37',
+      uiFallbackMessage: '读取或保存失败，请稍后重试。',
+      proposedFixStatus: 'unverified',
+    },
+  };
+  return {
+    schemaVersion: 'rag-ime.agent-context-trace.v1',
+    traceId,
+    sessionId,
+    turnId: taskId,
+    sourceKind: 'schedule',
+    status: 'failed',
+    finalFingerprint: '',
+    nodes: [request, range, identity, failure],
+    edges: [
+      { source: 'node:memory-request', target: 'node:memory-range' },
+      { source: 'node:memory-range', target: 'node:memory-runtime-identity' },
+      { source: 'node:memory-runtime-identity', target: 'node:memory-failure-root' },
+    ],
+    createdAtMs,
+    updatedAtMs: createdAtMs + 7,
+  };
+}
+
 function previewDebugContext(sessionId: string, turnId: string): Record<string, unknown> {
   const baseTime = Date.now() - 540_000;
-  const turnSpecs = [
+  const turnSpecs = sessionId === 'session-reliability-incident' ? ([
+    {
+      turnId: `${sessionId}:turn-incident`,
+      clientMessageId: 'preview-reliability-incident',
+      turnOrdinal: 1,
+      assemblyPhase: 'initial',
+      capturedAtMs: baseTime,
+      summary: '展示旧 documentSync Workflow 的冻结事故证据',
+      prompt: '只读打开旧 Workflow 运行事故：辅助登记失败后为何回滚已成功的真实写入。',
+    },
+  ] as const) : sessionId === 'session-reliability' ? ([
+    {
+      turnId: `${sessionId}:turn-diagnose`,
+      clientMessageId: 'preview-reliability-diagnose',
+      turnOrdinal: 1,
+      assemblyPhase: 'initial',
+      capturedAtMs: baseTime,
+      summary: '只读 Trace 定位真实写入被辅助登记回滚',
+      prompt: '读取 Trace Skill；只出八项报告，在我确认前不要修改任何 owner',
+    },
+  ] as const) : sessionId === 'session-reliability-repair' ? ([
+    {
+      turnId: `${sessionId}:turn-repair`,
+      clientMessageId: 'preview-reliability-repair',
+      turnOrdinal: 1,
+      assemblyPhase: 'initial',
+      capturedAtMs: baseTime,
+      summary: '授权范围内更新 documentSync Workflow',
+      prompt: '只修改 agent_tools.py 与聚焦测试；保留全部安全门，测试通过也不能写 verified',
+    },
+  ] as const) : sessionId === 'session-reliability-verify' ? ([
+    {
+      turnId: `${sessionId}:turn-verify`,
+      clientMessageId: 'preview-reliability-verify',
+      turnOrdinal: 1,
+      assemblyPhase: 'initial',
+      capturedAtMs: baseTime,
+      summary: '同一 Case 重跑并比较八项评分与效率',
+      prompt: '只读使用同一 Case、模型卡、fixture 与 Eval revision 比较修复前后。',
+    },
+  ] as const) : ([
     {
       turnId: 'turn-initial',
       clientMessageId: 'preview-message-initial',
@@ -2786,29 +3525,47 @@ function previewDebugContext(sessionId: string, turnId: string): Record<string, 
       summary: '压缩后用恢复胶囊重建方向与最近对话',
       prompt: '压缩以后，检查现在模型实际收到了什么',
     },
-  ] as const;
+  ] as const);
   const normalizedTurnId = turnId === 'turn-preview' ? 'turn-recovered' : turnId;
   const selectedTurn = turnSpecs.find((turn) => turn.turnId === normalizedTurnId) ?? turnSpecs.at(-1)!;
   const now = selectedTurn.capturedAtMs;
   const userPrompt = selectedTurn.prompt;
   const systemPrompt = 'You are the local RagIme coding agent. Follow the stable role and workspace policy.';
+  const executionMode = isReliabilitySession(sessionId)
+    ? reliabilityExecutionMode(sessionId)
+    : 'full_trust';
+  const readOnlyWorkState = sessionId === 'session-reliability-incident'
+    ? '当前任务：显示旧 Workflow 运行事故；只读取冻结证据。'
+    : sessionId === 'session-reliability-verify'
+      ? '当前任务：同一题 Replay；只读取运行、评测与修复回执。'
+      : '当前任务：按 trace-agent-diagnostics 生成八项只读报告。';
   const runtimeContextMessages = [
     {
       role: 'custom',
       customType: 'rag-ime-execution-mode',
-      content: '<execution-mode mode="full_trust">已授权操作直接执行；硬安全边界继续生效。</execution-mode>',
+      content: executionMode === 'read_only'
+        ? '<execution-mode mode="read_only">本 Session 只读；Skill 不授予写权限。</execution-mode>'
+        : executionMode === 'per_action'
+          ? '<execution-mode mode="per_action">Repair Session 每次写入都绑定审批摘要与精确工作区；Skill 不授予写权限。</execution-mode>'
+          : '<execution-mode mode="full_trust">已授权操作直接执行；硬安全边界继续生效。</execution-mode>',
       display: false,
     },
     {
       role: 'custom',
       customType: 'rag-ime-memory-recall',
-      content: '<rag-ime-context type="memory_recall">已召回：用户偏好真实运行时验证。</rag-ime-context>',
+      content: executionMode === 'full_trust'
+        ? '<rag-ime-context type="memory_recall">已召回：用户偏好真实运行时验证。</rag-ime-context>'
+        : '<rag-ime-context type="memory_recall" disposition="omitted">本案例未使用 Memory / RAG。</rag-ime-context>',
       display: false,
     },
     {
       role: 'custom',
       customType: 'rag-ime-work-state',
-      content: '<work-state>当前任务：核对 Provider 上下文顺序。</work-state>',
+      content: executionMode === 'read_only'
+        ? `<work-state>${readOnlyWorkState}</work-state>`
+        : executionMode === 'per_action'
+          ? '<work-state>当前任务：执行已授权 documentSync 修复；同题 Replay 留给独立只读 Verify Session。</work-state>'
+          : '<work-state>当前任务：核对 Provider 上下文顺序。</work-state>',
       display: false,
     },
     {
@@ -2840,14 +3597,41 @@ function previewDebugContext(sessionId: string, turnId: string): Record<string, 
     role: 'user',
     content: [{ type: 'input_text', text: message.content }],
   }));
-  const skills = [{
-    name: 'context-inspector',
-    description: 'Inspect the final provider context',
-  }];
+  const skills = isReliabilitySession(sessionId) && executionMode === 'read_only'
+    ? [{ name: 'trace-agent-diagnostics', description: 'Read-only eight-row Trace diagnosis' }]
+    : executionMode === 'per_action'
+      ? [{ name: 'test-driven-implementation', description: 'Repair workflow guidance; authorization remains per action' }]
+      : [{ name: 'context-inspector', description: 'Inspect the final provider context' }];
+  const reliabilitySession = isReliabilitySession(sessionId);
+  const primaryToolName = reliabilitySession
+    ? executionMode === 'per_action'
+      ? 'workspace_edit'
+      : 'trace_diagnostics.inspect'
+    : 'memory_search';
+  const primaryToolDescription = primaryToolName === 'workspace_edit'
+    ? 'Apply one approved workspace change'
+    : primaryToolName === 'trace_diagnostics.inspect'
+      ? 'Inspect frozen Trace evidence without mutation'
+      : 'Search approved memory';
+  const primaryToolArguments = primaryToolName === 'workspace_edit'
+    ? { target: 'rag_ime/agent_tools.py', approvalId: 'approval:workflow-document-sync-001' }
+    : primaryToolName === 'trace_diagnostics.inspect'
+      ? { traceId: sessionId === 'session-reliability-verify' ? 'trace:after:preview-001' : 'trace:before:preview-001' }
+      : { query: '上下文缓存' };
+  const primaryToolResult = primaryToolName === 'workspace_edit'
+    ? { changedFiles: 1, approvalDigestMatched: true }
+    : primaryToolName === 'trace_diagnostics.inspect'
+      ? { inspected: true, mutationApplied: false }
+      : { items: 2 };
+  const primaryToolText = primaryToolName === 'workspace_edit'
+    ? '已应用经授权的单一修复。'
+    : primaryToolName === 'trace_diagnostics.inspect'
+      ? '已读取冻结 Trace 证据；未执行写入。'
+      : '缓存命中 90%';
   const providerTools = [{
     type: 'function',
-    name: 'memory_search',
-    description: 'Search approved memory',
+    name: primaryToolName,
+    description: primaryToolDescription,
   }];
   return {
     schemaVersion: 'rag-ime.pi-debug-context-response.v1',
@@ -2882,14 +3666,14 @@ function previewDebugContext(sessionId: string, turnId: string): Record<string, 
       systemPromptOptions: {
         customPrompt: systemPrompt,
         cwd: '/Volumes/work/project',
-        enabledTools: ['read', 'grep'],
+        enabledTools: executionMode === 'per_action' ? ['read', 'grep', 'workspace_edit'] : ['read', 'grep'],
         skills,
       },
       model: { provider: 'openai', id: 'gpt-5.2', name: 'GPT-5.2', api: 'responses' },
-      activeTools: ['read', 'grep', 'memory_search'],
+      activeTools: reliabilitySession ? ['read', 'grep', primaryToolName] : ['read', 'grep', 'memory_search'],
       toolSchemas: [
         { name: 'read', description: 'Read a local file', parameters: { type: 'object', properties: { path: { type: 'string' } } } },
-        { name: 'memory_search', description: 'Search approved memory', parameters: { type: 'object', properties: { query: { type: 'string' } } } },
+        { name: primaryToolName, description: primaryToolDescription, parameters: { type: 'object', properties: primaryToolName === 'workspace_edit' ? { target: { type: 'string' }, approvalId: { type: 'string' } } : primaryToolName === 'trace_diagnostics.inspect' ? { traceId: { type: 'string' } } : { query: { type: 'string' } } } },
       ],
       cacheEvidence: [{
         requestIndex: 2,
@@ -2962,7 +3746,7 @@ function previewDebugContext(sessionId: string, turnId: string): Record<string, 
               metadata: { skills },
             },
           }],
-          assistantMessage: { role: 'assistant', content: [{ type: 'toolCall', id: 'tool-preview-read', name: 'memory_search', arguments: { query: '上下文缓存' } }] },
+          assistantMessage: { role: 'assistant', content: [{ type: 'toolCall', id: 'tool-preview-read', name: primaryToolName, arguments: primaryToolArguments }] },
         },
         {
           index: 2,
@@ -2973,8 +3757,8 @@ function previewDebugContext(sessionId: string, turnId: string): Record<string, 
           contextMessages: [
             ...runtimeContextMessages,
             { role: 'user', content: [{ type: 'text', text: userPrompt }] },
-            { role: 'assistant', content: [{ type: 'toolCall', id: 'tool-preview-read', name: 'memory_search' }] },
-            { role: 'toolResult', content: [{ type: 'text', text: '缓存命中 90%' }] },
+            { role: 'assistant', content: [{ type: 'toolCall', id: 'tool-preview-read', name: primaryToolName }] },
+            { role: 'toolResult', content: [{ type: 'text', text: primaryToolText }] },
           ],
           contextDelta: {
             baseCallIndex: 1,
@@ -2982,8 +3766,8 @@ function previewDebugContext(sessionId: string, turnId: string): Record<string, 
             removedMessageCount: 0,
             addedMessageCount: 2,
             addedMessages: [
-              { role: 'assistant', content: [{ type: 'toolCall', id: 'tool-preview-read', name: 'memory_search' }] },
-              { role: 'toolResult', content: '缓存命中 90%' },
+              { role: 'assistant', content: [{ type: 'toolCall', id: 'tool-preview-read', name: primaryToolName }] },
+              { role: 'toolResult', content: primaryToolText },
             ],
           },
           providerExchanges: [{
@@ -2997,18 +3781,18 @@ function previewDebugContext(sessionId: string, turnId: string): Record<string, 
               input: [
                 ...providerRuntimeInput,
                 { role: 'user', content: userPrompt },
-                { role: 'assistant', content: '调用 memory_search' },
-                { role: 'tool', content: '缓存命中 90%' },
+                { role: 'assistant', content: `调用 ${primaryToolName}` },
+                { role: 'tool', content: primaryToolText },
               ],
               tools: providerTools,
               metadata: { skills },
             },
           }],
-          assistantMessage: { role: 'assistant', content: [{ type: 'text', text: '当前缓存命中率为 90%。' }] },
+          assistantMessage: { role: 'assistant', content: [{ type: 'text', text: reliabilitySession ? primaryToolText : '当前缓存命中率为 90%。' }] },
         },
       ],
       toolExecutions: [
-        { toolCallId: 'tool-preview-read', toolName: 'memory_search', modelCallIndex: 1, runtimeTurnIndex: 0, startedAtMs: now + 140, endedAtMs: now + 205, startSequence: 1, endSequence: 4, args: { query: '上下文缓存' }, result: { items: 2 }, isError: false, status: 'completed', updates: [] },
+        { toolCallId: 'tool-preview-read', toolName: primaryToolName, modelCallIndex: 1, runtimeTurnIndex: 0, startedAtMs: now + 140, endedAtMs: now + 205, startSequence: 1, endSequence: 4, args: primaryToolArguments, result: primaryToolResult, isError: false, status: 'completed', updates: [] },
         { toolCallId: 'tool-preview-status', toolName: 'overview', modelCallIndex: 1, runtimeTurnIndex: 0, startedAtMs: now + 145, endedAtMs: now + 198, startSequence: 2, endSequence: 3, args: { op: 'status' }, result: { healthy: true }, isError: false, status: 'completed', updates: [] },
       ],
       toolBatches: [{ id: 'preview-call-1-stage-1', modelCallIndex: 1, runtimeTurnIndex: 0, stage: 1, executionMode: 'parallel', startedAtMs: now + 140, endedAtMs: now + 205, status: 'completed', toolCallIds: ['tool-preview-read', 'tool-preview-status'] }],
@@ -3071,24 +3855,34 @@ function previewSession(
   /* Rail summaries were hardcoded to zero, so every preview session claimed
      "0 条消息" while rendering a full transcript. Optional so existing call
      sites keep their exact shape. */
-  summary: { messageCount?: number; lastMessagePreview?: string; workspaceRoots?: string[] } = {},
+  summary: {
+    executionMode?: 'read_only' | 'per_action' | 'workspace_managed' | 'full_trust';
+    lastMessagePreview?: string;
+    messageCount?: number;
+    piSkillsEnabled?: boolean;
+    projectContextEnabled?: boolean;
+    toolProfileVersion?: string;
+    workspaceRoots?: string[];
+    status?: 'ready' | 'idle' | 'active' | 'busy' | 'faulted' | 'archived';
+  } = {},
 ): Record<string, unknown> {
   return {
     id,
     title,
     mode: 'assistant',
-    status: 'ready',
+    status: summary.status ?? 'ready',
     roleId,
     roleVersion,
-    executionMode: 'per_action',
+    executionMode: summary.executionMode ?? 'per_action',
     workspaceScopeGranted: false,
     workspaceScopeSha256: '',
     workspaceScopeGrantedAtMs: 0,
-    projectContextEnabled: false,
-    piSkillsEnabled: false,
+    projectContextEnabled: summary.projectContextEnabled ?? false,
+    piSkillsEnabled: summary.piSkillsEnabled ?? false,
     codexSkillsEnabled: false,
     updatedAtMs,
     workspaceRoots: summary.workspaceRoots ?? [],
+    toolProfileVersion: summary.toolProfileVersion ?? 'control-center-v1',
     modelProfile: 'session-selected',
     messageCount: summary.messageCount ?? 0,
     lastMessagePreview: summary.lastMessagePreview ?? '',
@@ -3457,6 +4251,7 @@ function previewCompanionConfiguration(
 function previewDefaultModelRouting(): Record<string, { modelProfile: string; thinkingLevel: string }> {
   return Object.fromEntries([
     'primary',
+    'traceDiagnostic',
     'toolAgent',
     'subagent',
     'roomCoordinator',
@@ -3645,4 +4440,26 @@ function resumeSequence(value: string, ownerId: string): number {
   if (!value.startsWith(prefix)) return 0;
   const sequence = Number(value.slice(prefix.length));
   return Number.isInteger(sequence) && sequence >= 0 ? sequence : 0;
+}
+
+function previewRoomConversationSnapshot(
+  snapshot: Record<string, unknown>,
+): Record<string, unknown> {
+  const room = record(snapshot.room);
+  const allEvents = Array.isArray(snapshot.events)
+    ? snapshot.events.map(record)
+    : [];
+  const events = allEvents.filter((event) => event.eventType !== 'participant_activity');
+  const cursorSequence = Number(room.lastEventSequence ?? snapshot.lastSequence ?? 0);
+  return {
+    schemaVersion: 'rag-ime.agent-room-conversation-snapshot.v1',
+    ok: true,
+    room,
+    events,
+    firstEventSequence: Number(events[0]?.sequence ?? 0),
+    cursorSequence,
+    resumeToken: cursorSequence > 0 ? `${String(room.id ?? '')}:${cursorSequence}` : '',
+    deferredEventCount: allEvents.length - events.length,
+    truncated: snapshot.truncated === true,
+  };
 }

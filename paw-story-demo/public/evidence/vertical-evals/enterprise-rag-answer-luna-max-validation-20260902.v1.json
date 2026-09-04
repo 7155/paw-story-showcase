@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "paw.enterprise-rag-answer-evidence-luna-validation.v1",
+  "runId": "enterprise-rag-answer-evidence-luna-max-v20-20260902",
+  "status": "rejected",
+  "evaluationScope": "validation-only",
+  "evaluationMode": "answer-only",
+  "model": {
+    "provider": "openai-codex",
+    "id": "gpt-5.6-luna",
+    "thinking": "max"
+  },
+  "heldOutEvaluated": false,
+  "formalAcceptanceEligible": false,
+  "formalAcceptancePassed": false,
+  "decision": "reject_all_lanes",
+  "source": {
+    "sourceResultSha256": "d87cafef857701d8e4a5ad8756aeffa81541fac26404a3f7fc80d7c287832644",
+    "rawTranscriptIncluded": false,
+    "privateQrelsIncluded": false,
+    "privatePathsIncluded": false,
+    "credentialsIncluded": false
+  },
+  "dataset": {
+    "benchmarkId": "enterprise-rag-smoke-04256c7b5b46-local-slice-6e4ebaf07f",
+    "source": "EnterpriseRAG-Bench",
+    "split": "validation",
+    "selectedCaseAliases": ["case-01", "case-02", "case-03", "case-04"],
+    "selectedCaseSetSha256": "1976efdd6b97c3cf347809e78e1268ab000d56d047a0d3eac9d2a1164fd876b3",
+    "answerCaseSetSha256": "6c764fff56980920c7fcd83bc17ebfca50f2444012cbe674740e6dc738d75853",
+    "answerCaseCount": 4,
+    "highLevelCaseCount": 2,
+    "infoNotFoundCaseCount": 2,
+    "corpusDocumentCount": 5101,
+    "corpusIncluded": false
+  },
+  "frozen": {
+    "answerCaseManifestSha256": "f154bbc55dba2733e10e0ebac91da6af50493565e688b19e80327bc028f21c96",
+    "evidenceManifestSha256": "9ce7930d9ad93324725654742ff73e4ba6f4dbc015c0be187288451426e0ebff",
+    "preparedSourceSha256": "6e4ebaf07fb51d06e6d8707f21a211884a75c7a6c22916e47b27a52f23a3bedb",
+    "promptContractVersion": "rag-agent-label-blind-coverage-audit-v12",
+    "promptConfigSha256": "e9016d65752d0ce036c81559d523c92049fe16731aa715e1b30ea937b5ad31c0",
+    "lanePromptSha256ByLane": {
+      "baseline": "8a03f5df1a055718cff0caada9368dfe98c87d0dd4db7cbbd1b3d47f0e720d2c",
+      "skill": "fe50ff95fa6108a88bd008b96b8e8fdf05657c776393782c281162913dce5305",
+      "tuned": "c50e716716cf18957d23ee6bcf82c7787701744f912c26ae9312397e0df2e80d",
+      "agentic": "a098a50aa004e74ef6883024448bbf38bfd2125e949431d06d6fc92df7d8d114"
+    },
+    "defaultRetrievalConfigSha256": "002e907af0a70d9fd7098b23d6689e4196a8b5860101389e8eb48b285cd19a4e",
+    "tunedRetrievalConfigSha256": "11d259402bbf92d8961aeaa6fc77d846be7af9ef336af7bd380f21d9bf428c39",
+    "reranker": {
+      "provider": "mlx-qwen3-reranker",
+      "modelReference": "mlx-community/Qwen3-Reranker-0.6B-4bit",
+      "candidateDepth": 40,
+      "finalDepth": 10,
+      "fallbackCount": 0,
+      "errorCount": 0
+    }
+  },
+  "evidenceContract": {
+    "name": "host-private-fact-qrels-exact-source-chunk-v1",
+    "highLevelFactCount": 9,
+    "verifiedHighLevelFactCount": 9,
+    "unavailableHighLevelFactCount": 0,
+    "evidenceBindingCount": 13,
+    "evidenceSupportGroupCount": 11,
+    "highLevelEvidenceAvailabilityPassed": true,
+    "qrelsVisibleToAgentOrJudge": false
+  },
+  "lanes": {
+    "baseline": {
+      "changedLayer": "none · Luna Max baseline",
+      "answerJudge": "2/4",
+      "highLevelFactCoverage": 0.6666666666666666,
+      "citationFactCoverage": "2/9",
+      "answerableCitationSupport": 0.0,
+      "citationHardGate": "failed",
+      "abstentionHardGate": "passed",
+      "terminalCompletion": "passed",
+      "toolContract": "passed",
+      "latencySeconds": 51.578,
+      "tokens": 25778,
+      "toolCalls": 6,
+      "decision": "reject"
+    },
+    "skill": {
+      "changedLayer": "Skill",
+      "answerJudge": "2/4",
+      "highLevelFactCoverage": 0.6666666666666666,
+      "citationFactCoverage": "2/9",
+      "answerableCitationSupport": 0.0,
+      "citationHardGate": "failed",
+      "abstentionHardGate": "passed",
+      "terminalCompletion": "passed",
+      "toolContract": "passed",
+      "latencySeconds": 208.064,
+      "tokens": 74769,
+      "toolCalls": 7,
+      "decision": "reject"
+    },
+    "tuned": {
+      "changedLayer": "RAG config + Qwen3 reranker",
+      "answerJudge": "2/4",
+      "highLevelFactCoverage": 0.6666666666666666,
+      "citationFactCoverage": "2/9",
+      "answerableCitationSupport": 0.0,
+      "citationHardGate": "failed",
+      "abstentionHardGate": "passed",
+      "terminalCompletion": "passed",
+      "toolContract": "passed",
+      "latencySeconds": 182.437,
+      "tokens": 88941,
+      "toolCalls": 7,
+      "decision": "reject"
+    },
+    "agentic": {
+      "changedLayer": "Agentic workflow + sub-agent",
+      "answerJudge": "0/4",
+      "highLevelFactCoverage": 0.0,
+      "citationFactCoverage": "0/9",
+      "answerableCitationSupport": 0.0,
+      "citationHardGate": "failed",
+      "abstentionHardGate": "failed",
+      "terminalCompletion": "failed",
+      "toolContract": "failed",
+      "outputProtocol": "failed · no cases[] object",
+      "latencySeconds": 420.642,
+      "tokens": 7713,
+      "toolCalls": 12,
+      "runtimeFailureCategory": "harness_error",
+      "decision": "reject"
+    }
+  },
+  "cost": {
+    "available": false,
+    "reason": "The validation receipt records token usage but has no frozen provider price card or billing receipt.",
+    "heldOutCost": false
+  },
+  "claim": {
+    "allowed": "On four frozen validation answer cases, Luna Max baseline, Skill, tuned and agentic lanes were compared with the same corpus binding; baseline, Skill and tuned each received 2/4 answer judgments, while agentic received 0/4. All lanes were rejected because the citation hard gate failed; the agentic lane also failed abstention, terminal-completion, tool-contract and output-protocol gates.",
+    "forbidden": "A promoted answer workflow, Held-out quality, production quality, cost reduction, raw transcript contents, or a claim that retrieval metrics alone improved final answer quality."
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "paw.story.enterpriseops-csm-trace-repairs.v1",
+  "measuredAt": "2026-09-01",
+  "scope": {
+    "split": "validation",
+    "taskCount": 3,
+    "rawVerifierCount": 31,
+    "liveMcpToolCount": 89,
+    "heldOutConsumed": false,
+    "installedRuntimeChanged": false
+  },
+  "repairs": [
+    {"id": "CSM-RUNTIME-001", "found": "Session update recorded requested thinking but did not change effective Pi thinking.", "changed": "After Runtime ready, call select_thinking_level and verify effective model plus thinking receipt.", "evidence": "live_plumbing"},
+    {"id": "CSM-TRANSPORT-001", "found": "The file spool wrapper did not intercept ordinary business Tool fetches.", "changed": "Use a temporary capability-token-protected loopback Gateway.", "evidence": "live_0_tool_1_of_11_to_11_tool_11_of_11"},
+    {"id": "CSM-AUTHORITY-001", "found": "A writable disposable database Session was labelled read_only, so the Agent refused authorized mutations.", "changed": "Use per_action and separate host-filesystem authority from scoped CSM Tool authority.", "evidence": "live_validation"},
+    {"id": "CSM-MCP-ERROR-001", "found": "MCP isError:true results were counted as successful Tool calls.", "changed": "Record a failed ledger entry and return a structured ValueError.", "evidence": "focused_test"},
+    {"id": "CSM-CLEANUP-001", "found": "Verifier exceptions could bypass unbind/delete and cleanup failure could still report completed.", "changed": "Use nested finally, explicit cleanup states, and invalidate the report on delete failure.", "evidence": "focused_test_and_3_of_3_live_delete"},
+    {"id": "CSM-GOLD-LEAK-001", "found": "Public reports exposed verifier names and low-entropy expected-value hashes.", "changed": "Project only verifier index, pass state, and error type; keep SQL, names, and expected values Host-private.", "evidence": "focused_test"},
+    {"id": "CSM-TERMINAL-001", "found": "A turn_failed run could count as task success when database verifiers happened to pass.", "changed": "Require turn_completed, no Runtime error, and all verifiers for task success.", "evidence": "focused_test"},
+    {"id": "CSM-ORACLE-001", "found": "Task-selected Tools could be misrepresented as free selection from the full catalog.", "changed": "Mark toolSelectionMode as task_selected_oracle and disclose selected Tool-name visibility.", "evidence": "report_contract"},
+    {"id": "CSM-REPLAY-001", "found": "Missing toolCallId validation allowed a mutation replay to execute twice.", "changed": "Require a non-empty ID; cache exact replays and fail closed on same-ID different-payload reuse.", "evidence": "focused_test"},
+    {"id": "CSM-SPLIT-001", "found": "The Validation loader parsed every task body, including Held-out.", "changed": "Check the filename universe first, then read only explicit IDs in the selected split.", "evidence": "focused_test_with_invalid_heldout_bodies"},
+    {"id": "CSM-SERVER-ERROR-001", "found": "Expected RuntimeError escaped the generic HTTP Server and disconnected the client.", "changed": "Convert expected EnterpriseOps Tool failures to structured ValueError responses.", "evidence": "source_and_focused_test_only"}
+  ],
+  "result": {
+    "runnerContractDefectsFound": 11,
+    "sourceOrTestFixed": 11,
+    "livePathRevalidated": 3,
+    "invalidPlumbing": {"taskSuccessRate": 0.0, "verifierPassCount": 3, "verifierCount": 31, "businessToolCalls": 0},
+    "repairedBaseline": {"taskSuccessRate": 0.3333333333333333, "verifierPassCount": 26, "verifierCount": 31, "businessToolCalls": 47, "failedToolCalls": 0},
+    "candidate": {"taskSuccessRate": 0.3333333333333333, "verifierPassCount": 26, "verifierCount": 31, "businessToolCalls": 54, "failedToolCalls": 1, "decision": "reject"}
+  },
+  "qualityBoundary": {
+    "failedVerifierCount": 5,
+    "temporalContractAmbiguityCount": 3,
+    "roleBindingFailureCount": 1,
+    "internallyContradictoryVerifierCount": 1,
+    "rawRateMustRemainUnadjusted": true,
+    "note": "The raw 26/31 and 1/3 scores remain authoritative until an adjudicated suite revision is frozen and rerun."
+  },
+  "claim": {
+    "allowed": "Trace localized eleven evaluation and execution contract defects; all received source or test fixes, three repair paths were revalidated live, and the resulting workflow candidate was rejected for zero quality lift plus higher cost.",
+    "forbidden": "Trace Agent autonomously fixed eleven installed production bugs, the business workflow improved by 74.19 percentage points, the raw benchmark scored 100 percent, or Held-out passed."
+  }
+}

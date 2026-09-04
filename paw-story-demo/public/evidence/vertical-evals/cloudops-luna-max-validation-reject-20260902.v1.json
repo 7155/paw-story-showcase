@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "paw.cloudops-luna-max-validation-reject-public.v1",
+  "runId": "cloudops-luna-max-validation-reject-20260902-v1",
+  "status": "validation_failed_candidate_rejected",
+  "measuredAt": "2026-09-02",
+  "evaluationScope": "validation-only",
+  "experiment": {
+    "baselineModel": "gpt-5.6-sol",
+    "candidateModel": "gpt-5.6-luna",
+    "thinking": "max",
+    "changedLayer": "model only",
+    "frozenLayers": [
+      "Prompt",
+      "Skill",
+      "Tool",
+      "Workflow",
+      "Validation suite"
+    ],
+    "realSessionCount": 3,
+    "transcriptCount": 3,
+    "goldVisibleToAgent": false
+  },
+  "transcriptObservation": {
+    "toolCalls": 278,
+    "failedToolCalls": 14,
+    "successfulToolCalls": 264,
+    "inputTokens": 916112,
+    "outputTokens": 57057,
+    "cacheReadTokens": 18809344,
+    "elapsedMs": 1718516,
+    "elapsedSeconds": 1718.516,
+    "usageSource": "recorded transcript aggregate",
+    "rawTranscriptIncluded": false
+  },
+  "termination": {
+    "status": "failed",
+    "failedBoundary": "third_validation_batch",
+    "thirdBatch": "timed_out",
+    "abort": "timed_out",
+    "formalHostScoreProduced": false,
+    "ca": null,
+    "jra": null,
+    "qualityComparison": "not_performed"
+  },
+  "decision": {
+    "result": "reject",
+    "reason": "The candidate did not produce a formal host CA/JRA score and ended with a third-batch timeout followed by an abort timeout.",
+    "baselineRetained": true,
+    "costComparison": "not_performed",
+    "qualityComparison": "not_performed",
+    "heldOutEvaluated": false
+  },
+  "runtimeBoundary": {
+    "sourceLocalCandidate": true,
+    "runtimeInstalled": false,
+    "foregroundAcceptance": false,
+    "productionMutationPerformed": false,
+    "heldOutConsumed": false,
+    "apiPriceUsd": null,
+    "costClaimAllowed": false,
+    "boundaryNote": "Recorded token usage is not a billing receipt; without a frozen Luna price card and a formal score, no quality or cost comparison is claimed."
+  },
+  "claim": {
+    "allowed": "A model-only Luna Max Validation candidate ran through three real Session transcripts under the frozen CloudOps contract, recorded 278 Tool calls with 14 failures and the stated usage aggregate, then was rejected after the third batch and abort both timed out without a formal CA/JRA score.",
+    "forbidden": [
+      "Luna quality versus Sol",
+      "Luna cost reduction or percentage savings",
+      "a CA/JRA score",
+      "Held-out or production performance",
+      "an installed Runtime or foreground acceptance"
+    ]
+  }
+}

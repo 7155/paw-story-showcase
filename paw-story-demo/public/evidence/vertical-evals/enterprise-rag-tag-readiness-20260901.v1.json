@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "paw.enterprise-rag-tag-reranker-readiness.v1",
+  "runId": "enterprise-rag-tag-reranker-readiness-20260901-v1",
+  "status": "blocked_missing_enterprise_graph",
+  "evaluationScope": "validation-only",
+  "heldOutEvaluated": false,
+  "qrelsReadByReadinessAudit": false,
+  "sample": {"validationQueryCount": 16, "corpusDocumentCount": 5101, "corpusChunkCount": 29846},
+  "observedEnterpriseGraph": {
+    "knowledgeGraphNodes": 0,
+    "knowledgeGraphEdges": 0,
+    "knowledgeGraphExtractions": 0,
+    "candidateTagFieldsPresent": false,
+    "candidateGraphFieldsPresent": false
+  },
+  "compatibility": {"memoryTagCandidateIdentity": "memory_item_id", "enterpriseCandidateIdentity": "document_id+chunk_id", "directlyCompatible": false},
+  "decision": {
+    "tagMetrics": null,
+    "reason": "The frozen enterprise Knowledge corpus has no source-bound Tag or Graph projection. A keyword-derived tag heuristic would not be the governed PAW Tag system and cannot support a fair replacement claim."
+  }
+}

@@ -23,11 +23,14 @@ export interface Room {
   title: string;
   status: 'active' | 'archived';
   executionMode: 'read_only' | 'per_action' | 'workspace_managed' | 'full_trust';
+  permissionPolicy: RoomPermissionPolicy;
   roomKind?: 'collaboration' | 'roleplay';
   avatar?: string;
   description?: string;
   scenarioPrompt?: string;
-  routingPolicy:
+  ownerAppId?: string;
+  surfaceKey?: string;
+  routingPolicy?:
     'manual_mentions' | 'moderator' | 'sequential' | 'natural' | 'parallel' | 'invite_only';
   routingConfig?: {
     [k: string]: unknown;
@@ -37,10 +40,15 @@ export interface Room {
   activeTopicId?: string;
   configRevision?: number;
   /**
-   * @maxItems 4
+   * @maxItems 5
    */
   workspaceRoots:
-    [] | [string] | [string, string] | [string, string, string] | [string, string, string, string];
+    | []
+    | [string]
+    | [string, string]
+    | [string, string, string]
+    | [string, string, string, string]
+    | [string, string, string, string, string];
   createdAtMs: number;
   updatedAtMs: number;
   lastEventSequence: number;
@@ -83,6 +91,21 @@ export interface Room {
   workItems?: {
     [k: string]: unknown;
   }[];
+  startGate?: {
+    [k: string]: unknown;
+  } | null;
+}
+export interface RoomPermissionPolicy {
+  schemaVersion: 'rag-ime.room-permission-policy.v1';
+  room: RoomPermissionLayer;
+  partner: RoomPermissionLowerLayer;
+  toolAgent: RoomPermissionLowerLayer;
+}
+export interface RoomPermissionLayer {
+  executionMode: 'read_only' | 'per_action' | 'workspace_managed' | 'full_trust';
+}
+export interface RoomPermissionLowerLayer {
+  executionMode: 'inherit' | 'read_only' | 'per_action' | 'workspace_managed' | 'full_trust';
 }
 export interface Participant {
   schemaVersion: 'rag-ime.agent-participant.v1';
@@ -117,7 +140,10 @@ export interface Event {
     | 'artifact_changed'
     | 'turn_completed'
     | 'turn_failed'
-    | 'snapshot_required';
+    | 'snapshot_required'
+    | 'room_start_confirmation_required'
+    | 'room_start_confirmation_confirmed'
+    | 'room_start_confirmation_rejected';
   participantId: string | null;
   sourceSessionId: string;
   topicId?: string;

@@ -4,6 +4,7 @@ import {
   EyeOff,
   Fingerprint,
   GitBranch,
+  History,
   LoaderCircle,
   ShieldAlert,
 } from 'lucide-react';
@@ -26,6 +27,7 @@ import {
 import { useMemoryReference, type MemoryReferenceKind } from './api';
 import { publicMemoryOwnerLabel, publicMemoryText } from './public-copy';
 import type { MemoryReferenceV1 } from '@/contracts/generated/memory-reference.v1';
+import { openPawOsRoute, usePawOsDesktop } from '@/features/paw-os/surface-context';
 
 export interface MemoryReferenceSelection {
   kind: MemoryReferenceKind;
@@ -45,6 +47,7 @@ export function MemoryReferenceDialog({
   onOpenChange,
   referenceId,
 }: MemoryReferenceDialogProps) {
+  const desktop = usePawOsDesktop();
   const root = useMemo<MemoryReferenceSelection>(
     () => ({ kind, referenceId, label }),
     [kind, label, referenceId],
@@ -172,7 +175,13 @@ export function MemoryReferenceDialog({
               <section className="memory-reference-view__source-context" aria-label="整理使用的输入上下文">
                 <header>
                   <span><GitBranch size={15} /><strong>整理使用的输入上下文</strong></span>
-                  <small>仅所属范围可读</small>
+                  <Button
+                    data-memory-open-history="true"
+                    leadingIcon={<History size={14} />}
+                    onClick={() => openPawOsRoute(desktop, `/history?event=${encodeURIComponent(eventIdFromReference(current.referenceId))}`)}
+                    size="small"
+                    variant="quiet"
+                  >在输入记录中打开原文</Button>
                 </header>
                 {!sourceContextAvailable ? (
                   <p>当前引用不在本控制中心的所属范围内，因此不返回输入上下文。</p>
@@ -235,6 +244,10 @@ export function MemoryReferenceDialog({
 
 function ReferenceFact({ label, value }: { label: string; value: string }) {
   return <div><dt>{label}</dt><dd>{value || '未标注'}</dd></div>;
+}
+
+function eventIdFromReference(referenceId: string): string {
+  return referenceId.match(/(?:^|:)(\d+)$/u)?.[1] ?? referenceId;
 }
 
 

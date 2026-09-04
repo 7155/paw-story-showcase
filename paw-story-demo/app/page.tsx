@@ -4,73 +4,90 @@ import {
   ArrowDown,
   ArrowRight,
   BookOpen,
-  Bot,
   Brain,
   Check,
   CircleAlert,
   CircleDot,
   FileCheck2,
   FileText,
-  GitBranch,
-  Globe2,
   History,
   Keyboard,
-  Layers3,
   Mic,
-  Network,
   Orbit,
-  Pause,
-  Play,
+  PanelsTopLeft,
   RefreshCw,
   Search,
   ShieldCheck,
   Sparkles,
+  Square,
   SquareArrowOutUpRight,
-  TestTube2,
-  Users,
-  Zap,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { SolarSystem3D } from "../components/SolarSystem3D";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { Badge } from "@/components/launch/badge";
+import { LinkButton } from "@/components/launch/link-button";
+import { ResumeSection } from "./resume-section";
+import { CollaborationResult, ImprovementSection, TaskIntroduction } from "./story-journey";
+import { ShowcasePlayback, type ShowcaseStage } from "./showcase-playback";
+import { GithubBadge, GithubMark, PawMark, useInView, useLoop, useOnScreen, useTimedLoop } from "./ui-shared";
 
 const chapters = [
-  { id: "input", index: "01", label: "智能输入" },
-  { id: "memory", index: "02", label: "记忆 / RAG" },
-  { id: "agents", index: "03", label: "多 Agent" },
+  { id: "agents", index: "01", label: "交付" },
+  { id: "reliability", index: "02", label: "评测" },
+  { id: "improvement", index: "03", label: "改进" },
+  { id: "memory", index: "04", label: "继续" },
+  { id: "input", index: "05", label: "入口" },
 ];
 
-const inputTimelineDurations = [700, 900, 620, 420, 1_900, 520, 620, 620, 700, 680, 880, 1_080, 360, 1_350] as const;
-const inputManualGateSteps = [11] as const;
+// three.js stays out of the initial bundle; the chunk loads only when the
+// Room slide approaches the viewport (RoomTransformationDemo mounts on view).
+const SolarSystem3D = lazy(() => import("../components/SolarSystem3D").then((module) => ({ default: module.SolarSystem3D })));
+
+const inputTimelineDurations = [
+  2_000,
+  2_400,
+  1_200,
+  1_000,
+  3_200,
+  1_200,
+  1_400,
+  1_400,
+  1_500,
+  1_500,
+  1_800,
+  3_600,
+  1_200,
+  3_000,
+] as const;
 
 const inputScenarios = [
   {
     id: "report",
-    label: "工作报告",
-    fileName: "智能输入项目周报.docx",
-    kicker: "研发周报 · 第 34 周",
-    title: "PAW 智能输入本周进展",
-    summary: "汇总本周交付、关键指标、风险与下周计划。",
-    section: "本周完成",
-    body: "本周完成 post-commit 联想链路的 Release 验证，覆盖拼音组合态、跨应用提交和候选接受。",
-    typingPrefix: "实测 200 轮连续输入后，候选栏未再出现",
-    compositionRoman: "qiang jiao dian",
-    committedSentence: "实测 200 轮连续输入后，候选栏未再出现抢焦点或吞键。",
-    rimeCandidates: ["抢焦点", "强焦点", "抢交点", "强交点", "抢焦"],
+    label: "技术复盘",
+    fileName: "PAW Agent 安全写入复盘.docx",
+    kicker: "架构复盘 · WorkspaceHarness",
+    title: "为什么我们推翻了“同步失败就回滚”",
+    summary: "用一次真实架构反转，讲清 Tool、权限、并发边界与证据分级。",
+    section: "问题与反转",
+    body: "旧策略把真实文件写入与 WorkDocument 登记做成强一致：登记失败就尝试回滚文件。后来我们发现，辅助协作记录不应撤销已经成功且获批的真实工作。",
+    typingPrefix: "最终决定把工作区重新定义为唯一的",
+    compositionRoman: "shi shi yuan",
+    committedSentence: "最终决定把工作区重新定义为唯一的事实源。",
+    rimeCandidates: ["事实源", "实施源", "实时源", "事实原", "真实源"],
     suggestions: [
-      "首个本地候选稳定在 100ms 内返回",
-      "Active RAG 仍需继续压缩首字延迟",
-      "下周将补齐跨应用回归测试",
+      "真实写入成功后，不因辅助登记失败而回滚",
+      "documentSync 失败只留一次 Trace 与残余提醒",
+      "resourceRevision 仍不等于同文件并发串行化",
     ],
-    generatedParagraph: "从结果看，核心输入链路已经具备可演示条件：首个本地候选稳定在 100ms 内返回，Tab 接受与 Option+数字侧候选均符合预期。当前主要风险集中在 Active RAG 首字延迟和窗口上下文质量，下周将补齐 Word、浏览器与代码编辑器三类场景的回归测试。",
-    diagnostic: "当前输入 29 字 · 历史 2 条 · RAG 2 条 · 首字 1.2 秒",
-    historyDone: "已选取 2 条本周测试记录",
-    retrievalDone: "已找到性能目标与发布边界",
-    handoff: "AX 6 节点 · 历史 2 条 · 召回 Atom、Book",
+    generatedParagraph: "这次反转不是放松安全，而是重新划分事实源：workspace_write 仍要经过 Tool 可用性、workspaceRoots、resourceRevision、approval digest 与 OS sandbox 五层约束；但一旦真实文件已经成功写入，WorkDocument 登记失败只记录一次 documentSync pending/failed 与 Trace，不再撤销用户的真实工作。当前边界也必须说清：resourceRevision 能阻止顺序发生的陈旧写入，却不等于同文件 mutation queue；两个真正同时通过预检的全文件替换仍可能出现后写覆盖前写。",
+    diagnostic: "当前输入 24 字 · 对话证据 3 条 · 代码证据 4 条 · 首字 1.3 秒",
+    historyDone: "已选取 3 条架构追问与用户纠正",
+    retrievalDone: "已找到安全分层、Git 反转与并发残余",
+    handoff: "AX 7 节点 · 对话 3 条 · 召回 Decision、Skill、Git",
     sources: [
-      { id: "window", label: "窗口语义", title: "当前周报 · 本周完成", detail: "Release 验证与跨应用输入测试", Icon: FileText },
-      { id: "recent", label: "最近完整输入", title: "连续测试记录 · 2 条", detail: "候选栏不能吞键或抢焦点", Icon: History },
-      { id: "atom", label: "知识库事实 · Atom", title: "输入性能目标", detail: "首个本地候选 P95 < 100ms", Icon: CircleDot },
-      { id: "book", label: "知识主题 · Book", title: "v1 发布边界", detail: "Rime 稳定优先，Active RAG opt-in", Icon: BookOpen },
+      { id: "window", label: "窗口语义", title: "当前复盘 · 问题与反转", detail: "rollback → workspace source of truth", Icon: FileText },
+      { id: "recent", label: "最近完整输入", title: "架构追问 · 3 条", detail: "不要把所有安全机制都叫多 Agent 安全", Icon: History },
+      { id: "atom", label: "项目事实 · Decision", title: "写入与辅助登记边界", detail: "成功的 workspace mutation 不被 WorkDocument 撤销", Icon: CircleDot },
+      { id: "book", label: "知识主题 · Skill", title: "Trace Agent 诊断合同", detail: "八项评分 · 硬门槛 · 授权后修复", Icon: BookOpen },
     ],
   },
   {
@@ -82,16 +99,16 @@ const inputScenarios = [
     summary: "定义联想出现时机、快捷键和 Active RAG 的授权边界。",
     section: "交互规则",
     body: "拼音组合阶段只保留 Rime 候选，不展示模型或 RAG 内容。",
-    typingPrefix: "用户提交完整句子后，系统才展示",
-    compositionRoman: "san tiao duan lian xi",
+    typingPrefix: "用户提交完整句子后，系统才展示三条",
+    compositionRoman: "duan lian xiang",
     committedSentence: "用户提交完整句子后，系统才展示三条短联想。",
     rimeCandidates: ["三条短联想", "三条端联想", "三条段联想", "三条短连想", "三条联想"],
     suggestions: [
-      "Tab 接受第一条，Option+数字选择侧候选",
+      "Tab 接受第一条，Option + 数字选择侧候选",
       "普通联想不读取远程上下文",
       "点击生成后再启动 Active RAG",
     ],
-    generatedParagraph: "验收时需要同时满足三个条件：联想不得覆盖系统候选栏；首条建议可用 Tab 接受，其他建议使用 Option+数字选择；只有用户主动点击“生成”后，系统才能读取获准的窗口语义、近期输入与记忆，并在结果中保留可核对的依据回执。",
+    generatedParagraph: "验收时需要同时满足三个条件：联想不得覆盖系统候选栏；首条建议可用 Tab 接受，其他建议使用 Option + 数字选择；只有用户主动点击“生成”后，系统才能读取获准的窗口语义、近期输入与记忆，并在结果中保留可核对的依据回执。",
     diagnostic: "当前输入 24 字 · 历史 3 条 · RAG 2 条 · 首字 1.1 秒",
     historyDone: "已选取 3 条交互评审结论",
     retrievalDone: "已找到组合态规则与授权边界",
@@ -135,472 +152,136 @@ const inputScenarios = [
   },
 ] as const;
 
-const memoryTimelineEntries = [
-  {
-    time: "08:42",
-    source: "完整输入",
-    context: "飞书 · 增长组晨会",
-    text: "今天第一次参加增长组晨会，导师让我跟进华东门店的活动转化。",
-    outcome: "候选事件 · 实习角色与当前职责",
-    color: "#5b6fe8",
-  },
-  {
-    time: "10:16",
-    source: "术语确认",
-    context: "掌柜问数 · 指标字典",
-    text: "这里的“到店核销”只算领取优惠券后 7 天内完成核销的订单。",
-    outcome: "词库 · 到店核销 / 7 日口径",
-    color: "#e08a52",
-  },
-  {
-    time: "14:08",
-    source: "项目上下文",
-    context: "VS Code · weekly-report.md",
-    text: "把门店漏斗和上周活动方案一起放进这周的实习周报上下文。",
-    outcome: "项目关系 · 周报 ↔ 漏斗 ↔ 活动方案",
-    color: "#3f9b78",
-  },
-  {
-    time: "18:27",
-    source: "行动承诺",
-    context: "Word · 实习日志.docx",
-    text: "明天先核对上海 12 家门店的到店率，再向导师解释转化下降原因。",
-    outcome: "时间线 · 明日优先事项",
-    color: "#9a68cb",
-  },
-] as const;
-
-const memoryContextShelves = [
-  { label: "连续完整输入", value: "1,284", detail: "示例日均 · 仅保留完整提交", icon: Keyboard },
-  { label: "窗口上下文", value: "236", detail: "应用、文档与当前段落", icon: Layers3 },
-  { label: "个人 / 公司词库", value: "318", detail: "简称、指标口径与专有名词", icon: BookOpen },
-  { label: "项目文件", value: "42", detail: "周报、方案、数据字典与代码", icon: FileText },
-] as const;
-
-const governedContextSources = [
-  {
-    id: "project",
-    label: "Project Docs",
-    displayLabel: "项目文档",
-    flow: "目标 → 需求 → WorkItem → 验收",
-    title: "项目的长期事实",
-    detail: "需求、决策、任务、代码与验收都留在项目范围内；不混入个人偏好。",
-    access: "当前项目 Session / Room",
-    trigger: "每轮按任务选择相关文件",
-    persistence: "项目文件与版本历史",
-    icon: FileText,
-    state: "PROJECT SCOPED",
-  },
-  {
-    id: "memory",
-    label: "User Memory",
-    displayLabel: "用户记忆",
-    flow: "原始输入 → 时间线 → 可治理记忆",
-    title: "用户自己的偏好与经历",
-    detail: "默认不越权读取；只有用户显式开启或本轮工具已获权限时才参与上下文。",
-    access: "显式开关 + Tool 权限",
-    trigger: "每个 compact / 大对话周期至多主动召回一次",
-    persistence: "可查看、隐藏、修订与删除",
-    icon: Brain,
-    state: "PERMISSIONED",
-  },
-  {
-    id: "knowledge",
-    label: "Knowledge Mount",
-    displayLabel: "知识库",
-    flow: "挂载 → 检索图 → Trace / Eval",
-    title: "按场景外挂的材料库",
-    detail: "论文写作、企业知识管理、专项研究等场景按需挂载，不默认进入所有对话。",
-    access: "Session / 应用显式挂载",
-    trigger: "问题需要外部材料时检索",
-    persistence: "独立知识库与来源索引",
-    icon: BookOpen,
-    state: "OPT-IN MOUNT",
-  },
-] as const;
-
-const projectDocumentPages = [
-  {
-    id: "overview",
-    file: "README.md",
-    path: "README.md",
-    group: "ROOT OVERVIEW",
-    status: "真实文件 · 已清洗",
-    title: "公开、可运行的 PAWOS 前端快照",
-    summary: "仓库根说明把真实前端、合成状态与证明边界分开：网页可以公开复核产品界面，但不连接私有 PAW Runtime 或个人数据。",
-    excerpt: "PAW Story Showcase is a public, runnable snapshot of the real PAWOS web frontend.",
-    cleaning: "仅投影公开产品边界；省略本机地址、安装现场与任何私有仓库上下文。",
-    sections: [
-      { title: "真实部分", body: "React 组件、PAWOS Shell、11-App 注册表、App 分发、样式与 Browser / Terminal 展示代码来自固定上游前端快照。" },
-      { title: "合成部分", body: "Session、Room、Memory、Knowledge、输入、Tool、Browser 与 Terminal 状态均为公开合成预览。" },
-      { title: "证明边界", body: "构建和 App audit 只证明展示站；不能据此声称 PAW 已安装、Runtime 健康或 macOS 前台验收通过。" },
-    ],
-  },
-  {
-    id: "site",
-    file: "README.md",
-    path: "paw-story-demo/README.md",
-    group: "STORY SITE",
-    status: "真实文件 · 已清洗",
-    title: "三章连续的 PAW 产品故事",
-    summary: "站点说明固定当前故事：智能输入与语音；Project Docs、User Memory 与 Knowledge/RAG；Goal 太阳系进入真实 PAWOS 窗口。",
-    excerpt: "PAW 的公开单页产品故事。三个主章节依次展示智能输入与语音文字定稿；可切换的真实 Project Docs 阅读页、User Memory 和 Knowledge/RAG；以及从 Three.js Room 关系视图变形为实际 PAWOS 窗口层的协作过程。",
-    cleaning: "删除 starter 通用说明与环境身份字段，只保留当前页面、构建和部署边界。",
-    sections: [
-      { title: "页面目标", body: "一张公开单页连续解释输入、上下文治理与多 Agent 协作，不把真实功能换成录屏。" },
-      { title: "构建契约", body: "先构建同仓库的公开 PAWOS 前端，再将静态产物装入站点 /pawos/，最后执行站点检查。" },
-      { title: "运行边界", body: "不包含 Pi Runtime、Gateway、数据库、真实 transcript、个人输入或记忆。" },
-    ],
-  },
-  {
-    id: "requirements",
-    file: "showcase-requirements-and-results.md",
-    path: "paw-story-demo/docs/showcase-requirements-and-results.md",
-    group: "REQUIREMENTS",
-    status: "真实文件 · 原话受保护",
-    title: "展示页需求与结果台账",
-    summary: "SHOW 稳定 ID 将用户原话、当前解释、禁止项、实现回执和未验证边界连在一起；修订追加，不用漂亮截图覆盖失败记录。",
-    excerpt: "当前要求：Project Docs 不是普通文件库，而是以本展示项目的真实 Goal 为中心，令仓库中真实存在的范围、需求、数据、Eval 和来源文档共同约束 Agent 执行轨道。",
-    cleaning: "公开投影不展示会话标识、机器路径或完整对话，只保留已经写入项目台账的需求含义与证据等级。",
-    sections: [
-      { title: "原话与修订", body: "每个 SHOW 条目同时保存当前要求、用户可见验收、禁止项和来源原话；新纠偏追加到原 ID。" },
-      { title: "真实 UI / 合成数据", body: "真实前端组件和交互可以复用；所有人物、Room 事件、个人输入与指标必须明确标为合成。" },
-      { title: "证据分层", body: "源码、测试、构建、公开部署与生产前台是不同证明层，任何一层都不能冒充下一层。" },
-    ],
-  },
-  {
-    id: "data",
-    file: "SHOWCASE_DATA.md",
-    path: "SHOWCASE_DATA.md",
-    group: "DATA CONTRACT",
-    status: "真实文件 · 公开边界",
-    title: "公开合成数据契约",
-    summary: "数据契约列出每类 fixture 的真实代码 owner，并规定 synthetic-preview、interaction-rehearsal 与 host-unavailable 的可见标签。",
-    excerpt: "All state in this repository is synthetic. The data deliberately follows the same frontend contracts and transport interface as PAWOS, but it never claims to be production state.",
-    cleaning: "只显示公开 fixture 职责；不投影任何状态值、个人样本、日志、浏览器资料或本机数据库。",
-    sections: [
-      { title: "Fixture owners", body: "Session、Room、Memory、Input 与 Work Documents 各有独立 preview source，不复制成第二个 Runtime。" },
-      { title: "Required labels", body: "预览状态、交互演练和原生宿主不可用必须显式区分；没有独立证据时禁止使用 live。" },
-      { title: "Evidence levels", body: "生产源码、测试、构建、安装、运行态、前台行为和用户接受必须分别记录。" },
-    ],
-  },
-  {
-    id: "eval",
-    file: "rag-memory-eval-datasets.md",
-    path: "paw-story-demo/docs/rag-memory-eval-datasets.md",
-    group: "TRACE / EVAL",
-    status: "真实文件 · 候选未冒充接入",
-    title: "RAG 与 Memory Eval 基础",
-    summary: "数据集记录整理 BEIR、MTEB、RAGBench、CRAG、LongMemEval 与 LoCoMo，并明确候选、接入和真实成绩是三个不同状态。",
-    excerpt: "本记录为 2026-08-28 的选型调研，不代表数据已经下载、接入或产生了 PAW 实测成绩。",
-    cleaning: "保留公开数据集与指标边界；不把尚未下载、尚未接入或合成 UI 数字改写成 PAW 实测。",
-    sections: [
-      { title: "公共基准", body: "用跨领域检索、端到端 RAG 和长程记忆数据建立可重复基线，但它们不能证明 PAW 的授权隔离。" },
-      { title: "PAW 黄金集", body: "另建 24–50 条合成治理样本，覆盖允许范围、拒绝范围、删除泄漏、引用和跨 compact 召回。" },
-      { title: "真实指标 / AI 估计", body: "Precision、Recall、nDCG、MRR 与 citation 来源于标签；Groundedness Judge 必须单列为模型估计。" },
-    ],
-  },
-  {
-    id: "upstream",
-    file: "UPSTREAM.json",
-    path: "UPSTREAM.json",
-    group: "PROVENANCE",
-    status: "真实文件 · 固定来源",
-    title: "真实前端来源与派生权威边界",
-    summary: "来源清单把当前仓库固定为 PAW control-center-web 的选定前端快照，并明确它是 derivative showcase，不是产品源码或生产权威。",
-    excerpt: "sourceRepository: 7155/personal-agent-workbench · sourceSubtree: control-center-web · authority: derivative-showcase-not-product-source",
-    cleaning: "公开页面只显示来源仓库、子树与权威类型；完整 commit、机器信息和工作区细节留在受检查的源文件。",
-    sections: [
-      { title: "来源", body: "源仓库为 7155/personal-agent-workbench，选定子树为 control-center-web，来源提交由文件固定。" },
-      { title: "快照模式", body: "fresh-history-selected-frontend：只携带用于公开展示的前端与必要合同，不复制私有历史。" },
-      { title: "权威类型", body: "derivative-showcase-not-product-source：展示项目不能反向成为 PAW 产品的第二权威。" },
-    ],
-  },
-] as const;
-
-const ragModes = [
-  {
-    id: "embedding",
-    label: "Embedding",
-    title: "传统向量召回",
-    summary: "把问题与切片编码成向量，按语义距离取回 Top-K。快，但相似不等于可回答。",
-    steps: ["问题向量化", "ANN Top-20", "相似片段返回"],
-    metric: "84 ms · 命中 20",
-    boundary: "可能漏掉精确指标口径",
-    hits: ["实习周报模板.md · 0.86", "门店活动复盘.md · 0.82", "增长组晨会记录 · 0.78"],
-  },
-  {
-    id: "hybrid",
-    label: "Hybrid",
-    title: "关键词 + 向量混合",
-    summary: "同时保留术语精确匹配与语义相似度，再合并两路候选。",
-    steps: ["BM25 精确词", "向量语义召回", "RRF 合并去重"],
-    metric: "112 ms · 合并 26",
-    boundary: "相关片段仍未按答案价值排序",
-    hits: ["指标字典/到店核销.md", "华东门店漏斗.csv", "活动方案-v3.docx"],
-  },
-  {
-    id: "rerank",
-    label: "Rerank",
-    title: "混合召回 + 重排",
-    summary: "用重排模型重新判断问题与候选的真实相关性，把证据压到可读范围。",
-    steps: ["混合召回 26", "Cross-encoder 重排", "保留 6 条依据"],
-    metric: "286 ms · 证据 6",
-    boundary: "仍由固定检索流程决定查什么",
-    hits: ["到店核销 7 日口径 · #L18", "上海 12 店漏斗 · 8/27", "上周活动变更 · 决策 04"],
-  },
-  {
-    id: "agentic",
-    label: "Agentic RAG",
-    title: "Agent 自己规划检索",
-    summary: "先拆问题，再按需查时间线、词库、项目文件与知识库；发现证据不足时继续检索。",
-    steps: ["拆成口径 / 数据 / 原因", "路由 4 个上下文源", "核对冲突并生成回执"],
-    metric: "4 次有界检索 · 6 条依据",
-    boundary: "AI 估计与真实命中分开标注",
-    hits: ["真实命中 · 指标字典", "真实命中 · 门店漏斗", "AI 归纳 · 转化下降原因"],
-  },
-] as const;
-
-const ragRelationshipGraphs = {
-  embedding: {
-    focus: "vector",
-    nodes: [
-      { id: "query", kind: "query", label: "QUERY", value: "上海门店为何下降", detail: "自然语言问题", x: 10, y: 48 },
-      { id: "vector", kind: "operator", label: "EMBEDDING", value: "问题向量", detail: "语义编码", x: 34, y: 25 },
-      { id: "index", kind: "source", label: "VECTOR INDEX", value: "项目切片", detail: "独立知识库", x: 34, y: 72 },
-      { id: "topk", kind: "merge", label: "ANN TOP-K", value: "20 个近邻", detail: "按距离排序", x: 66, y: 48 },
-      { id: "evidence", kind: "evidence", label: "EVIDENCE", value: "相似片段", detail: "等待答案核对", x: 90, y: 48 },
-    ],
-    edges: [["query", "vector"], ["index", "topk"], ["vector", "topk"], ["topk", "evidence"]],
-  },
-  hybrid: {
-    focus: "rrf",
-    nodes: [
-      { id: "query", kind: "query", label: "QUERY", value: "到店核销下降", detail: "问题 + 精确术语", x: 10, y: 48 },
-      { id: "bm25", kind: "operator", label: "BM25", value: "关键词召回", detail: "匹配指标口径", x: 34, y: 23 },
-      { id: "vector", kind: "operator", label: "EMBEDDING", value: "向量召回", detail: "寻找语义近邻", x: 34, y: 73 },
-      { id: "rrf", kind: "merge", label: "RRF MERGE", value: "26 个候选", detail: "两路合并去重", x: 66, y: 48 },
-      { id: "evidence", kind: "evidence", label: "EVIDENCE", value: "口径 + 数据", detail: "保留来源", x: 90, y: 48 },
-    ],
-    edges: [["query", "bm25"], ["query", "vector"], ["bm25", "rrf"], ["vector", "rrf"], ["rrf", "evidence"]],
-  },
-  rerank: {
-    focus: "reranker",
-    nodes: [
-      { id: "query", kind: "query", label: "QUERY", value: "下降原因 + 周报", detail: "复合问题", x: 9, y: 48 },
-      { id: "hybrid", kind: "operator", label: "HYBRID", value: "混合召回", detail: "词法 + 向量", x: 30, y: 48 },
-      { id: "candidates", kind: "source", label: "CANDIDATES", value: "26 条片段", detail: "高召回候选集", x: 52, y: 23 },
-      { id: "reranker", kind: "merge", label: "RERANKER", value: "Cross-encoder", detail: "按回答价值重排", x: 72, y: 48 },
-      { id: "evidence", kind: "evidence", label: "TOP EVIDENCE", value: "6 条依据", detail: "可读证据集", x: 91, y: 48 },
-    ],
-    edges: [["query", "hybrid"], ["hybrid", "candidates"], ["candidates", "reranker"], ["reranker", "evidence"]],
-  },
-  agentic: {
-    focus: "planner",
-    nodes: [
-      { id: "query", kind: "query", label: "QUESTION", value: "解释并写周报", detail: "带交付目标", x: 9, y: 48 },
-      { id: "planner", kind: "operator", label: "AGENT PLAN", value: "口径 / 数据 / 原因", detail: "拆解与路由", x: 27, y: 48 },
-      { id: "docs", kind: "source", label: "PROJECT DOCS", value: "目标与口径", detail: "项目范围", x: 51, y: 16 },
-      { id: "memory", kind: "source", label: "USER MEMORY", value: "获准上下文", detail: "显式授权", x: 51, y: 48 },
-      { id: "knowledge", kind: "source", label: "KNOWLEDGE", value: "外部材料", detail: "按需挂载", x: 51, y: 80 },
-      { id: "verify", kind: "merge", label: "VERIFY", value: "冲突与缺口", detail: "有界补检", x: 76, y: 48 },
-      { id: "receipt", kind: "evidence", label: "RECEIPT", value: "6 条可追溯依据", detail: "真实命中 / AI 估计分开", x: 91, y: 48 },
-    ],
-    edges: [["query", "planner"], ["planner", "docs"], ["planner", "memory"], ["planner", "knowledge"], ["docs", "verify"], ["memory", "verify"], ["knowledge", "verify"], ["verify", "receipt"]],
-  },
-} as const;
-
-const agentPatterns = [
-  { id: "tree", index: "01", label: "主从树", title: "判断全部挤回主 Agent", detail: "子 Agent 能并行执行，却无法横向补位；计划、上下文和验收最终都堵在一个入口。", metric: "同级通道 0" },
-  { id: "swarm", index: "02", label: "全连接蜂群", title: "通信比工作增长得更快", detail: "每个人都能互相 @，但消息、等待和重试很快超过真正写入文件的结果。", metric: "潜在 @ ∞" },
-  { id: "peer", index: "03", label: "平等专家组", title: "互补偏见，也可能无限否决", detail: "专家可以相互质疑；没有证据门槛与循环上限时，严谨会变成无法结束的复核。", metric: "审核循环 4+" },
-] as const;
-
 const orbitalWork = [
   {
     id: "input",
-    name: "输入体验",
-    tag: "DISPATCH 01 · IMPLEMENTER",
-    task: "完成输入法交互纵切",
-    phase: "组件、状态与数据源回执",
-    receipt: "workpatch-input.md",
+    name: "输入法",
+    tag: "输入层 · RIME FIRST",
+    task: "原生候选、完整输入与显式 Agent 怎样分权",
+    phase: "Rime 拼音候选 → 完整输入事件 → 提交后 AI 联想",
+    receipt: "input-method-plan.md",
     className: "solar-planet--research",
     color: "#a79dff",
-    subWorker: "实施伙伴 · 只提交 WorkPatch",
-    subVerify: "Reviewer · 等全部实施提交后启动",
-    metric: "示例状态 · WorkPatch 已提交",
-    summary: "纵向完成输入页面的界面、交互状态与合成数据，不在本任务内自封测试通过。",
-    tdd: "PATCH READY · 非测试结论",
+    subWorker: "Skill · domain-modeling",
+    subVerify: "合同 · Rime owner / input_event / explicit authority",
+    metric: "4 层输入边界 · 1 条封口合同",
+    summary: "Rime 继续负责拼音和原生候选；完整输入才进入数据链，短联想保持本地，显式生成才读取获准上下文。",
+    tdd: "WORKPATCH · INPUT CONTRACT",
   },
   {
-    id: "memory",
-    name: "记忆 / RAG",
-    tag: "DISPATCH 02 · IMPLEMENTER",
-    task: "完成记忆数据叙事纵切",
-    phase: "时间线、词库、文件与检索",
-    receipt: "workpatch-memory.md",
+    id: "runtime",
+    name: "Memory",
+    tag: "记忆层 · GOVERNED RECALL",
+    task: "1,284 条输入怎样压成任务，再按问题找回",
+    phase: "输入事件 → 时间线 / 原子记忆 → 召回回执",
+    receipt: "memory-value-loop.md",
     className: "solar-planet--build",
     color: "#ffaa88",
-    subWorker: "实施伙伴 · 只提交 WorkPatch",
-    subVerify: "Reviewer · 等全部实施提交后启动",
-    metric: "示例状态 · WorkPatch 已提交",
-    summary: "用明确标注的合成输入解释记忆整理与 RAG 升级路线，保留真实指标和 AI 估计边界。",
-    tdd: "PATCH READY · 非测试结论",
+    subWorker: "Skill · rag-retrieval-optimization",
+    subVerify: "数据链 · 1,284 inputs / 5 tasks / 3 preferences",
+    metric: "1,284 → 5 → 按题召回",
+    summary: "一句普通寒暄会自然带回今天的时间线；用户只说“今天有点累”，Agent 再结合相关习惯关心并续接工作。原始输入仍在来源层，不整段灌进 Agent。",
+    tdd: "WORKPATCH · RECALL BOUNDED",
+  },
+  {
+    id: "context",
+    name: "多 Agent",
+    tag: "协作层 · BOUNDED PARALLEL",
+    task: "四颗行星怎样并行、通信并汇成一个结果",
+    phase: "任务摘要 → 跨星通信 → 工作补丁 → 统一汇总",
+    receipt: "multi-agent-room-plan.md",
+    className: "solar-planet--verify",
+    color: "#75e2b5",
+    subWorker: "Skill · implementation-planning",
+    subVerify: "通信 · Mars → Venus → Jupiter → Saturn → Mars",
+    metric: "4 个 WorkItem · 4 次跨星通信 · 1 个 Root",
+    summary: "各伙伴不共享整段私有上下文；仅通过 ContextRefs 交换接口、依赖与证据，各自交付 WorkPatch，最终由 Facilitator 汇总文档。",
+    tdd: "WORKPATCH · INTERCOM VISIBLE",
   },
   {
     id: "room",
-    name: "Room 体验",
-    tag: "DISPATCH 03 · IMPLEMENTER",
-    task: "完成行星到窗口的真实投影",
-    phase: "关系视图与多窗口执行态",
-    receipt: "workpatch-room.md",
-    className: "solar-planet--verify",
-    color: "#75e2b5",
-    subWorker: "实施伙伴 · 只提交 WorkPatch",
-    subVerify: "Reviewer · 等全部实施提交后启动",
-    metric: "示例状态 · WorkPatch 提交中",
-    summary: "保持太阳、行星、WorkItem 与 PAW 窗口一一对应，让关系视图自然进入执行视图。",
-    tdd: "PATCH RUNNING · 非测试结论",
-  },
-  {
-    id: "review",
-    name: "独立复核",
-    tag: "REVIEW BATCH · REVIEWER",
-    task: "忠于需求并确认代码无 P0",
-    phase: "由 Facilitator 在实施完成后启动",
-    receipt: "review-receipt.md",
-    className: "solar-planet--deliver",
+    name: "PAWOS",
+    tag: "桌面层 · RUNTIME PROJECTION",
+    task: "怎样把 Input、Memory、Agent 与 Room 放进同一桌面",
+    phase: "主状态机 → 应用注册表 → 窗口投影",
+    receipt: "pawos-projection-plan.md",
     color: "#8dc5ff",
-    subWorker: "Reviewer · 不参与前序实施",
-    subVerify: "Gate · 收齐 3 个 WorkPatch 后执行",
-    metric: "示例状态 · 等待 Facilitator 启动",
-    summary: "独立读取原始需求和整合代码，执行构建与交互检查；只有 P0 为 0 才能给出通过回执。",
-    tdd: "QUEUED · FACILITATOR GATE",
+    subWorker: "Skill · codemap",
+    subVerify: "Owner · OS 不复制 Session / Room 状态机",
+    metric: "4 个真实应用 · 1 个桌面 · 0 个额外运行时",
+    summary: "PAWOS 复用原 Owner 的合同与 Reducer，只负责打开、排列和观察真实应用；发布与前台验收继续分层。",
+    tdd: "WORKPATCH · PROJECTION ONLY",
   },
 ] as const;
 
-function useLoop(length: number, delay: number) {
-  const [step, setStep] = useState(0);
-  const [playing, setPlaying] = useState(true);
+// Types text character by character while `active`; shows the full string
+// otherwise. Resets whenever it re-activates, so every replay cycle retypes.
+function useTypewriter(text: string, active: boolean, speedMs = 44) {
+  const [state, setState] = useState({ key: "", count: 0 });
+  const key = active ? text : "";
+  if (state.key !== key) setState({ key, count: 0 });
 
   useEffect(() => {
-    if (!playing) return;
-    const timer = window.setInterval(() => setStep((value) => (value + 1) % length), delay);
+    if (!active || state.count >= text.length) return;
+    const timer = window.setInterval(() => {
+      setState((current) => current.count >= text.length ? current : { key: current.key, count: current.count + 1 });
+    }, speedMs);
     return () => window.clearInterval(timer);
-  }, [delay, length, playing]);
+  }, [active, text, speedMs, state.count]);
 
-  return { step, playing, setStep, setPlaying, restart: () => { setStep(0); setPlaying(true); } };
+  return active ? text.slice(0, state.count) : text;
 }
 
-function useTimedLoop(durations: readonly number[], manualGateSteps: readonly number[] = []) {
-  const [step, setStep] = useState(0);
-  const [playing, setPlaying] = useState(true);
 
-  useEffect(() => {
-    if (!playing) return;
-    const timer = window.setTimeout(
-      () => setStep((value) => {
-        const next = (value + 1) % durations.length;
-        if (manualGateSteps.includes(next)) setPlaying(false);
-        return next;
-      }),
-      durations[step] ?? 700,
-    );
-    return () => window.clearTimeout(timer);
-  }, [durations, manualGateSteps, playing, step]);
-
-  return {
-    step,
-    playing,
-    setPlaying,
-    goTo: (next: number, shouldPlay = !manualGateSteps.includes(next)) => { setStep(next); setPlaying(shouldPlay); },
-    restart: () => { setStep(0); setPlaying(true); },
-  };
-}
-
-function PawMark() {
-  return <span className="paw-mark" aria-hidden="true"><i /><i /><i /><i /></span>;
-}
-
-function Topbar() {
+function Navbar() {
   return (
-    <header className="topbar">
-      <a className="brand" href="#top" aria-label="回到 PAW 首页"><PawMark /><span>PAW</span></a>
-      <nav aria-label="页面章节">
-        {chapters.map((chapter) => <a href={`#${chapter.id}`} key={chapter.id}>{chapter.label}</a>)}
-      </nav>
-      <a className="nav-cta" href="#input">进入演示 <ArrowDown size={14} /></a>
-    </header>
-  );
-}
-
-function InputPageHeader() {
-  return (
-    <header className="input-page-header">
-      <a className="input-page-brand" href="#input" aria-label="回到智能输入页顶部"><PawMark /><strong>PAW</strong></a>
-      <nav className="story-header-nav" aria-label="三章产品故事">
-        {chapters.map((chapter) => <a href={`#${chapter.id}`} key={chapter.id}><b>{chapter.index}</b>{chapter.label}</a>)}
-      </nav>
-      <div className="input-page-actions"><p><i /> SYNTHETIC DATA · REAL UI LOGIC</p><a href="#memory">下一章 · 记忆 / RAG <ArrowDown size={13} /></a></div>
-    </header>
-  );
-}
-
-function HeroOrbit() {
-  const [focus, setFocus] = useState("room");
-  const detail = {
-    room: ["ROOM / 官网重构", "一个目标，一组有边界的执行伙伴。"],
-    memory: ["MEMORY / 个人上下文", "被接受的事实沉淀为可治理记忆。"],
-    knowledge: ["KNOWLEDGE / 项目材料", "独立知识库提供可回溯的外部依据。"],
-    browser: ["BROWSER / 工作现场", "隔离浏览、观察页面并留下操作证据。"],
-  }[focus] ?? ["ROOM", ""];
-
-  return (
-    <div className="orbit-stage" aria-label="PAW 系统星图">
-      <div className="orbit orbit-a" /><div className="orbit orbit-b" />
-      <button className="orbit-core" onClick={() => setFocus("room")} type="button"><PawMark /><strong>PAW</strong><span>Project Runtime</span></button>
-      <button className="planet planet-memory" data-active={focus === "memory"} onClick={() => setFocus("memory")} type="button"><Brain size={16} /><span>Memory</span></button>
-      <button className="planet planet-knowledge" data-active={focus === "knowledge"} onClick={() => setFocus("knowledge")} type="button"><BookOpen size={16} /><span>Knowledge</span></button>
-      <button className="planet planet-browser" data-active={focus === "browser"} onClick={() => setFocus("browser")} type="button"><Globe2 size={16} /><span>Browser</span></button>
-      <div className="agent-satellite agent-one"><Bot size={13} />Research</div>
-      <div className="agent-satellite agent-two"><Bot size={13} />Build</div>
-      <div className="agent-satellite agent-three"><Bot size={13} />Review</div>
-      <div className="orbit-detail"><span>当前焦点</span><strong>{detail[0]}</strong><p>{detail[1]}</p></div>
-    </div>
-  );
-}
-
-function Hero() {
-  return (
-    <section className="hero starfield" id="top">
-      <Topbar />
-      <div className="hero-copy">
-        <p className="eyebrow"><span className="live-dot" /> LOCAL-FIRST PERSONAL AGENT WORKBENCH</p>
-        <h1>让每一次工作，<br /><em>成为下一次的上下文。</em></h1>
-        <p className="hero-lede">从语音和打字开始，穿过个人记忆、项目知识与浏览器现场，最终让一组 Agent 在同一个 Room 里继续工作。</p>
-        <div className="hero-actions">
-          <a className="primary-action" href="#input">观看五幕演示 <ArrowDown size={16} /></a>
-          <span><ShieldCheck size={15} /> 本地优先 · 有界上下文 · 全程可追溯</span>
+    <header className="border-border/60 bg-background/80 sticky top-0 z-50 w-full border-b backdrop-blur-xl">
+      <div className="max-w-[1420px] mx-auto flex h-16 items-center justify-between px-5 sm:px-8">
+        <a href="#top" className="text-foreground flex items-center gap-2.5 transition-opacity hover:opacity-85" aria-label="回到顶部">
+          <span className="text-brand"><PawMark /></span>
+          <span className="text-[16px] font-bold tracking-tight">PAW</span>
+          <span className="text-muted-foreground/80 hidden font-mono text-[10px] tracking-widest sm:inline">STORY SHOWCASE</span>
+        </a>
+        <nav className="hidden items-center gap-1.5 xl:flex" aria-label="任务与改进的五个阶段">
+          {chapters.map((chapter) => (
+            <a href={`#${chapter.id}`} key={chapter.id} className="text-muted-foreground hover:text-foreground hover:bg-black/[0.04] rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all">
+              <span className="text-brand mr-1.5 font-mono text-[11px] font-semibold">{chapter.index}</span>{chapter.label}
+            </a>
+          ))}
+        </nav>
+        <div className="flex items-center gap-3">
+          <span className="hidden lg:inline-flex"><Badge variant="outline" className="font-mono text-[10.5px] tracking-wider rounded-full px-2.5 py-0.5 border-black/[0.08]"><span className="bg-brand size-1.5 rounded-full mr-1" />真实组件交互 · SYNTHETIC DATA</Badge></span>
+          <MoreFeaturesMenu/>
+          <a className="resume-nav-link" href="#framework">框架与技术</a>
+          <a aria-label="作者 GitHub · 7155" className="gh-icon" href="https://github.com/7155" rel="noreferrer" target="_blank"><GithubMark size={17}/></a>
+          <LinkButton href="https://github.com/7155/paw-story-showcase" variant="outline" size="sm" iconRight={<SquareArrowOutUpRight />}>源码</LinkButton>
         </div>
       </div>
-      <HeroOrbit />
-      <div className="chapter-strip" aria-label="五幕叙事">
-        {chapters.map((chapter) => <a href={`#${chapter.id}`} key={chapter.id}><span>{chapter.index}</span>{chapter.label}</a>)}
-      </div>
-    </section>
+    </header>
   );
 }
 
-function ChapterIntro({ index, kicker, title, body }: { index: string; kicker: string; title: string; body: string }) {
-  return <div className="chapter-intro"><p className="eyebrow"><span>{index}</span> {kicker}</p><h2>{title}</h2><p>{body}</p></div>;
-}
+function MoreFeaturesMenu() {
+  const browserReady = useSyncExternalStore(subscribeBrowserReady, browserSnapshot, serverSnapshot);
+  const features = [
+    { label: "知识图谱", detail: "Knowledge Graph 与检索关系", Icon: BookOpen, route: "/knowledge", showcaseId: "context-knowledge" },
+    { label: "沙盒 Browser", detail: "Browser Tool 与网页任务", Icon: Search, route: "/browser", showcaseId: "browser-sandbox" },
+    { label: "运行 Trace", detail: "Trace、Eval 与 Sandbox 回执", Icon: CircleDot, route: "/observability", showcaseId: "context-reliability" },
+  ] as const;
 
-function PlaybackControls({ playing, onToggle, onRestart, lockedLabel }: { playing: boolean; onToggle: () => void; onRestart: () => void; lockedLabel?: string }) {
   return (
-    <div className="playback-controls">
-      <button disabled={Boolean(lockedLabel)} onClick={onToggle} type="button">{lockedLabel ? <CircleDot size={14} /> : playing ? <Pause size={14} /> : <Play size={14} />}{lockedLabel ?? (playing ? "暂停" : "继续")}</button>
-      <button onClick={onRestart} type="button"><RefreshCw size={14} />重播</button><span>真实组件状态回放</span>
-    </div>
+    <details className="more-features-menu">
+      <summary aria-label="打开更多功能"><span>更多功能</span><ArrowDown size={13}/></summary>
+      <nav aria-label="更多 PAWOS 功能">
+        <a href="/details/frontend"><PanelsTopLeft size={15}/><span><strong>前端演进</strong><small>多 Agent 一个月的七种视图</small></span><ArrowRight size={12}/></a>
+        <a href="/details/sandbox"><ShieldCheck size={15}/><span><strong>垂直沙盒</strong><small>RAG、CloudOps 与 Trace 真实回执</small></span><ArrowRight size={12}/></a>
+        {features.map((feature) => (
+          <a aria-disabled={!browserReady} href={browserReady ? pawOsSurfaceUrl(feature.route, feature.showcaseId) : undefined} key={feature.label} rel="noreferrer" target="_blank">
+            <feature.Icon size={15}/><span><strong>{feature.label}</strong><small>{feature.detail}</small></span><SquareArrowOutUpRight size={12}/>
+          </a>
+        ))}
+      </nav>
+    </details>
   );
 }
 
@@ -609,10 +290,13 @@ function ImeDemo() {
   const [acceptedText, setAcceptedText] = useState<string | null>(null);
   const [decisionReceipt, setDecisionReceipt] = useState<"accepted" | "rejected" | null>(null);
   const windowRef = useRef<HTMLDivElement>(null);
+  const { ref: imeViewRef, onScreen: imeOnScreen } = useOnScreen<HTMLDivElement>();
   const caretRef = useRef<HTMLElement>(null);
   const [popupAnchor, setPopupAnchor] = useState({ left: 16, top: 420, ready: false });
-  const playback = useTimedLoop(inputTimelineDurations, inputManualGateSteps);
+  const playback = useTimedLoop(inputTimelineDurations, [12], imeOnScreen);
   const scenario = inputScenarios.find((item) => item.id === scenarioId) ?? inputScenarios[0];
+  const typedPrefix = useTypewriter(scenario.typingPrefix, playback.step === 0, 38);
+  const typedRoman = useTypewriter(scenario.compositionRoman, playback.step === 1, 85);
   const stageIndex = Math.max(0, Math.min(3, playback.step - 6));
   const showComposition = playback.step === 1;
   const showPending = playback.step === 3;
@@ -643,23 +327,21 @@ function ImeDemo() {
     playback.restart();
   };
 
-  const restart = () => {
-    setAcceptedText(null);
-    setDecisionReceipt(null);
-    playback.restart();
-  };
-
   const acceptText = (text: string) => {
     setAcceptedText(text);
     setDecisionReceipt("accepted");
-    playback.goTo(13, false);
+    playback.goTo(13, true);
   };
 
   const rejectText = () => {
     setAcceptedText(null);
     setDecisionReceipt("rejected");
-    playback.goTo(2, false);
+    playback.goTo(2, true);
   };
+
+  const effectiveAcceptedText = acceptedText;
+  const showAcceptedReceipt = playback.step >= 13 && decisionReceipt === "accepted";
+  const showRejectedReceipt = decisionReceipt === "rejected" && playback.step >= 2 && playback.step <= 5;
 
   useEffect(() => {
     const updatePopupAnchor = () => {
@@ -691,7 +373,7 @@ function ImeDemo() {
   }, [playback.step, popupWidth, scenarioId, showSourceTrace]);
 
   return (
-    <div className="demo-window ime-window" data-phase={phaseIndex} ref={windowRef}>
+    <div className="demo-window ime-window" data-phase={phaseIndex} ref={(el) => { windowRef.current = el; imeViewRef.current = el; }}>
       <div className="ime-ambient ime-ambient-one" aria-hidden="true" />
       <div className="ime-ambient ime-ambient-two" aria-hidden="true" />
       <div className="window-bar">
@@ -710,17 +392,17 @@ function ImeDemo() {
         {phases.map((phase, index) => <span data-state={index < phaseIndex ? "done" : index === phaseIndex ? "active" : "waiting"} key={phase}><b>{index < phaseIndex ? <Check size={12} /> : index + 1}</b>{phase}</span>)}
       </div>
       <div className="document-page" data-inserted={inserted} key={scenario.id}>
-        <p className="doc-kicker">{scenario.kicker}</p><h3>{scenario.title}</h3>
+        <p className="doc-kicker">{scenario.kicker}</p><h2>{scenario.title}</h2>
         <p className="doc-muted">{scenario.summary}</p><div className="doc-rule" />
-        <h4>{scenario.section}</h4><p>{scenario.body}</p>
+        <h3>{scenario.section}</h3><p>{scenario.body}</p>
         <div className="typing-line" data-committed={playback.step >= 2}>
-          {playback.step <= 1 ? scenario.typingPrefix : scenario.committedSentence}
-          {showComposition ? <span className="composition-roman">{scenario.compositionRoman}</span> : null}
+          {playback.step <= 1 ? typedPrefix : scenario.committedSentence}
+          {showComposition ? <span className="composition-roman">{typedRoman}</span> : null}
           <i className="ime-caret-anchor" data-active={phaseIndex < 4} ref={caretRef}><b className="caret" /></i>
         </div>
-        {inserted && acceptedText ? <p className="generated-paragraph">{acceptedText}</p> : null}
-        {decisionReceipt === "accepted" ? <div className="insert-receipt"><Check size={12} /> 已由用户采纳并写入 · 可撤销</div> : null}
-        {decisionReceipt === "rejected" ? <div className="insert-receipt" data-decision="rejected"><CircleAlert size={12} /> 已拒绝本轮联想 · 未写入文档</div> : null}
+        {inserted && effectiveAcceptedText ? <p className="generated-paragraph">{effectiveAcceptedText}</p> : null}
+        {showAcceptedReceipt ? <div className="insert-receipt"><Check size={12} /> 已由用户采纳并写入 · 可撤销</div> : null}
+        {showRejectedReceipt ? <div className="insert-receipt" data-decision="rejected"><CircleAlert size={12} /> 已拒绝本轮联想 · 未写入文档</div> : null}
       </div>
       <div className="ime-statusbar"><span>中文（简体）</span><span><Keyboard size={13} /> PAW 智能输入</span><span><Mic size={13} /> 语音</span></div>
       {showComposition ? (
@@ -766,7 +448,7 @@ function ImeDemo() {
       {showProgress ? (
         <div className="native-ime-card native-ime-card--thinking" data-anchor-ready={popupAnchor.ready} data-surface="explicitGenerating" style={{ left: popupAnchor.left, top: popupAnchor.top }}>
           <span className="native-ime-rail" />
-          <header><strong>{progressTitle}</strong><button aria-label="停止生成" type="button">■</button></header>
+          <header><strong>{progressTitle}</strong><button aria-label="停止生成" type="button"><Square size={10} fill="currentColor" /></button></header>
           <div className="native-ime-progress">
             {imeStages.map((stage, index) => {
               const state = index < stageIndex ? "done" : index === stageIndex ? "active" : "pending";
@@ -787,7 +469,7 @@ function ImeDemo() {
         </div>
       ) : null}
       <aside className="rag-source-trace" data-visible={showSourceTrace} aria-label="本轮上下文与数据源">
-        <header><span>AUTHORIZED CONTEXT</span><strong>本轮实际使用</strong><small>{sourceVisibleCount}/4</small></header>
+        <header><span>获准上下文 · CONTEXT</span><strong>本轮实际使用</strong><small>{sourceVisibleCount}/4</small></header>
         <div>
           {scenario.sources.map((source, index) => {
             const Icon = source.Icon;
@@ -803,29 +485,26 @@ function ImeDemo() {
         </div>
         <footer><ShieldCheck size={12} /> 只发送本轮获准使用的片段</footer>
       </aside>
-      <PlaybackControls
-        lockedLabel={playback.step === 11 ? "请采纳或拒绝结果" : undefined}
-        playing={playback.playing}
-        onRestart={restart}
-        onToggle={() => playback.setPlaying(!playback.playing)}
-      />
     </div>
   );
 }
 
+const voiceTimelineDurations = [1_800, 2_000, 2_400, 2_000, 3_800, 3_200] as const;
+
 function VoiceInputDemo() {
-  const playback = useLoop(6, 1450);
+  const { ref: voiceViewRef, onScreen: voiceOnScreen } = useOnScreen<HTMLDivElement>();
+  const playback = useTimedLoop(voiceTimelineDurations, [], voiceOnScreen);
   const stageLabels = ["准备就绪", "按住说话", "实时转写", "松开按键", "文字定稿", "写回应用"];
   const interim = playback.step <= 1
     ? ""
     : playback.step === 2
-      ? "今天上海十二家门店到店和效率"
-      : "今天上海十二家门店到店和效率下降";
+      ? "八月二十四日我们把文件写入和文档登记做成了强一致"
+      : "八月二十四日我们把文件写入和文档登记做成强一致，五天后又推翻了这个决定";
   const finalized = playback.step >= 4;
   const inserted = playback.step >= 5;
 
   return (
-    <div className="voice-feature-demo" data-finalized={finalized || undefined} data-inserted={inserted || undefined}>
+    <div ref={voiceViewRef} className="voice-feature-demo" data-finalized={finalized || undefined} data-inserted={inserted || undefined}>
       <header className="voice-demo-titlebar">
         <div className="traffic"><i/><i/><i/></div>
         <span><Mic size={15}/><strong>PAW · Input Studio / 语音输入</strong><small>VoiceFeature · synthetic session</small></span>
@@ -838,7 +517,7 @@ function VoiceInputDemo() {
           <footer><ShieldCheck size={13}/><span>不保存音频<br/>不会让伙伴朗读</span></footer>
         </aside>
         <main className="voice-demo-main">
-          <header><div><p>SAY IT TO PAW</p><h3>把说话变成输入文字。</h3><span>边说边显示，松开后补充完整文字，再写回当前应用。</span></div><button type="button"><RefreshCw size={13}/>刷新</button></header>
+          <header><div><p>SAY IT TO PAW</p><h2>把说话变成输入文字。</h2><span>边说边显示，松开后补充完整文字，再写回当前应用。</span></div><button type="button"><RefreshCw size={13}/>刷新</button></header>
           <div className="voice-readiness-strip">
             <article><span><i/><strong>听写服务</strong></span><b>运行中</b><small>实时听写</small></article>
             <article><span><i/><strong>麦克风</strong></span><b>已允许</b><small>系统授权</small></article>
@@ -847,11 +526,11 @@ function VoiceInputDemo() {
           </div>
           <div className="voice-demo-workspace">
             <section className="voice-live-session">
-              <header><span><i className="voice-record-dot"/> LIVE DICTATION</span><small>鼠标中键 · 按住说话</small></header>
+              <header><span><i className="voice-record-dot"/> 实时听写 · LIVE</span><small>鼠标中键 · 按住说话</small></header>
               <div className="voice-wave" data-speaking={playback.step >= 1 && playback.step <= 3}>{Array.from({ length: 34 }).map((_, index) => <i key={index} style={{ "--wave-index": index } as React.CSSProperties}/>)}</div>
               <div className="voice-transcript-card">
-                <span>{finalized ? "FINAL TEXT · 完整文字" : "INTERIM · 临时听写"}</span>
-                <p>{finalized ? "今天上海 12 家门店的到店核销率下降。" : interim || "按住鼠标中键开始说话…"}<i/></p>
+                <span>{finalized ? "完整文字 · FINAL TEXT" : "临时听写 · INTERIM"}</span>
+                <p>{finalized ? "8 月 24 日，我们把文件写入和文档登记做成强一致；5 天后又推翻了这个决定。" : interim || "按住鼠标中键开始说话…"}<i/></p>
               </div>
               <ol aria-label="语音输入处理阶段">
                 {stageLabels.map((label, index) => <li data-state={index < playback.step ? "done" : index === playback.step ? "active" : "waiting"} key={label}><span>{index < playback.step ? <Check size={10}/> : index + 1}</span><strong>{label}</strong></li>)}
@@ -859,569 +538,601 @@ function VoiceInputDemo() {
             </section>
             <aside className="voice-refinement-panel">
               <header><Sparkles size={14}/><span><strong>文字定稿</strong><small>识别结束后的保守校对</small></span></header>
-              <div><span>临时听写</span><p>今天上海<span>十二家</span>门店<span>到店和效率</span>下降</p></div>
+              <div><span>临时听写</span><p><span>八月二十四日</span>我们把文件写入和文档登记做成强一致<span>五天后</span>又推翻了这个决定</p></div>
               <ArrowDown size={14}/>
-              <div data-result><span>完整文字</span><p>今天上海 <b>12 家</b>门店的<b>到店核销率</b>下降<b>。</b></p></div>
-              <dl><div><dt>热词</dt><dd>到店核销 · 掌柜问数</dd></div><div><dt>正文日志</dt><dd>不写入诊断记录</dd></div><div><dt>写回</dt><dd>{inserted ? "已插入当前 Word 段落" : "等待完整文字"}</dd></div></dl>
+              <div data-result><span>完整文字</span><p><b>8 月 24 日</b>，我们把文件写入和文档登记做成强一致；<b>5 天后</b>又推翻了这个决定。</p></div>
+              <dl><div><dt>热词</dt><dd>WorkDocument · workspace_write</dd></div><div><dt>正文日志</dt><dd>不写入诊断记录</dd></div><div><dt>写回</dt><dd>{inserted ? "已写入《PAW Agent 安全写入复盘》" : "等待完整文字"}</dd></div></dl>
             </aside>
           </div>
         </main>
       </div>
-      <PlaybackControls playing={playback.playing} onRestart={playback.restart} onToggle={() => playback.setPlaying(!playback.playing)}/>
     </div>
   );
 }
 
-function InputStory() {
+
+function Slide({ id, index, title, sub, detailHref, detailLabel, secondaryDetailHref, secondaryDetailLabel, projects, bare = false, headingLevel = "h2", children }: {
+  id: string;
+  index: string;
+  title: string;
+  sub: string;
+  detailHref?: string;
+  detailLabel?: string;
+  secondaryDetailHref?: string;
+  secondaryDetailLabel?: string;
+  projects: readonly { href: string; label: string }[];
+  bare?: boolean;
+  headingLevel?: "h1" | "h2";
+  children: ReactNode;
+}) {
+  const Heading = headingLevel;
+  return (
+    <section className="slide" id={id}>
+      <header className="slide-head">
+        <span className="slide-index">{index}</span>
+        <Heading>{title}</Heading>
+        <p>{sub}</p>
+        <div className="slide-links">
+          {detailHref && detailLabel ? <a className="slide-detail" href={detailHref}>{detailLabel}<ArrowRight size={13}/></a> : null}
+          {secondaryDetailHref && secondaryDetailLabel ? <a className="slide-detail slide-detail--secondary" href={secondaryDetailHref}>{secondaryDetailLabel}<ArrowRight size={13}/></a> : null}
+          {projects.map((project) => <GithubBadge href={project.href} key={project.href} label={project.label}/>)}
+        </div>
+      </header>
+      <div className={bare ? "slide-frame slide-frame--bare" : "slide-frame"}>{children}</div>
+    </section>
+  );
+}
+
+function InputSlide() {
   const [inputMode, setInputMode] = useState<"keyboard" | "voice">("keyboard");
   return (
-    <section className="story-section light-story" id="input">
-      <div className="story-grid">
-        <div className="chapter-intro input-chapter-intro">
-          <p className="eyebrow"><span>01</span> INPUT IS THE ENTRY</p>
-          <h2>AI 不必等你<br /><em>打开聊天框。</em></h2>
-          <p>语音和打字是人与电脑最上层的输入。PAW 在输入结束后读取当前界面、近期工作与获准使用的记忆，给出真正贴合现场的下一句。</p>
+    <Slide detailHref="/details/input" detailLabel="输入详情" id="input" projects={[{ href: "https://github.com/7155/minimind-ime", label: "minimind-ime" }, { href: "https://github.com/7155/aios", label: "AIOS-IME" }]} index="05 · 回到日常工作的入口" sub="有了可召回的上下文，下一次继续工作可以从正在写的文档开始。下面用 PAW 的设计复盘展示：提交完整输入、找回相关资料、生成补充，再由你决定写回。" title="让每个输入框，都成为一个了解你的 AI 入口。">
+      <div className="slide-frame-bar">
+        <div className="slide-switch" role="group" aria-label="切换输入能力演示">
+          <button aria-pressed={inputMode === "keyboard"} onClick={() => setInputMode("keyboard")} type="button"><Keyboard size={14}/>智能输入法</button>
+          <button aria-pressed={inputMode === "voice"} onClick={() => setInputMode("voice")} type="button"><Mic size={14}/>语音转文字</button>
         </div>
-        <div className="story-points">
-          <div><Keyboard size={17} /><span><strong>打字 + 语音</strong><small>不改变原来的输入习惯</small></span></div>
-          <div><Layers3 size={17} /><span><strong>界面 + 记忆 + 知识</strong><small>只取这次任务需要的上下文</small></span></div>
-          <div><ShieldCheck size={17} /><span><strong>可采纳，也可拒绝</strong><small>输入不等于自动永久记忆</small></span></div>
-        </div>
+        <span className="slide-frame-note">真实组件回放 · 合成演示数据</span>
       </div>
-      <div className="input-capability-switch" role="group" aria-label="切换输入能力演示">
-        <button aria-pressed={inputMode === "keyboard"} onClick={() => setInputMode("keyboard")} type="button"><Keyboard size={15}/><span><strong>智能输入法</strong><small>Rime · 联想 · Active RAG</small></span></button>
-        <button aria-pressed={inputMode === "voice"} onClick={() => setInputMode("voice")} type="button"><Mic size={15}/><span><strong>语音转文字</strong><small>实时转写 · 文字定稿 · 写回</small></span></button>
+      <div className="slide-frame-body">
+        {inputMode === "keyboard" ? <ImeDemo/> : <VoiceInputDemo/>}
       </div>
-      {inputMode === "keyboard" ? <ImeDemo /> : <VoiceInputDemo />}
-    </section>
+    </Slide>
   );
 }
 
-function MemoryStory() {
-  const timeline = useLoop(memoryTimelineEntries.length, 2400);
-  const retrieval = useLoop(ragModes.length, 3600);
-  const [activeContextSourceId, setActiveContextSourceId] = useState<(typeof governedContextSources)[number]["id"]>("project");
-  const [activeProjectDocumentId, setActiveProjectDocumentId] = useState<(typeof projectDocumentPages)[number]["id"]>("overview");
-  const [activeRagNodeId, setActiveRagNodeId] = useState<string>(ragRelationshipGraphs.embedding.focus);
-  const activeEntry = memoryTimelineEntries[timeline.step] ?? memoryTimelineEntries[0];
-  const activeMode = ragModes[retrieval.step] ?? ragModes[0];
-  const activeRagGraph = ragRelationshipGraphs[activeMode.id];
-  const activeRagNode = activeRagGraph.nodes.find((node) => node.id === activeRagNodeId) ?? activeRagGraph.nodes[0];
-  const activeContextSource = governedContextSources.find((source) => source.id === activeContextSourceId) ?? governedContextSources[0];
-  const activeProjectDocument = projectDocumentPages.find((document) => document.id === activeProjectDocumentId) ?? projectDocumentPages[0];
+const contextTabs = [
+  { id: "memory", label: "输入 → 记忆 → 召回", icon: Brain, route: "/history", showcaseId: "memory-flow", title: "输入到记忆召回 · 实际 PAWOS 前端" },
+  { id: "knowledge", label: "知识库", icon: BookOpen, route: "/knowledge", showcaseId: "context-knowledge", title: "知识库 · 实际 PAWOS 前端" },
+  { id: "project", label: "项目文档", icon: FileText, route: "/work-documents", showcaseId: "context-project", title: "项目文档 · 实际 PAWOS 前端" },
+] as const;
+
+const memoryShowcaseStages = [
+  { id: "history-list", label: "查看采集结果", detail: "进入输入记录，鼠标定位到一条真实采集项" },
+  { id: "history-detail", label: "打开原始输入", detail: "点击具体记录，查看 App、时间与完整输入" },
+  { id: "daily-memory", label: "一天整理结果", detail: "关闭详情并切换 Memory，查看当天任务与记忆" },
+  { id: "graph", label: "关系 Graph", detail: "打开关系图，查看输入、任务、偏好与来源连接" },
+  { id: "recall", label: "对话找回", detail: "进入 Agent 对话，让当天记忆自然参与回答" },
+  { id: "evidence", label: "证据回跳", detail: "展开召回依据，再点击来源返回同一条原始输入" },
+] as const satisfies readonly ShowcaseStage[];
+
+const memoryShowcaseDurations = [4_200, 4_800, 5_000, 4_800, 5_200, 6_800] as const;
+
+function ContextSlide() {
+  const [activeTabId, setActiveTabId] = useState<(typeof contextTabs)[number]["id"]>("memory");
+  const { ref: memoryViewRef, onScreen: memoryOnScreen } = useOnScreen<HTMLDivElement>();
+  const reducedMotion = useSyncExternalStore(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot);
+  const memoryPlayback = useTimedLoop(memoryShowcaseDurations, [], memoryOnScreen && activeTabId === "memory" && !reducedMotion);
+  const setMemoryPlaying = memoryPlayback.setPlaying;
+  const [memoryReplayEpoch, setMemoryReplayEpoch] = useState(0);
+  const browserReady = useSyncExternalStore(subscribeBrowserReady, browserSnapshot, serverSnapshot);
+  const activeTab = contextTabs.find((tab) => tab.id === activeTabId) ?? contextTabs[0];
+  const fullscreenUrl = browserReady ? pawOsSurfaceUrl(activeTab.route, activeTab.showcaseId) : null;
+
+  useEffect(() => {
+    if (reducedMotion) setMemoryPlaying(false);
+  }, [reducedMotion, setMemoryPlaying]);
+
+  const restartMemory = () => {
+    setMemoryReplayEpoch((value) => value + 1);
+    memoryPlayback.goTo(0, !reducedMotion);
+  };
 
   return (
-    <section className="story-section memory-story" id="memory">
-      <div className="memory-chapter-heading">
-        <ChapterIntro index="02" kicker="FROM DAILY INPUT TO RETRIEVABLE CONTEXT" title="一天上千次输入，最后留下什么？" body="原始句子先回到它发生的应用、文档与项目；系统再整理时间线、词库和可治理记忆。需要回答时，从传统向量召回逐步升级到有计划、有回执的 Agentic RAG。" />
-        <div className="synthetic-data-seal"><ShieldCheck size={16}/><span><strong>公开合成演示</strong><small>实习场景 · 非真实个人输入 · 所有数量均为示例</small></span></div>
+    <Slide detailHref="/details/context" detailLabel="上下文详情" id="memory" projects={[{ href: "https://github.com/7155/paw-story-showcase", label: "paw-story-showcase" }, { href: "https://github.com/7155/personal-agent-workbench", label: "personal-agent-workbench" }]} index="04 · 下一次继续工作" sub="工作结束后，项目决定、相关输入与资料需要能被再次找到。这个独立的日常工作场景展示输入如何整理为任务与记忆，再按当前问题召回，并返回原始来源。" title="下次接着做，不必从头解释。">
+      <div className="slide-frame-bar">
+        <div className="slide-switch" role="tablist" aria-label="切换上下文前端">
+          {contextTabs.map((tab) => (
+            <button aria-selected={activeTabId === tab.id} key={tab.id} onClick={() => setActiveTabId(tab.id)} role="tab" type="button"><tab.icon size={14}/>{tab.label}</button>
+          ))}
+        </div>
+        {fullscreenUrl ? <a className="slide-open" href={fullscreenUrl} rel="noreferrer" target="_blank">全屏打开<SquareArrowOutUpRight size={12}/></a> : null}
       </div>
-
-      <div className="memory-capability-switch" role="tablist" aria-label="切换项目文档、用户记忆和知识库">
-        {governedContextSources.map(({ id, displayLabel, flow, icon: Icon }) => (
-          <button
-            aria-controls={`${id}-context-page`}
-            aria-selected={activeContextSourceId === id}
-            key={id}
-            onClick={() => setActiveContextSourceId(id)}
-            role="tab"
-            type="button"
-          >
-            <Icon size={20}/><span><strong>{displayLabel}</strong><small>{flow}</small></span>
-          </button>
+      {activeTabId === "memory" ? (
+        <div ref={memoryViewRef}>
+          <ShowcasePlayback
+            ariaLabel="输入、记忆与召回演示控制"
+            disabled={reducedMotion}
+            onRestart={restartMemory}
+            onSeek={(step) => memoryPlayback.goTo(step, false)}
+            onToggle={() => setMemoryPlaying(!memoryPlayback.playing)}
+            playing={memoryPlayback.playing && memoryOnScreen && !reducedMotion}
+            stages={memoryShowcaseStages}
+            step={memoryPlayback.step}
+          />
+        </div>
+      ) : null}
+      <div className="slide-frame-body">
+        {contextTabs.map((tab) => (
+          <div className="slide-pane" hidden={activeTabId !== tab.id} key={tab.id} role="tabpanel">
+            <RealSurface
+              active={activeTabId === tab.id}
+              director={tab.id === "memory" ? {
+                eventIndex: memoryPlayback.step,
+                playing: memoryPlayback.playing && memoryOnScreen && !reducedMotion,
+                replayEpoch: memoryReplayEpoch,
+                stageId: memoryShowcaseStages[memoryPlayback.step]?.id ?? memoryShowcaseStages[0].id,
+              } : undefined}
+              route={tab.route}
+              showcaseId={tab.showcaseId}
+              title={tab.title}
+            />
+          </div>
         ))}
       </div>
-
-      <section className="context-governance-summary" aria-label="当前上下文治理边界">
-        <header>
-          <div><ShieldCheck size={19}/><span><b>{activeContextSource.state}</b><strong>{activeContextSource.label}</strong><small>{activeContextSource.title}</small></span></div>
-          <p>{activeContextSource.detail}</p>
-        </header>
-        <div className="context-governance-receipt">
-          <span><small>调用条件</small><strong>{activeContextSource.access}</strong></span>
-          <ArrowRight size={14}/>
-          <span><small>召回时机</small><strong>{activeContextSource.trigger}</strong></span>
-          <ArrowRight size={14}/>
-          <span><small>权威载体</small><strong>{activeContextSource.persistence}</strong></span>
-        </div>
-      </section>
-
-      <section className="project-docs-showcase" data-active={activeContextSourceId === "project"} hidden={activeContextSourceId !== "project"} id="project-context-page" role="tabpanel">
-        <header className="project-docs-titlebar">
-          <div><Orbit size={22}/><span><strong>Project Context Gravity · Real Docs</strong><small>这不是普通 docs：当前仓库真实文件直接约束 Goal；这里只显示清洗后的公开投影</small></span></div>
-          <b>REAL FILES · SANITIZED</b>
-        </header>
-        <div className="project-docs-shell">
-          <nav className="project-docs-tree" aria-label="项目文档结构">
-            <p>项目文档</p>
-            {projectDocumentPages.map((document) => (
-              <button aria-pressed={activeProjectDocumentId === document.id} key={document.id} onClick={() => setActiveProjectDocumentId(document.id)} type="button">
-                <FileText size={16}/><span><small>{document.group}</small><strong>{document.path}</strong></span>
-              </button>
-            ))}
-            <footer><ShieldCheck size={16}/><span><strong>真实来源，公开清洗</strong><small>不复制 transcript / 私有 Runtime</small></span></footer>
-          </nav>
-          <article className="project-docs-article" key={activeProjectDocument.id}>
-            <div className="project-docs-goal-anchor" aria-label="当前项目 Goal">
-              <Orbit size={21}/><span><b>ROOT GOAL · ACTIVE</b><strong>完成并公开 PAW Story Showcase</strong><small>真实 PAWOS UI · 明确合成数据 · 可操作、可复核、可部署</small></span>
-              <a href="https://openai.com/zh-Hans-CN/index/harness-engineering/" rel="noreferrer" target="_blank">结构参考 <SquareArrowOutUpRight size={13}/></a>
-            </div>
-            <header><span>{activeProjectDocument.path}</span><b>{activeProjectDocument.status}</b></header>
-            <h3>{activeProjectDocument.title}</h3>
-            <p>{activeProjectDocument.summary}</p>
-            <blockquote className="project-docs-source-excerpt"><small>REAL SOURCE EXCERPT · PUBLIC FIELDS</small><p>{activeProjectDocument.excerpt}</p></blockquote>
-            <div className="project-docs-cleaning-receipt"><ShieldCheck size={17}/><span><b>PUBLIC SANITIZATION</b><strong>{activeProjectDocument.cleaning}</strong></span><a href={`https://github.com/7155/paw-story-showcase/blob/main/${activeProjectDocument.path}`} rel="noreferrer" target="_blank">查看真实文件 <SquareArrowOutUpRight size={13}/></a></div>
-            {activeProjectDocument.sections.map((section, index) => (
-              <section key={section.title}>
-                <span>{String(index + 1).padStart(2, "0")}</span><div><h4>{section.title}</h4><p>{section.body}</p></div>
-              </section>
-            ))}
-          </article>
-          <aside className="project-docs-outline">
-            <p>本页结构</p>
-            {activeProjectDocument.sections.map((section, index) => <span key={section.title}><b>{String(index + 1).padStart(2, "0")}</b>{section.title}</span>)}
-            <div><FileCheck2 size={17}/><span><strong>来源回执</strong><small>真实仓库文件 · 清洗后的公开摘要</small></span></div>
-          </aside>
-        </div>
-      </section>
-
-      <div className="memory-observatory" data-active={activeContextSourceId === "memory"} hidden={activeContextSourceId !== "memory"} id="memory-context-page" role="tabpanel">
-        <header className="memory-observatory-bar">
-          <div><Brain size={18}/><span><strong>Context Observatory</strong><small>输入 → 时间线 → 词库 / 项目 → 可治理记忆</small></span></div>
-          <span><i/> 2026-08-28 · 已整理到 18:27</span>
-        </header>
-
-        <div className="memory-source-metrics">
-          {memoryContextShelves.map(({ label, value, detail, icon: Icon }) => (
-            <article key={label}><Icon size={16}/><span><strong>{value}</strong><b>{label}</b><small>{detail}</small></span></article>
-          ))}
-        </div>
-
-        <div className="memory-observatory-body">
-          <div className="memory-day-stream">
-            <header><span><History size={14}/> 实习第一周 · 今天</span><small>点击查看原句与上下文</small></header>
-            <div className="memory-time-axis" aria-label="一天输入整理时间线">
-              {memoryTimelineEntries.map((entry, index) => (
-                <button
-                  aria-pressed={timeline.step === index}
-                  key={entry.time}
-                  onClick={() => { timeline.setStep(index); timeline.setPlaying(false); }}
-                  style={{ "--entry-color": entry.color } as React.CSSProperties}
-                  type="button"
-                >
-                  <time>{entry.time}</time><i/><span><strong>{entry.source}</strong><small>{entry.context}</small></span>
-                </button>
-              ))}
-            </div>
-            <article className="memory-raw-card" style={{ "--entry-color": activeEntry.color } as React.CSSProperties}>
-              <span>RAW SENTENCE · 原始完整输入</span>
-              <blockquote>“{activeEntry.text}”</blockquote>
-              <div><small>发生位置</small><strong>{activeEntry.context}</strong></div>
-              <div><small>整理结果</small><strong>{activeEntry.outcome}</strong></div>
-            </article>
-          </div>
-
-          <div className="memory-distillation">
-            <header><span><Sparkles size={14}/> 当天整理结果</span><small>可回溯 · 可修订 · 不自动永久化</small></header>
-            <div className="memory-distill-flow">
-              <article><b>01</b><strong>1,284 条完整输入</strong><small>原句和发生位置分开保存</small></article>
-              <ArrowDown size={15}/>
-              <article><b>02</b><strong>176 个候选事件</strong><small>去重、聚类、排除密码与敏感字段</small></article>
-              <ArrowDown size={15}/>
-              <article><b>03</b><strong>28 条可治理记忆</strong><small>事实、偏好、承诺都保留来源</small></article>
-              <ArrowDown size={15}/>
-              <article><b>04</b><strong>7 个长期项目主题</strong><small>实习 / 华东门店 / 掌柜问数</small></article>
-            </div>
-          </div>
-
-          <aside className="memory-context-cabinet">
-            <header><span><Layers3 size={14}/> 这次可以取用的上下文</span><small>按问题临时组装</small></header>
-            <article><BookOpen size={15}/><span><b>词库</b><strong>到店核销 = 领取后 7 日内</strong><small>来源：指标字典 v3 · #L18</small></span></article>
-            <article><FileText size={15}/><span><b>项目文件</b><strong>华东门店漏斗.csv</strong><small>上海 12 店 · 更新于 8/27</small></span></article>
-            <article><History size={15}/><span><b>时间线</b><strong>导师要求先核对到店率</strong><small>来源：今天 08:42 / 18:27</small></span></article>
-            <article><Brain size={15}/><span><b>个人记忆</b><strong>当前角色：增长组实习生</strong><small>已确认 · 可随时隐藏或修订</small></span></article>
-          </aside>
-        </div>
-      </div>
-
-      <div className="rag-evolution-lab" data-active={activeContextSourceId === "knowledge"} hidden={activeContextSourceId !== "knowledge"} id="knowledge-context-page" role="tabpanel">
-        <header>
-          <div><Search size={17}/><span><strong>Retrieval Evolution Lab</strong><small>同一个问题，观察检索能力如何升级</small></span></div>
-          <p>检索执行指标与 AI 归纳分栏展示</p>
-        </header>
-        <div className="rag-query"><span>QUESTION</span><p>“帮我解释上海门店转化为什么下降，并写进今天的实习周报。”</p></div>
-        <nav aria-label="切换 RAG 策略">
-          {ragModes.map((mode, index) => (
-            <button aria-pressed={retrieval.step === index} key={mode.id} onClick={() => { retrieval.setStep(index); retrieval.setPlaying(false); setActiveRagNodeId(ragRelationshipGraphs[mode.id].focus); }} type="button"><b>{String(index + 1).padStart(2, "0")}</b><span>{mode.label}</span></button>
-          ))}
-        </nav>
-        <div className="rag-mode-stage">
-          <section className="rag-relationship-panel">
-            <header><span><b>ACTIVE RELATION GRAPH</b><h3>{activeMode.title}</h3></span><p>{activeMode.summary}</p></header>
-            <div className="rag-relationship-graph" aria-label={`${activeMode.label} 检索关系图`}>
-              <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 100">
-                {activeRagGraph.edges.map(([from, to]) => {
-                  const source = activeRagGraph.nodes.find((node) => node.id === from);
-                  const target = activeRagGraph.nodes.find((node) => node.id === to);
-                  return source && target ? <line key={`${from}-${to}`} x1={source.x} x2={target.x} y1={source.y} y2={target.y}/> : null;
-                })}
-              </svg>
-              {activeRagGraph.nodes.map((node, index) => (
-                <button
-                  aria-pressed={activeRagNode.id === node.id}
-                  data-kind={node.kind}
-                  key={node.id}
-                  onClick={() => setActiveRagNodeId(node.id)}
-                  style={{ left: `${node.x}%`, top: `${node.y}%`, "--rag-node-order": index } as React.CSSProperties}
-                  type="button"
-                >
-                  <small>{node.label}</small><strong>{node.value}</strong><span>{node.detail}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-          <aside>
-            <div><span>检索执行回执 · 合成</span><strong>{activeMode.metric}</strong></div>
-            <section className="rag-node-inspector"><small>SELECTED NODE</small><strong>{activeRagNode.label}</strong><p>{activeRagNode.value} · {activeRagNode.detail}</p></section>
-            {activeMode.hits.map((hit) => <p key={hit}><Check size={12}/>{hit}</p>)}
-            <footer><CircleAlert size={13}/><span><b>能力边界</b>{activeMode.boundary}</span></footer>
-          </aside>
-        </div>
-        <section className="rag-trace-eval" aria-label="RAG Trace 与评测边界">
-          <header><div><GitBranch size={15}/><span><strong>Trace / Eval · 同一次检索如何被检查</strong><small>公开合成 trace · 24 条人工相关性标注查询</small></span></div><b>FOUNDATION IN PROGRESS</b></header>
-          <div className="rag-trace-pipeline">
-            {[
-              ["01", "QUERY", "上海门店转化下降"],
-              ["02", "SCOPE", "Docs + 已授权 Memory"],
-              ["03", "RETRIEVE", "26 candidates"],
-              ["04", "RERANK", "Top 5 + citations"],
-              ["05", "JUDGE", "相关性人工标注"],
-            ].map(([index, label, value]) => <span key={index}><i>{index}</i><b>{label}</b><strong>{value}</strong></span>)}
-          </div>
-          <div className="rag-eval-metrics">
-            <article data-kind="measured"><span>MEASURED</span><strong>0.76</strong><b>Precision@5</b><small>人工相关性标签计算</small></article>
-            <article data-kind="measured"><span>MEASURED</span><strong>0.82</strong><b>Recall@5</b><small>黄金证据集计算</small></article>
-            <article data-kind="measured"><span>MEASURED</span><strong>100%</strong><b>Citation coverage</b><small>5 / 5 结论附来源</small></article>
-            <article data-kind="estimated"><span>AI ESTIMATE</span><strong>4.4 / 5</strong><b>Groundedness Judge</b><small>模型评分，不替代真实标签</small></article>
-            <aside><Sparkles size={16}/><span><b>自动优化 · 正在添加</b><strong>失败 Trace → 建议改写 Query / Chunk / Rerank → 周期 Eval 再确认</strong><small>当前仅展示目标形态，不宣称已自动改写生产索引。</small></span></aside>
-          </div>
-        </section>
-        <PlaybackControls playing={retrieval.playing} onRestart={retrieval.restart} onToggle={() => retrieval.setPlaying(!retrieval.playing)} />
-      </div>
-    </section>
+    </Slide>
   );
 }
 
-function AgentPatternDiagram({ type }: { type: (typeof agentPatterns)[number]["id"] }) {
-  const nodeCount = type === "peer" ? 4 : 5;
+type ShowcaseDirectorState = {
+  stageId: string;
+  eventIndex: number;
+  playing: boolean;
+  replayEpoch: number;
+};
+
+function RealSurface({ route, showcaseId, title, active = true, director }: {
+  route: string;
+  showcaseId: string;
+  title: string;
+  active?: boolean;
+  director?: ShowcaseDirectorState;
+}) {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const [instanceId] = useState(() => `story-${showcaseId}`);
+  const requestSequenceRef = useRef(0);
+  const sentEpochRef = useRef(-1);
+  const [inView, setInView] = useState(false);
+  const [loadedDocument, setLoadedDocument] = useState("");
+  const [directorReadyDocument, setDirectorReadyDocument] = useState("");
+  const browserReady = useSyncExternalStore(subscribeBrowserReady, browserSnapshot, serverSnapshot);
+
+  useEffect(() => {
+    const node = hostRef.current;
+    if (!node || inView) return;
+    if (typeof IntersectionObserver === "undefined") {
+      const timer = window.setTimeout(() => setInView(true), 0);
+      return () => window.clearTimeout(timer);
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry?.isIntersecting) {
+        setInView(true);
+        observer.disconnect();
+      }
+    }, { rootMargin: "240px" });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [inView]);
+
+  const source = useMemo(
+    () => (browserReady && inView && active ? pawOsSurfaceUrl(route, showcaseId, instanceId) : ""),
+    [browserReady, inView, active, instanceId, route, showcaseId],
+  );
+  const documentSource = source.split("#", 1)[0] ?? "";
+  const loaded = Boolean(documentSource) && loadedDocument === documentSource;
+  const directorReady = Boolean(documentSource) && directorReadyDocument === documentSource;
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame || !source || !director) return;
+    const expectedOrigin = new URL(source, window.location.href).origin;
+    const handleMessage = (event: MessageEvent) => {
+      if (event.source !== frame.contentWindow || event.origin !== expectedOrigin) return;
+      const payload = event.data as Record<string, unknown> | null;
+      if (!payload || payload.channel !== "paw.showcase" || payload.version !== 1) return;
+      if (payload.showcaseId !== showcaseId || payload.instanceId !== instanceId) return;
+      if (payload.type === "ready") {
+        sentEpochRef.current = -1;
+        setDirectorReadyDocument(documentSource);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [director, documentSource, instanceId, showcaseId, source]);
+
+  useEffect(() => {
+    const target = frameRef.current?.contentWindow;
+    if (!target || !source || !loaded || !directorReady || !director) return;
+    const targetOrigin = new URL(source, window.location.href).origin;
+    const send = (command: "stage.set" | "seek" | "playback.set" | "replay.reset") => {
+      requestSequenceRef.current += 1;
+      target.postMessage({
+        channel: "paw.showcase",
+        version: 1,
+        type: "command",
+        showcaseId,
+        instanceId,
+        requestId: `${instanceId}-${requestSequenceRef.current}`,
+        replayEpoch: director.replayEpoch,
+        command,
+        stageId: director.stageId,
+        eventIndex: director.eventIndex,
+        playing: director.playing,
+      }, targetOrigin);
+    };
+
+    if (sentEpochRef.current !== director.replayEpoch) {
+      sentEpochRef.current = director.replayEpoch;
+      send("replay.reset");
+    }
+    send("stage.set");
+    send("seek");
+    send("playback.set");
+  }, [director, directorReady, instanceId, loaded, showcaseId, source]);
+
   return (
-    <div className="agent-pattern-diagram" data-type={type} aria-hidden="true">
-      <svg viewBox="0 0 320 150">
-        {type === "tree" ? <><path d="M160 36 L54 116"/><path d="M160 36 L108 116"/><path d="M160 36 L212 116"/><path d="M160 36 L266 116"/></> : null}
-        {type === "swarm" ? <><path d="M160 25 L55 70 L95 130 L225 130 L265 70 Z"/><path d="M160 25 L95 130"/><path d="M160 25 L225 130"/><path d="M55 70 L225 130"/><path d="M265 70 L95 130"/></> : null}
-        {type === "peer" ? <><path d="M72 48 L248 48"/><path d="M72 110 L248 110"/><path d="M72 48 L72 110"/><path d="M248 48 L248 110"/><path d="M72 48 L248 110"/></> : null}
-      </svg>
-      {Array.from({ length: nodeCount }).map((_, index) => <i key={index}><Bot size={12}/></i>)}
-      {type === "swarm" ? <><em>@review</em><em>@frontend</em></> : null}
+    <div className="real-surface" data-loaded={loaded || undefined} ref={hostRef}>
+      <div className="real-surface-loading" role="status"><RefreshCw size={18}/><span><strong>正在打开实际 PAWOS 窗口</strong><small>界面与交互来自本项目 control-center-web · 公开合成数据</small></span></div>
+      <iframe
+        allow="clipboard-read; clipboard-write"
+        loading="lazy"
+        onLoad={() => { if (documentSource) setLoadedDocument(documentSource); }}
+        ref={frameRef}
+        sandbox="allow-forms allow-popups allow-same-origin allow-scripts"
+        src={source || undefined}
+        title={title}
+      />
     </div>
   );
 }
 
-function MultiAgentChapter() {
-  const patternLoop = useLoop(agentPatterns.length, 3400);
-  const orbitLoop = useLoop(orbitalWork.length, 1700);
-  const [use3D, setUse3D] = useState(true);
+function RoomSlide() {
+  const { ref, inView } = useInView<HTMLDivElement>();
+  return (
+    <Slide bare detailHref="/details/agents" detailLabel="协作详情" secondaryDetailHref="/details/frontend" secondaryDetailLabel="前端演进" id="agents" projects={[{ href: "https://github.com/7155/personal-agent-workbench", label: "personal-agent-workbench" }, { href: "https://github.com/7155/paw-story-showcase", label: "paw-story-showcase" }]} index="01 · 协作交付" sub="以 PAW 立项为例：输入、记忆、多 Agent 和桌面四条产品线分别推进，交换接口与依赖，再汇成一个共同方案。每个 Agent 都能回看原始目标，必要时提出质疑；Facilitator 负责整合交付。" title="一个目标，怎样变成共同完成的结果？">
+      <div className="slide-deferred" ref={ref}>
+        {inView ? <RoomTransformationDemo/> : null}
+      </div>
+      <CollaborationResult />
+    </Slide>
+  );
+}
+
+const reliabilityStages = [
+  {
+    id: "observe",
+    label: "运行异常",
+    status: "异常告警 · 4 SESSIONS NEED ATTENTION",
+    title: "先从异常 Session 找到真正值得追的信号",
+    body: "第一屏同时出现 Tool error、运行时间异常过长、被错误提升到前台的 Sub Agent，以及只检查 Worker 自我总结的 Skill 测评。鼠标会进入 PAWOS，悬停并点击具体 Session 的“交给 Trace Agent”。",
+    facts: [
+      { label: "Tool", value: "workspace_write · 执行错误" },
+      { label: "耗时", value: "14m 32s · 无进展" },
+      { label: "Sub Agent", value: "前台阻塞 · 应转为后台" },
+      { label: "Skill / Eval", value: "仅有工作总结，缺乏硬证据" },
+    ],
+  },
+  {
+    id: "report",
+    label: "Trace 诊断",
+    status: "TRACE AGENT · 只读分析模式",
+    title: "点击交给 Trace Agent，报告快速流式生成",
+    body: "Trace Agent 沿 Session、Tool 与 Sub Agent 事件还原时间线；文字逐段出现，先区分症状与第一根因，再给出需要用户授权的最小修复建议。",
+    facts: [
+      { label: "诊断范围", value: "会话 + 工具 + 子 Agent 生命周期" },
+      { label: "输出方式", value: "流式输出 · 证据链回溯" },
+      { label: "当前权限", value: "只读模式 · 尚未授权修复" },
+      { label: "Skill 测评", value: "SkillRef + 评估标准 + 诊断回执" },
+    ],
+  },
+  {
+    id: "repair",
+    label: "授权修复",
+    status: "用户授权 · REPAIR SESSION",
+    title: "诊断不会自己改代码，鼠标确认后才开始修复",
+    body: "用户点击授权，系统另开有界 Repair Session。修复步骤同样流式出现，并明确显示改动范围、测试和仍未验证的边界。",
+    facts: [
+      { label: "写入权限", value: "受约束的独立 Repair Session" },
+      { label: "修改范围", value: "负责模块 + 针对性回归测试" },
+      { label: "当前状态", value: "applied + tested ≠ verified" },
+    ],
+  },
+  {
+    id: "verify",
+    label: "前后对比",
+    status: "BEFORE / AFTER · 证据全链路可溯",
+    title: "修复完成后，用同一 Case 展示前后差异",
+    body: "最终复用 Trace Agent 报告里的前后对照表：错误、耗时与 Sub Agent 生命周期逐项比较；点击任一 Trace 引用，都能跳回形成判断的原始事件。",
+    facts: [
+      { label: "Tool error", value: "执行失败 → 自动恢复" },
+      { label: "运行时间", value: "14m 32s → 2m 18s" },
+      { label: "Sub Agent", value: "前台阻塞 → 后台静默处理" },
+      { label: "Skill / Eval", value: "自我总结 → 原始需求 + 行为 + 严格测试" },
+    ],
+  },
+] as const;
+
+const reliabilityStageDurations = [7_000, 8_500, 8_000, 8_500] as const;
+const reliabilityShowcaseId = "context-reliability";
+const reliabilityPlaybackStages = reliabilityStages.map((stage) => ({
+  id: stage.id,
+  label: stage.label,
+  detail: stage.title,
+})) satisfies readonly ShowcaseStage[];
+
+function subscribeReducedMotion(onStoreChange: () => void): () => void {
+  const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+  media.addEventListener("change", onStoreChange);
+  return () => media.removeEventListener("change", onStoreChange);
+}
+
+function reducedMotionSnapshot(): boolean {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function ReliabilitySlide() {
+  const { ref: reliabilityViewRef, onScreen: reliabilityOnScreen } = useOnScreen<HTMLDivElement>();
+  const reducedMotion = useSyncExternalStore(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot);
+  const [replayEpoch, setReplayEpoch] = useState(0);
+  const playback = useTimedLoop(
+    reliabilityStageDurations,
+    [],
+    reliabilityOnScreen && !reducedMotion,
+  );
+  const setReliabilityPlaying = playback.setPlaying;
+  const browserReady = useSyncExternalStore(subscribeBrowserReady, browserSnapshot, serverSnapshot);
+  const activeStage = reliabilityStages[playback.step] ?? reliabilityStages[0];
+  const reliabilityRoute = "/agent?session=session-reliability-incident";
+  const fullscreenUrl = browserReady ? pawOsSurfaceUrl(reliabilityRoute, reliabilityShowcaseId) : null;
+
+  useEffect(() => {
+    if (reducedMotion) setReliabilityPlaying(false);
+  }, [reducedMotion, setReliabilityPlaying]);
+
+  const restartReliability = () => {
+    setReplayEpoch((value) => value + 1);
+    playback.goTo(0, !reducedMotion);
+  };
 
   return (
-    <section className="multi-agent-chapter" id="agents">
-      <div className="agent-chapter-banner">
-        <p><span>02</span> MULTI-AGENT ARCHITECTURE</p>
-        <h2>更多 Agent，<br/>为什么没有更快交付？</h2>
-        <small>问题不在数量，而在协作没有边界、没有共同事实，也没有结束条件。</small>
+    <Slide
+      id="reliability"
+      index="02 · 对照要求检查结果"
+      projects={[{ href: "https://github.com/7155/personal-agent-workbench", label: "personal-agent-workbench" }, { href: "https://github.com/7155/paw-story-showcase", label: "paw-story-showcase" }]}
+      sub="交付之后，把原始要求与实际行为、测试结果逐项对照。下面切到一个独立的故障回放：从工具错误和执行停滞找到原因，修复后重跑同一案例，检查原来的问题是否消失。"
+      title="Agent 出错以后，怎样证明它真的变好了？"
+    >
+      <div ref={reliabilityViewRef}>
+        <ShowcasePlayback
+          ariaLabel="Trace 诊断、修复与验证演示控制"
+          disabled={reducedMotion}
+          onRestart={restartReliability}
+          onSeek={(step) => playback.goTo(step, false)}
+          onToggle={() => playback.setPlaying(!playback.playing)}
+          playing={playback.playing && reliabilityOnScreen && !reducedMotion}
+          stages={reliabilityPlaybackStages}
+          step={playback.step}
+          trailing={fullscreenUrl ? <a className="slide-open" href={fullscreenUrl} rel="noreferrer" target="_blank">全屏打开<SquareArrowOutUpRight size={12}/></a> : null}
+        />
       </div>
-
-      <div className="agent-pattern-grid" aria-label="三种常见多 Agent 结构">
-        {agentPatterns.map((pattern, index) => (
-          <button aria-pressed={patternLoop.step === index} key={pattern.id} onClick={() => { patternLoop.setStep(index); patternLoop.setPlaying(false); }} type="button">
-            <header><span>{pattern.index}</span><b>{pattern.label}</b><code>{pattern.metric}</code></header>
-            <AgentPatternDiagram type={pattern.id}/>
-            <h3>{pattern.title}</h3><p>{pattern.detail}</p>
-          </button>
-        ))}
+      <aside className="reliability-stage-note" aria-live="polite" data-stage={activeStage.id}>
+        <b>{activeStage.status}</b><p>{activeStage.body}</p>
+        <dl>{activeStage.facts.map((fact) => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}</dl>
+        <small>PUBLIC SYNTHETIC REPLAY · 公开合成回放（演示耗时不代表真实运行时性能）</small>
+      </aside>
+      <div className="slide-frame-body reliability-surface" data-stage={activeStage.id}>
+        <RealSurface
+          director={{
+            eventIndex: playback.step,
+            playing: playback.playing && reliabilityOnScreen && !reducedMotion,
+            replayEpoch,
+            stageId: activeStage.id,
+          }}
+          route={reliabilityRoute}
+          showcaseId={reliabilityShowcaseId}
+          title="Trace Agent 诊断、修复与前后对比 · 实际 PAWOS 前端"
+        />
       </div>
-
-      <div className="industry-answers">
-        <article><header><span>ANTHROPIC</span><b>Orchestrator → Workers</b></header><h3>把并行用于单个模型难以覆盖的探索。</h3><p>Lead Agent 动态拆出专门 Subagent，扩大研究广度，再把结果汇总回主线程。</p><a href="https://www.anthropic.com/engineering/multi-agent-research-system" rel="noreferrer" target="_blank">官方架构 <ArrowRight size={13}/></a></article>
-        <article><header><span>OPENAI</span><b>Manager / Handoffs</b></header><h3>先决定：最终答复究竟由谁负责。</h3><p>Manager 保持控制，或用 Handoff 转移所有权；每个专家都应该有清晰边界。</p><a href="https://developers.openai.com/api/docs/guides/agents/orchestration" rel="noreferrer" target="_blank">官方模式 <ArrowRight size={13}/></a></article>
-      </div>
-
-      <div className="project-gravity-panel">
-        <div className="project-gravity-copy">
-          <div className="gravity-header-row">
-            <p><i/> PAW / PROJECT GRAVITY</p>
-            <div className="gravity-dimension-toggle" aria-label="切换 3D / 2D 视图">
-              <button
-                className="dimension-btn"
-                data-active={use3D}
-                onClick={() => setUse3D(true)}
-                type="button"
-              >
-                <span>🪐 3D 沉浸星系</span>
-              </button>
-              <button
-                className="dimension-btn"
-                data-active={!use3D}
-                onClick={() => setUse3D(false)}
-                type="button"
-              >
-                <span>🗺️ 2D 契约轨道路线</span>
-              </button>
-            </div>
-          </div>
-          <h2>文档和技能流，<br/><em>是项目的引力。</em></h2>
-          <p>Session 内可以高效主从；Room 层只保留 2–4 个能纵向交付的伙伴。它们围绕原始需求运行，通过任务文档交换结果，而不是无限互相 @。</p>
-          <div><span><b>SESSION</b><strong>主 Agent + 小 Worker</strong><small>读取、改写、局部验证；省 token，保持上下文干净。</small></span><span><b>ROOM</b><strong>少量平等伙伴</strong><small>每条轨道都交付实现、测试、证据与未解决风险。</small></span></div>
-        </div>
-
-        {use3D ? (
-          <SolarSystem3D
-            activeStep={orbitLoop.step}
-            isPlaying={orbitLoop.playing}
-            onRestart={orbitLoop.restart}
-            onSelectStep={(step) => {
-              orbitLoop.setStep(step);
-              orbitLoop.setPlaying(false);
-            }}
-            onTogglePlay={() => orbitLoop.setPlaying(!orbitLoop.playing)}
-            orbitalWork={orbitalWork}
-          />
-        ) : (
-          <div className="solar-system-stage" aria-label="PAW 文档引力多 Agent 架构">
-            <div className="solar-nebula solar-nebula--1" aria-hidden="true" />
-            <div className="solar-nebula solar-nebula--2" aria-hidden="true" />
-          <div className="solar-nebula solar-nebula--3" aria-hidden="true" />
-          <div className="solar-stars solar-stars--deep" aria-hidden="true" />
-          <div className="solar-stars solar-stars--mid" aria-hidden="true" />
-          <div className="solar-stars solar-stars--bright" aria-hidden="true" />
-          <div className="shooting-star shooting-star--1" aria-hidden="true" />
-          <div className="shooting-star shooting-star--2" aria-hidden="true" />
-          <div className="spacetime-grid" aria-hidden="true" />
-
-          {/* Background Gravity Hologram Document */}
-          <div className="solar-document-backdrop" aria-hidden="true">
-            <header>
-              <FileText size={14} />
-              <span>ORIGINAL_REQUIREMENT.md · PROJECT GRAVITY SOURCE</span>
-              <span className="doc-badge">ROOT FACT</span>
-            </header>
-            <div className="doc-content-mock">
-              <h6># 核心目标: 消除偏见与无限等待</h6>
-              <p>1. 原始需求与文档是唯一引力中心，执行伙伴重读需求修正 Plan。</p>
-              <p>2. 跨轨道默认文档通信，禁止无依据的 P0 与无限打回。</p>
-              <p>3. 纵向轨道对齐：实现 + TDD 自动化用例 + 完整验证证据。</p>
-              <div className="doc-code-preview">
-                <code>{`// 契约回执: sources.md -> implementation.md -> verification.md -> delivery.md`}</code>
-              </div>
-            </div>
-            <div className="doc-watermark">PAW PROJECT GRAVITY FIELD</div>
-          </div>
-
-          {/* SVG Orbits and Photon Streams */}
-          <svg className="solar-orbits" aria-hidden="true" viewBox="0 0 720 650">
-            <defs>
-              <linearGradient id="orbit-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="rgba(167, 157, 255, 0.6)" />
-                <stop offset="50%" stopColor="rgba(255, 255, 255, 0.15)" />
-                <stop offset="100%" stopColor="rgba(167, 157, 255, 0.5)" />
-              </linearGradient>
-              <radialGradient id="sun-glow-grad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#fff1d6" />
-                <stop offset="25%" stopColor="#ffb356" />
-                <stop offset="55%" stopColor="#cf4d38" />
-                <stop offset="85%" stopColor="#4f1d35" />
-                <stop offset="100%" stopColor="#0b0a16" />
-              </radialGradient>
-              <filter id="glow-filter" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="6" result="blur" />
-                <feComposite in="SourceGraphic" in2="blur" operator="over" />
-              </filter>
-            </defs>
-
-            {/* Orbit Tracks */}
-            <ellipse className="orbit-track orbit-track--1" cx="360" cy="325" rx="310" ry="225" />
-            <ellipse className="orbit-track orbit-track--2" cx="360" cy="325" rx="245" ry="290" transform="rotate(26 360 325)" />
-            <ellipse className="orbit-track orbit-track--inner" cx="360" cy="325" rx="160" ry="110" />
-
-            {/* Photon Flow Pulses */}
-            <path className="photon-stream photon-stream--1" d="M360 325 C220 185 145 170 86 223" />
-            <path className="photon-stream photon-stream--2" d="M360 325 C515 180 611 184 676 225" />
-            <path className="photon-stream photon-stream--3" d="M360 325 C218 467 139 474 91 431" />
-            <path className="photon-stream photon-stream--4" d="M360 325 C515 468 610 475 670 432" />
-
-            {/* Active Gravitational Pull Beam */}
-            {orbitLoop.step === 0 && <line className="grav-pull-line" x1="360" y1="325" x2="105" y2="215" />}
-            {orbitLoop.step === 1 && <line className="grav-pull-line" x1="360" y1="325" x2="615" y2="215" />}
-            {orbitLoop.step === 2 && <line className="grav-pull-line" x1="360" y1="325" x2="110" y2="445" />}
-            {orbitLoop.step === 3 && <line className="grav-pull-line" x1="360" y1="325" x2="610" y2="445" />}
-          </svg>
-
-          {/* Gravity Wave Ripples */}
-          <div className="gravity-ripple gravity-ripple--1" aria-hidden="true" />
-          <div className="gravity-ripple gravity-ripple--2" aria-hidden="true" />
-          <div className="gravity-ripple gravity-ripple--3" aria-hidden="true" />
-
-          {/* Central Sun / Gravity Core */}
-          <div className="solar-sun-wrapper" onClick={() => orbitLoop.restart()} title="点击重新从研究轨道开始巡览">
-            <div className="solar-corona" aria-hidden="true" />
-            <div className="solar-sun">
-              <span className="solar-sun-icon">
-                <FileText size={22} />
-              </span>
-              <p className="solar-sun-label">PROJECT GRAVITY</p>
-              <strong>原始需求<br />任务文档 · 技能流</strong>
-              <small className="solar-sun-badge">共同事实 · 引力核心</small>
-            </div>
-          </div>
-
-          {/* Planetary Orbital Nodes */}
-          {orbitalWork.map((planet, index) => {
-            const isActive = orbitLoop.step === index;
-            return (
-              <article
-                className={`solar-planet ${planet.className}`}
-                data-active={isActive}
-                key={planet.id}
-                onClick={() => {
-                  orbitLoop.setStep(index);
-                  orbitLoop.setPlaying(false);
-                }}
-                onMouseEnter={() => {
-                  orbitLoop.setStep(index);
-                  orbitLoop.setPlaying(false);
-                }}
-                style={{ "--planet-accent": planet.color } as React.CSSProperties}
-              >
-                <header>
-                  <span className="planet-sphere">
-                    <Orbit size={15} />
-                    <i className="planet-glow-ring" />
-                  </span>
-                  <div>
-                    <strong className="planet-title">{planet.name}</strong>
-                    <small className="planet-tag">{planet.tag}</small>
-                  </div>
-                  <i className="planet-status-dot" title="轨道活跃中" />
-                </header>
-
-                <p className="planet-receipt">
-                  <FileCheck2 size={11} />
-                  <span>{planet.receipt}</span>
-                </p>
-
-                <div className="planet-tdd-badge">
-                  <TestTube2 size={10} />
-                  <span>{planet.tdd}</span>
-                </div>
-
-                {/* Orbiting Satellites (Session Workers) */}
-                <em className="solar-moon solar-moon--one" title={planet.subWorker}>
-                  <Bot size={9} />
-                  <span>Worker</span>
-                </em>
-                <em className="solar-moon solar-moon--two" title={planet.subVerify}>
-                  {index % 2 === 0 ? <Zap size={9} /> : <TestTube2 size={9} />}
-                  <span>Verify</span>
-                </em>
-              </article>
-            );
-          })}
-
-          {/* Interactive Orbit Navigation Strip */}
-          <div className="solar-orbit-nav" aria-label="切换聚焦轨道">
-            <button
-              className="solar-nav-play"
-              onClick={() => orbitLoop.setPlaying(!orbitLoop.playing)}
-              type="button"
-            >
-              {orbitLoop.playing ? <Pause size={12} /> : <Play size={12} />}
-              <span>{orbitLoop.playing ? "自动巡回" : "已暂停"}</span>
-            </button>
-            <div className="solar-nav-chips">
-              {orbitalWork.map((planet, index) => (
-                <button
-                  aria-pressed={orbitLoop.step === index}
-                  key={planet.id}
-                  onClick={() => {
-                    orbitLoop.setStep(index);
-                    orbitLoop.setPlaying(false);
-                  }}
-                  type="button"
-                >
-                  <i style={{ backgroundColor: planet.color }} />
-                  <span>{planet.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Dynamic Active Orbit Receipt / Telemetry */}
-          <div className="solar-receipt">
-            <Check size={14} className="solar-receipt-check" />
-            <div className="solar-receipt-content">
-              <strong>
-                {orbitalWork[orbitLoop.step].name} · {orbitalWork[orbitLoop.step].task}
-              </strong>
-              <small>
-                {orbitalWork[orbitLoop.step].metric} · 产物: <code>{orbitalWork[orbitLoop.step].receipt}</code>
-              </small>
-            </div>
-            <span className="solar-receipt-pill">TDD 纵向验收</span>
-          </div>
-        </div>
-        )}
-      </div>
-
-      <div className="agent-rule-grid">
-        <article><span>01</span><Network size={20}/><h3>文档优先通信</h3><p>跨轨道读取结果文档，不把连续互相 @ 当成主流程。</p></article>
-        <article><span>02</span><GitBranch size={20}/><h3>Plan 可以被修订</h3><p>每个伙伴都重读原始需求，而不是机械执行有偏见的计划。</p></article>
-        <article><span>03</span><ShieldCheck size={20}/><h3>P0 必须带证据</h3><p>复现步骤、影响范围与失败输出缺一不可。</p></article>
-        <article><span>04</span><CircleAlert size={20}/><h3>审核循环有上限</h3><p>超过阈值升级为明确决策，系统不能无限互相打回。</p></article>
-      </div>
-      <div className="agent-chapter-close"><Users size={27}/><p>Session 可以是高效的主从系统。<br/><strong>Room 必须是一组围绕共同事实工作的伙伴。</strong></p></div>
-    </section>
+    </Slide>
   );
 }
 
 type RoomStage = "orbit" | "morph" | "windows";
 
+const roomPlaybackStages = [
+  { id: "orbit", label: "分配与并行", detail: "Facilitator 把独立产品线分给不同 Agent" },
+  { id: "morph", label: "交接与汇合", detail: "ContextRefs、接口与证据在 Partner 之间传递" },
+  { id: "windows", label: "执行与交付", detail: "查看各条产品线的工作文档、交接与共同结果" },
+] as const satisfies readonly ShowcaseStage[];
+
+type MorphGeometry = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  originDx: number;
+  originDy: number;
+  originScale: number;
+};
+
+const roomMorphTargets = [
+  { left: 4, top: 6, width: 30, height: 28 },
+  { left: 36, top: 6, width: 30, height: 28 },
+  { left: 4, top: 38, width: 30, height: 28 },
+  { left: 36, top: 38, width: 30, height: 28 },
+] as const;
+
 function RoomTransformationDemo() {
-  const orbitLoop = useLoop(orbitalWork.length, 1700);
+  const orbitLoop = useLoop(orbitalWork.length, 1700, false);
+  const setOrbitPlaying = orbitLoop.setPlaying;
   const [stage, setStage] = useState<RoomStage>("orbit");
-  const [playing, setPlaying] = useState(true);
+  const [playing, setPlaying] = useState(false);
   const [runKey, setRunKey] = useState(0);
+  const reducedMotion = useSyncExternalStore(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot);
+  const [morphGeometry, setMorphGeometry] = useState<MorphGeometry[]>([]);
+  const roomRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const startedRef = useRef(false);
+  const stageStateRef = useRef<RoomStage>("orbit");
 
   useEffect(() => {
-    if (!playing || stage === "windows") return;
-    const timer = window.setTimeout(() => setStage(stage === "orbit" ? "morph" : "windows"), stage === "orbit" ? 6_400 : 1_350);
+    stageStateRef.current = stage;
+  }, [stage]);
+
+  // Pause the WebGL orbit loop when the stage scrolls out of view; resume the
+  // ambient orbit when it comes back. Morph and window stages are untouched.
+  useEffect(() => {
+    const node = roomRef.current;
+    if (!node || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) {
+        if (stageStateRef.current === "orbit") {
+          setPlaying(false);
+          setOrbitPlaying(false);
+        }
+      } else if (startedRef.current && stageStateRef.current === "orbit" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        setPlaying(true);
+        setOrbitPlaying(true);
+      }
+    }, { threshold: 0.1 });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [setOrbitPlaying]);
+
+  const captureMorphGeometry = useCallback(() => {
+    const stageNode = stageRef.current;
+    if (!stageNode) return;
+
+    const stageRect = stageNode.getBoundingClientRect();
+    const anchors = new Map(
+      Array.from(stageNode.querySelectorAll<HTMLElement>("[data-planet-origin]")).map((node) => [
+        node.dataset.planetOrigin ?? "",
+        node.getBoundingClientRect(),
+      ]),
+    );
+
+    const geometry = orbitalWork.map((work, index) => {
+      const target = roomMorphTargets[index] ?? roomMorphTargets[0];
+      const targetWidth = stageRect.width * target.width / 100;
+      const targetHeight = stageRect.height * target.height / 100;
+      const targetCenterX = stageRect.width * (target.left + target.width / 2) / 100;
+      const targetCenterY = stageRect.height * (target.top + target.height / 2) / 100;
+      const anchor = anchors.get(work.id);
+      const fallbackAngle = index * Math.PI / 2 + Math.PI / 4;
+      const rawOriginX = anchor
+        ? anchor.left + anchor.width / 2 - stageRect.left
+        : stageRect.width * (0.5 + Math.cos(fallbackAngle) * 0.23);
+      const rawOriginY = anchor
+        ? anchor.top + anchor.height / 2 - stageRect.top
+        : stageRect.height * (0.48 + Math.sin(fallbackAngle) * 0.2);
+      const originX = Math.min(Math.max(rawOriginX, 24), stageRect.width - 24);
+      const originY = Math.min(Math.max(rawOriginY, 24), stageRect.height - 24);
+
+      return {
+        ...target,
+        originDx: originX - targetCenterX,
+        originDy: originY - targetCenterY,
+        originScale: Math.min(0.22, Math.max(0.1, 38 / Math.max(targetWidth, targetHeight))),
+      };
+    });
+
+    setMorphGeometry(geometry);
+  }, []);
+
+  const beginMorph = useCallback(() => {
+    setOrbitPlaying(false);
+
+    if (reducedMotion) {
+      setPlaying(false);
+      setStage("windows");
+      return;
+    }
+
+    captureMorphGeometry();
+    setPlaying(true);
+    setStage("morph");
+  }, [captureMorphGeometry, reducedMotion, setOrbitPlaying]);
+
+  useEffect(() => {
+    if (!playing) return;
+
+    const timer = window.setTimeout(() => {
+      if (stage === "orbit") {
+        beginMorph();
+        return;
+      }
+
+      if (stage === "morph") {
+        setPlaying(false);
+        setStage("windows");
+      }
+    }, stage === "orbit" ? 7_600 : 2_600);
+
     return () => window.clearTimeout(timer);
-  }, [playing, stage]);
+  }, [beginMorph, playing, stage]);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (!media.matches) return;
+    const handlePreference = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setPlaying(false);
+        setOrbitPlaying(false);
+        setStage((current) => current === "morph" ? "windows" : current);
+      }
+    };
+    media.addEventListener("change", handlePreference);
 
-    const frame = window.requestAnimationFrame(() => {
-      setPlaying(false);
-      setStage("windows");
-    });
+    return () => media.removeEventListener("change", handlePreference);
+  }, [setOrbitPlaying]);
 
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
+  useEffect(() => {
+    const node = roomRef.current;
+    if (!node || startedRef.current) return;
+
+    const startSequence = () => {
+      if (startedRef.current) return;
+      startedRef.current = true;
+      if (!reducedMotion) {
+        setPlaying(true);
+        setOrbitPlaying(true);
+      }
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      startSequence();
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          startSequence();
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.35 },
+    );
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, [reducedMotion, setOrbitPlaying]);
 
   const restart = () => {
     orbitLoop.restart();
     setStage("orbit");
-    setPlaying(true);
+    setPlaying(!reducedMotion);
+    if (reducedMotion) setOrbitPlaying(false);
     setRunKey((value) => value + 1);
   };
 
@@ -1430,158 +1141,182 @@ function RoomTransformationDemo() {
     orbitLoop.setPlaying(false);
   };
 
+  const seekRoom = (step: number) => {
+    setOrbitPlaying(false);
+    setPlaying(false);
+    if (step <= 0) {
+      setStage("orbit");
+      return;
+    }
+    if (step === 1) {
+      captureMorphGeometry();
+      setStage("morph");
+      return;
+    }
+    setStage("windows");
+  };
+
+  const toggleRoomPlayback = () => {
+    if (stage === "windows") {
+      restart();
+      return;
+    }
+    const nextPlaying = !playing;
+    setPlaying(nextPlaying);
+    setOrbitPlaying(stage === "orbit" && nextPlaying);
+  };
+
+  const roomStep = stage === "orbit" ? 0 : stage === "morph" ? 1 : 2;
+
   return (
-    <div className="room-transformation" data-stage={stage}>
-      <header className="room-transformation-toolbar">
-        <div><Orbit size={16}/><span><strong>Room Collaboration Projection</strong><small>同一批伙伴：关系视图 → 执行窗口</small></span></div>
-        <nav aria-label="切换 Room 展示阶段">
-          <button aria-pressed={stage === "orbit"} onClick={() => { setStage("orbit"); setPlaying(false); }} type="button"><i/>关系视图</button>
-          <button aria-pressed={stage === "windows"} onClick={() => { setStage("windows"); setPlaying(false); }} type="button"><i/>执行窗口</button>
-          <button onClick={restart} type="button"><RefreshCw size={12}/>重播</button>
-        </nav>
-      </header>
-
-      <div className="room-stage-status" aria-live="polite">
-        <span data-active={stage === "orbit"}>01 · 围绕目标分派</span><ArrowRight size={13}/><span data-active={stage === "morph"}>02 · 保持身份展开</span><ArrowRight size={13}/><span data-active={stage === "windows"}>03 · 进入真实窗口态</span>
-      </div>
-
-      <div className="room-transformation-stage">
+    <div className="room-transformation" data-stage={stage} ref={roomRef}>
+      <ShowcasePlayback
+        ariaLabel="多 Agent 协作演示控制"
+        disabled={reducedMotion}
+        onRestart={restart}
+        onSeek={seekRoom}
+        onToggle={toggleRoomPlayback}
+        playing={playing}
+        stages={roomPlaybackStages}
+        step={roomStep}
+      />
+      <div className="room-transformation-stage" ref={stageRef}>
         <div className="room-orbit-layer" aria-hidden={stage === "windows"}>
-          <SolarSystem3D
-            activeStep={orbitLoop.step}
-            isPlaying={playing && orbitLoop.playing}
-            onRestart={restart}
-            onSelectStep={selectPartner}
-            onTogglePlay={() => { setPlaying(!playing); orbitLoop.setPlaying(!playing); }}
-            orbitalWork={orbitalWork}
-          />
-          <div className="room-orbit-caption"><span><i/> SOL</span><p><strong>展示页面制作</strong>原始需求、三项实施 WorkPatch 与独立 Reviewer 共同围绕同一 Goal。</p></div>
+          <Suspense fallback={<div className="solar-3d-fallback"><Orbit size={18}/><span>正在加载 3D 引力场…</span></div>}>
+            <SolarSystem3D
+              activeStep={orbitLoop.step}
+              isPlaying={playing && orbitLoop.playing}
+              onSelectStep={selectPartner}
+              orbitalWork={orbitalWork}
+            />
+          </Suspense>
+          <div className="room-orbit-caption"><span><i/> SOL</span><p><strong>多维检测</strong>不同 Agent 分别实现、质疑和验收；Reviewer Skill 明确对照用户原话、需求文档、程序行为与测试证据。独立工作并行推进，Room 负责传递任务、上下文与结果。</p></div>
         </div>
 
         <div className="room-morph-bridge" aria-hidden="true">
-          {orbitalWork.map((work, index) => <i key={work.id} style={{ "--morph-color": work.color, "--morph-index": index } as React.CSSProperties}/>) }
-          <span>PLANETS BECOME PAW WINDOWS</span>
+          <div className="room-morph-desktop">
+            <header><span><i/><i/><i/></span><strong>PAWOS · ROOM / PAW 立项</strong><small>需求追问 → 4 条产品线 → 行星通信 → Docs → Review</small></header>
+          </div>
+          {orbitalWork.map((work, index) => {
+            const geometry = morphGeometry[index] ?? {
+              ...roomMorphTargets[index],
+              originDx: 0,
+              originDy: 0,
+              originScale: 0.12,
+            };
+            return (
+              <article
+                className="room-morph-window"
+                key={work.id}
+                style={{
+                  "--morph-color": work.color,
+                  "--morph-index": index,
+                  "--morph-left": `${geometry.left}%`,
+                  "--morph-top": `${geometry.top}%`,
+                  "--morph-width": `${geometry.width}%`,
+                  "--morph-height": `${geometry.height}%`,
+                  "--origin-dx": `${geometry.originDx}px`,
+                  "--origin-dy": `${geometry.originDy}px`,
+                  "--origin-scale": geometry.originScale,
+                  "--morph-delay": `${180 + index * 70}ms`,
+                } as React.CSSProperties}
+              >
+                <header><span><i/><i/><i/></span><strong>{work.name}</strong><b>实施 Agent · IMPLEMENTER</b></header>
+                <div><small>{work.tag}</small><h4>{work.task}</h4><p>{work.phase}</p><footer><FileCheck2 size={11}/><code>{work.receipt}</code></footer></div>
+              </article>
+            );
+          })}
+          <span className="room-morph-caption"><b>身份不变</b><small>行星轨道 → 桌面窗口</small></span>
         </div>
 
-        {stage === "windows" ? <PawOsLiveRoom key={runKey}/> : null}
-      </div>
+        {stage !== "orbit" ? <PawOsLiveRoom key={runKey} visible={stage === "windows"}/> : null}
 
-      <footer className="real-surface-receipt">
-        <ShieldCheck size={15}/><span><strong>实际 PAWOS 前端正在运行</strong><small>直接渲染公开 PawDesktop + PawWindowLayer + PawAgentApp；只有 Room 事件与示例内容为明确标注的合成数据。</small></span><code>real-ui · synthetic-events</code>
-      </footer>
+      </div>
     </div>
   );
 }
 
-function PawOsLiveRoom() {
-  const [loaded, setLoaded] = useState(false);
-  const source = useMemo(() => pawOsShowcaseUrl(), []);
+function PawOsLiveRoom({ visible }: { visible: boolean }) {
+  const [loadedSource, setLoadedSource] = useState("");
+  const browserReady = useSyncExternalStore(subscribeBrowserReady, browserSnapshot, serverSnapshot);
+  const source = useMemo(() => browserReady ? pawOsShowcaseUrl() : "", [browserReady]);
+  const loaded = Boolean(source) && loadedSource === source;
 
   return (
-    <div className="pawos-live-room" data-loaded={loaded || undefined}>
-      <div className="pawos-live-room__loading" role="status"><Orbit size={18}/><span><strong>正在进入真实 PAWOS</strong><small>加载公开合成 Room 与实际窗口层…</small></span></div>
+    <div aria-hidden={!visible} className="pawos-live-room" data-loaded={loaded || undefined} data-visible={visible || undefined}>
+      <div className="pawos-live-room__loading" role="status"><Orbit size={18}/><span><strong>正在进入真实 PAWOS</strong><small>加载 PAW 立项、四条产品线、行星通信、Skill / Tool / Docs 回执与实际窗口层…</small></span></div>
       <iframe
         allow="clipboard-read; clipboard-write"
-        onLoad={() => setLoaded(true)}
+        loading="lazy"
+        onLoad={() => { if (source) setLoadedSource(source); }}
         sandbox="allow-forms allow-popups allow-same-origin allow-scripts"
-        src={source}
+        src={source || undefined}
+        tabIndex={visible ? 0 : -1}
         title="真实 PAWOS Room 多窗口运行过程"
       />
-      <a href={source} rel="noreferrer" target="_blank"><SquareArrowOutUpRight size={13}/>全屏打开真实 PAWOS</a>
+      <a aria-disabled={!source} href={source || undefined} rel="noreferrer" tabIndex={visible && source ? 0 : -1} target="_blank"><SquareArrowOutUpRight size={13}/>全屏打开真实 PAWOS</a>
     </div>
   );
+}
+
+function pawOsSurfaceUrl(route: string, showcaseId: string, instanceId?: string): string {
+  const instanceQuery = instanceId ? `&showcaseInstance=${encodeURIComponent(instanceId)}` : "";
+  const query = `?controlTransport=mock&frontend=paw-os&showcase=${encodeURIComponent(showcaseId)}${instanceQuery}#${route}`;
+  if (typeof window === "undefined") return `/pawos/${query}`;
+  const localStoryHost = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+    && window.location.port !== "5174";
+  if (localStoryHost) {
+    return `${window.location.protocol}//${window.location.hostname}:5174/${query}`;
+  }
+  return `/pawos/${query}`;
+}
+
+function subscribeBrowserReady(): () => void {
+  return () => {};
+}
+
+function browserSnapshot(): boolean {
+  return true;
+}
+
+function serverSnapshot(): boolean {
+  return false;
 }
 
 function pawOsShowcaseUrl(): string {
-  const route = "?frontend=paw-os&showcase=room-flow#/agent?room=room-preview";
-  if (typeof window === "undefined") return `/pawos/${route}`;
-  if (["5173", "3000", "3001"].includes(window.location.port)) {
-    return `${window.location.protocol}//${window.location.hostname}:5174/${route}`;
-  }
-  return `/pawos/${route}`;
+  return pawOsSurfaceUrl("/agent?room=room-preview", "room-flow");
 }
 
-function RoomTransformationChapter() {
+function Footer() {
   return (
-    <section className="multi-agent-chapter" id="agents">
-      <div className="agent-chapter-banner room-chapter-banner">
-        <p><span>03</span> MULTI-AGENT · FROM GRAVITY TO WINDOWS</p>
-        <h2>先看清谁围绕什么工作，<br/>再进入每个伙伴的窗口。</h2>
-        <small>太阳是原始文档目标；行星是纵向 WorkItem。它们不会变成一条交错消息流，而会保持身份、颜色和任务，逐一展开成真实 PAW 多窗口执行态。</small>
+    <footer className="border-border border-t">
+      <div className="max-w-container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-10 text-center sm:flex-row sm:text-left">
+        <div className="text-foreground flex items-center gap-2.5 text-sm"><span className="text-brand"><PawMark /></span><span className="font-semibold">PAW Story Showcase</span></div>
+        <p className="text-muted-foreground max-w-md text-xs leading-relaxed">真实前端组件 + 明确标注的合成演示数据；本页不证明 PAW Runtime 安装或前台验收状态。</p>
+        <div className="text-muted-foreground flex items-center gap-4 text-xs font-medium">
+          <a aria-label="作者 GitHub · 7155" className="hover:text-foreground transition-colors inline-flex items-center gap-1.5" href="https://github.com/7155" rel="noreferrer" target="_blank"><GithubMark size={14}/>7155</a>
+          <a className="hover:text-foreground transition-colors" href="https://github.com/7155/paw-story-showcase" rel="noreferrer" target="_blank">Showcase</a>
+          <a className="hover:text-foreground transition-colors" href="https://github.com/7155/aios" rel="noreferrer" target="_blank">AIOS-IME</a>
+          <a className="hover:text-foreground transition-colors" href="https://github.com/7155/minimind-ime" rel="noreferrer" target="_blank">minimind-ime</a>
+        </div>
       </div>
-      <div className="room-principles">
-        <article><FileText size={18}/><span><strong>太阳 = 文档目标</strong><small>Goal 与原始需求是唯一引力，不拿聊天摘要冒充权威。</small></span></article>
-        <article><Orbit size={18}/><span><strong>行星 = 纵向 WorkItem</strong><small>每位实施伙伴贯穿自己的界面、状态和交付物。</small></span></article>
-        <article><TestTube2 size={18}/><span><strong>Reviewer = 独立批次</strong><small>是否启动由 Facilitator 决定；实施完成后再忠于需求与代码复核。</small></span></article>
-      </div>
-      <RoomTransformationDemo/>
-      <div className="agent-chapter-close"><Users size={27}/><p>关系图不是装饰。<br/><strong>它必须能落回每一个真实工作窗口与回执。</strong></p></div>
-    </section>
+    </footer>
   );
 }
 
-function KnowledgeStory() {
-  const [selected, setSelected] = useState("PAW 官网");
-  const nodes = useMemo(() => [
-    { label: "PAW 官网", x: 49, y: 46, kind: "core" }, { label: "输入法", x: 20, y: 24, kind: "feature" },
-    { label: "Room", x: 76, y: 22, kind: "feature" }, { label: "记忆治理", x: 19, y: 73, kind: "topic" },
-    { label: "沙盒浏览", x: 77, y: 73, kind: "topic" }, { label: "产品叙事", x: 51, y: 83, kind: "term" },
-  ], []);
-  return (
-    <section className="story-section knowledge-story" id="knowledge">
-      <div className="story-grid reverse"><ChapterIntro index="04" kicker="KNOWLEDGE WITH SOURCES" title="记忆属于你，知识属于材料。" body="个人记忆与项目知识库保持独立。文档被解析、索引并组织成关系图；每次检索都展示命中来源，而不是把答案变成无法核对的黑盒。" /><div className="knowledge-facts"><span><FileText size={15} /> 24 份项目材料</span><span><Network size={15} /> 86 个语义节点</span><span><Search size={15} /> 每次回答附来源</span></div></div>
-      <div className="knowledge-window paper-surface">
-        <aside className="kb-sidebar"><header><BookOpen size={16} /><strong>知识库</strong><button type="button">＋</button></header><small>项目材料</small>{["PAW 产品文档", "Agent 运行时", "输入法研究"].map((name, index) => <button data-active={index === 0} key={name} type="button"><span>{name}</span><small>{[24, 12, 9][index]} 份材料</small></button>)}</aside>
-        <div className="graph-workspace"><header><div><Search size={14} /><span>搜索节点、主题或实体</span></div><button type="button">图谱</button><button type="button">节点</button><span>已就绪</span></header><div className="graph-canvas"><svg aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="49" y1="46" x2="20" y2="24"/><line x1="49" y1="46" x2="76" y2="22"/><line x1="49" y1="46" x2="19" y2="73"/><line x1="49" y1="46" x2="77" y2="73"/><line x1="49" y1="46" x2="51" y2="83"/><line x1="20" y1="24" x2="19" y2="73"/><line x1="76" y1="22" x2="77" y2="73"/></svg>{nodes.map((node) => <button className="graph-node" data-kind={node.kind} data-selected={selected === node.label} key={node.label} onClick={() => setSelected(node.label)} style={{ left: `${node.x}%`, top: `${node.y}%` }} type="button"><i />{node.label}</button>)}</div></div>
-        <aside className="graph-inspector"><span>节点详情</span><h3>{selected}</h3><p>{selected === "PAW 官网" ? "以真实产品状态为主角，通过五幕叙事解释系统能力。" : `“${selected}”与当前项目的设计决策、实现材料和验证证据相关。`}</p><dl><div><dt>材料</dt><dd>官网叙事框架.md</dd></div><div><dt>关系</dt><dd>关联 5 个节点</dd></div><div><dt>权重</dt><dd>0.92</dd></div></dl><button type="button">打开材料来源</button></aside>
-      </div>
-    </section>
-  );
-}
-
-function BrowserStory() {
-  const loop = useLoop(4, 1700);
-  const trace = ["打开参考页面", "读取可见内容", "提取产品叙事", "保存操作回执"];
-  return (
-    <section className="story-section browser-story" id="browser">
-      <ChapterIntro index="05" kicker="BROWSER AS A CONTROLLED TOOL" title="Agent 可以看网页，但不会消失在网页里。" body="内置沙盒浏览器把页面、标签页、快照和操作轨迹放回 PAW。你能看到 Agent 看了什么、做了什么，以及哪些动作仍在等待授权。" />
-      <div className="browser-window">
-        <div className="browser-tabs"><div className="traffic"><i /><i /><i /></div><span data-active>PAW 项目文档 <b>×</b></span><span>竞品研究 <b>×</b></span><button type="button">＋</button></div>
-        <div className="browser-toolbar"><button type="button">←</button><button type="button">→</button><button type="button">↻</button><div><ShieldCheck size={13} /><span>docs.paw.local / architecture</span></div><button type="button">•••</button></div>
-        <div className="browser-body">
-          <div className="browser-page"><nav><PawMark /><span>Docs</span><span>Architecture</span><span>Memory</span><span>Rooms</span></nav><main><p>PAW / ARCHITECTURE</p><h3>A project runtime<br />that remembers.</h3><p>Session 做真实工作，Room 组织协作，接受后的结果再进入受治理的记忆与知识。</p><div className="browser-doc-grid"><article><Brain size={17}/><strong>Governed Memory</strong><small>来源、整理、记忆、主题</small></article><article><Network size={17}/><strong>Room Runtime</strong><small>目标、分工、证据、交付</small></article></div></main><span className="browser-target" style={{ left: `${[19, 53, 67, 80][loop.step]}%`, top: `${[38, 68, 50, 30][loop.step]}%` }}><i /></span></div>
-          <aside className="browser-trace"><header><Bot size={15} /><span><strong>Agent 操作轨迹</strong><small>隔离环境 · 实时</small></span></header>{trace.map((item, index) => <div data-state={index < loop.step ? "done" : index === loop.step ? "active" : "waiting"} key={item}><span>{index < loop.step ? <Check size={11}/> : index + 1}</span><p><strong>{item}</strong><small>{index === 0 ? "docs.paw.local" : index === 1 ? "标题、正文、2 个链接" : index === 2 ? "5 个页面章节" : "snapshot · receipt"}</small></p></div>)}<section><ShieldCheck size={14}/><span><strong>写操作需要确认</strong><small>当前仅允许读取与快照</small></span></section></aside>
-        </div><PlaybackControls playing={loop.playing} onRestart={loop.restart} onToggle={() => loop.setPlaying(!loop.playing)} />
-      </div>
-    </section>
-  );
-}
-
-function Closing() {
-  return (
-    <footer className="closing starfield"><div className="closing-orbit"><span><Keyboard size={15}/>输入</span><i/><span><Brain size={15}/>记忆</span><i/><span><BookOpen size={15}/>知识</span><i/><span><Globe2 size={15}/>浏览器</span><i/><span><Network size={15}/>Agent</span></div><p className="eyebrow">ONE CONTINUOUS CONTEXT LOOP</p><h2>Agent 会结束。<br /><em>项目不该失忆。</em></h2><p>PAW 把零散的输入、材料、浏览与执行，收束成一个可以继续工作的个人 AI 系统。</p><a href="#top">重新观看 <RefreshCw size={15}/></a></footer>
-  );
-}
-
-function ExtendedFeatureGate() {
-  const [open, setOpen] = useState(false);
-
-  const reveal = () => {
-    setOpen(true);
-    window.setTimeout(() => document.querySelector("#extended-features")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
-  };
-
-  return (
-    <>
-      <section className="extended-feature-gate" aria-label="更多 PAW 功能">
-        <div><p>THE STORY CONTINUES</p><h2>前三章讲清主链路。<br/><em>更多真实功能，按需进入。</em></h2><span>知识库图谱与沙盒浏览器没有删除；它们从主叙事退到一个明确入口之后。</span></div>
-        <button aria-expanded={open} onClick={reveal} type="button"><span><b>04 / 05</b><strong>{open ? "返回扩展功能" : "进入更多功能展厅"}</strong><small>Knowledge · Browser</small></span><ArrowRight size={20}/></button>
-      </section>
-      {open ? <div className="extended-features" id="extended-features"><KnowledgeStory/><BrowserStory/><Closing/></div> : null}
-    </>
-  );
-}
 
 export default function Home() {
-  return <main className="input-page-only"><InputPageHeader /><InputStory /><MemoryStory /><RoomTransformationChapter /><ExtendedFeatureGate /></main>;
+  return (
+    <main className="home" id="top">
+      <Navbar/>
+      <TaskIntroduction/>
+      <RoomSlide/>
+      <ReliabilitySlide/>
+      <ImprovementSection/>
+      <ContextSlide/>
+      <InputSlide/>
+      <ResumeSection/>
+      <Footer/>
+    </main>
+  );
 }

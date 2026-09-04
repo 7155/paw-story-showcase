@@ -34,7 +34,7 @@ import {
 import { sessionItems, type SessionSummary } from '@/features/agent/types';
 import { MarkdownBody } from '@/features/agent/timeline/MarkdownRenderer';
 import { publicErrorText } from '@/features/overview/management-ui';
-import { usePawOsAppSurface } from '@/features/paw-os/surface-context';
+import { usePawOsAppCompact, usePawOsAppIdentity } from '@/features/paw-os/surface-context';
 import {
   formatJson,
   describeDebugTurn,
@@ -52,7 +52,8 @@ import './context-debug.css';
 
 export function ContextDebugFeature() {
   const transport = useControlTransport();
-  const appSurface = usePawOsAppSurface();
+  const appSurface = usePawOsAppIdentity();
+  const compact = usePawOsAppCompact();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedSessionId = searchParams.get('sessionId') ?? '';
   const requestedTurnId = searchParams.get('turnId') ?? '';
@@ -156,9 +157,10 @@ export function ContextDebugFeature() {
     });
   }
 
+  const Surface = appSurface ? 'section' : 'main';
   return (
     <>
-    <main className="context-debug-feature" data-paw-os-app={appSurface?.appId} data-paw-os-compact={appSurface?.compact || undefined} data-route-id="context-debug">
+    <Surface aria-label={appSurface ? '上下文检查' : undefined} className="context-debug-feature" data-paw-os-app={appSurface?.appId} data-paw-os-compact={compact || undefined} data-route-id="context-debug" role={appSurface ? 'region' : undefined}>
       <header className="context-debug-header" data-native-actions={appSurface ? true : undefined}>
         {appSurface ? <h1 className="mgmt-sr-only">上下文检查</h1> : (
           <div className="context-debug-heading">
@@ -243,7 +245,7 @@ export function ContextDebugFeature() {
         telemetry={response.telemetry}
         unavailable={unavailableContext}
       />
-    </main>
+    </Surface>
     <Dialog
       onOpenChange={(open) => {
         if (!open) setHtmlPreviewUrls(null);
@@ -695,6 +697,7 @@ function ContextCallDocument({ call, context }: { call: DebugModelCall; context:
         callIndex={call.index}
         emptyLabel="本次调用没有新增消息"
         messages={call.contextDelta.addedMessages}
+        sessionId={context.sessionId}
       />
 
       {call.assistantMessage !== undefined ? (
@@ -703,6 +706,7 @@ function ContextCallDocument({ call, context }: { call: DebugModelCall; context:
           emptyLabel="没有捕获模型回复"
           messageId={(index) => assistantEntryId(call.index, index)}
           messages={[call.assistantMessage]}
+          sessionId={context.sessionId}
         />
       ) : null}
 
@@ -724,7 +728,7 @@ function ContextCallDocument({ call, context }: { call: DebugModelCall; context:
             <pre className="context-debug-reader__code context-debug-reader__code--text">{callProviderSystemPrompt(call, context) || '没有捕获系统指令'}</pre>
           </ContextDisclosure>
           <ContextDisclosure label="完整消息" meta={`${providerMessages.length} 条`} tone="messages">
-            <ReadableMessageList callIndex={call.index} emptyLabel="当前调用上下文为空" messages={providerMessages} nested />
+            <ReadableMessageList callIndex={call.index} emptyLabel="当前调用上下文为空" messages={providerMessages} nested sessionId={context.sessionId} />
           </ContextDisclosure>
           <ContextDisclosure label="工具定义" meta={`${callProviderTools(call, context).length} 个`} tone="tools">
             <pre className="context-debug-reader__code">{formatJson(callProviderTools(call, context))}</pre>
@@ -747,12 +751,14 @@ function ReadableMessageList({
   messageId,
   messages,
   nested = false,
+  sessionId,
 }: {
   callIndex: number;
   emptyLabel: string;
   messageId?: (index: number) => string;
   messages: unknown[];
   nested?: boolean;
+  sessionId: string;
 }) {
   if (!messages.length) return <p className="context-debug-reader__empty-copy">{emptyLabel}</p>;
   return (
@@ -776,7 +782,7 @@ function ReadableMessageList({
               <small>#{index + 1}</small>
             </header>
             <div className="context-debug-session-message__body">
-              {customType ? body : <MarkdownBody text={body} />}
+              {customType ? body : <MarkdownBody sessionId={sessionId} text={body} />}
             </div>
             <ContextDisclosure label="原始消息" meta="逐字段核对" tone="raw">
               <pre className="context-debug-reader__code">{formatJson(message)}</pre>

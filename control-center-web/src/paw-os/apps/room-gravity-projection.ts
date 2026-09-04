@@ -1,5 +1,6 @@
 import type { RoomActivityProjection } from '@/contracts/room-reducer';
 import { roomActivityFlowKind } from '@/features/rooms/room-flow-projection';
+import { roomParticipantPlanetName } from '@/features/rooms/room-participant-identity';
 
 /**
  * Sol gravity projection — pure readers that turn raw Room routing and tool
@@ -181,6 +182,7 @@ const roomToolLabels: Record<string, string> = {
   workspace_job: '后台任务',
   skill_load: '加载 Skill',
   skill_search: '检索 Skill',
+  memory: 'Memory 召回',
   tool_search: '检索工具',
   tool_load: '加载工具',
   bash: '终端命令',
@@ -251,7 +253,10 @@ export function roomToolEvidence(payload: Record<string, unknown>): RoomToolEvid
     facts.push({
       label: '伙伴',
       value: partners
-        .map((partner) => [stringValue(partner.displayName), stringValue(partner.collaborationRole)].filter(Boolean).join(' · '))
+        .map((partner) => [
+          roomParticipantPlanetName({ ordinal: numberValue(partner.ordinal, -1) }),
+          stringValue(partner.collaborationRole),
+        ].filter(Boolean).join(' · '))
         .filter(Boolean)
         .join('；'),
     });

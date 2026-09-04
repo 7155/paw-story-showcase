@@ -96,13 +96,17 @@
 /* Direct children only: the Room titlebar also docks App chrome inside the
    cluster, and that control is not a traffic light. */
 .paw-desktop-root .paw-window-titlebar[data-window-chrome='room-workspace'] .paw-traffic-lights > button {
+  background: transparent;
+}
+
+.paw-desktop-root .paw-window-titlebar[data-window-chrome='room-workspace'] .paw-traffic-lights > button::before {
   border-color: rgb(42 28 0 / .12);
   box-shadow: 0 1px 1px rgb(42 28 0 / .08) inset;
 }
 
-.paw-desktop-root .paw-window-titlebar[data-window-chrome='room-workspace'] .paw-traffic-lights > button:nth-child(1) { background: #ff5f57; }
-.paw-desktop-root .paw-window-titlebar[data-window-chrome='room-workspace'] .paw-traffic-lights > button:nth-child(2) { background: #febc2e; }
-.paw-desktop-root .paw-window-titlebar[data-window-chrome='room-workspace'] .paw-traffic-lights > button:nth-child(3) { background: #28c840; }
+.paw-desktop-root .paw-window-titlebar[data-window-chrome='room-workspace'] .paw-traffic-lights > button:nth-child(1)::before { background: #ff5f57; }
+.paw-desktop-root .paw-window-titlebar[data-window-chrome='room-workspace'] .paw-traffic-lights > button:nth-child(2)::before { background: #febc2e; }
+.paw-desktop-root .paw-window-titlebar[data-window-chrome='room-workspace'] .paw-traffic-lights > button:nth-child(3)::before { background: #28c840; }
 
 .paw-desktop-root .paw-window-titlebar[data-window-chrome='room-workspace'] .paw-traffic-lights:not(:hover) > button {
   color: transparent;
@@ -602,7 +606,7 @@
   backdrop-filter: blur(11px) saturate(.76);
 }
 
-.paw-desktop-root .paw-desktop:has(.paw-window-layer[data-room-focus]) :is(.paw-wayfinder, .paw-dock, .paw-desktop-shortcuts) {
+.paw-desktop-root .paw-desktop:has(.paw-window-layer[data-room-focus]) .paw-wayfinder {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -755,16 +759,86 @@
 }
 
 .paw-desktop-root .paw-window-layer[data-room-focus] .paw-window-title,
-.paw-desktop-root .paw-window-layer[data-room-focus] .paw-window-title > strong {
+.paw-desktop-root .paw-window-layer[data-room-focus] .paw-window-title > strong,
+.paw-desktop-root .paw-window-layer[data-room-focus] .paw-window-title > small {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .paw-desktop-root .paw-window-layer[data-room-focus] .paw-window-title > strong { display: block; font-size: 14px; }
+.paw-desktop-root .paw-window-layer[data-room-focus] .paw-window-title > small { color: #6f7a8a; font-size: 12px; }
 
 .paw-desktop-root .paw-window-shell[data-window-target='participant'] .paw-window-body > *:first-child {
   border-top: 0;
+}
+
+/* UR-184：协同模式的行星是紧凑内容观察面，不是带通用窗口框的卡片。
+ * 身份铭牌和关闭入口留在内容面最上方；名称、状态以及 Session/Trace
+ * 导航分别由这条薄铭牌和 participant observer 自己承担。 */
+.paw-desktop-root .paw-window-shell[data-frame-mode='planet'] > .paw-planet-surface {
+  background: transparent;
+}
+.paw-desktop-root .paw-window-shell[data-frame-mode='planet'] .paw-planet-identity {
+  min-width: 0;
+  min-height: 29px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 7px 3px 9px;
+  border-bottom: 1px solid rgb(29 36 48 / .11);
+  color: #2c3440;
+  user-select: none;
+  cursor: grab;
+}
+.paw-desktop-root .paw-window-shell[data-frame-mode='planet'] .paw-planet-identity:active {
+  cursor: grabbing;
+}
+.paw-desktop-root .paw-window-shell[data-frame-mode='planet'] .paw-planet-identity-mark {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: var(--paw-app-accent, var(--paw-accent));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--paw-app-accent, var(--paw-accent)) 13%, transparent);
+}
+.paw-desktop-root .paw-window-shell[data-frame-mode='planet'] .paw-planet-identity > strong,
+.paw-desktop-root .paw-window-shell[data-frame-mode='planet'] .paw-planet-identity > small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paw-desktop-root .paw-window-shell[data-frame-mode='planet'] .paw-planet-identity > strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+.paw-desktop-root .paw-window-shell[data-frame-mode='planet'] .paw-planet-identity > small {
+  color: #6f7a8a;
+  font-size: 12px;
+}
+.paw-desktop-root .paw-window-shell[data-frame-mode='planet'] .paw-planet-close {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #7b8696;
+  cursor: pointer;
+  opacity: .72;
+}
+.paw-desktop-root .paw-window-shell[data-frame-mode='planet'] .paw-planet-close:hover {
+  background: rgb(29 36 48 / .07);
+  color: #2c3440;
+  opacity: 1;
+}
+.paw-desktop-root .paw-window-shell[data-frame-mode='planet'] .paw-planet-close:focus-visible {
+  outline: 2px solid var(--paw-accent);
+  outline-offset: 1px;
 }
 
 .paw-desktop-root .paw-os-satellite--participant-chat {
@@ -819,49 +893,7 @@
   line-height: 1.58;
 }
 
-/* Real source/path/arrival rhythm and a compact chronological focus ledger. */
-.paw-desktop-root .paw-room-window-flow {
-  z-index: 34;
-  filter: none;
-}
-
-.paw-desktop-root .paw-room-window-flow__base {
-  stroke: color-mix(in srgb, var(--paw-accent) 17%, transparent);
-  stroke-width: 1.2;
-  stroke-dasharray: 3 7;
-  opacity: .52;
-}
-
-.paw-desktop-root .paw-room-window-flow__live {
-  stroke-width: 2;
-  filter: none;
-}
-
-.paw-desktop-root .paw-room-window-flow__label {
-  fill: var(--paw-accent);
-  stroke: rgb(255 255 255 / .9);
-  stroke-width: 4px;
-  paint-order: stroke fill;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  opacity: 0;
-  animation: paw-room-flow-label 920ms cubic-bezier(.2, .8, .2, 1) both;
-}
-
-.paw-desktop-root .paw-room-window-flow g[data-kind='request'] { --paw-accent: var(--room-flow-request); }
-.paw-desktop-root .paw-room-window-flow g[data-kind='question'] { --paw-accent: var(--room-flow-question); }
-.paw-desktop-root .paw-room-window-flow g[data-kind='answer'] { --paw-accent: var(--room-flow-answer); }
-.paw-desktop-root .paw-room-window-flow g[data-kind='result'] { --paw-accent: var(--room-flow-result); }
-.paw-desktop-root .paw-room-window-flow g[data-kind='context'] { --paw-accent: var(--room-flow-context); }
-.paw-desktop-root .paw-room-window-flow g[data-kind='dispatch'] { --paw-accent: var(--room-flow-dispatch); }
-.paw-desktop-root .paw-room-window-flow g[data-kind='approval'] { --paw-accent: var(--room-flow-approval); }
-
-@keyframes paw-room-flow-label {
-  0%, 12%, 100% { opacity: 0; transform: translateY(3px); }
-  28%, 76% { opacity: 1; transform: translateY(0); }
-}
-
+/* Communication stays in one compact chronological focus ledger. */
 .paw-desktop-root .paw-room-window-flow-ledger {
   position: absolute;
   z-index: 45;
@@ -927,7 +959,7 @@
   font-size: 12px;
 }
 
-.paw-desktop-root .paw-room-window-flow-ledger span[data-kind='request'] i { background: var(--room-flow-request); }
+.paw-desktop-root .paw-room-window-flow-ledger span:is([data-kind='request'], [data-kind='intercom']) i { background: var(--room-flow-request); }
 .paw-desktop-root .paw-room-window-flow-ledger span[data-kind='question'] i { background: var(--room-flow-question); }
 .paw-desktop-root .paw-room-window-flow-ledger span[data-kind='answer'] i { background: var(--room-flow-answer); }
 .paw-desktop-root .paw-room-window-flow-ledger span[data-kind='result'] i { background: var(--room-flow-result); }
@@ -977,7 +1009,13 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .paw-desktop-root .paw-room-workspace__signal { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 7px 9px; }
+  .paw-desktop-root .paw-room-workspace__signal { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 7px 9px; }
+  .paw-desktop-root .paw-room-workspace__signal-status {
+    grid-column: 1;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
   .paw-desktop-root .paw-room-workspace__work-strip { display: none; }
   .paw-desktop-root .paw-room-workspace__objective > div > small { font-size: 12px; }
   .paw-desktop-root .paw-room-workspace__objective strong { font-size: 14px; }
@@ -1040,8 +1078,14 @@
   .paw-desktop-root .paw-room-window-flow-ledger > .ui-disclosure__reveal { max-height: 112px; }
 }
 
+/* Below the focus plane's minimum useful height, the main window and its
+   satellite rail already need the full surface. Keep the optional ledger out
+   of that tiny plane instead of letting it cover the rail. */
+@media (max-height: 420px) {
+  .paw-desktop-root .paw-room-window-flow-ledger { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .paw-desktop-root .paw-room-window-flow__label { display: none; }
   .paw-desktop-root .paw-room-focus-modebar i { animation: none; }
   .paw-desktop-root .paw-room-window-chrome .paw-room-workspace__runtime i { animation: none; }
   .paw-desktop-root .paw-room-workspace__focus { transition-duration: 1ms; }

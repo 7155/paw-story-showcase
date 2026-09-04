@@ -1,4 +1,4 @@
-import type { PawOsAppId } from './app-registry';
+import type { PawOsDesktopAppId } from './app-registry';
 
 export type PawOsRect = {
   x: number;
@@ -13,7 +13,7 @@ export type PawOsWindowTarget =
   | { kind: 'task'; id: string; title: string; subtitle?: string; date: string; project?: string }
   | { kind: 'session'; id: string; title: string; subtitle?: string }
   | { kind: 'room'; id: string; title: string; subtitle?: string; panel?: 'focus' | 'progress' | 'governance' }
-  | { kind: 'participant'; id: string; title: string; subtitle?: string; roomId: string }
+  | { kind: 'participant'; id: string; title: string; subtitle?: string; roomId: string; sessionId?: string }
   | { kind: 'subagent'; id: string; title: string; subtitle?: string; sessionId: string }
   | {
     kind: 'process-terminal';
@@ -62,7 +62,7 @@ export type PawOsWindowTarget =
 
 export type PawOsDesktopWindow = {
   id: string;
-  appId: PawOsAppId;
+  appId: PawOsDesktopAppId;
   title: string;
   rect: PawOsRect;
   restoreRect: PawOsRect | null;
@@ -218,7 +218,7 @@ export function pawOsDesktopReducer(
 }
 
 export function createPawOsWindow(input: {
-  appId: PawOsAppId;
+  appId: PawOsDesktopAppId;
   title: string;
   surface: PawOsDesktopState['surface'];
   sequence: number;

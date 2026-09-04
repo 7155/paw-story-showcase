@@ -51,7 +51,7 @@ export function createConfiguredControlTransport(): ControlTransport {
   const developmentOverride = developmentTransportOverride();
   const requested = developmentOverride
     ?? import.meta.env.VITE_CONTROL_TRANSPORT
-    ?? detectTransport();
+    ?? (import.meta.env.DEV ? 'http' : detectTransport());
   if (requested === 'native') {
     try {
       return new NativeControlTransport();
@@ -85,7 +85,7 @@ function developmentTransportOverride(): 'http' | 'mock' | null {
   return import.meta.env.VITE_CONTROL_TRANSPORT === 'mock' ? 'mock' : 'http';
 }
 
-function detectTransport(): 'native' | 'http' | 'mock' {
+function detectTransport(): 'native' | 'http' {
   if (window.webkit?.messageHandlers?.ragImeNativeBridge) return 'native';
-  return import.meta.env.DEV ? 'mock' : 'http';
+  return 'http';
 }

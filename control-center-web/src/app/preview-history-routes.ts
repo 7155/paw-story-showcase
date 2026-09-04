@@ -8,6 +8,73 @@ const HISTORY_PAYLOAD_SHA256 = `sha256:${'1'.repeat(64)}`;
 const HISTORY_SUBJECT_REVISION = `sha256:${'2'.repeat(64)}`;
 const HISTORY_PREVIEW_TOKEN = 'preview-history-tombstone-token-v1';
 
+type PreviewHistoryItem = {
+  id: number;
+  minutesAgo: number;
+  source: 'rime_commit' | 'voice' | 'assistant_candidate';
+  app: string;
+  project: string;
+  textPreview: string;
+  text: string;
+};
+
+const previewHistoryItems: readonly PreviewHistoryItem[] = [
+  {
+    id: 201,
+    minutesAgo: 18,
+    source: 'rime_commit',
+    app: 'PAW Project Docs',
+    project: 'personal-agent-workbench',
+    textPreview: '输入法先保留 Rime 原生候选，AI 联想等完整句子提交后再出现。',
+    text: '输入法先保留 Rime 原生候选；AI 联想只在完整句子提交后出现，不能替代或重排原生候选。',
+  },
+  {
+    id: 202,
+    minutesAgo: 42,
+    source: 'voice',
+    app: 'PAW Agent',
+    project: 'personal-agent-workbench',
+    textPreview: '一天输入很多，不代表每条都应该成为长期记忆。',
+    text: '一天可能有上千次输入，但碎片和一次性内容不应该直接成为长期记忆；先整理，再按问题召回。',
+  },
+  {
+    id: 203,
+    minutesAgo: 71,
+    source: 'rime_commit',
+    app: 'PAW Room',
+    project: 'personal-agent-workbench',
+    textPreview: '多 Agent 并行必须共享 Goal、边界和一个最终结果。',
+    text: '多 Agent 并行必须共享 Goal、边界和一个最终结果；实施伙伴不能各自宣布整个项目完成。',
+  },
+  {
+    id: 204,
+    minutesAgo: 96,
+    source: 'assistant_candidate',
+    app: 'PAW Room',
+    project: 'personal-agent-workbench',
+    textPreview: '行星之间要交换接口、依赖和证据，不能只是同时开四个窗口。',
+    text: '行星之间要交换接口、依赖和证据；只有互相通信并被主 Room 汇合，才算真实协作。',
+  },
+  {
+    id: 205,
+    minutesAgo: 134,
+    source: 'rime_commit',
+    app: 'PAWOS',
+    project: 'personal-agent-workbench',
+    textPreview: 'PAWOS 投影 Runtime 事实，不再创建第二套状态机。',
+    text: 'PAWOS 负责把 Session、Room、Memory 和 Tool 状态投影成可操作窗口；事实仍由原 Runtime owner 提供。',
+  },
+  {
+    id: 206,
+    minutesAgo: 168,
+    source: 'voice',
+    app: 'PAW Agent',
+    project: 'personal-agent-workbench',
+    textPreview: '给用户的回答先说结果，再补必要证据。',
+    text: '给用户的回答先说结果，再补必要证据；测试、合成回放和真实运行状态必须分别陈述。',
+  },
+] as const;
+
 type PreviewRoutes = Partial<Record<ControlPathId, MockRouteHandler>>;
 
 export function createPreviewHistoryRoutes(): PreviewRoutes {
@@ -45,27 +112,30 @@ export function createPreviewHistoryRoutes(): PreviewRoutes {
 }
 
 function previewHistoryPage(query: Record<string, unknown>): Record<string, unknown> {
-  const item = {
-    id: HISTORY_EVENT_ID,
-    createdAtMs: Date.now() - 86_400_000,
-    source: 'rime_commit',
-    app: 'TextEdit',
-    project: 'personal-agent-workbench',
-    textPreview: '已脱敏 · 这条记录用于演示按需查看完整输入',
-    textChars: 24,
-    contextHash: HISTORY_SUBJECT_REVISION,
-  };
   const search = stringValue(query.query).trim().toLocaleLowerCase('zh-CN');
   const filter = stringValue(query.filter);
-  const matchesSearch = !search
-    || item.textPreview.toLocaleLowerCase('zh-CN').includes(search)
-    || item.app.toLocaleLowerCase('en-US').includes(search);
-  const matchesFilter = !filter || filter === 'rime_commit';
-  const items = matchesSearch && matchesFilter ? [item] : [];
+  const items = previewHistoryItems
+    .filter((item) => (
+      (!search
+        || item.textPreview.toLocaleLowerCase('zh-CN').includes(search)
+        || item.app.toLocaleLowerCase('en-US').includes(search))
+      && (!filter || item.source === filter)
+    ))
+    .map((item) => ({
+      id: item.id,
+      createdAtMs: Date.now() - item.minutesAgo * 60_000,
+      source: item.source,
+      app: item.app,
+      project: item.project,
+      textPreview: item.textPreview,
+      textChars: item.text.length,
+      contextHash: HISTORY_SUBJECT_REVISION,
+    }));
   return {
     ok: true,
     runtimeRevision: HISTORY_RUNTIME_REVISION,
     items,
+    totalCount: 1_284,
     nextCursor: '',
     limit: 50,
     rawTextVisible: false,
@@ -73,28 +143,29 @@ function previewHistoryPage(query: Record<string, unknown>): Record<string, unkn
 }
 
 function previewHistoryDetail(eventId: number): Record<string, unknown> {
-  if (eventId !== HISTORY_EVENT_ID) return { ok: false, reason: 'not_found' };
-  const createdAtMs = Date.now() - 86_400_000;
+  const selected = previewHistoryItems.find((item) => item.id === eventId);
+  if (!selected) return { ok: false, reason: 'not_found' };
+  const createdAtMs = Date.now() - selected.minutesAgo * 60_000;
   return {
     ok: true,
     runtimeRevision: HISTORY_RUNTIME_REVISION,
     rawTextVisible: true,
     item: {
-      id: HISTORY_EVENT_ID,
+      id: selected.id,
       createdAtMs,
-      source: 'rime_commit',
-      text: '请保留输入来源，并让我能回看这次整理使用的上下文。',
-      textChars: 24,
-      app: 'TextEdit',
-      project: 'personal-agent-workbench',
+      source: selected.source,
+      text: selected.text,
+      textChars: selected.text.length,
+      app: selected.app,
+      project: selected.project,
       provider: 'local',
       candidateRank: null,
       groupId: 'project:personal-agent-workbench',
       groupLevel: 'project',
       auxiliaryContext: {
         available: true,
-        text: '在同一份本机工作文档中，用户先说明了时间线不应把几分钟活动算作持久整理结果。',
-        textChars: 39,
+        text: '同一任务中的相邻输入只作为整理上下文；公开演示不展示原始私人内容。',
+        textChars: 34,
         truncated: false,
         hasAdditionalText: true,
         captureSource: 'accessibility',

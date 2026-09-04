@@ -1,13 +1,10 @@
 # PAW Story Demo
 
-PAW 的公开单页产品故事。三个主章节依次展示智能输入与语音文字定稿；可切换的真实 Project Docs 阅读页、User Memory 和 Knowledge/RAG；以及从 Three.js Room 关系视图变形为实际 PAWOS 窗口层的协作过程。
+PAW 的交互式个人项目展示页。页面以真实前端组件呈现智能输入、治理上下文、多 Agent 协作和 Trace / Evo，并为关键技术判断提供可核查的源码与 GitHub 入口。
 
-`control-center-web` 是同仓库中的公开 PAWOS 前端快照。构建时先编译它，再把静态产物装入本站 `/pawos/`；不包含 Pi Runtime、Gateway、数据库、真实 transcript、个人输入或记忆。Room 事件、人物、输入场景、业务文档与指标均为公开合成示例；Project Context Gravity 单独读取本仓库真实文件的清洗后公开投影，并显示精确来源路径。智能输入的站点回放会在候选出现约 2 秒后模拟一次“点击生成”，确保无人操作时仍可看到流式生成结果；真实产品仍由用户触发，最终结果仍等待用户采纳或拒绝。
+`control-center-web` 是同仓库中的公开 PAWOS 前端快照。构建时先编译它，再把静态产物装入本站 `/pawos/`。公开版本只包含清洗后的合成场景，不包含 Pi Runtime、Gateway、数据库、原始 transcript、个人输入、记忆或内部项目文档。页面回放只能证明展示场景本身，不能替代私有 PAW Runtime 的安装态或前台验收。
 
-项目记录：
-
-- [展示页需求与结果](docs/showcase-requirements-and-results.md)
-- [RAG 与 Memory Eval 数据集候选](docs/rag-memory-eval-datasets.md)
+对外打包必须以 `oshow` 仓库根目录为边界，同时包含本仓库的 `paw-story-demo` 与 `control-center-web`。同步完成后，旁边的私有 `personal-agent-workbench` 只是来源证据，不是构建或运行依赖；部署包不得包含指向仓库外部的软链接、本机绝对路径或私有 PAW 文件。
 
 ## Local Development
 

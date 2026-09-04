@@ -1,7 +1,11 @@
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
-import { defaultPawHostPort } from './host-config.mjs';
+import {
+  defaultPawHostPort,
+  resolveHostMode,
+  validateProductionFrontend,
+} from './host-config.mjs';
 
 const contentTypes = new Map([
   ['.css', 'text/css; charset=utf-8'],
@@ -19,10 +23,16 @@ const contentTypes = new Map([
 
 export async function startPawHostServer({
   browserBridge = null,
+  fallbackToEphemeralPort = false,
   frontendEntry,
   controlOrigin = 'http://127.0.0.1:8768',
+  hostMode = resolveHostMode(),
   port = defaultPawHostPort,
 }) {
+  if (hostMode !== 'development' && hostMode !== 'production') {
+    throw new Error(`Unsupported PAW host mode: ${hostMode}`);
+  }
+  if (hostMode === 'production') validateProductionFrontend(frontendEntry);
   const frontendRoot = path.dirname(frontendEntry);
   const controlUrl = new URL(controlOrigin);
   let hostOrigin = '';
@@ -43,17 +53,39 @@ export async function startPawHostServer({
     }
     serveFrontend(requestUrl.pathname, response, frontendRoot, frontendEntry);
   });
-  await new Promise((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(port, '127.0.0.1', resolve);
-  });
+  try {
+    await listenLoopback(server, port);
+  } catch (error) {
+    if (!fallbackToEphemeralPort || error?.code !== 'EADDRINUSE' || Number(port) === 0) {
+      throw error;
+    }
+    await listenLoopback(server, 0);
+  }
   const address = server.address();
   if (!address || typeof address === 'string') throw new Error('PAWOS host did not bind loopback');
   hostOrigin = `http://127.0.0.1:${address.port}`;
   return {
     close: () => new Promise((resolve) => server.close(resolve)),
+    hostMode,
     origin: hostOrigin,
+    production: hostMode === 'production',
   };
+}
+
+function listenLoopback(server, port) {
+  return new Promise((resolve, reject) => {
+    const onError = (error) => {
+      server.off('listening', onListening);
+      reject(error);
+    };
+    const onListening = () => {
+      server.off('error', onError);
+      resolve();
+    };
+    server.once('error', onError);
+    server.once('listening', onListening);
+    server.listen(port, '127.0.0.1');
+  });
 }
 
 function isAllowedControlRequest(request, hostOrigin) {

@@ -78,6 +78,8 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
   sessionId: string;
   session?: SessionSummary;
   open: boolean;
+  surfaceActive?: boolean;
+  keepContentMounted?: boolean;
   minimal?: boolean;
   modal?: boolean;
   onClose: () => void;
@@ -97,6 +99,8 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
   sessionId,
   session,
   open,
+  surfaceActive = true,
+  keepContentMounted = false,
   minimal = false,
   modal = false,
   onClose,
@@ -113,7 +117,7 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
   onOpenBackgroundJob,
 }, ref) {
   const transport = useControlTransport();
-  const contentReady = useDeferredStatusContent(open);
+  const contentReady = useDeferredStatusContent(open, keepContentMounted);
   const pageVisible = usePageVisibility();
   const projection = useAgentLiveStore((state) => state.projections[sessionId]);
   const view = useMemo(() => projectStatusPanel(projection), [projection]);
@@ -146,8 +150,8 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
       query: { sessionId, limit: 50 },
       signal,
     }),
-    enabled: open && contentReady && pageVisible && Boolean(sessionId),
-    refetchInterval: open && contentReady && pageVisible
+    enabled: !minimal && surfaceActive && open && contentReady && pageVisible && Boolean(sessionId),
+    refetchInterval: !minimal && surfaceActive && open && contentReady && pageVisible
       ? (query) => hasActiveSubagentRuns(subagentRuns(query.state.data)) ? 1_000 : 5_000
       : false,
     retry: false,
@@ -171,10 +175,11 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
     >
       <header>
         <span><strong>任务中心</strong><small>{panelStatus}</small></span>
-        <IconButton icon={<PanelRightClose size={17} />} label="收起任务中心" onClick={onClose} tooltip />
+        <IconButton icon={<PanelRightClose size={16} />} label="收起任务中心" onClick={onClose} tooltip />
       </header>
       {contentReady ? <div className="agent-status-panel__body">
         <AgentWorkflowPanel
+          active={surfaceActive}
           sessionId={sessionId}
           fallbackTodo={projection?.todo}
           fallbackGoal={projection?.goal}
@@ -183,7 +188,7 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
           onWorkflowResolved={setResolvedWorkflow}
         />
         {lifecycleCancellationAudits.length ? (
-          <StatusSection icon={CircleDashed} title="取消与暂停回执" count={lifecycleCancellationAudits.length}>
+          <StatusSection icon={CircleDashed} title="取消与暂停回执" count={lifecycleCancellationAudits.length} defaultOpen={!minimal}>
             <LifecycleCancellationView audits={lifecycleCancellationAudits} />
           </StatusSection>
         ) : null}
@@ -196,27 +201,28 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
             {view.tasks.length ? <CurrentTurnTaskPlan tasks={view.tasks} /> : null}
           </>
         ) : !projection ? (
-          <StatusSection icon={ListChecks} title="执行进度" count={view.tasks.length}>
+          <StatusSection icon={ListChecks} title="执行进度" count={view.tasks.length} defaultOpen={!minimal}>
             <EmptyLine>还没有可展示的回合状态</EmptyLine>
           </StatusSection>
         ) : null}
 
-        <StatusSection icon={SquareTerminal} title="后台任务" count={backgroundJobs.length}>
+        <StatusSection icon={SquareTerminal} title="后台任务" count={backgroundJobs.length} defaultOpen={!minimal}>
           <AgentBackgroundJobsView
+            active={surfaceActive}
             sessionId={sessionId}
             jobs={backgroundJobs}
             onOpenJob={onOpenBackgroundJob}
           />
         </StatusSection>
 
-        <StatusSection icon={MessagesSquare} title="消息队列" count={(projection?.messageQueue.steering.length ?? 0) + (projection?.messageQueue.followUp.length ?? 0)}>
+        <StatusSection icon={MessagesSquare} title="消息队列" count={(projection?.messageQueue.steering.length ?? 0) + (projection?.messageQueue.followUp.length ?? 0)} defaultOpen={!minimal}>
           <MessageQueueView projection={projection} />
         </StatusSection>
 
-        <StatusSection icon={Gauge} title="上下文与用量" count={projection?.telemetry?.compactionCount ?? 0}>
+        <StatusSection icon={Gauge} title="上下文与用量" count={projection?.telemetry?.compactionCount ?? 0} defaultOpen={!minimal}>
           <SessionTelemetryView projection={projection} />
         </StatusSection>
-        <ContextXraySections sessionId={sessionId} open={open} />
+        <ContextXraySections sessionId={sessionId} open={open && surfaceActive} />
 
         <StatusSection
           icon={Sparkles}
@@ -251,7 +257,7 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
           />
         </StatusSection>
 
-        <StatusSection icon={Wrench} title="关键步骤" count={logicalTools.length}>
+        <StatusSection icon={Wrench} title="关键步骤" count={logicalTools.length} defaultOpen={!minimal}>
           {logicalTools.length ? (
             <div className="agent-status-tools">
               {logicalTools.map((item) => item.kind === 'attempts'
@@ -261,7 +267,7 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
           ) : <EmptyLine>本轮还没有工具步骤</EmptyLine>}
         </StatusSection>
 
-        <StatusSection icon={Paperclip} title="附件与文件" count={view.files.length + view.attachmentCount}>
+        <StatusSection icon={Paperclip} title="附件与文件" count={view.files.length + view.attachmentCount} defaultOpen={!minimal}>
           {view.files.length || view.attachmentCount ? (
             <div className="agent-status-files">
               {view.attachmentCount ? <StatusRow icon={Paperclip} title={`${view.attachmentCount} 个受管附件`} detail="随会话消息保存" /> : null}
@@ -270,7 +276,7 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
           ) : <EmptyLine>当前会话没有附件或文件</EmptyLine>}
         </StatusSection>
 
-        <StatusSection icon={FolderKanban} title="产物" count={view.artifacts.length + runs.filter((run) => run.artifact).length}>
+        <StatusSection icon={FolderKanban} title="产物" count={view.artifacts.length + runs.filter((run) => run.artifact).length} defaultOpen={!minimal}>
           {view.artifacts.length || runs.some((run) => run.artifact) ? (
             <div className="agent-status-files">
               {view.artifacts.map((artifact) => <StatusRow key={artifact.id} icon={FolderKanban} title={artifact.name} detail={artifact.kind} />)}
@@ -296,7 +302,7 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
           />
         </StatusSection>
 
-        <StatusSection icon={Bot} title="子 Agent 运行树" count={runs.length}>
+        <StatusSection icon={Bot} title="子 Agent 运行树" count={runs.length} defaultOpen={!minimal}>
           {subagents.isPending ? <EmptyLine animated>正在读取协作状态</EmptyLine> : null}
           {subagents.error ? (
             <div className="agent-status-query-error" role="alert">
@@ -325,7 +331,7 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
             </div>
           ) : null}
         </StatusSection>
-        <ContextRuntimeSections sessionId={sessionId} open={open} />
+        <ContextRuntimeSections sessionId={sessionId} open={open && surfaceActive} />
 
         <a
           className="agent-status-observation-link"
@@ -340,11 +346,11 @@ export const AgentStatusPanel = forwardRef<HTMLElement, {
   );
 });
 
-function useDeferredStatusContent(open: boolean): boolean {
+function useDeferredStatusContent(open: boolean, keepContentMounted: boolean): boolean {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     if (!open) {
-      setReady(false);
+      if (!keepContentMounted) setReady(false);
       return;
     }
     const idleWindow = window as IdleWindow;
@@ -367,7 +373,7 @@ function useDeferredStatusContent(open: boolean): boolean {
         else window.clearTimeout(idleHandle);
       }
     };
-  }, [open]);
+  }, [keepContentMounted, open]);
   return ready;
 }
 
@@ -613,7 +619,7 @@ function StatusSection({
         </button>
       </header>
       <div aria-hidden={!open} className="agent-status-section__content" id={contentId} inert={!open ? true : undefined}>
-        <div>{children}</div>
+        <div>{open ? children : null}</div>
       </div>
     </section>
   );
@@ -685,7 +691,7 @@ function ToolStep({ activity }: { activity: AgentActivityProjection }) {
   return (
     <Disclosure className="agent-status-tool" data-state={activity.status} contentClassName="agent-status-tool__details" summary={<>
         <span className="agent-status-tool__icon">{stateIcon}</span>
-        <span><strong>{knowledge ? '知识库' : view.toolLabel}</strong><small>{view.summary}</small></span>
+        <span><strong>{knowledge ? '知识库' : view.toolLabel}</strong><small title={view.error || view.summary}>{view.error || view.summary}</small></span>
         <i>{view.sources.length ? `来源 ${view.sources.length} · ` : ''}{activityStatusLabel(activity.status)}</i>
         <ChevronRight size={14} />
       </>}>
@@ -694,6 +700,7 @@ function ToolStep({ activity }: { activity: AgentActivityProjection }) {
         {view.operation ? <p><span>操作</span><code>{view.operation}</code></p> : null}
         <p><span>参数</span><strong>{argumentFieldCount} 个字段</strong></p>
         {visibleFields.map((field) => <p key={field.id}><span>{field.label}</span><strong>{field.value}</strong></p>)}
+        {view.error ? <p className="agent-status-tool__error" role="alert"><TriangleAlert size={13} /><span>{view.error}</span></p> : null}
         {visibleFields.length < view.fields.length ? <Button className="agent-status-tool__load-more" onClick={() => setVisibleFieldCount((count) => Math.min(view.fields.length, count + 5))} size="small" variant="quiet">显示更多字段（{visibleFields.length}/{view.fields.length}）</Button> : null}
         {view.sources.length ? (
           <section className="agent-status-tool__sources">
@@ -839,6 +846,9 @@ function SubagentRow({
         <small className="agent-status-subagent__verification" data-contract-invalid>
           {INVALID_SUBAGENT_CONTRACT_NOTICE}
         </small>
+      ) : null}
+      {(run.state === 'failed' || run.state === 'timed_out') && run.error.trim() ? (
+        <small className="agent-status-subagent__error" role="alert">{run.error}</small>
       ) : null}
       <SubagentConsoleDialog run={run} sessionId={sessionId} triggerLabel={active ? '查看进度' : '查看结果'} />
     </div>

@@ -1,18 +1,61 @@
 {
   "schemaVersion": "paw.showcase-upstream.v1",
-  "snapshotDate": "2026-08-28",
+  "snapshotDate": "2026-08-30",
   "sourceRepository": "7155/personal-agent-workbench",
   "sourceVisibilityAtSnapshot": "private",
-  "sourceCommit": "cc1eca9ef7223addb6c55e93b680c1f361f6ab3b",
+  "sourceCommit": "b0e26bae9b76108bf0d5a3713f97213afeaba0c4",
   "sourceSubtree": "control-center-web",
-  "snapshotMode": "fresh-history-selected-frontend",
+  "snapshotMode": "working-tree-selected-frontend",
+  "sourceWorkingTreeAtSnapshot": {
+    "state": "dirty",
+    "scope": "control-center-web production frontend files",
+    "capturedAt": "2026-08-30T18:42:21+08:00",
+    "mergeBaseCommit": "cc1eca9ef7223addb6c55e93b680c1f361f6ab3b",
+    "selectedSourceInputFileCount": 185,
+    "selectedSourceInputSha256": "05108a774c024b1209eca82cbac014f8ccbc9d30ec6a47da85ed9f1b9a6befc9",
+    "adoptedUnmodifiedSourceFileCount": 177,
+    "adoptedUnmodifiedSourceSha256": "2d7c4dd724ee8c59a51bd11976d513f85a40f2bc8dea1d77ab64d6b0c629b38a",
+    "derivativeSelectedTreeSha256": "7be7384a1170b79def39af1af2aad0b55e2a4b2bfdfda22fd89a808923236812",
+    "note": "The snapshot includes current uncommitted frontend work above sourceCommit; sourceCommit is the provenance anchor, while capturedAt and selectedSourceInputSha256 identify the imported working-tree input."
+  },
+  "sourceRefreshes": [
+    {
+      "capturedAt": "2026-08-30T22:09:14+08:00",
+      "sourceCommit": "b0e26bae9b76108bf0d5a3713f97213afeaba0c4",
+      "sourceWorkingTreeState": "dirty",
+      "previousCapture": "2026-08-30T18:42:21+08:00",
+      "scope": "production UI and generated frontend contracts changed after the previous capture",
+      "selectedSourceInputFileCount": 39,
+      "selectedSourceInputSha256": "0efc7984b703d330600f1b7ef21e316832cecd045dbf98d66f743b2e709b3eb5",
+      "adoptedUnmodifiedSourceFileCount": 37,
+      "mergedShowcaseFileCount": 2,
+      "derivativeSelectedTreeSha256": "2207d84928666b32f40ea8f2503b183fe0aae527254e3d162b43416b1ce220e0",
+      "note": "The refresh adopts the current PAW desktop, window layer, work directory, Room task sheet, Agent conversation, Trace report UI, and matching generated contracts. PawRoomWorkspace keeps the public showcase participant filter and navigation hooks while adopting the new active starfield lifecycle; desktop-context keeps per-showcase persistence while adopting the latest desktop snapshot schema."
+    },
+    {
+      "capturedAt": "2026-08-31T21:21:39+08:00",
+      "sourceCommit": "17bcf08ca3bd4a7780960ffa1ac230698fe80717",
+      "sourceWorkingTreeState": "dirty",
+      "previousCapture": "2026-08-30T22:09:14+08:00",
+      "scope": "current production frontend, Memory Steward, Room projection bridge, Extension App host, Trace verification contracts, and matching PAWOS shell changes",
+      "selectedSourceInputFileCount": 106,
+      "selectedSourceInputSha256": "4ca29c4d6cbccae7235dac0edb81fa77a472b35deb65806af212f3223486608d",
+      "adoptedUnmodifiedSourceFileCount": 99,
+      "mergedShowcaseFileCount": 7,
+      "derivativeSelectedTreeSha256": "0e65641d0d23122c3b15571266078eca9ead754b14122a2813ab4b0ee555f719",
+      "note": "The refresh adopts the current PAW working-tree frontend without importing private product documents, product tests, the vertical Extension App package, Runtime data, or build output. Seven public intersections retain only synthetic-demo behavior: Memory source jump, Trace showcase routing and styles, Agent Trace handoff selectors, the four-planet Room filter, Trace handoff layout, and per-showcase desktop persistence."
+    }
+  ],
   "dataMode": "synthetic-preview-only",
   "authority": "derivative-showcase-not-product-source",
   "localChanges": [
     "default the development and build transports to mock",
     "redact machine-specific example paths",
     "add a public scenario catalog, boundary guide, App audit, and privacy checker",
+    "preserve synthetic fixtures, showcase direction, and per-scenario desktop persistence while adopting the current PAW shell",
+    "auto-play a real Input History to Memory to Agent recall flow with synthetic governed data",
+    "run PAW kickoff in Room with four communicating implementation planets and gate Reviewer until Docs integration",
     "exclude private product documents, repository history, dependencies, output, and Runtime data"
   ],
-  "proofBoundary": "This snapshot proves selected source provenance and a runnable synthetic-data web showcase only."
+  "proofBoundary": "This working-tree snapshot proves selected source provenance and a runnable synthetic-data web showcase only; it is not a clean upstream commit, Runtime, install, or foreground receipt."
 }

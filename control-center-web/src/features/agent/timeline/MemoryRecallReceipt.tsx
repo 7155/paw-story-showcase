@@ -6,6 +6,7 @@ import { Disclosure } from '@/components/primitives';
 import type { AgentContextTraceV1 } from '@/contracts/generated/agent-context-trace.v1';
 import {
   evidenceEchoNodeEntities,
+  evidenceEchoAppLabel,
   evidenceEchoSessionRoute,
   openEvidenceEchoEntity,
   type EvidenceEchoEntity,
@@ -46,12 +47,13 @@ export function MemoryRecallReceipt({ receipt }: { receipt: MemoryRecallReceiptV
         <div className="agent-memory-recall-receipt__actions">
           {receipt.entities.map((entity) => (
             <button
-              aria-label={`在记忆中打开 ${entity.label}`}
+              aria-label={`在${evidenceEchoAppLabel(entity.appId)}中打开 ${entity.label}`}
+              data-memory-source={entity.appId === 'memory' && entity.layer === 'timelines' ? 'true' : undefined}
               key={`${entity.appId}:${entity.entityId}`}
               onClick={() => openEvidenceEchoEntity(desktop, entity)}
               type="button"
             >
-              打开记忆来源 <ExternalLink aria-hidden="true" size={12} />
+              打开{evidenceEchoAppLabel(entity.appId)}来源 <ExternalLink aria-hidden="true" size={12} />
             </button>
           ))}
           <button
@@ -92,7 +94,7 @@ export function memoryRecallReceiptFromTrace(
     durationMs: Math.max(0, finiteInteger(node.durationMs) ?? 0),
     sourceTitles: commaSeparated(node.metadata.sourceTitles, 12),
     entities: evidenceEchoNodeEntities(node, { sessionId: trace.sessionId })
-      .filter((entity) => entity.appId === 'memory'),
+      .filter((entity) => entity.appId === 'memory' || entity.appId === 'knowledge'),
   };
 }
 
@@ -100,6 +102,7 @@ export function useMemoryRecallReceipts(
   sessionId: string,
   turnIds: string[],
   hasActiveTurn: boolean,
+  active = true,
 ): Record<string, MemoryRecallReceiptView> {
   const transport = useOptionalControlTransport();
   const [receipts, setReceipts] = useState<Record<string, MemoryRecallReceiptView>>({});
@@ -112,7 +115,7 @@ export function useMemoryRecallReceipts(
   }, [sessionId]);
 
   useEffect(() => {
-    if (!transport || !sessionId || turnIds.length === 0) return undefined;
+    if (!active || !transport || !sessionId || turnIds.length === 0) return undefined;
     const controller = new AbortController();
     let loading = false;
     const load = async () => {
@@ -137,12 +140,12 @@ export function useMemoryRecallReceipts(
       }
     };
     void load();
-    const interval = hasActiveTurn ? window.setInterval(() => void load(), 3_000) : 0;
+    const interval = active && hasActiveTurn ? window.setInterval(() => void load(), 3_000) : 0;
     return () => {
       controller.abort();
       if (interval) window.clearInterval(interval);
     };
-  }, [hasActiveTurn, sessionId, transport, turnIdsKey]);
+  }, [active, hasActiveTurn, sessionId, transport, turnIdsKey]);
   return receipts;
 }
 

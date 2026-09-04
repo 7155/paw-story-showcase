@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "paw.memory-maintenance-validation-public.v1",
+  "runId": "memory-maintenance-validation-20260902-v1",
+  "status": "validation_passed_private_shadow_only",
+  "measuredAt": "2026-09-02",
+  "sourceReceipt": {
+    "schemaVersion": "paw.memory-maintenance-validation-receipt.v1",
+    "sha256": "611a287519a8546bf7d878c5684ecd7a6b30a6d552d5f8c6ecf0424b5feb14f9",
+    "rawTextIncluded": false,
+    "privateArtifactsIncluded": false
+  },
+  "baselineFailure": {
+    "description": "A real observed Memory maintenance run failed after the runtime spent 834.945 seconds assembling and processing the run.",
+    "elapsedSeconds": 834.945,
+    "failureClass": "runtime_host_jsonl_record_truncated",
+    "error": "Unterminated string starting at: line 1 column 687530 (char 687529)",
+    "directFinding": "The Pi Runtime Host attempted to parse an incomplete JSONL record whose string ended before the record was complete.",
+    "upstreamBoundary": "The trace could not distinguish Provider output, process capture, transport, buffering, timeout, or size-limit truncation.",
+    "resultBoundary": "No authoritative successful result or persistence receipt was available; this baseline is a failure diagnosis, not a model-quality score."
+  },
+  "candidateHistory": [
+    {
+      "candidateId": "v1",
+      "decision": "reject",
+      "changedLayer": "initial evaluation harness",
+      "result": "The first curation and rollback completed, but replay was measured against derived projection residue rather than the exact pre-run state.",
+      "rejectReasons": [
+        "replay reused neither the same model outputs nor the same logical Atom state",
+        "replay and RAG evidence were not a stable comparison",
+        "the file used a Markdown body with a .json extension"
+      ],
+      "attribution": "evaluation and recovery evidence defect; not a model or Prompt result"
+    },
+    {
+      "candidateId": "v3",
+      "decision": "reject",
+      "changedLayer": "recovery harness: exact private pre-run snapshot before replay",
+      "result": "The substantive replay conditions passed after restoring the exact baseline, but the replay gate was initialized false and therefore reported failure.",
+      "rejectReasons": [
+        "replay.ok contained a boolean initialization defect",
+        "the dense lane was still disabled with vectorCoverage 0.0",
+        "the file used a Markdown body with a .json extension"
+      ],
+      "attribution": "evaluation gate and receipt-format defect; not a model or Prompt result"
+    },
+    {
+      "candidateId": "v4",
+      "decision": "reject",
+      "changedLayer": "replay gate: initialize success and combine observed conditions",
+      "result": "Rollback and replay passed, but the clean fixture did not exercise dense retrieval because the embedding provider was Null.",
+      "rejectReasons": [
+        "vectorCoverage remained 0.0, so the RAG result was incomplete",
+        "the file used a Markdown body with a .json extension"
+      ],
+      "attribution": "evaluation-provider and receipt-format boundary; not a production Memory change"
+    }
+  ],
+  "keptCandidate": {
+    "candidateId": "v5",
+    "decision": "keep",
+    "changedLayer": "evaluation-only harness: clean-shadow replay restoration, deterministic local dense provider, and raw-text-free JSON receipt",
+    "productionLayersChanged": [],
+    "promptSkillToolChanged": false,
+    "frozenConditions": {
+      "model": "gpt-5.6-luna",
+      "thinking": "max",
+      "transport": "codex_cli_ephemeral",
+      "promptAndSchemaFrozen": true,
+      "fixtureManifestSha256": "58712216e1dd71df953efcba6663b3a437589012a84954ce681d0b936c08dc20",
+      "shadowMode": "fresh_private_sqlite_shadow",
+      "embeddingProvider": "local-hash:96:v1",
+      "heldOutEvaluated": false,
+      "productionDatabaseOpened": false,
+      "productionMutationPerformed": false,
+      "sourceShadowUnchanged": true
+    },
+    "inputs": {
+      "caseCount": 5,
+      "durableCaseCount": 4,
+      "temporaryControlCount": 1,
+      "publicSafe": true,
+      "caseTypes": [
+        "long-term explanation preference",
+        "stable change-verification habit",
+        "data-safety and recoverability principle",
+        "durable PAW Room project requirement",
+        "one-off frontend test task that must not become memory"
+      ],
+      "inputTextIncluded": false
+    },
+    "quality": {
+      "curationPassed": true,
+      "modelDecisionCount": 5,
+      "rememberDecisions": 4,
+      "notForMemoryDecisions": 1,
+      "currentAtomCount": 6,
+      "governedCurrentAtomCount": 6,
+      "legalLineageCurrentAtomCount": 6,
+      "bookProjectionInSync": true,
+      "unsupportedGovernedAtomCount": 0,
+      "fixtureDecisionCoverage": "5/5",
+      "durableRetention": "4/4",
+      "temporaryAbstention": "1/1"
+    },
+    "rag": {
+      "contractCases": "5/5",
+      "durableRecall": "4/4",
+      "notForMemoryAbstention": "1/1",
+      "projectionFresh": true,
+      "projectionBacklog": 0,
+      "vectorCoverage": 1.0,
+      "bestRankByCase": {
+        "durable-explanation-preference": 7,
+        "durable-verification-habit": 6,
+        "durable-recoverability-principle": 7,
+        "project-room-layout": 1,
+        "temporary-test-task": 0
+      },
+      "rankInterpretation": "All four durable cases were retrieved; the recorded best ranks are retained without claiming universal rank-1 retrieval."
+    },
+    "recovery": {
+      "rollback": {
+        "passed": true,
+        "restoredBaseline": true,
+        "ragCleared": true,
+        "terminalStatus": "rolled_back"
+      },
+      "replay": {
+        "passed": true,
+        "restoredExactPrivateBaseline": true,
+        "reusedModelRequests": true,
+        "atomSetStable": true,
+        "logicalStateStable": true,
+        "ragRestored": true
+      }
+    },
+    "performance": {
+      "curationElapsedSeconds": 61.967,
+      "verifierElapsedSeconds": 23.205,
+      "actualModelCallElapsedSeconds": 85.172,
+      "replayNewModelCalls": 0,
+      "cliTokens": 24399,
+      "usageSource": "private CLI stderr totals; public receipt retains only the aggregate",
+      "apiPriceUsd": null,
+      "costStatus": "unavailable",
+      "costClaimAllowed": false,
+      "costBoundary": "No frozen Luna price card or structured billing receipt was available, so no USD savings claim is made."
+    }
+  },
+  "productionGateBoundary": {
+    "scope": "private-shadow Validation only",
+    "heldOutEvaluated": false,
+    "productionDatabaseOpened": false,
+    "productionMutationPerformed": false,
+    "runtimeInstalled": false,
+    "foregroundAcceptance": false,
+    "privateModelRequestsRetained": true,
+    "publicRawMemoryIncluded": false,
+    "publicAbsolutePathsIncluded": false,
+    "publicCredentialsIncluded": false
+  },
+  "claims": {
+    "allowed": "On a fixed five-case public-safe Memory fixture, Luna Max produced four durable-memory decisions and one correct temporary-task rejection; Atom/Book projection, dense retrieval, rollback, and exact-baseline replay all passed in a private shadow.",
+    "forbidden": [
+      "production Memory success or production stability",
+      "Held-out performance or a 100% whole-task claim",
+      "universal rank-1 RAG retrieval",
+      "a USD cost reduction or an 80% savings claim",
+      "a Prompt, Skill, Tool, or model-quality improvement claim from this evaluation-only harness"
+    ]
+  }
+}

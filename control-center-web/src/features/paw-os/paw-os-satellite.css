@@ -43,23 +43,6 @@
 .paw-process-terminal__output pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .paw-process-terminal__output pre[data-stream='stderr'] { color: #fca5a5; }
 .paw-process-terminal__output > span { color: #71717a; }
-.paw-os-satellite__hero {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: 38px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--color-border-soft);
-  background: color-mix(in srgb, var(--color-chrome) 88%, transparent);
-}
-.paw-os-satellite__hero > span:first-child { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 9px; background: var(--color-accent-soft); color: var(--color-accent); }
-.paw-os-satellite__hero > div { display: grid; min-width: 0; gap: 2px; }
-.paw-os-satellite__hero small { color: var(--color-accent); font-family: var(--font-mono); font-size: 9px; font-weight: 750; letter-spacing: .1em; }
-.paw-os-satellite__hero h2 { margin: 0; overflow: hidden; font-size: 17px; letter-spacing: -.02em; text-overflow: ellipsis; white-space: nowrap; }
-.paw-os-satellite__hero p { margin: 0; overflow: hidden; color: var(--color-text-tertiary); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-.paw-os-satellite__empty { display: grid; place-content: center; justify-items: center; gap: 16px; padding: 30px; text-align: center; }
-.paw-os-satellite__empty p { max-width: 52ch; margin: 0; color: var(--color-text-secondary); font-size: 13px; line-height: 1.55; }
 .paw-os-satellite__loading { display: grid; align-content: start; gap: 8px; padding: 18px; }
 .paw-os-satellite__loading .ui-skeleton { height: 44px; }
 .paw-os-satellite__document-body { display: grid; align-content: start; gap: 20px; padding: 18px; }
@@ -132,6 +115,259 @@
   background: var(--paw-panel-strong);
   color: var(--paw-ink);
 }
+
+/* Planet observer: the compact window is a read-only linear trace, not a
+   second stack of conversation cards. Keep this override on the explicit
+   participant presentation marker so the full Room/Agent surfaces retain the
+   shared clean-room card treatment. Dots identify message lanes; indentation
+   and hairline separators carry the hierarchy when the window is small. */
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-conversation-surface {
+  --ccui-reading-width: 100%;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-transcript-lead {
+  width: 100%;
+  padding-top: 4px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-turn {
+  position: relative;
+  width: 100%;
+  padding: 7px 10px 8px 28px;
+  border-top: 1px solid var(--ccui-border);
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-virtual-row:first-child .ccui-turn {
+  border-top: 0;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-turn::before {
+  position: absolute;
+  top: 15px;
+  left: 12px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ccui-faint);
+  content: '';
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-user-turn::before {
+  background: var(--ccui-accent);
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-assistant-turn::before {
+  background: var(--ccui-success);
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-user-turn {
+  align-items: stretch;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-user-bubble {
+  max-width: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-user-footer {
+  justify-content: flex-start;
+  margin-top: 3px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-assistant-turn {
+  padding-bottom: 9px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-assistant-head {
+  min-width: 0;
+  flex-wrap: nowrap;
+  margin-bottom: 3px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-assistant-head > :is(strong, small) {
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-assistant-head > time {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-assistant-body > * + * {
+  margin-top: 4px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-thinking {
+  margin: 2px 0 4px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-thinking-detail {
+  margin-top: 4px;
+  margin-bottom: 3px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-tool-card {
+  margin: 3px 0;
+  border: 0;
+  border-left: 1px solid var(--ccui-border);
+  border-radius: 0;
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-tool-head {
+  min-width: 0;
+  min-height: 24px;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  gap: 6px;
+  padding: 3px 0 3px 10px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-tool-action {
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-tool-action > :is(button, [role='alert']) {
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .agent-tool-result-panel__header {
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .agent-tool-result-panel__header > strong {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .agent-tool-result-panel__header > :is(button, .ui-button) {
+  flex: 0 0 auto;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-tool-main {
+  min-width: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-tool-main strong {
+  min-width: 0;
+  flex: 0 1 auto;
+  max-width: 42%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-tool-main > span {
+  min-width: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-tool-meta {
+  min-width: 0;
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-thinking-summary {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  gap: 6px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-thinking-summary > span:nth-child(2) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-caret {
+  min-width: 0;
+  max-width: 38px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-tool-body {
+  padding: 5px 0 6px 25px;
+  border-top: 1px solid var(--ccui-border);
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-tool-action {
+  padding: 0 0 4px 25px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .paw-room-tool-facts {
+  margin: 3px 0;
+  padding: 3px 0 3px 25px;
+  border: 0;
+  border-left: 1px solid var(--ccui-border);
+  border-radius: 0;
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .agent-tool-result-panel {
+  margin-top: 4px;
+  border: 0;
+  border-left: 1px solid var(--ccui-border);
+  border-radius: 0;
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .agent-tool-result-panel[data-tone='error'] {
+  border-left-color: var(--ccui-danger);
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .agent-tool-result-panel__header {
+  min-height: 24px;
+  padding: 3px 0 3px 10px;
+  border-bottom: 1px solid var(--ccui-border);
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .agent-tool-result-panel > :is(.agent-safe-fields, .agent-tool-request) {
+  padding-left: 10px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .agent-tool-result-panel > :is(p, pre, small) {
+  padding: 5px 0 5px 10px;
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .agent-tool-result-panel__header .ui-button {
+  border-radius: 0;
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .agent-code-block {
+  margin: 4px 0;
+  border: 0;
+  border-block: 1px solid var(--ccui-border);
+  border-radius: 0;
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .agent-code-block figcaption {
+  height: 24px;
+  padding-inline: 0;
+  border-bottom: 1px solid var(--ccui-border);
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .agent-code-block :is(pre, .agent-code-block__highlight) {
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-error-card {
+  padding: 2px 0 2px 10px;
+  border: 0;
+  border-left: 1px solid var(--ccui-danger);
+  border-radius: 0;
+  background: transparent;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-assistant-footer {
+  min-height: 18px;
+  margin-top: 2px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .ccui-jump-bottom {
+  bottom: 8px;
+}
+.paw-os-satellite--participant-chat[data-presentation='planet-observer'] .paw-participant-chat__statusline > button {
+  padding: 1px 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
 /* PF-CM-013：极薄状态行——一句当前工作、文字+色状态、去完整 Session 的入口。
    一行高度，绝不挤压对话正文；身份与治理仍属标题栏与主 Room。 */
 .paw-participant-chat__statusline {
@@ -146,7 +382,7 @@
   font-size: 12px;
   line-height: 17px;
 }
-.paw-participant-chat__statusline-state { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 5px; font-weight: 680; color: var(--paw-satellite-state, var(--paw-muted)); }
+.paw-participant-chat__statusline-state { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 5px; font-weight: 680; color: var(--paw-satellite-state, var(--paw-muted)); white-space: nowrap; }
 .paw-participant-chat__statusline-state > i { width: 7px; height: 7px; border-radius: 50%; background: var(--paw-satellite-state, var(--paw-muted)); }
 .paw-participant-chat__statusline > p { min-width: 0; flex: 1; margin: 0; overflow: hidden; color: var(--paw-ink); text-overflow: ellipsis; white-space: nowrap; }
 .paw-participant-chat__statusline > button {
@@ -162,6 +398,7 @@
   cursor: pointer;
   font: inherit;
   font-weight: 650;
+  white-space: nowrap;
 }
 .paw-participant-chat__statusline > button:hover { border-color: color-mix(in srgb, var(--paw-accent) 40%, var(--paw-line-soft)); color: var(--paw-ink); }
 .paw-participant-chat__statusline > button:focus-visible { outline: 2px solid var(--paw-accent); outline-offset: 1px; }
@@ -173,17 +410,21 @@
 .paw-participant-chat__statusline[data-state='completed'] { --paw-satellite-state: #248a4d; }
 .paw-participant-chat__statusline:is([data-state='stopped'], [data-state='idle'], [data-state='disconnected']) { --paw-satellite-state: var(--paw-muted); }
 .paw-participant-chat__timeline { min-height: 0; display: flex; flex-direction: column; overflow-y: auto; padding: 6px 14px 18px; scrollbar-gutter: stable; }
-.paw-participant-chat__history-boundary { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 0 6px; padding: 5px 2px 8px; border-bottom: 1px solid var(--paw-line-soft); color: var(--paw-muted); font-size: 12px; line-height: 18px; }
-.paw-participant-chat__history-boundary > span { min-width: 0; overflow-wrap: anywhere; }
-.paw-participant-chat__history-boundary > button { flex: 0 0 auto; border: 0; border-radius: 5px; background: transparent; color: var(--paw-accent-strong); cursor: pointer; font: inherit; font-weight: 650; line-height: 18px; text-decoration: underline; text-underline-offset: 3px; }
+.paw-participant-chat__history-boundary { display: grid; min-width: 0; align-items: center; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin: 2px 0 6px; padding: 5px 2px 8px; border-bottom: 1px solid var(--paw-line-soft); color: var(--paw-muted); font-size: 12px; line-height: 18px; }
+.paw-participant-chat__history-boundary > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.paw-participant-chat__history-boundary > button { flex: 0 0 auto; border: 0; border-radius: 5px; background: transparent; color: var(--paw-accent-strong); cursor: pointer; font: inherit; font-weight: 650; line-height: 18px; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 .paw-participant-chat__history-boundary > button:hover { color: var(--paw-ink); }
 .paw-participant-chat__history-boundary > button:focus-visible { outline: 2px solid var(--paw-accent); outline-offset: 2px; }
 .paw-participant-chat__history-boundary[data-unknown-total] { align-items: flex-start; color: color-mix(in srgb, var(--paw-muted) 90%, var(--paw-ink)); }
+.paw-participant-chat__failure { display: grid; gap: 3px; margin: 4px 0 6px; padding: 7px 9px; border: 1px solid color-mix(in srgb, var(--paw-danger) 32%, var(--paw-line-soft)); border-radius: 9px; background: color-mix(in srgb, var(--paw-danger) 7%, var(--paw-panel)); color: var(--paw-ink); }
+.paw-participant-chat__failure > div { display: flex; min-width: 0; align-items: center; gap: 6px; color: var(--paw-danger); font-size: 12px; line-height: 18px; }
+.paw-participant-chat__failure > div > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.paw-participant-chat__failure .paw-participant-chat__raw-detail { margin-left: 20px; }
 .paw-participant-chat__timeline article { width: 100%; display: grid; gap: 4px; padding: 10px 2px; border: 0; background: transparent; animation: paw-participant-packet-in 180ms var(--paw-ease-out) both; }
 .paw-participant-chat__timeline article + article { border-top: 1px solid var(--paw-line-soft); }
 .paw-participant-chat__timeline article > header { display: flex; align-items: center; gap: 6px; }
-.paw-participant-chat__timeline article > header strong { font-size: 12px; font-weight: 600; line-height: 17px; color: var(--paw-muted); }
-.paw-participant-chat__timeline article > header time { margin-left: auto; color: var(--paw-muted); font-size: 12px; line-height: 17px; font-variant-numeric: tabular-nums; }
+.paw-participant-chat__timeline article > header strong { min-width: 0; overflow: hidden; color: var(--paw-muted); font-size: 12px; font-weight: 600; line-height: 17px; text-overflow: ellipsis; white-space: nowrap; }
+.paw-participant-chat__timeline article > header time { flex: 0 0 auto; margin-left: auto; color: var(--paw-muted); font-size: 12px; line-height: 17px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .paw-participant-chat__timeline article p { margin: 0; overflow-wrap: anywhere; color: var(--paw-ink); font-size: 14.5px; line-height: 23px; white-space: pre-wrap; }
 /* 输入/输出分家：发进来的指派与提问弱化半级，伙伴自己的公开产出保持正文级 */
 .paw-participant-chat__timeline article[data-direction='in'] p { color: color-mix(in srgb, var(--paw-ink) 76%, var(--paw-muted)); }
@@ -213,9 +454,9 @@
 .paw-participant-chat__activity-group { width: 100%; margin: 4px 0; border: 1px solid var(--paw-line-soft); border-radius: 10px; background: var(--paw-panel-soft); }
 .paw-participant-chat__activity-group[data-active] { border-color: color-mix(in srgb, var(--paw-accent) 30%, var(--paw-line-soft)); }
 .paw-participant-chat__activity-group__summary { display: grid; width: 100%; min-height: 38px; grid-template-columns: minmax(0, 1fr) 18px 14px; align-items: center; gap: 8px; padding: 6px 10px; border: 0; background: transparent; color: inherit; cursor: pointer; text-align: left; }
-.paw-participant-chat__activity-group__summary > span { display: grid; min-width: 0; gap: 1px; }
-.paw-participant-chat__activity-group__summary strong { font-size: 12.5px; font-weight: 600; line-height: 18px; }
-.paw-participant-chat__activity-group__summary small { overflow: hidden; color: var(--paw-muted); font-size: 12px; line-height: 17px; text-overflow: ellipsis; white-space: nowrap; }
+.paw-participant-chat__activity-group__summary > span { display: flex; min-width: 0; align-items: center; gap: 6px; }
+.paw-participant-chat__activity-group__summary strong { flex: 0 0 auto; overflow: hidden; font-size: 12.5px; font-weight: 600; line-height: 18px; text-overflow: ellipsis; white-space: nowrap; }
+.paw-participant-chat__activity-group__summary small { min-width: 0; flex: 1 1 auto; overflow: hidden; color: var(--paw-muted); font-size: 12px; line-height: 17px; text-overflow: ellipsis; white-space: nowrap; }
 .paw-participant-chat__activity-group__summary:focus-visible { border-radius: 8px; outline: 2px solid var(--paw-accent); outline-offset: -2px; }
 .paw-participant-chat__disclosure-chevron { color: var(--paw-muted); transition: transform 180ms var(--paw-ease-out); }
 .paw-participant-chat__activity-group[data-open] .paw-participant-chat__disclosure-chevron,
@@ -228,17 +469,17 @@
 .paw-participant-chat__activity-group article + article { border-top: 0; }
 /* 工具/运行事件压成一行：状态 · 类型 · 消息（截断）· 时间弱化在行尾。
    失败图标保持红色警示；原文披露折到行下；纵向留白收紧但列对齐防止糊成一团。 */
-.paw-participant-chat__timeline article[data-kind='activity'] { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 7px; padding-block: 3px; }
+.paw-participant-chat__timeline article[data-kind='activity'] { display: grid; min-width: 0; grid-template-columns: 16px 16px minmax(0, 1fr) auto; align-items: center; gap: 2px 7px; padding-block: 3px; }
 .paw-participant-chat__activity-state { display: grid; width: 16px; height: 16px; flex: 0 0 16px; place-items: center; }
 .paw-participant-chat__timeline article[data-kind='activity'] > strong { flex: 0 0 auto; color: var(--paw-muted); font-size: 12px; font-weight: 600; line-height: 18px; }
 /* 类别 logo 替代文字（框小，图4）：完整含义在 aria-label/title 里。 */
 .paw-participant-chat__activity-glyph { display: grid; place-items: center; }
 .paw-participant-chat__activity-glyph .paw-room-activity-glyph { display: grid; width: 16px; height: 16px; place-items: center; color: var(--paw-muted); }
-.paw-participant-chat__activity-message { flex: 1 1 0; min-width: 0; overflow: hidden; color: color-mix(in srgb, var(--paw-ink) 82%, var(--paw-muted)); font-size: 12.5px; line-height: 18px; text-overflow: ellipsis; white-space: nowrap; }
-.paw-participant-chat__timeline article[data-kind='activity'] > time { flex: 0 0 auto; color: color-mix(in srgb, var(--paw-muted) 74%, transparent); font-size: 12px; line-height: 18px; font-variant-numeric: tabular-nums; }
+.paw-participant-chat__activity-message { min-width: 0; overflow: hidden; color: color-mix(in srgb, var(--paw-ink) 82%, var(--paw-muted)); font-size: 12.5px; line-height: 18px; text-overflow: ellipsis; white-space: nowrap; }
+.paw-participant-chat__timeline article[data-kind='activity'] > time { flex: 0 0 auto; color: color-mix(in srgb, var(--paw-muted) 74%, transparent); font-size: 12px; line-height: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .paw-participant-chat__timeline article[data-kind='activity'][data-status='failed'] .paw-participant-chat__activity-message,
 .paw-participant-chat__timeline article[data-kind='activity'][data-status='timed_out'] .paw-participant-chat__activity-message { color: var(--paw-danger); }
-.paw-participant-chat__timeline article[data-kind='activity'] > .paw-participant-chat__raw-detail { flex: 1 0 100%; margin: 0 0 1px 23px; }
+.paw-participant-chat__timeline article[data-kind='activity'] > .paw-participant-chat__raw-detail { grid-column: 1 / -1; min-width: 0; margin: 0 0 1px 23px; }
 .paw-participant-chat__timeline article[data-kind='inbox'] { background: color-mix(in srgb, var(--paw-accent) 6%, var(--paw-panel)); }
 .paw-participant-chat__empty { margin: auto; display: grid; justify-items: center; gap: 6px; color: var(--paw-muted); font-size: 14px; line-height: 20px; }
 .paw-os-satellite__room-panel-body p,
@@ -268,8 +509,6 @@
 :root[data-reduce-motion='true'] .paw-participant-chat__disclosure-reveal,
 :root[data-reduce-motion='true'] .paw-participant-chat__disclosure-chevron { transition-duration: 90ms; }
 @container paw-window (max-width: 520px) {
-  .paw-os-satellite__hero { grid-template-columns: 34px minmax(0, 1fr); padding: 12px; }
-  .paw-os-satellite__hero > .mgmt-status { grid-column: 2; }
   .paw-os-satellite__document-body { padding: 12px; }
   .paw-os-satellite__document-body dl { grid-template-columns: 1fr; }
   .paw-os-satellite__document-body dl > div[data-wide] { grid-column: auto; }
@@ -283,9 +522,7 @@
 }
 @container paw-window (max-width: 320px) {
   .paw-participant-chat__timeline { padding-inline: 10px; }
-  .paw-participant-chat__history-boundary { align-items: stretch; flex-direction: column; }
-  .paw-participant-chat__history-boundary > button { align-self: flex-start; }
+  .paw-participant-chat__history-boundary { gap: 6px; }
   .paw-participant-chat__activity-group__summary { grid-template-columns: minmax(0, 1fr) 16px 12px; padding-inline: 8px; }
   .paw-participant-chat__statusline { gap: 6px; padding-inline: 8px; }
-  .paw-participant-chat__statusline > button > span { display: none; }
 }

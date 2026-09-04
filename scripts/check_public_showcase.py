@@ -17,7 +17,7 @@ UPSTREAM = ROOT / "UPSTREAM.json"
 SCENARIOS = ROOT / "showcase/scenarios.v1.json"
 FILE_MANIFEST = ROOT / "manifest/source-files.sha256"
 REGISTRY = WEB / "src/features/paw-os/model/app-registry.ts"
-EXPECTED_APP_COUNT = 11
+EXPECTED_APP_COUNT = 12
 TEXT_SUFFIXES = {".css", ".html", ".js", ".json", ".md", ".mjs", ".py", ".ts", ".tsx", ".txt"}
 SECRET_PATTERNS = {
     "GitHub token": re.compile(r"(?:ghp|gho|github_pat)_[A-Za-z0-9_]{20,}"),
@@ -26,7 +26,62 @@ SECRET_PATTERNS = {
     "personal macOS home": re.compile(r"/Users/(?!example/|preview/)[^/\s]+/"),
     "machine-specific volume": re.compile(r"/Volumes/(?!work/)[^/\s]+/"),
 }
-FORBIDDEN_PARTS = {".git", "__pycache__", "node_modules", "dist", "output", "test-results", "playwright-report"}
+FORBIDDEN_PARTS = {
+    ".git",
+    ".impeccable",
+    ".playwright-cli",
+    ".sites-runtime",
+    ".wrangler",
+    "__pycache__",
+    "node_modules",
+    "dist",
+    "output",
+    "test-results",
+    "playwright-report",
+}
+
+# macOS Finder metadata churns outside the source tree's control.
+FORBIDDEN_NAMES = {".DS_Store", "tsconfig.tsbuildinfo"}
+FORBIDDEN_SUFFIXES = {".zip"}
+PRIVATE_LOCAL_PREFIXES = {
+    ("docs",),
+    ("paw-story-demo", "docs"),
+}
+PRIVATE_ROOT_NAMES = {"AGENTS.md"}
+
+
+def is_private_local_path(path: Path) -> bool:
+    relative = path.relative_to(ROOT)
+    parts = relative.parts
+    if relative.as_posix() in PRIVATE_ROOT_NAMES:
+        return True
+    if (
+        len(parts) == 2
+        and parts[0] == "paw-story-demo"
+        and relative.suffix.lower() == ".md"
+        and parts[1] != "README.md"
+    ):
+        return True
+    return any(parts[:len(prefix)] == prefix for prefix in PRIVATE_LOCAL_PREFIXES)
+
+
+def is_forbidden_generated_path(path: Path) -> bool:
+    relative = path.relative_to(ROOT)
+    return (
+        path.name in FORBIDDEN_NAMES
+        or path.suffix.lower() in FORBIDDEN_SUFFIXES
+        or any(part in FORBIDDEN_PARTS for part in relative.parts)
+    )
+
+
+def is_repository_file(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
+    relative = Path(value)
+    if relative.is_absolute() or ".." in relative.parts:
+        return False
+    candidate = ROOT / relative
+    return candidate.is_file() and not candidate.is_symlink()
 
 
 def load_object(path: Path) -> dict[str, object]:
@@ -47,8 +102,10 @@ def snapshot_files() -> list[Path]:
     return sorted(
         path for path in ROOT.rglob("*")
         if path.is_file()
+        and not path.is_symlink()
         and path != FILE_MANIFEST
-        and not any(part in FORBIDDEN_PARTS for part in path.relative_to(ROOT).parts)
+        and not is_forbidden_generated_path(path)
+        and not is_private_local_path(path)
     )
 
 
@@ -91,15 +148,30 @@ def main() -> int:
             errors.append(f"{app_id}: public Showcase cannot claim live Runtime data")
         for key in ("renderOwner",):
             value = item.get(key)
-            if not isinstance(value, str) or not (ROOT / value).is_file():
+            if not is_repository_file(value):
                 errors.append(f"{app_id}: missing {key} {value!r}")
         sources = item.get("scenarioSources")
         if not isinstance(sources, list) or not sources:
             errors.append(f"{app_id}: scenarioSources must be non-empty")
         else:
             for source in sources:
-                if not isinstance(source, str) or not (ROOT / source).is_file():
+                if not is_repository_file(source):
                     errors.append(f"{app_id}: missing scenario source {source!r}")
+
+    for required in (
+        "control-center-web/package.json",
+        "paw-story-demo/package.json",
+        "paw-story-demo/scripts/materialize-pawos-showcase.mjs",
+    ):
+        if not is_repository_file(required):
+            errors.append(f"self-contained deployment source is missing {required}")
+
+    for path in ROOT.rglob("*"):
+        if not path.is_symlink() or is_forbidden_generated_path(path) or is_private_local_path(path):
+            continue
+        errors.append(
+            f"public package cannot contain symlink {path.relative_to(ROOT)} -> {path.readlink()}"
+        )
 
     package = load_object(WEB / "package.json")
     scripts = package.get("scripts")
@@ -122,7 +194,9 @@ def main() -> int:
         if path.resolve() == Path(__file__).resolve():
             # This file contains the deny-list regex source itself.
             continue
-        if any(part in FORBIDDEN_PARTS for part in path.relative_to(ROOT).parts):
+        if is_forbidden_generated_path(path):
+            continue
+        if is_private_local_path(path):
             continue
         scanned += 1
         try:
@@ -144,6 +218,13 @@ def main() -> int:
         )
         if forbidden_tracked:
             errors.append(f"forbidden generated/private paths are tracked: {forbidden_tracked[:8]!r}")
+        private_tracked = sorted(
+            relative for relative in tracked if relative
+            and is_private_local_path(ROOT / relative)
+            and (ROOT / relative).is_file()
+        )
+        if private_tracked:
+            errors.append(f"private planning paths are tracked: {private_tracked[:8]!r}")
 
     if errors:
         print("PAW public Showcase: FAIL")

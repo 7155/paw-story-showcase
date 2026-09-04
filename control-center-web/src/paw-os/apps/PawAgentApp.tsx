@@ -1,6 +1,9 @@
 import {
   Archive,
   ArchiveRestore,
+  FileText,
+  Folder,
+  FolderOpen,
   LoaderCircle,
   MoreHorizontal,
   PanelLeft,
@@ -8,7 +11,7 @@ import {
   Search,
   Trash2,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useControlTransport } from '@/app/control-transport';
 import {
   Button,
@@ -18,6 +21,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Disclosure,
   Menu,
   MenuCheckboxItem,
   MenuContent,
@@ -30,13 +34,14 @@ import { parsePiModelCatalogOptions, type PiModelOption } from '@/features/agent
 import { roleItems, sessionItems, type SessionSummary } from '@/features/agent/types';
 import { useAgentLiveStore } from '@/features/agent/state/live-store';
 import { evidenceEchoFocusFromRoute } from '@/features/evidence-echo/evidence-echo';
-import type { RoomSummary } from '@/features/rooms/room-types';
+import type { RoomSummary, RoomWorkItem } from '@/features/rooms/room-types';
 import type { PawOsWindowTarget } from '@/features/paw-os/model/desktop';
-import { usePawOsAppSurface, usePawOsDesktop } from '@/features/paw-os/surface-context';
+import { usePawOsAppActive, usePawOsAppIdentity, usePawOsDesktop } from '@/features/paw-os/surface-context';
 import { PawSessionWorkspace } from './PawSessionWorkspace';
 import { PawRoomWorkspace } from './PawRoomWorkspace';
 import { PawAgentHome } from './PawAgentHome';
 import { PawWindowLeadingPortal, usePawWindowLeadingChromeTarget } from '../shell/PawWindowChrome';
+import { TraceAgentHandoffButton, type TraceAgentHandoffInput } from '@/features/trace-agent/handoff';
 
 type Selection =
   | { kind: 'new'; draft?: string }
@@ -52,7 +57,8 @@ export function PawAgentApp({
 }) {
   const transport = useControlTransport();
   const desktop = usePawOsDesktop();
-  const surface = usePawOsAppSurface();
+  const surfaceIdentity = usePawOsAppIdentity();
+  const surfaceActive = usePawOsAppActive();
   /* The rail toggle reveals a leading-edge aside, so it docks in the leading
      titlebar slot and falls back inline only when that slot is absent. */
   const windowChromeTarget = usePawWindowLeadingChromeTarget();
@@ -72,6 +78,7 @@ export function PawAgentApp({
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [actionError, setActionError] = useState('');
+  const [actionTrace, setActionTrace] = useState<TraceAgentHandoffInput>();
   const [showArchived, setShowArchived] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<SessionSummary>();
   const [deleting, setDeleting] = useState(false);
@@ -79,9 +86,15 @@ export function PawAgentApp({
   const railToggleRef = useRef<HTMLButtonElement>(null);
   const optimisticSessionsRef = useRef<Record<string, SessionSummary>>({});
   const optimisticRoomsRef = useRef<Record<string, RoomSummary>>({});
+  /* Catalog hydration is deliberately cancellable. Opening Agent first commits
+     the lightweight new-work shell; a superseded route, filter change or an
+     unmounted window must never let an older catalog write into the new view. */
+  const catalogRequestRef = useRef(0);
+  const selectedSessionRequestRef = useRef(0);
   const targetKind = target?.kind;
   const targetId = target?.id;
   const targetRoomId = target?.kind === 'participant' ? target.roomId : undefined;
+  const selectedSessionId = selection.kind === 'session' ? selection.id : '';
   /* 反向证据链只对它自己指名的那段 Session 生效；在同一扇窗里换一段
      Session 之后，落点就过期了，不该继续劫持视图。 */
   const evidenceFocus = useMemo(() => {
@@ -97,49 +110,133 @@ export function PawAgentApp({
   }, [initialRoute, targetId, targetKind, targetRoomId]);
 
   const loadCatalog = useCallback(async () => {
+    const requestId = ++catalogRequestRef.current;
     setLoading(true);
     setLoadError('');
+    const includeRooms = selection.kind !== 'session' || railOpen;
+    const includeRoleModels = selection.kind === 'new';
     const [sessionResult, roomResult, roleResult, modelResult] = await Promise.allSettled([
-      transport.request({ pathId: 'agent.sessions.list', query: { limit: 100, includeArchived: showArchived } }),
-      transport.request({ pathId: 'agent.rooms.list', query: { limit: 100 } }),
+      transport.request({
+        pathId: 'agent.sessions.list',
+        query: {
+          limit: 100,
+          includeArchived: showArchived,
+        },
+      }),
+      includeRooms
+        ? transport.request({ pathId: 'agent.rooms.list', query: { limit: 100, ownerAppId: '' } })
+        : Promise.resolve(undefined),
       transport.request({ pathId: 'agent.roles.list' }),
-      transport.request({ pathId: 'agent.role.models' }),
+      includeRoleModels
+        ? transport.request({ pathId: 'agent.role.models' })
+        : Promise.resolve(undefined),
     ]);
-    if (sessionResult.status === 'fulfilled') {
-      const listed = sessionItems(sessionResult.value).filter((item) => !item.roomParticipant);
-      const listedIds = new Set(listed.map((item) => item.id));
-      for (const id of Object.keys(optimisticSessionsRef.current)) {
-        if (listedIds.has(id)) delete optimisticSessionsRef.current[id];
-      }
-      setSessions([
-        ...Object.values(optimisticSessionsRef.current),
-        ...listed.filter((item) => !optimisticSessionsRef.current[item.id]),
-      ]);
-    }
-    if (roomResult.status === 'fulfilled') {
-      const listed = roomItems(roomResult.value);
-      const listedIds = new Set(listed.map((item) => item.id));
-      for (const id of Object.keys(optimisticRoomsRef.current)) {
-        if (listedIds.has(id)) delete optimisticRoomsRef.current[id];
-      }
-      setRooms([
-        ...Object.values(optimisticRoomsRef.current),
-        ...listed.filter((item) => !optimisticRoomsRef.current[item.id]),
-      ]);
-    }
-    if (roleResult.status === 'fulfilled') setPersonas(roleItems(roleResult.value));
-    if (modelResult.status === 'fulfilled') {
-      const catalog = parsePiModelCatalogOptions(modelResult.value);
-      setModels(catalog.models);
-      setDefaultModel(catalog.selectedReference);
-    }
-    const failures = [sessionResult, roomResult, roleResult, modelResult]
+    if (catalogRequestRef.current !== requestId) return;
+    const failures = [sessionResult, roleResult,
+      ...(includeRooms ? [roomResult] : []),
+      ...(includeRoleModels ? [modelResult] : []),
+    ]
       .filter((result) => result.status === 'rejected').length;
-    if (failures) setLoadError(failures === 4 ? 'Agent 工作记录暂时无法读取。' : '部分 Agent 目录暂时不可用。');
-    setLoading(false);
-  }, [showArchived, transport]);
+    /* A mock/local transport can resolve all four reads in the same turn. Put
+     * the directory projection behind React's transition lane so it cannot
+     * steal the click frame that opened the Agent window. */
+    startTransition(() => {
+      if (catalogRequestRef.current !== requestId) return;
+      if (sessionResult.status === 'fulfilled') {
+        /* Room Partner Sessions stay out of the ordinary work-record rail, but
+         * a planet window must retain the one explicitly targeted Session so it
+         * can render the same complete workspace as any other Session. */
+        const listed = sessionItems(sessionResult.value, { includeAppOwned: true }).filter((item) => (
+          !item.roomParticipant || item.id === selectedSessionId
+        ));
+        const listedIds = new Set(listed.map((item) => item.id));
+        for (const id of Object.keys(optimisticSessionsRef.current)) {
+          if (listedIds.has(id)) delete optimisticSessionsRef.current[id];
+        }
+        setSessions([
+          ...Object.values(optimisticSessionsRef.current),
+          ...listed.filter((item) => !optimisticSessionsRef.current[item.id]),
+        ]);
+      }
+      if (roomResult.status === 'fulfilled' && roomResult.value !== undefined) {
+        const listed = roomItems(roomResult.value).filter((item) => (
+          !item.ownerAppId || item.id === (selection.kind === 'room' ? selection.id : '')
+        ));
+        const listedIds = new Set(listed.map((item) => item.id));
+        for (const id of Object.keys(optimisticRoomsRef.current)) {
+          if (listedIds.has(id)) delete optimisticRoomsRef.current[id];
+        }
+        setRooms([
+          ...Object.values(optimisticRoomsRef.current),
+          ...listed.filter((item) => !optimisticRoomsRef.current[item.id]),
+        ]);
+      }
+      if (roleResult.status === 'fulfilled') setPersonas(roleItems(roleResult.value));
+      if (modelResult.status === 'fulfilled' && modelResult.value !== undefined) {
+        const catalog = parsePiModelCatalogOptions(modelResult.value);
+        setModels(catalog.models);
+        setDefaultModel(catalog.selectedReference);
+      }
+      if (failures) setLoadError(failures === 4 ? 'Agent 工作记录暂时无法读取。' : '部分 Agent 目录暂时不可用。');
+      setLoading(false);
+    });
+  }, [railOpen, selectedSessionId, selection.kind, showArchived, transport]);
 
-  useEffect(() => { void loadCatalog(); }, [catalogRevision, loadCatalog]);
+  useEffect(() => {
+    if (surfaceActive === false || (selection.kind === 'session' && !railOpen)) {
+      catalogRequestRef.current += 1;
+      return;
+    }
+    let cancelled = false;
+    /* Let PawAppProcess' boot surface and the Agent home commit first. The
+     * catalog remains truthful, but no longer runs inside the Dock click's
+     * first paint budget. */
+    const frame = window.requestAnimationFrame(() => {
+      if (!cancelled) void loadCatalog();
+    });
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
+      catalogRequestRef.current += 1;
+    };
+  }, [catalogRevision, loadCatalog, railOpen, selection.kind, surfaceActive]);
+  useEffect(() => {
+    if (
+      surfaceActive === false
+      || selection.kind !== 'session'
+      || railOpen
+      || !selectedSessionId
+    ) {
+      return;
+    }
+    let cancelled = false;
+    const frame = window.requestAnimationFrame(() => {
+      const requestId = ++selectedSessionRequestRef.current;
+      void transport.request({
+        pathId: 'agent.sessions.list',
+        query: { limit: 100, includeArchived: true },
+      }).then((response) => {
+        if (cancelled || requestId !== selectedSessionRequestRef.current) return;
+        const canonical = sessionItems(response, { includeAppOwned: true })
+          .find((item) => item.id === selectedSessionId);
+        if (!canonical) return;
+        setSessions((current) => {
+          const existing = current.some((item) => item.id === canonical.id);
+          return existing
+            ? current.map((item) => item.id === canonical.id ? canonical : item)
+            : [canonical, ...current];
+        });
+      }).catch(() => {
+        // A direct Session can still render from its route identity. The
+        // directory refresh remains the recovery path when the rail opens.
+      });
+    });
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
+      selectedSessionRequestRef.current += 1;
+    };
+  }, [railOpen, selectedSessionId, selection.kind, surfaceActive, transport]);
 
   useEffect(() => {
     if (!railOpen) return;
@@ -154,8 +251,14 @@ export function PawAgentApp({
   }, [railOpen]);
 
   const normalizedQuery = query.trim().toLocaleLowerCase();
-  const visibleSessions = sessions.filter((item) => searchable(item.title, item.lastMessagePreview, normalizedQuery));
+  const visibleSessions = sessions.filter((item) => (
+    !item.roomParticipant && searchable(item.title, item.lastMessagePreview, normalizedQuery)
+  ));
   const visibleRooms = rooms.filter((item) => searchable(item.title, item.description, normalizedQuery));
+  const projectGroups = useMemo(
+    () => projectWorkGroups(visibleSessions, visibleRooms),
+    [visibleRooms, visibleSessions],
+  );
   const projectRoots = useMemo(() => uniquePaths([
     ...sessions.flatMap((item) => item.workspaceRoots ?? []),
     ...rooms.flatMap((item) => item.workspaceRoots ?? []),
@@ -163,37 +266,43 @@ export function PawAgentApp({
   const selectedSession = selection.kind === 'session'
     ? sessions.find((item) => item.id === selection.id)
     : undefined;
+  const selectedSessionRecord = useMemo(() => (
+    selectedSessionId
+      ? selectedSession ?? provisionalSessionRecord(selectedSessionId, target?.title)
+      : undefined
+  ), [selectedSession, selectedSessionId, target?.title]);
   const selectedRoom = selection.kind === 'room'
     ? rooms.find((item) => item.id === selection.id)
     : undefined;
 
   useEffect(() => {
-    if (!surface?.windowId || !desktop?.bindAgentMain) return;
+    if (!surfaceIdentity?.windowId || !desktop?.bindAgentMain) return;
     if (selection.kind === 'new') {
-      desktop.bindAgentMain(surface.windowId);
+      desktop.bindAgentMain(surfaceIdentity.windowId);
       return;
     }
-    if (selection.kind === 'session' && selectedSession) {
-      desktop.bindAgentMain(surface.windowId, {
+    if (selection.kind === 'session' && selectedSessionRecord) {
+      desktop.bindAgentMain(surfaceIdentity.windowId, {
         kind: 'session',
-        id: selectedSession.id,
-        title: selectedSession.title,
+        id: selectedSessionRecord.id,
+        title: selectedSessionRecord.title,
       });
       return;
     }
     if (selection.kind === 'room' && selectedRoom) {
-      desktop.bindAgentMain(surface.windowId, {
+      desktop.bindAgentMain(surfaceIdentity.windowId, {
         kind: 'room',
         id: selectedRoom.id,
         title: selectedRoom.title,
         subtitle: selectedRoom.description,
       });
     }
-  }, [desktop, selectedRoom, selectedSession, selection.kind, surface?.windowId]);
+  }, [desktop, selectedRoom, selectedSessionRecord, selection.kind, surfaceIdentity?.windowId]);
 
   async function archiveSession(session: SessionSummary): Promise<void> {
     const archived = session.status === 'archived';
     setActionError('');
+    setActionTrace(undefined);
     try {
       await transport.request({
         pathId: 'agent.session.archive',
@@ -211,6 +320,7 @@ export function PawAgentApp({
       setCatalogRevision((value) => value + 1);
     } catch (reason) {
       setActionError(errorText(reason));
+      setActionTrace(agentDirectoryActionHandoff(session, archived ? 'restore' : 'archive', reason));
     }
   }
 
@@ -218,6 +328,7 @@ export function PawAgentApp({
     if (!deleteTarget || deleting) return;
     setDeleting(true);
     setActionError('');
+    setActionTrace(undefined);
     try {
       await transport.request({ pathId: 'agent.session.delete', params: { sessionId: deleteTarget.id } });
       useAgentLiveStore.getState().clear(deleteTarget.id);
@@ -227,6 +338,7 @@ export function PawAgentApp({
       setDeleteTarget(undefined);
     } catch (reason) {
       setActionError(errorText(reason));
+      setActionTrace(agentDirectoryActionHandoff(deleteTarget, 'delete', reason));
     } finally {
       setDeleting(false);
     }
@@ -234,7 +346,7 @@ export function PawAgentApp({
 
   const railToggle = <button aria-controls="paw-agent-work-records" aria-expanded={railOpen} aria-label={railOpen ? '收起工作记录' : '打开工作记录'} className="paw-agent-rail-toggle" onClick={() => setRailOpen((open) => !open)} ref={railToggleRef} type="button"><PanelLeft size={16} /></button>;
   return (
-    <main className="paw-agent-app" data-rail-open={railOpen || undefined} data-selection={selection.kind}>
+    <section aria-label="Agent 工作台" className="paw-agent-app" data-rail-open={railOpen || undefined} data-selection={selection.kind} role="region">
       {windowChromeTarget ? <PawWindowLeadingPortal>{railToggle}</PawWindowLeadingPortal> : null}
       <aside aria-label="Agent 工作记录" className="paw-agent-rail" id="paw-agent-work-records">
         <header>
@@ -255,31 +367,39 @@ export function PawAgentApp({
         </label>
         <div className="paw-agent-recents" aria-busy={loading || undefined}>
           {loading && !sessions.length && !rooms.length ? <RailNotice icon={<LoaderCircle className="ui-spin" size={15} />} text="正在读取工作记录" /> : null}
-          {loadError ? <RailNotice action={() => setCatalogRevision((value) => value + 1)} text={loadError} /> : null}
-          {actionError ? <RailNotice action={() => setActionError('')} text={actionError} /> : null}
-          {visibleSessions.length ? <WorkGroup label="Session">
-            {visibleSessions.map((session) => (
-              <WorkRow
-                active={selection.kind === 'session' && selection.id === session.id}
-                key={session.id}
-                meta={sessionMeta(session)}
-                onClick={() => { setSelection({ kind: 'session', id: session.id }); setRailOpen(false); }}
-                title={session.title}
-                trailing={<SessionActions onArchive={() => void archiveSession(session)} onDelete={() => { setActionError(''); setDeleteTarget(session); }} session={session} />}
-              />
-            ))}
-          </WorkGroup> : null}
-          {visibleRooms.length ? <WorkGroup label="Room">
-            {visibleRooms.map((room) => (
-              <WorkRow
-                active={selection.kind === 'room' && selection.id === room.id}
-                key={room.id}
-                meta={`${room.participants.length} 位伙伴 · ${relativeTime(room.updatedAtMs)}`}
-                onClick={() => { setSelection({ kind: 'room', id: room.id }); setRailOpen(false); }}
-                title={room.title}
-              />
-            ))}
-          </WorkGroup> : null}
+          {loadError ? (
+            <RailNotice
+              action={() => setCatalogRevision((value) => value + 1)}
+              text={loadError}
+              traceHandoff={{
+                kind: 'generic',
+                entityId: 'agent-catalog',
+                title: 'Agent 工作记录读取失败',
+                summary: loadError,
+                error: loadError,
+                sourceRoute: '/agent',
+                refs: { operation: 'catalog-load', surface: 'agent-directory' },
+              }}
+            />
+          ) : null}
+          {actionError ? (
+            <RailNotice
+              action={() => { setActionError(''); setActionTrace(undefined); }}
+              text={actionError}
+              traceHandoff={actionTrace}
+            />
+          ) : null}
+          {projectGroups.map((group) => (
+            <ProjectFolder
+              group={group}
+              key={group.key}
+              onOpenRoom={(id) => { setSelection({ kind: 'room', id }); setRailOpen(false); }}
+              onOpenSession={(id) => { setSelection({ kind: 'session', id }); setRailOpen(false); }}
+              onArchiveSession={(session) => void archiveSession(session)}
+              onDeleteSession={(session) => { setActionError(''); setActionTrace(undefined); setDeleteTarget(session); }}
+              selection={selection}
+            />
+          ))}
           {!loading && !loadError && !visibleSessions.length && !visibleRooms.length ? <RailNotice text={normalizedQuery ? '没有匹配的工作记录' : '还没有工作记录'} /> : null}
         </div>
       </aside>
@@ -316,10 +436,11 @@ export function PawAgentApp({
           />
         ) : selection.kind === 'session' ? (
           <PawSessionWorkspace
+            active={surfaceActive ?? true}
             key={`session:${selection.id}`}
             initialDraft={selection.draft}
             persona={personas.find((item) => item.roleId === sessions.find((session) => session.id === selection.id)?.roleId)}
-            record={sessions.find((item) => item.id === selection.id)}
+            record={selectedSessionRecord}
             recordId={selection.id}
             traceFocusNodeId={evidenceFocus}
             onNewWork={() => setSelection({ kind: 'new' })}
@@ -335,6 +456,7 @@ export function PawAgentApp({
           />
         ) : selection.kind === 'room' ? (
           <PawRoomWorkspace
+            active={surfaceActive ?? true}
             initialDraft={selection.draft}
             initialError={selection.error}
             key={`room:${selection.id}`}
@@ -366,7 +488,7 @@ export function PawAgentApp({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </main>
+    </section>
   );
 }
 
@@ -374,8 +496,82 @@ function WorkGroup({ children, label }: { children: ReactNode; label: string }) 
   return <section className="paw-agent-group"><header>{label}</header>{children}</section>;
 }
 
-function WorkRow({ active, meta, onClick, title, trailing }: { active: boolean; meta: string; onClick: () => void; title: string; trailing?: ReactNode }) {
-  return <div className="paw-agent-row-shell" data-active={active || undefined}><button aria-current={active ? 'page' : undefined} className="paw-agent-row" onClick={onClick} title={title} type="button"><span><strong>{title}</strong><small>{meta}</small></span></button>{trailing}</div>;
+type ProjectWorkGroup = {
+  key: string;
+  label: string;
+  roots: string[];
+  sessions: SessionSummary[];
+  rooms: RoomSummary[];
+};
+
+function ProjectFolder({
+  group,
+  onArchiveSession,
+  onDeleteSession,
+  onOpenRoom,
+  onOpenSession,
+  selection,
+}: {
+  group: ProjectWorkGroup;
+  onArchiveSession: (session: SessionSummary) => void;
+  onDeleteSession: (session: SessionSummary) => void;
+  onOpenRoom: (id: string) => void;
+  onOpenSession: (id: string) => void;
+  selection: Selection;
+}) {
+  const [open, setOpen] = useState(true);
+  const total = group.sessions.length + group.rooms.length;
+  return (
+    <Disclosure
+      className="paw-agent-project-folder"
+      defaultOpen
+      onOpenChange={setOpen}
+      summary={(
+        <span className="paw-agent-project-folder__summary">
+          {open ? <FolderOpen aria-hidden="true" size={15} /> : <Folder aria-hidden="true" size={15} />}
+          <strong>{group.label}</strong>
+          <small>{total} 个对话</small>
+        </span>
+      )}
+      title={group.roots.length ? group.roots.join('\n') : '未绑定 workspaceRoots；不按标题归组'}
+    >
+      <div className="paw-agent-project-folder__contents">
+        {group.sessions.length ? <WorkGroup label="Session">
+          {group.sessions.map((session) => (
+            <WorkRow
+              active={selection.kind === 'session' && selection.id === session.id}
+              key={session.id}
+              projection={sessionFileProjection(session)}
+              onClick={() => onOpenSession(session.id)}
+              title={session.title}
+              trailing={session.evaluationSnapshot ? null : <SessionActions onArchive={() => onArchiveSession(session)} onDelete={() => onDeleteSession(session)} session={session} />}
+            />
+          ))}
+        </WorkGroup> : null}
+        {group.rooms.length ? <WorkGroup label="Room">
+          {group.rooms.map((room) => (
+            <WorkRow
+              active={selection.kind === 'room' && selection.id === room.id}
+              key={room.id}
+              projection={roomFileProjection(room)}
+              onClick={() => onOpenRoom(room.id)}
+              title={room.title}
+            />
+          ))}
+        </WorkGroup> : null}
+      </div>
+    </Disclosure>
+  );
+}
+
+type WorkFileProjection = {
+  detail: string;
+  meta: string;
+  state: 'attention' | 'complete' | 'neutral' | 'working';
+};
+
+function WorkRow({ active, onClick, projection, title, trailing }: { active: boolean; onClick: () => void; projection: WorkFileProjection; title: string; trailing?: ReactNode }) {
+  return <div className="paw-agent-row-shell" data-active={active || undefined} data-work-state={projection.state}><button aria-current={active ? 'page' : undefined} className="paw-agent-row" onClick={onClick} title={title} type="button"><FileText aria-hidden="true" size={15} /><span><strong>{title}</strong><small>{projection.meta}</small><small className="paw-agent-row__detail">{projection.detail}</small></span></button>{trailing}</div>;
 }
 
 function SessionActions({ onArchive, onDelete, session }: { onArchive: () => void; onDelete: () => void; session: SessionSummary }) {
@@ -383,8 +579,16 @@ function SessionActions({ onArchive, onDelete, session }: { onArchive: () => voi
   return <Menu><MenuTrigger asChild><button aria-label={`更多“${session.title}”操作`} className="paw-agent-row-menu" type="button"><MoreHorizontal size={14} /></button></MenuTrigger><MenuContent align="end"><MenuItem onSelect={onArchive}>{archived ? <ArchiveRestore size={15} /> : <Archive size={15} />}{archived ? '恢复 Session' : '归档 Session'}</MenuItem><MenuSeparator /><MenuItem className="paw-agent-row-menu__danger" onSelect={onDelete}><Trash2 size={15} />删除 Session</MenuItem></MenuContent></Menu>;
 }
 
-function RailNotice({ action, icon, text }: { action?: () => void; icon?: ReactNode; text: string }) {
-  return <div className="paw-agent-rail-notice">{icon}<span>{text}</span>{action ? <button onClick={action} type="button">重试</button> : null}</div>;
+function RailNotice({ action, icon, text, traceHandoff }: {
+  action?: () => void;
+  icon?: ReactNode;
+  text: string;
+  traceHandoff?: TraceAgentHandoffInput;
+}) {
+  return <div className="paw-agent-rail-notice">
+    {icon}<span>{text}</span>{action ? <button onClick={action} type="button">重试</button> : null}
+    {traceHandoff ? <TraceAgentHandoffButton handoff={traceHandoff} /> : null}
+  </div>;
 }
 
 function initialSelection(
@@ -393,20 +597,36 @@ function initialSelection(
   targetId?: string,
   targetRoomId?: string,
 ): Selection {
-  if (targetKind === 'session' && targetId) return { kind: 'session', id: targetId };
-  if (targetKind === 'room' && targetId) return { kind: 'room', id: targetId };
-  if (targetKind === 'participant' && targetRoomId) return { kind: 'room', id: targetRoomId };
-  if (initialRoute.startsWith('/rooms')) {
-    const roomId = new URLSearchParams(initialRoute.split('?', 2)[1] ?? '').get('room');
-    return roomId ? { kind: 'room', id: roomId } : { kind: 'new' };
-  }
   const query = new URLSearchParams(initialRoute.split('?', 2)[1] ?? '');
+  const routeDraft = query.get('draft');
+  const draft = routeDraft?.trim() ? routeDraft : undefined;
+  const draftSelection = draft === undefined ? {} : { draft };
+  if (targetKind === 'session' && targetId) return { kind: 'session', id: targetId };
+  if (targetKind === 'room' && targetId) return { kind: 'room', id: targetId, ...draftSelection };
+  if (targetKind === 'participant' && targetRoomId) return { kind: 'room', id: targetRoomId, ...draftSelection };
+  if (initialRoute.startsWith('/rooms')) {
+    const roomId = query.get('room');
+    return roomId ? { kind: 'room', id: roomId, ...draftSelection } : { kind: 'new' };
+  }
   const roomId = query.get('room');
-  if (roomId) return { kind: 'room', id: roomId };
+  if (roomId) return { kind: 'room', id: roomId, ...draftSelection };
   const sessionId = query.get('session') || query.get('sessionId');
-  const draft = query.get('draft')?.trim();
   if (draft) return { kind: 'new', draft };
   return sessionId ? { kind: 'session', id: sessionId } : { kind: 'new' };
+}
+
+function provisionalSessionRecord(id: string, title = ''): SessionSummary {
+  return {
+    id,
+    title: title.trim() && title !== id ? title : 'Session',
+    mode: 'assistant',
+    status: 'idle',
+    roleId: '',
+    roleVersion: '',
+    roleBookRevisionId: '',
+    updatedAtMs: 0,
+    workspaceRoots: [],
+  };
 }
 
 function roomItems(value: unknown): RoomSummary[] {
@@ -426,6 +646,36 @@ function uniquePaths(values: string[]): string[] {
   return values.map((value) => value.trim()).filter((value, index, all) => value.startsWith('/') && all.indexOf(value) === index).slice(0, 24);
 }
 
+function projectWorkGroups(
+  sessions: readonly SessionSummary[],
+  rooms: readonly RoomSummary[],
+): ProjectWorkGroup[] {
+  const groups = new Map<string, ProjectWorkGroup>();
+  const add = (item: SessionSummary | RoomSummary, kind: 'session' | 'room') => {
+    const roots = workspaceBindingRoots(item.workspaceRoots);
+    const key = roots.length ? roots.join('\u001f') : '__unbound__';
+    const group = groups.get(key) ?? {
+      key,
+      label: roots.length ? pathName(roots[0]) : '未绑定项目',
+      roots,
+      sessions: [],
+      rooms: [],
+    };
+    if (kind === 'session') group.sessions.push(item as SessionSummary);
+    else group.rooms.push(item as RoomSummary);
+    groups.set(key, group);
+  };
+  sessions.forEach((session) => add(session, 'session'));
+  rooms.forEach((room) => add(room, 'room'));
+  return [...groups.values()];
+}
+
+function workspaceBindingRoots(roots: readonly string[] | undefined): string[] {
+  return [...new Set((roots ?? []).map((root) => root.trim()).filter(Boolean))]
+    .map((root) => root.length > 1 ? root.replace(/\/+$/u, '') : root)
+    .sort();
+}
+
 function pathName(path: string): string {
   return path.split('/').filter(Boolean).at(-1) ?? path;
 }
@@ -434,14 +684,93 @@ function projectName(paths: string[] | undefined): string {
   return paths?.[0] ? pathName(paths[0]) : '无项目';
 }
 
-// 行内 meta 只在状态可行动时前置：归档、执行中、故障；idle/active 不加噪声。
-function sessionMeta(session: SessionSummary): string {
+function sessionFileProjection(session: SessionSummary): WorkFileProjection {
   const base = `${projectName(session.workspaceRoots)} · ${relativeTime(session.updatedAtMs)}`;
+  if (session.evaluationSnapshot) {
+    return {
+      detail: '冻结 JSONL · 不可继续提问、改写或删除',
+      meta: `评测快照 · 只读 · ${relativeTime(session.updatedAtMs)}`,
+      state: 'complete',
+    };
+  }
   const state = session.status === 'archived' ? '已归档'
     : session.status === 'busy' ? '进行中'
     : session.status === 'faulted' ? '需要处理'
-    : '';
-  return state ? `${state} · ${base}` : base;
+    : '就绪';
+  const preview = boundedPublicText(session.lastMessagePreview);
+  const detail = session.status === 'busy'
+    ? preview ? `当前公开内容：${preview}` : '当前进度不可用'
+    : session.status === 'faulted'
+      ? preview ? `故障原因不可用 · 最近公开内容：${preview}` : '故障原因不可用'
+      : preview ? `最近公开内容：${preview}` : '暂无公开进度';
+  return {
+    detail,
+    meta: `${state} · ${base}`,
+    state: session.status === 'faulted' ? 'attention'
+      : session.status === 'busy' ? 'working'
+      : session.status === 'archived' ? 'complete'
+      : 'neutral',
+  };
+}
+
+function roomFileProjection(room: RoomSummary): WorkFileProjection {
+  const workItems = room.workItems;
+  const activeWork = (workItems ?? []).filter((item) => ['queued', 'active', 'review', 'blocked'].includes(item.state)).length;
+  const progress = activeWork ? ` · ${activeWork} 项任务` : '';
+  const focus = workItems?.slice().sort(compareWorkFilePriority)[0];
+  const state = focus?.state === 'blocked' || focus?.state === 'failed' ? 'attention'
+    : focus && ['queued', 'active', 'review'].includes(focus.state) ? 'working'
+    : focus?.state === 'done' || room.status === 'archived' ? 'complete'
+    : 'neutral';
+  const status = room.status === 'archived' ? '已归档'
+    : state === 'attention' ? '需要处理'
+    : state === 'working' ? '进行中'
+    : state === 'complete' ? '已完成'
+    : focus?.state === 'cancelled' ? '已停止'
+    : '就绪';
+  const detail = workItems === undefined ? '任务进度不可用'
+    : !focus ? '尚无任务'
+    : workItemFileDetail(focus);
+  return {
+    detail,
+    meta: `${status} · ${room.participants.length} 位伙伴${progress} · ${relativeTime(room.updatedAtMs)}`,
+    state,
+  };
+}
+
+function compareWorkFilePriority(left: RoomWorkItem, right: RoomWorkItem): number {
+  const priorities: Record<RoomWorkItem['state'], number> = {
+    blocked: 0,
+    active: 1,
+    review: 2,
+    queued: 3,
+    failed: 4,
+    done: 5,
+    cancelled: 6,
+  };
+  return priorities[left.state] - priorities[right.state] || right.updatedAtMs - left.updatedAtMs;
+}
+
+function workItemFileDetail(item: RoomWorkItem): string {
+  const objective = boundedPublicText(item.objective);
+  const result = boundedPublicText(item.resultSummary);
+  if (item.state === 'blocked') {
+    const reason = boundedPublicText(record(item.blocker).reason);
+    return reason ? `阻塞：${reason}` : '阻塞原因不可用';
+  }
+  if (item.state === 'active') return objective ? `当前任务：${objective}` : '当前进度不可用';
+  if (item.state === 'review') return objective ? `待复核：${objective}` : '复核内容不可用';
+  if (item.state === 'queued') return objective ? `待开始：${objective}` : '待开始任务内容不可用';
+  if (item.state === 'failed') return result ? `失败结果：${result}` : '失败原因不可用';
+  if (item.state === 'done') return result ? `最近结果：${result}` : '结果摘要不可用';
+  return objective ? `已取消：${objective}` : '已取消任务内容不可用';
+}
+
+function boundedPublicText(value: unknown, limit = 96): string {
+  if (typeof value !== 'string') return '';
+  const normalized = value.replace(/\s+/gu, ' ').trim();
+  if (normalized.length <= limit) return normalized;
+  return `${normalized.slice(0, limit - 1).trimEnd()}…`;
 }
 
 function relativeTime(timestamp: number): string {
@@ -458,4 +787,23 @@ function record(value: unknown): Record<string, unknown> {
 
 function errorText(error: unknown): string {
   return error instanceof Error && error.message ? error.message : '工作没有成功开始，请重试。';
+}
+
+function agentDirectoryActionHandoff(
+  session: SessionSummary,
+  operation: 'archive' | 'restore' | 'delete',
+  reason: unknown,
+): TraceAgentHandoffInput {
+  const message = errorText(reason);
+  const operationLabel = operation === 'archive' ? '归档' : operation === 'restore' ? '恢复' : '删除';
+  return {
+    kind: 'session',
+    entityId: session.id,
+    title: `Session ${operationLabel}失败`,
+    summary: message,
+    error: reason instanceof Error ? reason.message : message,
+    sessionId: session.id,
+    sourceRoute: `/agent?session=${encodeURIComponent(session.id)}`,
+    refs: { operation, surface: 'agent-directory', sessionStatus: session.status },
+  };
 }

@@ -1,0 +1,764 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://github.com/bhukyavenkatesh/excalidraw-architect-mcp",
+  "elements": [
+    {
+      "id": "18e172a10f8e44f99033",
+      "type": "text",
+      "x": 60.0,
+      "y": 40.0,
+      "width": 105.6,
+      "height": 30.0,
+      "angle": 0.0,
+      "strokeColor": "#edf5f0",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1176675065,
+      "version": 1,
+      "versionNonce": 1786896664,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "text": "一个项目怎样讲通",
+      "fontSize": 24,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "一个项目怎样讲通",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "a9d9bb88d5884bb7a980",
+      "type": "text",
+      "x": 60.0,
+      "y": 78.4,
+      "width": 69.3,
+      "height": 17.5,
+      "angle": 0.0,
+      "strokeColor": "#adc1b7",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1224640712,
+      "version": 1,
+      "versionNonce": 1458930859,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "text": "八个问题，四组证据",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "八个问题，四组证据",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "8aae5bb7a98e4e48a66a",
+      "type": "rectangle",
+      "x": 235.5,
+      "y": 139.6,
+      "width": 700.0,
+      "height": 68.0,
+      "angle": 0,
+      "strokeColor": "#adc1b7",
+      "backgroundColor": "#213029",
+      "fillStyle": "solid",
+      "strokeWidth": 1.5,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 3
+      },
+      "seed": 495783396,
+      "version": 1,
+      "versionNonce": 772198336,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "id": "bd63f0bafc8349dca90f",
+          "type": "text"
+        },
+        {
+          "id": "d1311a09010242ff9df7",
+          "type": "arrow"
+        },
+        {
+          "id": "54b32571953f4aa0885f",
+          "type": "arrow"
+        },
+        {
+          "id": "631640494964475f9d52",
+          "type": "arrow"
+        },
+        {
+          "id": "bb8a2f65b4984508a83d",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "customData": {
+        "node_id": "project"
+      }
+    },
+    {
+      "id": "bd63f0bafc8349dca90f",
+      "type": "text",
+      "x": 554.7,
+      "y": 153.6,
+      "width": 61.6,
+      "height": 40.0,
+      "angle": 0,
+      "strokeColor": "#edf5f0",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1608711363,
+      "version": 1,
+      "versionNonce": 1235100999,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "text": "PROJECT\n一句话价值主张",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "8aae5bb7a98e4e48a66a",
+      "originalText": "PROJECT\n一句话价值主张",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "5d671cd0a70f4118a043",
+      "type": "rectangle",
+      "x": 60.0,
+      "y": 321.61,
+      "width": 193.0,
+      "height": 68.0,
+      "angle": 0,
+      "strokeColor": "#adc1b7",
+      "backgroundColor": "#213029",
+      "fillStyle": "solid",
+      "strokeWidth": 1.5,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1451761134,
+      "version": 1,
+      "versionNonce": 605266151,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "id": "81930e93b4c64446b208",
+          "type": "text"
+        },
+        {
+          "id": "d1311a09010242ff9df7",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "customData": {
+        "node_id": "context"
+      }
+    },
+    {
+      "id": "81930e93b4c64446b208",
+      "type": "text",
+      "x": 81.7,
+      "y": 335.61,
+      "width": 149.6,
+      "height": 40.0,
+      "angle": 0,
+      "strokeColor": "#edf5f0",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1350714729,
+      "version": 1,
+      "versionNonce": 1657646490,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "text": "01 WHY + 02 SCOPE\n为什么存在，目标与约束",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "5d671cd0a70f4118a043",
+      "originalText": "01 WHY + 02 SCOPE\n为什么存在，目标与约束",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "b79974ab6ce24381b79d",
+      "type": "rectangle",
+      "x": 373.0,
+      "y": 321.61,
+      "width": 220.0,
+      "height": 68.0,
+      "angle": 0,
+      "strokeColor": "#adc1b7",
+      "backgroundColor": "#213029",
+      "fillStyle": "solid",
+      "strokeWidth": 1.5,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 3
+      },
+      "seed": 296354581,
+      "version": 1,
+      "versionNonce": 978965842,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "id": "911d39e9170a4d4cbaf9",
+          "type": "text"
+        },
+        {
+          "id": "54b32571953f4aa0885f",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "customData": {
+        "node_id": "ownership"
+      }
+    },
+    {
+      "id": "911d39e9170a4d4cbaf9",
+      "type": "text",
+      "x": 395.0,
+      "y": 335.61,
+      "width": 176.0,
+      "height": 40.0,
+      "angle": 0,
+      "strokeColor": "#edf5f0",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 3
+      },
+      "seed": 380467555,
+      "version": 1,
+      "versionNonce": 709914753,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "text": "03 OWNER + 04 SYSTEM\n我的职责，架构与核心链路",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "b79974ab6ce24381b79d",
+      "originalText": "03 OWNER + 04 SYSTEM\n我的职责，架构与核心链路",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "dba841958e4944dd9d11",
+      "type": "rectangle",
+      "x": 713.0,
+      "y": 321.61,
+      "width": 238.0,
+      "height": 68.0,
+      "angle": 0,
+      "strokeColor": "#70d49f",
+      "backgroundColor": "#173d2b",
+      "fillStyle": "solid",
+      "strokeWidth": 2.0,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1640839629,
+      "version": 1,
+      "versionNonce": 1114650680,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "id": "70a107d0bf3943fb9783",
+          "type": "text"
+        },
+        {
+          "id": "631640494964475f9d52",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "customData": {
+        "node_id": "decision"
+      }
+    },
+    {
+      "id": "70a107d0bf3943fb9783",
+      "type": "text",
+      "x": 735.2,
+      "y": 335.61,
+      "width": 193.6,
+      "height": 40.0,
+      "angle": 0,
+      "strokeColor": "#70d49f",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1741680326,
+      "version": 1,
+      "versionNonce": 1144189020,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "text": "05 FAILURE + 06 CHOICE\n根因，方案与取舍",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "dba841958e4944dd9d11",
+      "originalText": "05 FAILURE + 06 CHOICE\n根因，方案与取舍",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "a25e006403044c71bec0",
+      "type": "rectangle",
+      "x": 1071.0,
+      "y": 321.61,
+      "width": 220.0,
+      "height": 68.0,
+      "angle": 0,
+      "strokeColor": "#70d49f",
+      "backgroundColor": "#173d2b",
+      "fillStyle": "solid",
+      "strokeWidth": 2.0,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 3
+      },
+      "seed": 616375652,
+      "version": 1,
+      "versionNonce": 474795891,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "id": "b015289549af4fdcb076",
+          "type": "text"
+        },
+        {
+          "id": "bb8a2f65b4984508a83d",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "customData": {
+        "node_id": "proof"
+      }
+    },
+    {
+      "id": "b015289549af4fdcb076",
+      "type": "text",
+      "x": 1093.0,
+      "y": 335.61,
+      "width": 176.0,
+      "height": 40.0,
+      "angle": 0,
+      "strokeColor": "#70d49f",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1908189883,
+      "version": 1,
+      "versionNonce": 1074738517,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "text": "07 PROOF + 08 RESULT\nEval、指标、结果与边界",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "a25e006403044c71bec0",
+      "originalText": "07 PROOF + 08 RESULT\nEval、指标、结果与边界",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "d1311a09010242ff9df7",
+      "type": "arrow",
+      "x": 380.3,
+      "y": 207.6,
+      "width": 135.3,
+      "height": 114.01,
+      "angle": 0,
+      "strokeColor": "#adc1b7",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1.5,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1020669468,
+      "version": 1,
+      "versionNonce": 1754515884,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          -135.3,
+          114.01
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "startBinding": {
+        "elementId": "8aae5bb7a98e4e48a66a",
+        "focus": 0,
+        "gap": 4
+      },
+      "endBinding": {
+        "elementId": "5d671cd0a70f4118a043",
+        "focus": 0,
+        "gap": 4
+      }
+    },
+    {
+      "id": "54b32571953f4aa0885f",
+      "type": "arrow",
+      "x": 517.1,
+      "y": 207.6,
+      "width": 67.9,
+      "height": 114.01,
+      "angle": 0,
+      "strokeColor": "#adc1b7",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1.5,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 2
+      },
+      "seed": 556835926,
+      "version": 1,
+      "versionNonce": 196674128,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          67.9,
+          114.01
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "startBinding": {
+        "elementId": "8aae5bb7a98e4e48a66a",
+        "focus": 0,
+        "gap": 4
+      },
+      "endBinding": {
+        "elementId": "b79974ab6ce24381b79d",
+        "focus": 0,
+        "gap": 4
+      }
+    },
+    {
+      "id": "631640494964475f9d52",
+      "type": "arrow",
+      "x": 653.9,
+      "y": 207.6,
+      "width": 67.1,
+      "height": 114.01,
+      "angle": 0,
+      "strokeColor": "#adc1b7",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1.5,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1390052866,
+      "version": 1,
+      "versionNonce": 1963441481,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          67.1,
+          114.01
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "startBinding": {
+        "elementId": "8aae5bb7a98e4e48a66a",
+        "focus": 0,
+        "gap": 4
+      },
+      "endBinding": {
+        "elementId": "dba841958e4944dd9d11",
+        "focus": 0,
+        "gap": 4
+      }
+    },
+    {
+      "id": "bb8a2f65b4984508a83d",
+      "type": "arrow",
+      "x": 790.7,
+      "y": 207.6,
+      "width": 288.3,
+      "height": 114.01,
+      "angle": 0,
+      "strokeColor": "#adc1b7",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1.5,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": null,
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1445602014,
+      "version": 1,
+      "versionNonce": 763896628,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          288.3,
+          114.01
+        ]
+      ],
+      "lastCommittedPoint": null,
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "startBinding": {
+        "elementId": "8aae5bb7a98e4e48a66a",
+        "focus": 0,
+        "gap": 4
+      },
+      "endBinding": {
+        "elementId": "a25e006403044c71bec0",
+        "focus": 0,
+        "gap": 4
+      }
+    }
+  ],
+  "appState": {
+    "gridSize": 20,
+    "gridStep": 5,
+    "gridModeEnabled": false,
+    "viewBackgroundColor": "#141a17",
+    "customData": {
+      "excalidraw_mcp": {
+        "version": 2,
+        "diagram_type": "tree",
+        "theme": "dark",
+        "spec": {
+          "title": "一个项目怎样讲通",
+          "subtitle": "八个问题，四组证据",
+          "nodes": [
+            {
+              "id": "project",
+              "label": "PROJECT\n一句话价值主张",
+              "focal": false
+            },
+            {
+              "id": "context",
+              "label": "01 WHY + 02 SCOPE\n为什么存在，目标与约束",
+              "parent": "project",
+              "focal": false
+            },
+            {
+              "id": "ownership",
+              "label": "03 OWNER + 04 SYSTEM\n我的职责，架构与核心链路",
+              "parent": "project",
+              "focal": false
+            },
+            {
+              "id": "decision",
+              "label": "05 FAILURE + 06 CHOICE\n根因，方案与取舍",
+              "parent": "project",
+              "focal": true
+            },
+            {
+              "id": "proof",
+              "label": "07 PROOF + 08 RESULT\nEval、指标、结果与边界",
+              "parent": "project",
+              "focal": true
+            }
+          ],
+          "direction": "TD"
+        }
+      }
+    }
+  },
+  "files": {}
+}

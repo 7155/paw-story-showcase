@@ -160,6 +160,28 @@ export default defineConfig({
   build: {
     sourcemap: false,
     target: 'es2022',
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@antv/g6')) return 'vendor-g6';
+            if (id.includes('three')) return 'vendor-three';
+            if (id.includes('shiki')) return 'vendor-shiki';
+            if (id.includes('@xterm')) return 'vendor-xterm';
+            if (
+              id.includes('/react/') ||
+              id.includes('/react-dom/') ||
+              id.includes('react-router-dom') ||
+              id.includes('zustand') ||
+              id.includes('@tanstack/react-query')
+            ) {
+              return 'vendor-framework';
+            }
+            if (id.includes('@radix-ui')) return 'vendor-radix';
+          }
+        },
+      },
+    },
   },
   server: controlProxyTarget
     ? {

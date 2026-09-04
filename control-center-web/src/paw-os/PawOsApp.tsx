@@ -3,23 +3,18 @@ import { usePawOsAppearance } from '@/design/paw-os-themes';
 import { pawAppForPath } from './runtime/app-registry';
 import { PawDesktopProvider, usePawDesktopApi } from './runtime/desktop-context';
 import type { PawDesktopStore } from './runtime/desktop-store';
+import { PawMemoryFlowShowcaseDirector } from './showcase/PawMemoryFlowShowcaseDirector';
 import { PawRoomFlowShowcaseDirector } from './showcase/PawRoomFlowShowcaseDirector';
+import { PawTraceFlowShowcaseDirector } from './showcase/PawTraceFlowShowcaseDirector';
+import { isPawMemoryFlowShowcase } from './showcase/memory-flow-script';
 import { isPawRoomFlowShowcase } from './showcase/room-flow-script';
+import { isPawTraceFlowShowcase } from './showcase/trace-flow-script';
 import { PawDesktop } from './shell/PawDesktop';
 import './styles/paw-os.css';
 import './styles/paw-os-motion.css';
-import './styles/paw-os-agent-composition.css';
-import './styles/paw-os-agent-next.css';
 import './styles/paw-os-webmodel-v1.css';
 import './styles/paw-os-shell-migrated-v1.css';
 import './styles/paw-os-controls.css';
-import './styles/paw-os-agent-migrated-v1.css';
-import './styles/paw-os-agent-fx.css';
-import './styles/paw-os-room-migrated-v1.css';
-import './styles/paw-os-room-focus.css';
-import './styles/paw-os-starfield.css';
-import './styles/paw-os-sys-apps-migrated-v1.css';
-import './styles/paw-os-tools-files-migrated-v1.css';
 import './styles/paw-os-showcase.css';
 
 export function PawOsApp() {
@@ -27,21 +22,31 @@ export function PawOsApp() {
   const initialRoute = useMemo(() => currentHashRoute(), []);
   const initialApp = useMemo(() => pawAppForPath(initialRoute), [initialRoute]);
   const roomFlowShowcase = useMemo(() => isPawRoomFlowShowcase(), []);
+  const memoryFlowShowcase = useMemo(() => isPawMemoryFlowShowcase(), []);
+  const traceFlowShowcase = useMemo(() => isPawTraceFlowShowcase(), []);
+  const showcaseId = useMemo(() => currentShowcaseId(), []);
+  const contextShowcase = showcaseId.startsWith('context-');
+  const persistenceKey = showcaseId
+    ? `pawos.desktop.showcase.${showcaseId}.v1`
+    : undefined;
   return (
     <PawDesktopProvider
       initialAppId={initialApp?.id}
       initialRoute={initialRoute}
-      persistenceKey={roomFlowShowcase ? 'pawos.desktop.showcase.room-flow.v1' : undefined}
+      persistenceKey={persistenceKey}
     >
       <PawOsRouteBridge />
       <div
         className="paw-desktop-root"
+        data-context-showcase={contextShowcase || undefined}
         data-paw-theme={theme}
         data-room-flow-showcase={roomFlowShowcase || undefined}
         data-testid="paw-os-product-root"
       >
         <PawDesktop />
+        {memoryFlowShowcase ? <PawMemoryFlowShowcaseDirector /> : null}
         {roomFlowShowcase ? <PawRoomFlowShowcaseDirector /> : null}
+        {traceFlowShowcase ? <PawTraceFlowShowcaseDirector /> : null}
       </div>
     </PawDesktopProvider>
   );
@@ -82,7 +87,13 @@ export function syncPawOsRoute(api: PawDesktopStore) {
       api.getState().bindAgentMain('agent');
     }
   }
-  api.getState().openApp(app.id, { initialRoute: route });
+  const windowId = api.getState().openApp(app.id, { initialRoute: route });
+  if (
+    currentShowcaseId().startsWith('context-')
+    && api.getState().windows[windowId]?.placement !== 'maximized'
+  ) {
+    api.getState().toggleMaximize(windowId);
+  }
 }
 
 function agentRouteTarget(route: string): { kind: 'session' | 'room'; id: string } | null {
@@ -96,4 +107,10 @@ function agentRouteTarget(route: string): { kind: 'session' | 'room'; id: string
 function currentHashRoute(): string {
   if (typeof window === 'undefined') return '/project-field';
   return window.location.hash.replace(/^#/, '') || '/project-field';
+}
+
+function currentShowcaseId(): string {
+  if (typeof window === 'undefined') return '';
+  const value = new URLSearchParams(window.location.search).get('showcase')?.trim() ?? '';
+  return /^[a-z0-9-]+$/u.test(value) ? value : '';
 }

@@ -27,6 +27,13 @@ const eslintConfig = defineConfig([
       "react-hooks/set-state-in-effect": "off",
     },
   },
+  {
+    rules: {
+      // vinext serves next/link as a client-reference object, not a usable
+      // component; plain anchors are the working navigation primitive here.
+      "@next/next/no-html-link-for-pages": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

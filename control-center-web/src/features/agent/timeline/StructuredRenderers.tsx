@@ -11,7 +11,7 @@ import {
   TriangleAlert,
   Wrench,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Button, Disclosure } from '@/components/primitives';
 import type { UiAgentBlock } from '@/contracts/ui-events';
 import {
@@ -32,7 +32,7 @@ import {
   text,
 } from './renderer-values';
 
-export function CardBlockRenderer({ block }: AgentBlockRenderProps) {
+export function CardBlockRenderer({ block, sessionId }: AgentBlockRenderProps) {
   const data = block.data;
   const title = text(data.title) || '信息卡片';
   const tone = ['info', 'success', 'warning', 'danger'].includes(text(data.tone))
@@ -45,7 +45,7 @@ export function CardBlockRenderer({ block }: AgentBlockRenderProps) {
         <span className="agent-insert-icon">{statusIcon(tone)}</span>
         <strong>{title}</strong>
       </header>
-      {text(data.bodyMarkdown) ? <MarkdownBody text={text(data.bodyMarkdown)} /> : null}
+      {text(data.bodyMarkdown) ? <MarkdownBody sessionId={sessionId} text={text(data.bodyMarkdown)} /> : null}
       {fields.length ? (
         <dl>
           {fields.map((field, index) => (
@@ -339,7 +339,10 @@ export function ProgressBlockRenderer({ block }: AgentBlockRenderProps) {
               className="fx-track"
               role="progressbar"
             >
-              <div className="fill" style={{ width: `${percent}%` }} />
+              <div
+                className="fill"
+                style={{ '--fx-progress-scale': percent / 100 } as CSSProperties}
+              />
             </div>
             <div className="fx-runrow"><span className="fx-meta">{percent}%</span><span className="fx-meta">真实比例 · 已确认进展</span></div>
           </>

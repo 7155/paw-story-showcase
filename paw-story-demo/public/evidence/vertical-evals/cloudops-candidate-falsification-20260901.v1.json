@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "paw.story.cloudops-candidate-falsification.v1",
+  "measuredAt": "2026-09-01",
+  "suite": {
+    "split": "validation",
+    "caseCount": 12,
+    "suiteSha256": "31939ae6ba38924fd63195fb28c289401674da89e81423fe7dd8217b753fdaec",
+    "provider": "openai-codex",
+    "model": "gpt-5.6-sol",
+    "thinking": "max",
+    "heldOutObserved": false
+  },
+  "incumbent": {
+    "profile": "baseline-v1",
+    "ca": 1.0,
+    "jra": 0.8333333333333334,
+    "top3Jra": 0.8333333333333334,
+    "toolCalls": 98,
+    "failedToolCalls": 0
+  },
+  "candidateSequence": [
+    {
+      "version": "v1",
+      "change": "add host-side evidence search",
+      "result": "failed_before_formal_score",
+      "finding": "the public query schema and an undisclosed twelve-term implementation limit disagreed"
+    },
+    {
+      "version": "v2",
+      "change": "align search-term handling and retain the host score",
+      "result": "rejected",
+      "ca": 0.8333333333333334,
+      "jra": 0.8333333333333334,
+      "top3Jra": 1.0,
+      "toolCalls": 189,
+      "failedToolCalls": 0,
+      "finding": "all-zero Provider usage was projected as available and the candidate doubled Tool calls without improving JRA"
+    },
+    {
+      "version": "v3",
+      "change": "bound search/list/read budgets, reject duplicates and use a two-stage diagnosis contract",
+      "result": "rejected",
+      "ca": 0.75,
+      "jra": 0.75,
+      "top3Jra": 0.8333333333333334,
+      "toolCalls": 82,
+      "failedToolCalls": 1,
+      "finding": "one long opaque cache key was transcribed incorrectly and diagnosis quality regressed"
+    },
+    {
+      "version": "v4",
+      "change": "replace public cache keys with case-scoped short observation IDs",
+      "result": "rejected_and_stopped",
+      "answerCoverage": 1.0,
+      "ca": 0.5,
+      "jra": 0.4166666666666667,
+      "top3Jra": 0.5,
+      "toolCalls": 94,
+      "failedToolCalls": 0,
+      "finding": "the Tool-addressing defect was removed but business diagnosis quality failed the predeclared gate"
+    }
+  ],
+  "closedContractDefects": [
+    "search_schema_hidden_term_limit",
+    "unknown_provider_usage_projected_as_available",
+    "opaque_cache_key_transcription"
+  ],
+  "decision": {
+    "result": "keep_baseline",
+    "runV5": false,
+    "reason": "Tool reliability and workflow quality are separate gates; v4 passed the former and failed the latter."
+  },
+  "claim": {
+    "allowed": "Four append-only Validation trials closed three Tool or Eval contract defects. The final short-ID path completed 94 of 94 Tool calls, but its diagnosis quality regressed, so the candidate was rejected and the baseline was retained.",
+    "forbidden": "v4 improved diagnosis quality, Tool reliability proves Agent quality, token cost improved, Held-out was consumed, a candidate was installed, or another v5 run is justified on this Validation suite."
+  }
+}

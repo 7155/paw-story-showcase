@@ -4,6 +4,11 @@
  * Source: rag_ime/contracts/json/agent-configuration.v1.json
  */
 
+/**
+ * @maxItems 128
+ */
+export type SkillRoute = string[];
+
 export interface AgentConfigurationV1 {
   schemaVersion: 'rag-ime.agent-configuration.v1';
   revision: number;
@@ -32,9 +37,16 @@ export interface AgentConfigurationV1 {
     };
     modelRouting: {
       primary: ModelRoute;
+      traceDiagnostic: ModelRoute;
       toolAgent: ModelRoute;
       subagent: ModelRoute;
       roomCoordinator: ModelRoute;
+    };
+    skillRouting: {
+      ordinary: SkillRoute;
+      room: SkillRoute;
+      trace: SkillRoute;
+      agentLab: SkillRoute;
     };
     [k: string]: unknown;
   };

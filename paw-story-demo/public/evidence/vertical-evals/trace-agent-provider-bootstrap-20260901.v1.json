@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "paw.trace-agent-provider-bootstrap-evaluation.v1",
+  "runId": "trace-agent-provider-bootstrap-20260901-v1",
+  "status": "candidate_diagnosed_not_installed",
+  "measuredAt": "2026-09-01",
+  "providerContractAB": {
+    "provider": "openai-codex",
+    "model": "gpt-5.6-sol",
+    "samePrivateOAuthAndBasePayload": true,
+    "caseCount": 4,
+    "withMaxOutputTokens": {"httpSse": "400_unsupported_parameter", "websocket": "400_unsupported_parameter"},
+    "withoutMaxOutputTokens": {"httpSse": "response.completed", "websocket": "response.completed"}
+  },
+  "candidate": {
+    "runtimeVersion": "pi-0.84.2-920e42b9c19f-raghost-a1bb684fe6",
+    "manifestSha256": "4ff63aa5b77d620b70f9e430a009d93450a8a297e9602d3bcc96820fe7b29211",
+    "installedStateChanged": false,
+    "focusedPiTestsBefore": {"passed": 37, "failed": 1},
+    "focusedPiTestsAfter": {"passed": 38, "failed": 0},
+    "stagedSessionAcceptancePassed": true
+  },
+  "traceAgentComparison": {
+    "installedRuntime": {"terminal": "turn_failed", "toolCallCount": 0, "failureBeforeSkillOrTool": true},
+    "candidateRuntime": {"terminal": "turn_completed", "toolCallCount": 2, "providerRequestCount": 3, "maxOutputTokensPresentCount": 0, "reportStatus": "completed", "findingId": "unsupported-max-output-tokens", "candidateRepairProduced": true, "repairApplied": false}
+  },
+  "claim": {
+    "allowed": "A same-payload HTTP/WebSocket A/B isolated the Pi Codex request field as the failure owner; the non-installed candidate restored a completed read-only Trace Agent report.",
+    "forbidden": "The installed PAW Runtime is repaired, Trace Agent installed its own bootstrap fix, or the candidate passed foreground acceptance."
+  }
+}

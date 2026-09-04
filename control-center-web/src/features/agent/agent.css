@@ -346,9 +346,9 @@
   padding: 9px 14px;
   border-radius: 14px 14px 3px 14px;
   background: var(--color-surface-hover);
-  border: 1px solid var(--color-border-soft);
+  border: 0;
   color: var(--color-text);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: none;
   animation: agent-message-enter var(--duration-enter) var(--ease-standard) both;
 }
 .agent-user-message .agent-markdown > :first-child, .agent-user-message .agent-markdown > :last-child { margin-block: 0; }
@@ -392,14 +392,26 @@
    Secondary text is enough to separate identity from telemetry without turning
    a quiet footer into a second headline. */
 .agent-message-usage__model { color: var(--color-text-secondary); }
-.agent-compaction-notice { position: relative; display: grid; min-height: 50px; max-width: 620px; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: center; gap: 9px; margin: 4px 0 12px; padding: 8px 10px; overflow: hidden; border: 1px solid var(--color-border); border-left: 3px solid var(--color-warning); border-radius: 5px; background: color-mix(in srgb, var(--color-warning-soft) 44%, var(--color-surface)); }
+.agent-compaction-notice { position: relative; display: grid; min-height: 50px; max-width: 620px; grid-template-columns: 26px minmax(0, 1fr); align-items: center; gap: 9px; margin: 4px 0 12px; padding: 8px 10px; overflow: hidden; border: 1px solid var(--color-border); border-left: 3px solid var(--color-warning); border-radius: 5px; background: color-mix(in srgb, var(--color-warning-soft) 44%, var(--color-surface)); animation: agent-autocompact-enter var(--duration-enter) var(--ease-standard) both; }
 .agent-compaction-notice[data-state='failed'] { border-left-color: var(--color-danger); background: var(--color-danger-soft); }
 .agent-compaction-notice__mark { display: grid; width: 26px; height: 26px; place-items: center; border-radius: 50%; background: var(--color-surface); color: var(--color-warning); }
-.agent-compaction-notice[data-state='running'] .agent-compaction-notice__mark svg { animation: agent-status-spin 1.2s linear infinite; }
+.agent-compaction-notice[data-state='failed'] .agent-compaction-notice__mark { color: var(--color-danger); }
+.agent-compaction-notice__fold { position: relative; display: block; width: 16px; height: 16px; }
+.agent-compaction-notice__fold > i { position: absolute; left: 2px; display: block; width: 12px; height: 2px; border-radius: 999px; background: currentColor; opacity: .9; transform-origin: center; transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-enter) var(--ease-standard); }
+.agent-compaction-notice__fold > i:nth-child(1) { top: 2px; }
+.agent-compaction-notice__fold > i:nth-child(2) { top: 7px; }
+.agent-compaction-notice__fold > i:nth-child(3) { top: 12px; }
+.agent-compaction-notice[data-state='running'] .agent-compaction-notice__fold > i:nth-child(1) { animation: agent-autocompact-fold-top var(--duration-status-pulse) var(--ease-standard) infinite alternate; }
+.agent-compaction-notice[data-state='running'] .agent-compaction-notice__fold > i:nth-child(2) { animation: agent-autocompact-fold-middle var(--duration-status-pulse) var(--ease-standard) infinite alternate; }
+.agent-compaction-notice[data-state='running'] .agent-compaction-notice__fold > i:nth-child(3) { animation: agent-autocompact-fold-bottom var(--duration-status-pulse) var(--ease-standard) infinite alternate; }
+.agent-compaction-notice[data-state='completed'] .agent-compaction-notice__fold > i:nth-child(1) { opacity: .72; transform: translateY(5px) scaleX(.72); }
+.agent-compaction-notice[data-state='completed'] .agent-compaction-notice__fold > i:nth-child(2) { transform: scaleX(.55); }
+.agent-compaction-notice[data-state='completed'] .agent-compaction-notice__fold > i:nth-child(3) { opacity: .72; transform: translateY(-5px) scaleX(.72); }
 .agent-compaction-notice > span:nth-child(2) { display: grid; min-width: 0; gap: 2px; }
+.agent-compaction-notice strong,
+.agent-compaction-notice small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .agent-compaction-notice strong { font-size: 13px; }
 .agent-compaction-notice small { color: var(--color-text-secondary); font-size: 13px; line-height: 1.35; }
-.agent-compaction-notice__pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--color-warning); box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-warning) 45%, transparent); animation: agent-compaction-pulse 2.4s ease-in-out infinite; }
 /* Jump destination: a margin rule appears and a wash settles into the paper —
    brief, non-flashing emphasis with spatial continuity. Reduced motion gets
    the rule alone via the global animation reset. */
@@ -421,6 +433,7 @@
 .paw-conv-planet {
   --paw-planet-size: 13px;
   --paw-planet-core: var(--color-accent);
+  --paw-planet-shade: color-mix(in srgb, var(--paw-planet-core) 48%, #0b1220);
   position: relative;
   display: inline-grid;
   width: var(--paw-planet-size);
@@ -442,17 +455,29 @@
   width: calc(var(--paw-planet-size) * .62);
   height: calc(var(--paw-planet-size) * .62);
   border-radius: 50%;
-  background: var(--paw-planet-core);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 34%);
+  background:
+    radial-gradient(circle at 30% 26%, rgb(255 255 255 / 88%) 0 11%, rgb(255 255 255 / 0%) 34%),
+    radial-gradient(circle at 42% 38%, var(--paw-planet-core) 0 46%, var(--paw-planet-shade) 100%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 28%), 0 1px 2px color-mix(in srgb, var(--paw-planet-shade) 36%, transparent);
 }
 
 .paw-conv-planet__orbit {
   position: absolute;
   inset: 0;
-  border: 1px solid transparent;
-  border-top-color: color-mix(in srgb, var(--paw-planet-core) 74%, transparent);
-  border-right-color: color-mix(in srgb, var(--paw-planet-core) 22%, transparent);
+  padding: 1px;
   border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0 24%,
+    color-mix(in srgb, var(--paw-planet-core) 26%, transparent) 38%,
+    color-mix(in srgb, var(--paw-planet-core) 88%, white) 52%,
+    color-mix(in srgb, var(--paw-planet-core) 36%, transparent) 66%,
+    transparent 80% 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
   opacity: 0;
   transition: opacity 180ms cubic-bezier(.23, 1, .32, 1);
 }
@@ -560,6 +585,52 @@
 .agent-markdown table { width: max-content; min-width: 100%; border-collapse: collapse; font-size: 13px; }
 .agent-markdown > table { display: block; max-width: 100%; margin: 10px 0; overflow-x: auto; }
 .agent-markdown th, .agent-markdown td { padding: 6px 9px; border: 1px solid var(--color-border); text-align: left; }
+
+.agent-trace-diagnostic-receipt {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-3);
+  background: var(--color-surface-subtle);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-text) 7%, transparent);
+}
+.agent-trace-diagnostic-receipt__mark {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+.agent-trace-diagnostic-receipt > div { display: grid; min-width: 0; gap: 4px; }
+.agent-trace-diagnostic-receipt strong { color: var(--color-text); font-size: var(--font-size-ui-strong); }
+.agent-trace-diagnostic-receipt p { max-width: 72ch; margin: 0; color: var(--color-text-secondary); line-height: var(--line-height-body); }
+.agent-trace-diagnostic-receipt small { overflow: hidden; color: var(--color-text-tertiary); font: var(--font-weight-medium) var(--font-size-caption) var(--font-mono); text-overflow: ellipsis; white-space: nowrap; }
+.agent-trace-diagnostic-receipt__action {
+  display: inline-flex;
+  min-height: var(--control-height-sm);
+  align-items: center;
+  gap: 6px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+.agent-trace-diagnostic-receipt__action:hover { border-color: var(--color-accent); background: var(--color-surface-hover); }
+.agent-trace-diagnostic-receipt__action:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+@media (max-width: 720px) {
+  .agent-trace-diagnostic-receipt { grid-template-columns: auto minmax(0, 1fr); }
+  .agent-trace-diagnostic-receipt__action { grid-column: 2; justify-self: start; }
+}
 .agent-html-output { min-width: 0; max-width: 100%; margin: 8px 0 12px; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-2); background: var(--color-surface); box-shadow: 0 1px 2px rgb(16 33 24 / 5%); }
 .agent-html-output__header { display: flex; min-height: 40px; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 8px 6px 12px; border-bottom: 1px solid var(--color-border); background: var(--color-surface-subtle); }
 .agent-html-output__label { display: inline-flex; min-width: 0; align-items: center; gap: 7px; color: var(--color-text-secondary); font-size: 12px; font-weight: var(--font-weight-semibold); letter-spacing: .01em; }
@@ -884,6 +955,8 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
 .agent-tool-list-result > ol > li { display: grid; grid-template-columns: minmax(120px, .4fr) minmax(0, 1fr); gap: 10px; padding: 7px 10px; border-bottom: 1px solid var(--color-border); }
 .agent-tool-list-result > ol > li:last-child { border-bottom: 0; }
 .agent-tool-list-result > ol strong { min-width: 0; color: var(--color-text); font-family: var(--font-mono); font-size: 12px; overflow-wrap: anywhere; }
+.agent-tool-file-link { display: inline-flex; max-width: 100%; align-items: center; gap: 4px; color: var(--color-accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--color-accent) 48%, transparent); text-underline-offset: 3px; overflow-wrap: anywhere; }
+.agent-tool-file-link:hover { text-decoration-color: currentColor; }
 .agent-tool-list-result > ol span { min-width: 0; color: var(--color-text-secondary); font-family: var(--font-mono); font-size: 12px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
 .agent-tool-change-result { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 9px; padding: 10px; border-left: 3px solid var(--color-success); }
 .agent-tool-change-result > span:first-child { display: grid; width: 32px; height: 32px; place-items: center; border-radius: var(--radius-2); background: var(--color-success-soft); color: var(--color-success); }
@@ -1006,15 +1079,21 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
    only live on the single mutable tail chunk. The wrapper div is a stable DOM
    node across token appends, which keeps the sweep continuous instead of
    restarting on every re-parse; frozen prose above it stays perfectly still. */
-.agent-markdown__active-tail { position: relative; min-width: 0; }
+.agent-markdown__active-tail { position: relative; z-index: 0; min-width: 0; overflow: clip; overflow-clip-margin: 7px; isolation: isolate; }
 .agent-markdown__active-tail::after {
   content: '';
   position: absolute;
-  inset: -1px -7px -3px;
+  z-index: -1;
+  top: -1px;
+  bottom: -3px;
+  left: -7px;
+  width: calc(200% + 14px);
   border-radius: var(--radius-2);
-  background: linear-gradient(102deg, transparent 34%, color-mix(in srgb, var(--color-accent) 6%, transparent) 50%, transparent 66%);
-  background-size: 280% 100%;
+  background: linear-gradient(102deg,
+    transparent 0%, transparent 17%, color-mix(in srgb, var(--color-accent) 6%, transparent) 25%, transparent 33%,
+    transparent 50%, transparent 67%, color-mix(in srgb, var(--color-accent) 6%, transparent) 75%, transparent 83%, transparent 100%);
   animation: agent-tail-shimmer 2.4s linear infinite;
+  will-change: transform;
   pointer-events: none;
 }
 .agent-assistant-message[data-status='streaming'] .agent-markdown__active-tail .agent-streaming-cursor--inline {
@@ -1022,8 +1101,8 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
   box-shadow: 0 0 7px color-mix(in srgb, var(--color-accent) 55%, transparent);
 }
 @keyframes agent-tail-shimmer {
-  from { background-position: 210% 0; }
-  to { background-position: -110% 0; }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
 }
 
 /* Chunk-commit entrance. A frozen chunk's DOM nodes are inserted exactly once
@@ -1044,14 +1123,27 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
    carries a slow accent sweep so a long silent code stream still reads as
    alive even when tokens land between visual lines. */
 .agent-code-block[data-streaming] > figcaption {
-  background:
-    linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--color-accent) 9%, transparent) 50%, transparent 70%)
-    0 0 / 240% 100% no-repeat;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.agent-code-block[data-streaming] > figcaption > * { position: relative; z-index: 1; }
+.agent-code-block[data-streaming] > figcaption::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0 auto 0 0;
+  width: 200%;
+  background: linear-gradient(100deg,
+    transparent 0%, transparent 15%, color-mix(in srgb, var(--color-accent) 9%, transparent) 25%, transparent 35%,
+    transparent 50%, transparent 65%, color-mix(in srgb, var(--color-accent) 9%, transparent) 75%, transparent 85%, transparent 100%);
   animation: agent-code-stream-sweep 1.9s linear infinite;
+  will-change: transform;
+  pointer-events: none;
+  content: '';
 }
 @keyframes agent-code-stream-sweep {
-  from { background-position: 180% 0; }
-  to { background-position: -80% 0; }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
 }
 
 .ui-dialog.agent-review-dialog { display: grid; width: min(760px, calc(100vw - 28px)); max-height: min(760px, calc(100dvh - 28px)); grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: 12px; overflow: hidden; }
@@ -1300,32 +1392,43 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
   from { opacity: 0; transform: scale(.85); }
   to { opacity: 1; transform: none; }
 }
-/* Running signal: one restrained accent hairline sweeps the composer's top
-   edge while a turn runs. Final text never shimmers; reduced motion keeps the
-   state legible as a static hairline (PF-CM-011). */
-.agent-composer[data-busy]::before {
+/* Running signal: the whole rounded input frame carries one continuous colour
+   flow. The masked wrapper stays still; only its duplicated gradient layer
+   translates, so the textarea and toolbar never repaint or move. */
+.agent-composer__busy-frame {
   position: absolute;
-  z-index: 1;
-  inset: 0 0 auto;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 14%, var(--color-accent) 50%, transparent 86%);
-  background-size: 220% 100%;
-  content: '';
-  animation: agent-composer-busy-sweep 2.6s linear infinite;
+  z-index: 2;
+  inset: -2px;
+  padding: 2px;
+  overflow: hidden;
+  border-radius: inherit;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
   pointer-events: none;
 }
-@keyframes agent-composer-busy-sweep {
-  from { background-position: 220% 0; }
-  to { background-position: -120% 0; }
+.agent-composer__busy-frame > i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  background: linear-gradient(90deg,
+    #2f6bff 0%, #8a6cff 12.5%, #42d4ff 25%, #2bc48a 37.5%, #2f6bff 50%,
+    #8a6cff 62.5%, #42d4ff 75%, #2bc48a 87.5%, #2f6bff 100%);
+  animation: agent-composer-busy-flow 2.6s linear infinite;
+  will-change: transform;
 }
-.agent-composer__model-controls { display: inline-flex; min-width: 0; flex: 0 1 auto; align-items: center; gap: 2px; }
+@keyframes agent-composer-busy-flow {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
 .agent-composer__picker { max-width: 190px; flex: 0 1 auto; }
 .agent-composer__picker .ui-button__label { display: inline-flex; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .agent-composer__picker-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .agent-composer__picker-detail { flex: 0 0 auto; white-space: nowrap; }
-.agent-composer__thinking-picker { min-width: 66px; flex: 0 0 auto; padding-inline: 7px; }
-.agent-composer__thinking-picker .ui-button__label { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
-.agent-composer__thinking-picker strong { font-size: inherit; font-weight: var(--font-weight-semibold); }
+.agent-composer__picker-thinking { flex: 0 0 auto; font-size: inherit; font-weight: var(--font-weight-semibold); white-space: nowrap; }
 
 /* ------------------------------------------------- composer logo collapse --
  * PF-CM-009/017: when the toolbar runs out of room the chrome sheds words in
@@ -1340,8 +1443,6 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
 @container paw-composer-toolbar (max-width: 620px) {
   .agent-composer__picker { max-width: 136px; }
   .agent-composer__picker-detail { display: none; }
-  .agent-composer__thinking-label { display: none; }
-  .agent-composer__thinking-picker { min-width: 48px; }
 }
 
 @container paw-composer-toolbar (max-width: 460px) {
@@ -1361,12 +1462,6 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
-  }
-
-  .agent-composer__model-controls { flex: 0 0 auto; }
-  .agent-composer__thinking-picker {
-    min-width: 40px;
-    padding-inline: 5px;
   }
 
   .agent-composer__delivery button { min-width: 36px; padding-inline: 5px; }
@@ -1464,15 +1559,16 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
 .agent-dangerous-permission-dialog__check button { display: grid; width: 18px; height: 18px; flex: 0 0 auto; place-items: center; padding: 0; border: 1px solid var(--color-danger); border-radius: var(--radius-1); background: var(--color-surface); color: #fff; }
 .agent-dangerous-permission-dialog__check button[data-state='checked'] { background: var(--color-danger); }
 /* ------------------------------------------------------------ model picker --
- * Model and reasoning are adjacent but independent controls. The catalog is a
- * compact searchable list; the discrete reasoning rail gets its own small
- * surface. Neither popover repeats information already visible in its trigger.
+ * Model and reasoning share one picker: the catalog is a compact searchable
+ * list and the current model's discrete reasoning rail sits in a separated
+ * section below it. Neither section repeats information already visible in
+ * the trigger.
  */
 .agent-model-picker {
   display: grid;
   width: min(320px, calc(100vw - 20px));
   max-height: min(360px, calc(100dvh - 84px));
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   padding: 0;
   overflow: hidden;
 }
@@ -1525,7 +1621,7 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
   padding: 6px 10px 4px;
   background: linear-gradient(var(--color-surface) 76%, transparent);
   color: var(--color-text-tertiary);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -1612,11 +1708,11 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
   font-size: 13px;
   text-align: center;
 }
-.agent-thinking-picker {
+.agent-model-picker__thinking {
   display: grid;
-  width: min(300px, calc(100vw - 20px));
   gap: 8px;
   padding: 9px;
+  border-top: 1px solid var(--color-border);
 }
 .agent-thinking-picker__heading {
   display: flex;
@@ -1720,7 +1816,7 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
 .agent-tool-picker__effective { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: 6px; padding-inline: 2px; }
 .agent-tool-picker__effective strong { color: var(--color-text-secondary); font-size: 12px; font-weight: var(--font-weight-semibold); }
 .agent-tool-picker__effective[data-effective='enabled'] strong { color: var(--color-success); }
-.agent-tool-picker__effective small { overflow: hidden; color: var(--color-text-tertiary); font-size: 11.5px; text-overflow: ellipsis; white-space: nowrap; }
+.agent-tool-picker__effective small { overflow: hidden; color: var(--color-text-tertiary); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .agent-tool-picker__preference .ui-select__trigger { width: 100%; }
 .agent-picker-popover__note[data-tone='warning'] {
   border-color: var(--color-warning-border);
@@ -2422,6 +2518,9 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
 .agent-status-tool__details > div p span { color: var(--color-text-tertiary); }
 .agent-status-tool__details > div p strong { overflow-wrap: anywhere; font-weight: 500; }
 .agent-status-tool__details > div p code { width: fit-content; max-width: 100%; overflow-wrap: anywhere; font: var(--font-weight-semibold) 12px var(--font-mono); }
+.agent-status-tool__error { display: flex !important; grid-template-columns: none !important; align-items: flex-start; gap: 6px; margin: 8px 0 !important; padding: 7px 8px; border: 1px solid color-mix(in srgb, var(--color-danger) 34%, var(--color-border)); border-radius: var(--radius-1); background: var(--color-danger-soft); color: var(--color-danger); }
+.agent-status-tool__error > svg { flex: none; margin-top: 2px; }
+.agent-status-tool__error > span { min-width: 0; color: inherit !important; font: 12px/1.45 var(--font-mono); overflow-wrap: anywhere; }
 .agent-status-tool__interface code { padding: 1px 4px; border-radius: var(--radius-1); background: var(--color-project-soft); color: var(--color-project); font-weight: var(--font-weight-semibold); }
 .agent-status-tool__sources { margin-top: 8px; padding-top: 7px; border-top: 1px solid color-mix(in srgb, var(--color-border) 66%, transparent); }
 .agent-status-tool__sources > strong { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; color: var(--color-text); font-size: 13px; }
@@ -2472,6 +2571,7 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
 .agent-status-subagent > i time { font: var(--font-weight-semibold) 13px var(--font-mono); }
 .agent-status-subagent__verification { grid-column: 2 / 4; margin: -2px 0 4px; color: var(--color-warning); font-size: 12px; line-height: 1.4; }
 .agent-status-subagent__verification[data-contract-invalid] { padding: 6px 8px; border: 1px solid color-mix(in srgb, var(--color-warning) 40%, var(--color-border)); border-radius: var(--radius-1); background: var(--color-warning-soft); }
+.agent-status-subagent__error { grid-column: 2 / 4; min-width: 0; margin: -2px 0 4px; padding: 6px 8px; border: 1px solid color-mix(in srgb, var(--color-danger) 34%, var(--color-border)); border-radius: var(--radius-1); background: var(--color-danger-soft); color: var(--color-danger); font: 12px/1.4 var(--font-mono); overflow-wrap: anywhere; }
 .agent-status-subagent > .ui-button { grid-column: 2 / 4; width: fit-content; margin: -2px 0 7px; }
 .agent-status-subagent-branch { position: relative; min-width: 0; }
 .agent-status-subagent-children { position: relative; display: grid; margin-left: 18px; padding-left: 12px; }
@@ -2531,6 +2631,10 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
 @media (prefers-reduced-motion: reduce) {
   .agent-composer__delivery,
   .agent-composer__stop { animation: none; }
+  .agent-composer__busy-frame > i {
+    animation: none;
+    transform: translate3d(-25%, 0, 0);
+  }
 }
 
 :root[data-reduce-motion='true'] .agent-composer__delivery,
@@ -2550,14 +2654,51 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
   to { transform: rotate(360deg); }
 }
 
+/* Running copy stays still while the adjacent status glyph owns motion. This
+   keeps incremental Markdown off a continuous background-paint path. */
+details.agent-activity--inline[data-state='running'] > summary > strong { --agent-running-ink: var(--color-text); }
+details.agent-activity--inline[data-state='running'] > summary > .agent-activity__inline-tools { --agent-running-ink: var(--color-text-tertiary); }
+.agent-status-tool[data-state='running'] > summary strong { --agent-running-ink: var(--color-text); }
+.agent-status-tool[data-state='running'] > summary small { --agent-running-ink: var(--color-text-tertiary); }
+.agent-assistant-pending strong { --agent-running-ink: var(--color-text); }
+.agent-assistant-pending small { --agent-running-ink: var(--color-text-secondary); }
+
+:is(
+  details.agent-activity--inline[data-state='running'] > summary > strong,
+  details.agent-activity--inline[data-state='running'] > summary > .agent-activity__inline-tools,
+  .agent-status-tool[data-state='running'] > summary strong,
+  .agent-status-tool[data-state='running'] > summary small,
+  .agent-assistant-pending strong,
+  .agent-assistant-pending small
+) {
+  color: var(--agent-running-ink);
+}
+
 @keyframes agent-dot-wave {
   0%, 72%, 100% { opacity: .3; }
   36% { opacity: 1; }
 }
 
-@keyframes agent-compaction-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .45; }
+@keyframes agent-autocompact-enter {
+  from { opacity: 0; transform: translateY(var(--distance-enter)); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes agent-autocompact-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes agent-autocompact-fold-top {
+  to { opacity: .72; transform: translateY(5px) scaleX(.72); }
+}
+
+@keyframes agent-autocompact-fold-middle {
+  to { transform: scaleX(.55); }
+}
+
+@keyframes agent-autocompact-fold-bottom {
+  to { opacity: .72; transform: translateY(-5px) scaleX(.72); }
 }
 
 @keyframes agent-context-breathe {
@@ -2754,6 +2895,11 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .agent-compaction-notice { animation: agent-autocompact-fade var(--duration-enter) linear both; }
+  .agent-compaction-notice[data-state='running'] .agent-compaction-notice__fold > i { animation: none; }
+  .agent-compaction-notice[data-state='running'] .agent-compaction-notice__fold > i:nth-child(1) { opacity: .72; transform: translateY(5px) scaleX(.72); }
+  .agent-compaction-notice[data-state='running'] .agent-compaction-notice__fold > i:nth-child(2) { transform: scaleX(.55); }
+  .agent-compaction-notice[data-state='running'] .agent-compaction-notice__fold > i:nth-child(3) { opacity: .72; transform: translateY(-5px) scaleX(.72); }
   .agent-status-section__content,
   .agent-status-section__chevron,
   .agent-files-panel__chevron,
@@ -2772,8 +2918,9 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
   }
 
   .agent-markdown[data-progressive-markdown] > *,
-  .agent-code-block[data-streaming] > figcaption {
+  .agent-code-block[data-streaming] > figcaption::after {
     animation: none;
+    opacity: 0;
   }
 
   .agent-streaming-cursor,
@@ -2805,6 +2952,19 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
     opacity: 0;
   }
 
+  :is(
+    details.agent-activity--inline[data-state='running'] > summary > strong,
+    details.agent-activity--inline[data-state='running'] > summary > .agent-activity__inline-tools,
+    .agent-status-tool[data-state='running'] > summary strong,
+    .agent-status-tool[data-state='running'] > summary small,
+    .agent-assistant-pending strong,
+    .agent-assistant-pending small
+  ) {
+    color: var(--agent-running-ink);
+    background: none;
+    animation: none;
+  }
+
   .agent-model-picker__panel,
   .agent-model-picker__reasoning-bar,
   .agent-model-picker__list [role='option'][aria-selected='true'] .agent-model-picker__check {
@@ -2822,7 +2982,7 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
  * of the browser viewport. Runtime ownership and Agent behavior stay above
  * this layer; these rules only compose the rail, transcript, composer and
  * inspectors inside the App window. */
-.paw-os-app-window[data-paw-os-app='agent'] .agent-feature {
+.paw-window-shell[data-app='agent'] .agent-feature {
   --agent-rail-width: clamp(244px, 25cqw, 284px);
   --agent-status-width: clamp(286px, 29cqw, 340px);
   position: relative;
@@ -2842,19 +3002,19 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
   transition: grid-template-columns var(--duration-panel) var(--ease-standard);
 }
 
-.paw-os-app-window[data-paw-os-app='agent'] .agent-feature[data-status-open='true'] {
+.paw-window-shell[data-app='agent'] .agent-feature[data-status-open='true'] {
   grid-template-columns: var(--agent-rail-width) minmax(0, 1fr) var(--agent-status-width);
 }
 
-.paw-os-app-window[data-paw-os-app='agent'] .agent-feature[data-rail-open='false'] {
+.paw-window-shell[data-app='agent'] .agent-feature[data-rail-open='false'] {
   grid-template-columns: 0 minmax(0, 1fr) 0;
 }
 
-.paw-os-app-window[data-paw-os-app='agent'] .agent-feature[data-rail-open='false'][data-status-open='true'] {
+.paw-window-shell[data-app='agent'] .agent-feature[data-rail-open='false'][data-status-open='true'] {
   grid-template-columns: 0 minmax(0, 1fr) var(--agent-status-width);
 }
 
-.paw-os-app-window[data-paw-os-app='agent'] .agent-session-rail {
+.paw-window-shell[data-app='agent'] .agent-session-rail {
   background: color-mix(in srgb, var(--color-chrome) 94%, transparent);
   box-shadow: inset -1px 0 0 color-mix(in srgb, var(--color-border-soft) 72%, transparent);
 }
@@ -2862,21 +3022,21 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
 /* These headers sit over the scrolling rail/conversation inside an OS window
    that already owns the glass layer; a nested blur re-rasterizes the streaming
    content beneath them on every frame. */
-.paw-os-app-window[data-paw-os-app='agent'] .agent-session-rail > header,
-.paw-os-app-window[data-paw-os-app='agent'] .agent-conversation__header {
+.paw-window-shell[data-app='agent'] .agent-session-rail > header,
+.paw-window-shell[data-app='agent'] .agent-conversation__header {
   background: color-mix(in srgb, var(--color-chrome) 95%, transparent);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 
-.paw-os-app-window[data-paw-os-app='agent'] .agent-conversation {
+.paw-window-shell[data-app='agent'] .agent-conversation {
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--color-border-soft) 24%, transparent) 1px, transparent 1px),
     var(--color-paper);
   background-size: 64px 100%, auto;
 }
 
-.paw-os-app-window[data-paw-os-app='agent'] .agent-conversation::before {
+.paw-window-shell[data-app='agent'] .agent-conversation::before {
   position: absolute;
   z-index: 0;
   inset: 0;
@@ -2885,11 +3045,11 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
   pointer-events: none;
 }
 
-.paw-os-app-window[data-paw-os-app='agent'] .agent-composer-wrap {
+.paw-window-shell[data-app='agent'] .agent-composer-wrap {
   padding-bottom: 18px;
 }
 
-.paw-os-app-window[data-paw-os-app='agent'] .agent-composer {
+.paw-window-shell[data-app='agent'] .agent-composer {
   border-color: color-mix(in srgb, var(--color-accent) 18%, var(--color-border-soft));
   box-shadow:
     0 18px 42px rgb(0 0 0 / 18%),
@@ -2897,18 +3057,18 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
 }
 
 @container paw-window (max-width: 1120px) {
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-feature,
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-feature[data-status-open='true'] {
+  .paw-window-shell[data-app='agent'] .agent-feature,
+  .paw-window-shell[data-app='agent'] .agent-feature[data-status-open='true'] {
     grid-template-columns: var(--agent-rail-width) minmax(0, 1fr) 0;
   }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-feature[data-rail-open='false'],
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-feature[data-rail-open='false'][data-status-open='true'] {
+  .paw-window-shell[data-app='agent'] .agent-feature[data-rail-open='false'],
+  .paw-window-shell[data-app='agent'] .agent-feature[data-rail-open='false'][data-status-open='true'] {
     grid-template-columns: 0 minmax(0, 1fr) 0;
   }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-status-panel,
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-files-panel {
+  .paw-window-shell[data-app='agent'] .agent-status-panel,
+  .paw-window-shell[data-app='agent'] .agent-files-panel {
     position: absolute;
     z-index: 14;
     top: 0;
@@ -2918,10 +3078,10 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
     box-shadow: var(--shadow-menu);
   }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-status-panel:not([data-open='true']),
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-files-panel:not([data-open='true']) { display: none; }
+  .paw-window-shell[data-app='agent'] .agent-status-panel:not([data-open='true']),
+  .paw-window-shell[data-app='agent'] .agent-files-panel:not([data-open='true']) { display: none; }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-status-backdrop {
+  .paw-window-shell[data-app='agent'] .agent-status-backdrop {
     position: absolute;
     z-index: 13;
     inset: 0;
@@ -2934,28 +3094,28 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
     transition: opacity var(--duration-enter) var(--ease-standard);
   }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-feature[data-status-open='true'] .agent-status-backdrop {
+  .paw-window-shell[data-app='agent'] .agent-feature[data-status-open='true'] .agent-status-backdrop {
     opacity: 1;
     pointer-events: auto;
   }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-pane-resizer[data-side='status'] { display: none; }
+  .paw-window-shell[data-app='agent'] .agent-pane-resizer[data-side='status'] { display: none; }
 }
 
 @container paw-window (max-width: 760px) {
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-feature,
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-feature[data-status-open='true'],
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-feature[data-rail-open='false'],
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-feature[data-rail-open='false'][data-status-open='true'] {
+  .paw-window-shell[data-app='agent'] .agent-feature,
+  .paw-window-shell[data-app='agent'] .agent-feature[data-status-open='true'],
+  .paw-window-shell[data-app='agent'] .agent-feature[data-rail-open='false'],
+  .paw-window-shell[data-app='agent'] .agent-feature[data-rail-open='false'][data-status-open='true'] {
     position: relative;
     display: block;
     height: 100%;
   }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-pane-resizer { display: none; }
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-conversation { width: 100%; height: 100%; }
+  .paw-window-shell[data-app='agent'] .agent-pane-resizer { display: none; }
+  .paw-window-shell[data-app='agent'] .agent-conversation { width: 100%; height: 100%; }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-session-rail {
+  .paw-window-shell[data-app='agent'] .agent-session-rail {
     position: absolute;
     z-index: 12;
     top: 0;
@@ -2967,16 +3127,16 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
     transform: translateX(0);
   }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-feature[data-rail-open='false'] .agent-session-rail {
+  .paw-window-shell[data-app='agent'] .agent-feature[data-rail-open='false'] .agent-session-rail {
     border-right: 1px solid var(--color-border);
     opacity: 1;
     pointer-events: none;
     transform: translateX(-102%);
   }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-session-rail__close { display: grid; }
+  .paw-window-shell[data-app='agent'] .agent-session-rail__close { display: grid; }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-rail-backdrop {
+  .paw-window-shell[data-app='agent'] .agent-rail-backdrop {
     position: absolute;
     z-index: 11;
     inset: 0;
@@ -2989,21 +3149,27 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
     transition: opacity var(--duration-enter) var(--ease-standard);
   }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-feature[data-rail-open='true'] .agent-rail-backdrop {
+  .paw-window-shell[data-app='agent'] .agent-feature[data-rail-open='true'] .agent-rail-backdrop {
     opacity: 1;
     pointer-events: auto;
   }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-conversation__header {
+  .paw-window-shell[data-app='agent'] .agent-conversation__header {
     min-height: var(--workspace-header-height);
     padding-inline: 10px;
   }
 
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-turn { padding: 12px 13px 4px; }
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-conversation-nav { display: none; }
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-composer-wrap { padding: 6px 10px 11px; }
-  .paw-os-app-window[data-paw-os-app='agent'] .agent-composer textarea { min-height: 70px; padding: 10px 12px 41px; }
+  .paw-window-shell[data-app='agent'] .agent-turn { padding: 12px 13px 4px; }
+  .paw-window-shell[data-app='agent'] .agent-conversation-nav { display: none; }
+  .paw-window-shell[data-app='agent'] .agent-composer-wrap { padding: 6px 10px 11px; }
+  .paw-window-shell[data-app='agent'] .agent-composer textarea { min-height: 70px; padding: 10px 12px 41px; }
 }
+
+:root[data-reduce-motion='true'] .agent-compaction-notice { animation: agent-autocompact-fade var(--duration-enter) linear both; }
+:root[data-reduce-motion='true'] .agent-compaction-notice[data-state='running'] .agent-compaction-notice__fold > i { animation: none; }
+:root[data-reduce-motion='true'] .agent-compaction-notice[data-state='running'] .agent-compaction-notice__fold > i:nth-child(1) { opacity: .72; transform: translateY(5px) scaleX(.72); }
+:root[data-reduce-motion='true'] .agent-compaction-notice[data-state='running'] .agent-compaction-notice__fold > i:nth-child(2) { transform: scaleX(.55); }
+:root[data-reduce-motion='true'] .agent-compaction-notice[data-state='running'] .agent-compaction-notice__fold > i:nth-child(3) { opacity: .72; transform: translateY(-5px) scaleX(.72); }
 
 :root[data-reduce-motion='true'] .agent-markdown__active-tail::after {
   animation: none;
@@ -3011,8 +3177,9 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
 }
 
 :root[data-reduce-motion='true'] .agent-markdown[data-progressive-markdown] > *,
-:root[data-reduce-motion='true'] .agent-code-block[data-streaming] > figcaption {
+:root[data-reduce-motion='true'] .agent-code-block[data-streaming] > figcaption::after {
   animation: none;
+  opacity: 0;
 }
 
 :root[data-reduce-motion='true'] .agent-streaming-cursor,
@@ -3039,6 +3206,19 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
   opacity: 1;
 }
 
+:root[data-reduce-motion='true'] :is(
+  details.agent-activity--inline[data-state='running'] > summary > strong,
+  details.agent-activity--inline[data-state='running'] > summary > .agent-activity__inline-tools,
+  .agent-status-tool[data-state='running'] > summary strong,
+  .agent-status-tool[data-state='running'] > summary small,
+  .agent-assistant-pending strong,
+  .agent-assistant-pending small
+) {
+  color: var(--agent-running-ink);
+  background: none;
+  animation: none;
+}
+
 :root[data-reduce-motion='true'] .agent-status-section__content,
 :root[data-reduce-motion='true'] .agent-status-section__chevron,
 :root[data-reduce-motion='true'] .agent-files-panel__chevron,
@@ -3059,10 +3239,9 @@ details.agent-activity--inline > summary[aria-expanded='true'] > svg:last-child 
 }
 
 :root[data-reduce-motion='true'] .agent-composer__stop { animation: none; }
-:root[data-reduce-motion='true'] .agent-composer[data-busy]::before {
+:root[data-reduce-motion='true'] .agent-composer__busy-frame > i {
   animation: none;
-  background: var(--color-accent);
-  opacity: .5;
+  transform: translate3d(-25%, 0, 0);
 }
 
 :root[data-reduce-motion='true'] .agent-model-picker__panel,
