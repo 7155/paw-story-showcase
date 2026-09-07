@@ -26,6 +26,7 @@
  * fullscreen it itself acquired, leaving no listener, loop or context behind.
  */
 
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -46,7 +47,6 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
-import { createPortal } from 'react-dom';
 import { useControlTransport } from '@/app/control-transport';
 import type { AgentSubagentRunV1 } from '@/contracts/generated/agent-subagent-run.v1';
 import {
@@ -151,9 +151,9 @@ function starLayers(seed: string): Record<'far' | 'mid' | 'near', BackdropStar[]
       tint: starTint(next()),
     }));
   return {
-    far: layer(90, 0.5, 1.1, 0.18, 0.5),
-    mid: layer(48, 0.8, 1.7, 0.28, 0.68),
-    near: layer(20, 1.3, 2.4, 0.5, 0.95),
+    far: layer(170, 0.4, 0.85, 0.16, 0.46),
+    mid: layer(58, 0.85, 1.5, 0.28, 0.68),
+    near: layer(16, 1.7, 2.6, 0.5, 0.92),
   };
 }
 
@@ -317,7 +317,16 @@ function Starfield2D({
           const point = pointById.get(body.id)!;
           const label = (
             <>
-              <i aria-hidden="true" className="paw-sf2__body" data-kind={body.kind} />
+              <i
+                aria-hidden="true"
+                className="paw-sf2__body"
+                data-kind={body.kind}
+                data-surface={body.paletteIndex % 6}
+                style={{
+                  '--sf-body-size': `${Math.round(Math.min(34, Math.max(15, body.size * 21 + 10)))}px`,
+                  '--sf-axial-tilt': `${body.axialTiltRad}rad`,
+                } as CSSProperties}
+              />
               <span className="paw-sf2__body-label">
                 <strong>{body.title}</strong>
                 <small>{body.subtitle}</small>
@@ -383,7 +392,14 @@ function Starfield2D({
             type="button"
           >
             <i aria-hidden="true" className="paw-sf2__center-glow" />
-            <i aria-hidden="true" className="paw-sf2__center-body" />
+            <i
+              aria-hidden="true"
+              className="paw-sf2__center-body"
+              style={model.center.kind === 'planet' ? {
+                '--sf-surface-map': `url("${import.meta.env.BASE_URL}paw-media/starfield/earth-1k.jpg")`,
+                '--sf-surface-position': `${starfieldHash(model.seed) % 100}%`,
+              } as CSSProperties : undefined}
+            />
             {model.center.kind === 'planet' ? <i aria-hidden="true" className="paw-sf2__center-ring" /> : null}
             <span className="paw-sf2__body-label paw-sf2__body-label--center">
               <strong>{model.center.title}</strong>
@@ -438,8 +454,11 @@ function StarfieldShell({
   const [renderMode, setRenderMode] = useState<'3d' | '2d'>(() => (webglOk ? '3d' : '2d'));
   const [fellBack, setFellBack] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selectedRef = useRef<string | null>(null);
-  selectedRef.current = selectedId;
+  const openerRef = useRef<HTMLElement | null>(null);
+  const exitRef = useRef<HTMLButtonElement | null>(null);
+  const enterRef = useRef<HTMLButtonElement | null>(null);
+  const ownerActiveRef = useRef(active);
+  ownerActiveRef.current = active;
   const [feedOpen, setFeedOpen] = useState(true);
   const [browserFullscreen, setBrowserFullscreen] = useState(false);
 
@@ -448,22 +467,6 @@ function StarfieldShell({
     if (!selectedId || selectedId === 'center') return;
     if (!sceneModel.bodies.some((body) => body.id === selectedId)) setSelectedId(null);
   }, [sceneModel, selectedId]);
-
-  // ESC: first close the detail card, then leave the sky.
-  useEffect(() => {
-    if (!immersive) return undefined;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      if (document.fullscreenElement) return;
-      if (selectedRef.current) {
-        setSelectedId(null);
-      } else {
-        onExit?.();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [immersive, onExit]);
 
   // Fullscreen ownership is tracked by containment, so the sky only ever
   // manages a fullscreen session it started itself.
@@ -513,8 +516,10 @@ function StarfieldShell({
       data-reduced-motion={reducedMotion || undefined}
       data-render={renderMode}
       ref={rootRef}
-      role="region"
+      role={immersive ? 'dialog' : 'region'}
+      tabIndex={immersive ? -1 : undefined}
     >
+      {immersive ? <DialogPrimitive.Title hidden>{ariaLabel}</DialogPrimitive.Title> : null}
       {renderMode === '3d' ? (
         <Starfield3D
           model={sceneModel}
@@ -533,14 +538,14 @@ function StarfieldShell({
       <header className="paw-sf__topbar">
         <div className="paw-sf__topbar-side">
           {immersive && onExit ? (
-            <button className="paw-sf__exit" onClick={onExit} type="button">
+            <button className="paw-sf__exit" onClick={onExit} ref={exitRef} type="button">
               <ArrowLeft size={14} />
               <span>{exitLabel ?? '退出星空'}</span>
               <kbd>Esc</kbd>
             </button>
           ) : null}
           {!immersive && onEnterImmersive ? (
-            <button className="paw-sf__exit" onClick={onEnterImmersive} type="button">
+            <button className="paw-sf__exit" onClick={onEnterImmersive} ref={enterRef} type="button">
               <Maximize2 size={14} />
               <span>全屏星空</span>
             </button>
@@ -633,7 +638,43 @@ function StarfieldShell({
   );
 
   if (!active) return null;
-  return immersive ? createPortal(content, document.body) : content;
+  if (!immersive) return content;
+  return (
+    <DialogPrimitive.Root open>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Content
+          asChild
+          aria-describedby={undefined}
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            const element = document.activeElement;
+            openerRef.current = element instanceof HTMLElement && element !== document.body ? element : null;
+            (exitRef.current ?? rootRef.current)?.focus({ preventScroll: true });
+          }}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            // Switching desktop windows must not pull focus back to the old owner.
+            if (ownerActiveRef.current) {
+              const opener = openerRef.current?.isConnected ? openerRef.current : enterRef.current;
+              opener?.focus({ preventScroll: true });
+            }
+            openerRef.current = null;
+          }}
+          onEscapeKeyDown={(event) => {
+            // The browser handles Escape first while it owns system fullscreen.
+            if (document.fullscreenElement) return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (selectedId) setSelectedId(null);
+            else onExit?.();
+          }}
+          onInteractOutside={(event) => event.preventDefault()}
+        >
+          {content}
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
+  );
 }
 
 /* ------------------------------------------------------------------ */

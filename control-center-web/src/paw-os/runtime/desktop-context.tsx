@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, type ReactNode } from 're
 import { useStore } from 'zustand';
 import { createPawDesktopStore, type PawDesktopSnapshot, type PawDesktopState, type PawDesktopStore } from './desktop-store';
 import { pawApps, type PawAppId } from './app-registry';
+import { isLabExtensionAppId } from '../extensions/registry';
 
 const PawDesktopContext = createContext<PawDesktopStore | null>(null);
 const pawDesktopSnapshotKey = 'pawos.desktop.v1';
@@ -40,6 +41,8 @@ export function PawDesktopProvider({
         activeWindowId: state.activeWindowId,
         dockAppIds: state.dockAppIds,
         wayfinder: state.wayfinder,
+        collaborationFocusGroup: state.collaborationFocusGroup,
+        collaborationFocusReturnWindowId: state.collaborationFocusReturnWindowId,
       };
       try {
         window.localStorage.setItem(persistenceKey, JSON.stringify(snapshot));
@@ -92,8 +95,18 @@ function sanitizePawDesktopSnapshot(value: unknown): PawDesktopSnapshot | undefi
   const activeWindowId = typeof value.activeWindowId === 'string' && windows[value.activeWindowId]
     ? value.activeWindowId
     : null;
+  const collaborationFocusGroup = typeof value.collaborationFocusGroup === 'string'
+    && hasVisibleRoomMain(windows, value.collaborationFocusGroup)
+    ? value.collaborationFocusGroup
+    : null;
+  const collaborationFocusReturnWindowId = collaborationFocusGroup
+    && typeof value.collaborationFocusReturnWindowId === 'string'
+    && windows[value.collaborationFocusReturnWindowId]
+    && !windows[value.collaborationFocusReturnWindowId].minimized
+    ? value.collaborationFocusReturnWindowId
+    : null;
   const dockAppIds = Array.isArray(value.dockAppIds)
-    ? [...new Set(value.dockAppIds.filter((id): id is PawAppId => typeof id === 'string' && pawAppIds.has(id as PawAppId)))]
+    ? [...new Set(value.dockAppIds.filter((id): id is PawAppId => typeof id === 'string' && (pawAppIds.has(id as PawAppId) || isLabExtensionAppId(id))))]
     : undefined;
   const rawWayfinder = isRecord(value.wayfinder) ? value.wayfinder : {};
   const rawPositions = isRecord(rawWayfinder.iconPositions) ? rawWayfinder.iconPositions : {};
@@ -111,6 +124,8 @@ function sanitizePawDesktopSnapshot(value: unknown): PawDesktopSnapshot | undefi
     windows,
     stack,
     activeWindowId,
+    collaborationFocusGroup,
+    collaborationFocusReturnWindowId,
     ...(dockAppIds !== undefined ? { dockAppIds } : {}),
     wayfinder: {
       ...(rawWayfinder.layoutVersion === 2 || rawWayfinder.layoutVersion === 3
@@ -121,6 +136,21 @@ function sanitizePawDesktopSnapshot(value: unknown): PawDesktopSnapshot | undefi
       projectAssignments,
     },
   };
+}
+
+function hasVisibleRoomMain(
+  windows: PawDesktopSnapshot['windows'],
+  group: string,
+): boolean {
+  if (!group.startsWith('room:')) return false;
+  const roomId = group.slice('room:'.length);
+  return Boolean(roomId) && Object.values(windows).some((node) => (
+    !node.minimized
+    && node.appId === 'agent'
+    && node.target?.kind === 'room'
+    && !node.target.panel
+    && node.target.id === roomId
+  ));
 }
 
 function validWindowNode(value: unknown): boolean {

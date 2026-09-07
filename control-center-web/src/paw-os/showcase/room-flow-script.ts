@@ -129,9 +129,9 @@ export function pawRoomFlowShowcaseDelayMs(search = typeof window === 'undefined
 export function pawRoomFlowShowcaseNavigationAtSequence(
   sequence: number,
 ): PawRoomFlowShowcaseNavigation | null {
-  if (sequence === 1) return { view: 'conversation', label: '公开记录' };
+  if (sequence === 1) return { view: 'conversation', label: '完整记录' };
   if (sequence === 24) return { view: 'collaboration', label: '协同模式' };
-  if (sequence === 53) return { view: 'conversation', label: '公开记录' };
+  if (sequence === 53) return { view: 'conversation', label: '完整记录' };
   return null;
 }
 

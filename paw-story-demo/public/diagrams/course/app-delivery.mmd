@@ -1,0 +1,14 @@
+flowchart TB
+  c["选定场景配置<br/>模型 / Prompt / 工具 / 标准"]
+  a["Extension App<br/>App.tsx + manifest + Pi Package"]
+  v["validate_extension_app<br/>绑定 / Skill / 套件 / 路径"]
+  s["Sandbox 候选验收<br/>Trace + Eval + 隔离回执"]
+  i["安装 / 更新 / 回滚<br/>生命周期动作需独立证据"]
+  f["真实前台验收<br/>运行目标版本并完成业务任务"]
+  w["独立 Web 应用导出<br/>产品方向；完整交付链尚未证实"]
+  c -->|"封装业务入口"| a
+  a -->|"版本与来源"| v
+  v -->|"校验通过"| s
+  s -->|"获准应用候选"| i
+  i -->|"安装后验证"| f
+  f -->|"另需部署与运行合同"| w

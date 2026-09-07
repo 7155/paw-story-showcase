@@ -1,0 +1,6 @@
+.paw-hands-on-target { outline: 3px solid #6b50d1 !important; outline-offset: 4px !important; box-shadow: 0 0 0 7px #6b50d120 !important; scroll-margin: 24px; }
+@media(prefers-reduced-motion:no-preference) { .paw-hands-on-target { transition: outline-color 120ms ease-out; } }
+
+.paw-demo-cursor { position: fixed; z-index: 2147483647; pointer-events: none; font-size: 28px; color: #6b50d1; text-shadow: -1px -1px white, 1px 1px white; }
+.paw-demo-cursor[hidden] { display: none; }
+@media(prefers-reduced-motion:no-preference) { .paw-demo-cursor { transition: left 500ms ease, top 500ms ease; } }

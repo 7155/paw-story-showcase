@@ -1,7 +1,7 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useOptionalControlTransport } from '@/app/control-transport';
 import type { PawAppId } from '../runtime/app-registry';
-import { extensionAppForPackage, isPawExtensionAppId } from './registry';
+import { extensionAppForPackage, isPawExtensionAppId, registerLabExtensionApps } from './registry';
 import type {
   PawExtensionAppId,
   PawExtensionAppInstallationEvidence,
@@ -32,6 +32,7 @@ export type PawExtensionInstallation = PawExtensionInstallationProjection & {
 const EMPTY_IDS: ReadonlySet<PawExtensionAppId> = new Set<PawExtensionAppId>();
 const EXTENSION_BINDING_TOKEN = /^pawos\.extension\.binding\.[0-9a-f]{40}$/;
 const INSTALLATION_CONTEXT = createContext<PawExtensionInstallation | null>(null);
+const DEFAULT_RECONCILIATION_INTERVAL_MS = 60_000;
 
 /**
  * Reduce the Runtime inventory to the registered Extension App identities.
@@ -66,7 +67,7 @@ export function projectPawExtensionInstallation(payload: unknown): PawExtensionI
 
 export function PawExtensionInstallationProvider({
   children,
-  pollIntervalMs = 5_000,
+  pollIntervalMs = DEFAULT_RECONCILIATION_INTERVAL_MS,
 }: {
   children: ReactNode;
   pollIntervalMs?: number;
@@ -75,8 +76,9 @@ export function PawExtensionInstallationProvider({
   const [projection, setProjection] = useState<PawExtensionInstallationProjection>(() => emptyProjection());
   const [status, setStatus] = useState<PawExtensionInstallationStatus>('loading');
   const activeRequest = useRef<AbortController | null>(null);
+  const scheduledRefresh = useRef<() => void>(() => undefined);
 
-  const refresh = useCallback(() => {
+  const load = useCallback(async () => {
     activeRequest.current?.abort();
     if (!transport) {
       activeRequest.current = null;
@@ -87,37 +89,88 @@ export function PawExtensionInstallationProvider({
     const controller = new AbortController();
     activeRequest.current = controller;
     setStatus('loading');
-    void transport.request({ pathId: 'agent.extensions.list', signal: controller.signal })
-      .then((payload) => {
-        if (controller.signal.aborted || activeRequest.current !== controller) return;
-        const next = projectPawExtensionInstallation(payload);
-        const runtimeUnavailable = asRecord(payload).runtimeAvailable === false;
-        setProjection((current) => sameProjection(current, next) ? current : next);
-        setStatus(runtimeUnavailable ? 'unavailable' : 'ready');
-      })
-      .catch(() => {
-        if (controller.signal.aborted || activeRequest.current !== controller) return;
-        setProjection(emptyProjection());
-        setStatus('unavailable');
-      });
+    try {
+      const [native, lab] = await Promise.allSettled([
+        transport.request({ pathId: 'agent.extensions.list', signal: controller.signal }),
+        transport.request({ pathId: 'agent.eval-lab.apps.get', signal: controller.signal }),
+      ]);
+      if (controller.signal.aborted || activeRequest.current !== controller) return;
+      const payload = native.status === 'fulfilled' ? native.value : { runtimeAvailable: false };
+      const labIds = registerLabExtensionApps(lab.status === 'fulfilled' ? lab.value : undefined);
+      const legacy = projectPawExtensionInstallation(payload);
+      const next = { installedExtensionIds: new Set([...legacy.installedExtensionIds, ...labIds]),
+        enabledExtensionIds: new Set([...legacy.enabledExtensionIds, ...labIds]),
+        availableExtensionIds: new Set([...legacy.availableExtensionIds, ...labIds]) };
+      const runtimeUnavailable = asRecord(payload).runtimeAvailable === false
+        && !(lab.status === 'fulfilled' && asRecord(lab.value).ok === true);
+      setProjection((current) => sameProjection(current, next) ? current : next);
+      setStatus(runtimeUnavailable ? 'unavailable' : 'ready');
+    } catch {
+      if (controller.signal.aborted || activeRequest.current !== controller) return;
+      setProjection(emptyProjection());
+      setStatus('unavailable');
+    } finally {
+      if (activeRequest.current === controller) activeRequest.current = null;
+    }
   }, [transport]);
 
+  const refresh = useCallback(() => scheduledRefresh.current(), []);
+
   useEffect(() => {
-    refresh();
-    window.addEventListener(PAW_EXTENSION_INSTALLATION_CHANGED_EVENT, refresh);
-    if (pollIntervalMs <= 0) {
-      return () => {
-        window.removeEventListener(PAW_EXTENSION_INSTALLATION_CHANGED_EVENT, refresh);
-        activeRequest.current?.abort();
-      };
-    }
-    const timer = window.setInterval(refresh, pollIntervalMs);
-    return () => {
-      window.clearInterval(timer);
-      window.removeEventListener(PAW_EXTENSION_INSTALLATION_CHANGED_EVENT, refresh);
-      activeRequest.current?.abort();
+    let disposed = false;
+    let visible = document.visibilityState !== 'hidden';
+    let generation = 0;
+    let timer: number | null = null;
+
+    const clearTimer = () => {
+      if (timer === null) return;
+      window.clearTimeout(timer);
+      timer = null;
     };
-  }, [pollIntervalMs, refresh]);
+    const run = () => {
+      if (disposed || !visible) return;
+      const owner = ++generation;
+      clearTimer();
+      void load().finally(() => {
+        if (disposed || !visible || generation !== owner || pollIntervalMs <= 0) return;
+        timer = window.setTimeout(() => {
+          timer = null;
+          if (generation === owner) run();
+        }, pollIntervalMs);
+      });
+    };
+    const requestRefresh = () => {
+      if (visible) run();
+    };
+    const handleVisibilityChange = () => {
+      const nextVisible = document.visibilityState !== 'hidden';
+      if (nextVisible === visible) return;
+      visible = nextVisible;
+      generation += 1;
+      clearTimer();
+      if (!visible) {
+        activeRequest.current?.abort();
+        return;
+      }
+      run();
+    };
+
+    scheduledRefresh.current = requestRefresh;
+    window.addEventListener(PAW_EXTENSION_INSTALLATION_CHANGED_EVENT, requestRefresh);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    if (visible) run();
+
+    return () => {
+      disposed = true;
+      generation += 1;
+      scheduledRefresh.current = () => undefined;
+      clearTimer();
+      window.removeEventListener(PAW_EXTENSION_INSTALLATION_CHANGED_EVENT, requestRefresh);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      activeRequest.current?.abort();
+      activeRequest.current = null;
+    };
+  }, [load, pollIntervalMs]);
 
   const value = useMemo<PawExtensionInstallation>(() => ({
     installedExtensionIds: projection.installedExtensionIds,

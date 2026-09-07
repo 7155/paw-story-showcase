@@ -30,6 +30,7 @@ export type WayfinderWorkSessionSource = {
   updatedAtMs: number;
   workspaceRoots?: string[];
   lastMessagePreview?: string;
+  lastTerminalTurnId?: string;
   roomParticipant?: { roomId?: string } | null;
 };
 
@@ -70,6 +71,8 @@ export type WayfinderWorkItem = {
   runtimeRunning: boolean;
   statusLabel: string;
   detail: string;
+  /** Recorded Room task counts only; Session messages do not imply a percent. */
+  progress?: { completed: number; total: number };
   /** Room planet names in ordinal order — rendered side by side, never as rows. */
   agents: string[];
   /** Older records with the same goal copy, newest first. */
@@ -255,9 +258,9 @@ function sessionRow(session: WayfinderWorkSessionSource, fresh: boolean): Wayfin
     updatedAtMs: session.updatedAtMs,
     activity,
     runtimeRunning: fresh && session.status === 'busy',
-    statusLabel: activity === 'unknown' ? '状态未知' : activity === 'running' ? '进行中' : activity === 'attention' ? '需要处理' : '就绪',
+    statusLabel: activity === 'unknown' ? '已离线' : activity === 'running' ? '进行中' : activity === 'attention' ? '需要处理' : '就绪',
     detail: activity === 'unknown'
-      ? '正在同步当前状态'
+      ? '同步中断，显示最近记录'
       : session.status === 'busy'
       ? publicPreview(session.lastMessagePreview, '当前公开内容') || '当前进度不可用'
       : session.status === 'faulted'
@@ -295,8 +298,11 @@ function roomRow(room: WayfinderWorkRoomSource, status: {
     updatedAtMs: room.updatedAtMs,
     activity,
     runtimeRunning: status.recordFresh && status.runtimeFresh && status.running,
-    statusLabel: activity === 'unknown' ? '状态未知' : activity === 'attention' ? '需要处理' : activity === 'running' ? '进行中' : '就绪',
-    detail: activity === 'unknown' ? '正在同步当前状态' : roomWorkDetail(room.workItems),
+    statusLabel: activity === 'unknown' ? '已离线' : activity === 'attention' ? '需要处理' : activity === 'running' ? '进行中' : '就绪',
+    detail: activity === 'unknown' ? '同步中断，显示最近记录' : roomWorkDetail(room.workItems),
+    ...(status.recordFresh && room.workItems?.length ? {
+      progress: { completed: room.workItems.filter((item) => item.state === 'done').length, total: room.workItems.length },
+    } : {}),
     agents: (room.participants ?? [])
       .filter((participant) => participant.status !== 'removed')
       .sort((left, right) => (left.ordinal ?? 0) - (right.ordinal ?? 0))
@@ -321,14 +327,22 @@ function normalizedTitle(title: string): string {
 }
 
 function projectLeaf(roots: readonly string[] | undefined): string {
-  const first = normalizedWorkspaceRoots(roots)[0] ?? '';
+  const first = projectWorkspaceRoots(roots)[0] ?? '';
   if (!first) return '';
-  return first.split('/').filter(Boolean).at(-1) ?? '';
+  return first === '/' ? '文件系统根目录' : first.split('/').filter(Boolean).at(-1) ?? '';
 }
 
 function projectKey(roots: readonly string[] | undefined): string {
-  const normalized = normalizedWorkspaceRoots(roots);
+  const normalized = projectWorkspaceRoots(roots);
   return normalized.length ? normalized.join('\u001f') : '__unbound__';
+}
+
+/** Root access is a capability, not another project when a concrete root exists.
+ * Keep the original roots on each item for Files and Runtime consumers. */
+function projectWorkspaceRoots(roots: readonly string[] | undefined): string[] {
+  const all = normalizedWorkspaceRoots(roots);
+  const concrete = all.filter((root) => root !== '/');
+  return concrete.length ? concrete : all;
 }
 
 function normalizedWorkspaceRoots(roots: readonly string[] | undefined): string[] {

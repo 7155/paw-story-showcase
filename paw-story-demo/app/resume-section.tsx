@@ -6,31 +6,15 @@ import {
   ShieldCheck,
   SquareArrowOutUpRight,
 } from "lucide-react";
-
-const proofSignals = [
-  {
-    value: "4",
-    label: "独立验证链",
-    detail: "Enterprise RAG · EnterpriseOps · CloudOps · Memory",
-  },
-  {
-    value: "3/31 → 26/31",
-    label: "执行链修复",
-    detail: "Host-private verifier · source-local candidate",
-  },
-  {
-    value: ".6128 → .8872",
-    label: "RAG nDCG@10",
-    detail: "16-query validation · retrieval only",
-  },
-] as const;
+import { SystemExplorer } from "./system-explorer";
+import { currentLabExperiments, currentLabEvidenceHref, labBenefitBoundary } from "./lab-evidence";
 
 const resumeCases = [
   {
     title: "Agent Runtime / Agent Lab",
     summary:
       "把 source-local Pi、能力令牌 Tool Gateway、Host-private Verifier、Trace/Eval 和 Keep/Reject 组合成一条可审计实验链；Validation winner 仍要经过一次性 Held-out，失败候选不被重跑成好结果。",
-    evidence: "EnterpriseOps · 1/8 Held-out · Promotion rejected",
+    evidence: "四场景当前 Validation · 历史 Held-out Reject 保留",
     href: "/details/sandbox",
     linkLabel: "看四个垂直实验",
     Icon: FileCheck2,
@@ -116,11 +100,11 @@ export function ResumeSection() {
     <section aria-labelledby="resume-title" className="resume-section">
       <div className="resume-lead" id="resume">
         <div className="resume-lead-copy">
-          <h2 id="resume-title">把 Agent 放回真实工作的现场。</h2>
+          <h2 id="resume-title">从工作过程，看到系统设计。</h2>
           <p>
-            我关注的不是再造一个聊天框，而是把输入、Memory、Tool、Session 和评测放回同一个可追溯的工作链：先让系统真的跑，再用失败证据决定哪里值得修。
+            上面的过程由同一套工作台支撑。这里展开任务如何流转、系统怎样连接，以及评测如何影响下一次选择。
           </p>
-          <nav aria-label="项目履历与证据入口" className="resume-actions">
+          <nav aria-label="框架与证据入口" className="resume-actions">
             <a className="resume-action resume-action--primary" href="#framework">
               查看系统框架
               <ArrowRight size={14} />
@@ -141,32 +125,46 @@ export function ResumeSection() {
           </nav>
         </div>
         <aside className="resume-statement">
-          <strong>OS、Runtime 与 Evidence，必须在同一条工作链上对齐。</strong>
-          <p>PAW 是本地优先的 Agent 工作台；下面的数字都保留 split、失败分支和未验证边界。</p>
+          <strong>关键选择：让 Pi 执行，让 Room 组织协作。</strong>
+          <p>界面展示同一份运行状态，记忆按需参与任务；执行、协作和评测各自承担清楚的责任。</p>
         </aside>
       </div>
 
       <dl aria-label="公开可核查的项目结果" className="resume-proof-ledger">
-        {proofSignals.map((signal) => (
-          <div key={signal.label}>
-            <dt>{signal.label}</dt>
+        {currentLabExperiments.map((experiment) => (
+          <div key={experiment.id}>
+            <dt><a href={`/details/sandbox?scenario=${experiment.key}`}>{experiment.label}</a></dt>
             <dd>
-              <strong>{signal.value}</strong>
-              <small>{signal.detail}</small>
+              <strong>{experiment.qualityAfter}</strong>
+              <small>{experiment.costBefore} → {experiment.costAfter} · API 估算降低 {experiment.saving} · {experiment.scope} · {experiment.costLabel}</small>
             </dd>
           </div>
         ))}
       </dl>
+      <p className="current-lab-boundary">{labBenefitBoundary} RAG r6 非盲测、非 Held-out；当前 Keep 不代表泛化或生产效果。<a href={currentLabEvidenceHref} target="_blank" rel="noreferrer">查看同源回执</a></p>
 
       <section aria-labelledby="framework-title" className="technical-foundation" id="framework">
+        <details className="story-speaking-route" id="story-route">
+          <summary>从哪里开始讲这个项目？</summary>
+          <p>先用首页演示一个完整任务，再按听众的追问选一条设计线。每个详情开头都有“选择、反证、代价、证据”的讲述提纲。</p>
+          <ol>
+            <li><a href="/details/agents#decision-guide">执行与协作为什么分开？<ArrowRight size={14}/></a><span>从重复 owner 到 Light Room；讲一次 ACK 丢失的失败。</span></li>
+            <li><a href="/details/sandbox#decision-guide">怎样证明优化有效？<ArrowRight size={14}/></a><span>从 Validation winner 到 Held-out Reject；先说判据，再读数字。</span></li>
+            <li><a href="/details/frontend#decision-guide">为什么前端反复改？<ArrowRight size={14}/></a><span>用一次视图取舍解释因果、关系与执行细节不能互相替代。</span></li>
+            <li><a href="/details/context#decision-guide">为什么不把历史全部塞进去？<ArrowRight size={14}/></a><span>区分保存、召回与本轮使用；沿来源回跳讲清治理成本。</span></li>
+            <li><a href="/details/input#decision-guide">为什么还要做模型与推理？<ArrowRight size={14}/></a><span>用连续按键、token-LCP 和完整 Top-3 延迟解释专用优化。</span></li>
+          </ol>
+          <small>只把有来源的实施与验证归于项目；尚未证实的动机、贡献比例和生产效果不补写。</small>
+        </details>
         <header className="technical-foundation-header">
-          <h3 id="framework-title">一个目标，怎样穿过多 Agent、权限与评测？</h3>
+          <h3 id="framework-title">任务、改进、架构，分三张图看清。</h3>
           <p>
-            框架先回答谁拥有状态和结束条件，技术栈再回答每一层怎样落地。Room 不重建 Pi，展示站也不重建 PAW。
+            先看协作过程，再看改进回路，最后展开支撑它们的运行结构。每条连接都说明传递了什么。
           </p>
         </header>
 
-        <ol aria-label="PAW 系统框架" className="architecture-flow">
+        <SystemExplorer />
+        <details className="architecture-reference"><summary>查看各层的状态责任</summary><ol aria-label="PAW 系统框架" className="architecture-flow">
           {architectureFlow.map((item, index) => (
             <li key={item.label}>
               <small>{item.label}</small>
@@ -175,11 +173,11 @@ export function ResumeSection() {
               {index < architectureFlow.length - 1 ? <ArrowRight aria-hidden="true" size={17} /> : null}
             </li>
           ))}
-        </ol>
+        </ol></details>
 
         <div className="technology-stack-heading">
-          <h4>技术栈按责任层展开。</h4>
-          <p>产品 Runtime、可选本地能力与公开展示层分开列出，避免把依赖名堆成没有 owner 的 Logo 墙。</p>
+          <h4>这些选择，怎样落到代码里？</h4>
+          <p>从桌面界面到执行循环、数据存储与评测，每一层列出采用的技术及其职责。</p>
         </div>
         <div className="technology-stack-table-wrap">
           <table className="technology-stack-table">
@@ -205,10 +203,10 @@ export function ResumeSection() {
 
       <div className="resume-casework">
         <header>
-          <h3>三条最值得在面试里展开的主线。</h3>
-          <p>每一条都先给问题和取舍，再给结果；Validation、source-local 和 synthetic preview 不混成一个“完成”。</p>
+          <h3>继续深入三个关键实践。</h3>
+          <p>从真实问题出发，看技术选择、失败尝试和对应结果。</p>
         </header>
-        <ol aria-label="简历项目主线">
+        <ol aria-label="关键技术实践">
           {resumeCases.map((item) => (
             <li key={item.title}>
               <span aria-hidden="true" className="resume-case-icon"><item.Icon size={17} /></span>
@@ -229,9 +227,9 @@ export function ResumeSection() {
       <aside className="resume-boundary">
         <CircleAlert size={18} />
         <span>
-          <strong>证据边界写在简历里，而不是藏在脚注里。</strong>
+          <strong>哪些结论已经得到验证？</strong>
           <small>
-            RAG 的正向数字来自冻结 Validation；EnterpriseOps 的 one-shot Held-out 为 1/8，Luna 的低成本分支因质量回退被拒绝；这些负结果是结论的一部分。公开站只展示清洗后的合成/公开回执，不代表私有 Runtime 已安装或生产已上线。
+            当前四场景结果来自单轮 Validation，Memory 为当前 Pi 路径的合成数据验证；RAG r6 使用 candidate-aware 标准，标准修订不代表模型能力提升。EnterpriseOps 历史 one-shot Held-out 1/8 的拒绝推广结论保留。公开站只展示清洗后的合成/公开回执，不代表私有 Runtime 已安装或生产已上线。
           </small>
         </span>
       </aside>

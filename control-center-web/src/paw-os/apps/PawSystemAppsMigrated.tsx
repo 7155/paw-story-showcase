@@ -1,10 +1,13 @@
+import { isPawTraceFlowShowcase } from '../showcase/trace-flow-script';
 import {
   Activity,
   Bot,
   BookOpen,
   CircleAlert,
+  Eye,
   Fingerprint,
   FlaskConical,
+  FolderOpen,
   Gauge,
   History,
   Keyboard,
@@ -25,11 +28,10 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { useControlTransport } from '@/app/control-transport';
 import { Button, EmptyState, Input, SegmentedControl, Switch } from '@/components/primitives';
-import { ApprovalsFeature } from '@/features/approvals';
 import {
   useAgentPreferencesAuthority,
   type AgentExecutionMode,
@@ -43,14 +45,7 @@ import {
   parsePiModelCatalogOptions,
   supportedPiThinkingLevels,
 } from '@/features/agent/model-catalog-options';
-import { ConfigurationFeature } from '@/features/configuration';
-import { PawOsAppearanceSettings } from '@/features/configuration/PawOsAppearanceSettings';
-import { ContextDebugFeature } from '@/features/context-debug';
-import { DiagnosticsFeature } from '@/features/diagnostics';
 import { diagnosticsQueryKeys } from '@/features/diagnostics/api';
-import { GovernanceFeature } from '@/features/governance';
-import { HistoryFeature } from '@/features/history';
-import { InputLexiconFeature, InputMethodFeature } from '@/features/input-method';
 import {
   InlineNotice,
   ManagementPage,
@@ -63,9 +58,7 @@ import {
   stringValue,
 } from '@/features/overview/management-ui';
 import { openPawOsRoute, usePawOsDesktop } from '@/features/paw-os/surface-context';
-import { PluginsFeature } from '@/features/plugins';
 import { pluginQueryKeys, usePluginCatalog } from '@/features/plugins/api';
-import { ModelRoutingPanel } from '@/features/roles';
 import {
   agentModelRouting,
   roleModelCatalog,
@@ -73,11 +66,25 @@ import {
   type AgentModelRouting,
   type ModelRouteId,
 } from '@/features/roles/role-model';
-import { ObservabilityFeature } from '@/features/observability';
-import { TraceAgentFeature } from '@/features/trace-agent';
-import { VoiceFeature } from '@/features/voice';
 import type { PawAppId } from '../runtime/app-registry';
 import { pawApp } from '../runtime/app-registry';
+
+const ApprovalsFeature = lazy(async () => ({ default: (await import('@/features/approvals')).ApprovalsFeature }));
+const ConfigurationFeature = lazy(async () => ({ default: (await import('@/features/configuration')).ConfigurationFeature }));
+const PluginScenes = lazy(async () => ({ default: (await import('@/features/plugins/PluginScenes')).PluginScenes }));
+const PawOsAppearanceSettings = lazy(async () => ({ default: (await import('@/features/configuration/PawOsAppearanceSettings')).PawOsAppearanceSettings }));
+const ContextDebugFeature = lazy(async () => ({ default: (await import('@/features/context-debug')).ContextDebugFeature }));
+const DiagnosticsFeature = lazy(async () => ({ default: (await import('@/features/diagnostics')).DiagnosticsFeature }));
+const GovernanceFeature = lazy(async () => ({ default: (await import('@/features/governance')).GovernanceFeature }));
+const HistoryFeature = lazy(async () => ({ default: (await import('@/features/history')).HistoryFeature }));
+const PluginsFeature = lazy(async () => ({ default: (await import('@/features/plugins')).PluginsFeature }));
+const ModelRoutingPanel = lazy(async () => ({ default: (await import('@/features/roles')).ModelRoutingPanel }));
+const ObservabilityFeature = lazy(async () => ({ default: (await import('@/features/observability')).ObservabilityFeature }));
+const TraceShowcaseWorkbench = lazy(async () => ({ default: (await import('@/features/trace-agent/showcase-workbench')).TraceShowcaseWorkbench }));
+const TraceAgentFeature = lazy(async () => ({ default: (await import('@/features/trace-agent')).TraceAgentFeature }));
+const VoiceFeature = lazy(async () => ({ default: (await import('@/features/voice')).VoiceFeature }));
+const InputLexiconFeature = lazy(async () => ({ default: (await import('@/features/input-method')).InputLexiconFeature }));
+const InputMethodFeature = lazy(async () => ({ default: (await import('@/features/input-method')).InputMethodFeature }));
 
 export const pawSystemAppIds = [
   'input-studio',
@@ -108,12 +115,15 @@ const systemPages: Record<PawSystemAppId, readonly SystemPage[]> = {
   ],
   'app-center': [
     { id: 'installed', label: '已安装', icon: PackageOpen, route: '/plugins', purpose: '已安装 Package 的启用、更新与移除' },
+    { id: 'capabilities', label: '功能开关', icon: Settings2, route: '/plugins?view=capabilities', purpose: '查看每项功能是否启用，调整对话、项目和所有对话默认' },
     { id: 'skills', label: 'Skills', icon: BookOpen, route: '/plugins?view=skills', purpose: '查看 Bundled、项目与 Package Skill 的正文和来源' },
+    { id: 'scenes', label: '场景加载', icon: Settings2, route: '/plugins?view=scenes', purpose: '为普通对话、Room、Trace 和 Lab 选择各自加载的能力' },
+    { id: 'studio', label: '制作', icon: Sparkles, route: '/plugins?view=studio', purpose: '自己编写插件，或让 Agent 制作 App 与插件' },
     { id: 'catalog', label: '目录', icon: LibraryBig, route: '/plugins?view=catalog', purpose: '安装之前先看清来源、权限与版本' },
     { id: 'proposals', label: '建议', icon: Sparkles, route: '/plugins?view=proposals', purpose: 'Agent 提出的安装建议，逐项等你确认' },
   ],
   'system-monitor': [
-    { id: 'activity', label: '活动', icon: Activity, route: '/observability', group: '实时', purpose: 'Runtime 正在发生的事件与调用' },
+    { id: 'activity', label: '活动', icon: Activity, route: '/observability', group: '实时', purpose: '持续接收运行事件，回看发生时的状态' },
     { id: 'evolution-report', label: '优化报告', icon: FlaskConical, route: '/evolution-report', group: '实验', purpose: '在独立网页读懂冻结实验、指标与 Keep / Reject 边界', external: true },
     { id: 'context', label: '上下文', icon: Network, route: '/context-debug', group: '排查', purpose: '逐轮查看模型实际收到的上下文' },
     { id: 'trace-agent', label: 'Trace Agent', icon: Search, route: '/trace-agent', group: '排查', purpose: '选择一段对话，让 Agent 解释失败、浪费与改进方向' },
@@ -228,7 +238,9 @@ export function PawSystemAppsMigrated({
             <MemoryRouter initialEntries={[route]} key={route}>
               <PawSystemRouteReporter expectedRoute={route} />
               <div className="paw-system-app__page" key={`${appId}:${page.id}`}>
-                <PawSystemSurface appId={appId} pageId={page.id} />
+                <Suspense fallback={<div className="paw-app-loading" role="status">正在打开 {page.label}…</div>}>
+                  <PawSystemSurface appId={appId} pageId={page.id} />
+                </Suspense>
               </div>
             </MemoryRouter>
           </div>
@@ -269,12 +281,13 @@ function PawSystemSurface({ appId, pageId }: { appId: PawSystemAppId; pageId: st
     return <InputMethodFeature />;
   }
   if (appId === 'app-center') {
+    if (pageId === 'scenes') return <PluginScenes />;
     if (pageId === 'catalog') return <PawPackageCatalog />;
     return <PluginsFeature />;
   }
   if (appId === 'system-monitor') {
     if (pageId === 'context') return <ContextDebugFeature />;
-    if (pageId === 'trace-agent') return <TraceAgentFeature />;
+    if (pageId === 'trace-agent') return isPawTraceFlowShowcase() ? <TraceShowcaseWorkbench /> : <TraceAgentFeature />;
     if (pageId === 'diagnostics') return <DiagnosticsFeature />;
     return <ObservabilityFeature />;
   }
@@ -297,10 +310,7 @@ function PawAppearanceSettings() {
   );
 }
 
-/**
- * Execution permission uses the two user-facing coordinator profiles. Legacy
- * values remain readable in stored settings but are not offered as choices.
- */
+/** Every persisted Session execution mode remains a first-class default. */
 const agentExecutionModes: readonly {
   value: AgentExecutionMode;
   title: string;
@@ -309,11 +319,23 @@ const agentExecutionModes: readonly {
   recommended?: boolean;
 }[] = [
   {
+    value: 'read_only',
+    title: '只读',
+    detail: '源文件只读、网络关闭；允许前台验证命令，阻止写入、后台任务与应用动作。',
+    icon: Eye,
+  },
+  {
     value: 'per_action',
     title: '全权限',
     detail: '整个系统与所有 Tool 可用；有影响的操作逐项请求确认。',
     icon: ShieldCheck,
     recommended: true,
+  },
+  {
+    value: 'workspace_managed',
+    title: '工作区托管',
+    detail: '新对话需选择并确认项目范围；范围内动作自动批准。',
+    icon: FolderOpen,
   },
   {
     value: 'full_trust',
@@ -439,7 +461,7 @@ function PawAgentSettings() {
           {modelRouting.saveError ? <InlineNotice title="模型分工没有保存" tone="danger">{modelRouting.saveError}</InlineNotice> : null}
 
           <ManagementSection
-            description="全权限覆盖整个系统与所有 Tool，有影响的操作逐项请求确认；全自动则自动批准每个动作，仍受操作系统边界约束。"
+            description="新对话可以默认使用只读、全权限、工作区托管或全自动；每种选择都会原样保存。"
             title="Agent 执行权限"
           >
             <div aria-label="Agent 执行权限" className="paw-agent-modes" role="radiogroup">
@@ -449,9 +471,7 @@ function PawAgentSettings() {
                   <label className="paw-agent-mode" key={mode.value}>
                     <input
                       aria-label={mode.title}
-                      checked={mode.value === 'full_trust'
-                        ? preferences.executionMode === 'full_trust'
-                        : preferences.executionMode !== 'full_trust'}
+                      checked={mode.value === preferences.executionMode}
                       disabled={controlsDisabled}
                       name="paw-agent-execution-mode"
                       onChange={() => { void authority.save({ executionMode: mode.value }); }}
@@ -512,6 +532,7 @@ function PawPackageCatalog() {
   const [enableAfterInstall, setEnableAfterInstall] = useState(true);
   const [pendingChange, setPendingChange] = useState<Record<string, unknown>>({});
   const [validation, setValidation] = useState<Record<string, unknown>>({});
+  const [completedChange, setCompletedChange] = useState<{ summary: string; receiptId: string }>();
   const [error, setError] = useState('');
   const versionItems = arrayRecords(asRecord(versions.data).items);
   const installedEnvelope = asRecord(installed.data);
@@ -536,9 +557,13 @@ function PawPackageCatalog() {
   const pendingSummary = asRecord(pendingChange.summary);
   const busy = validate.isPending || preview.isPending || apply.isPending;
   const queryError = asError(versions.error ?? installed.error);
+  const hasCatalogSnapshot = versions.data !== undefined && installed.data !== undefined;
+  const refreshCatalog = () => Promise.all([versions.refetch(), installed.refetch()]);
 
   async function previewCatalogAction(item: Record<string, unknown>): Promise<void> {
+    if (busy || queryError) return;
     setError('');
+    setCompletedChange(undefined);
     setValidation({});
     setPendingChange({});
     try {
@@ -559,16 +584,22 @@ function PawPackageCatalog() {
   }
 
   async function applyPendingChange(): Promise<void> {
+    if (busy || queryError) return;
     setError('');
+    const summary = `${packageActionLabel(stringValue(pendingSummary.action))}：${stringValue(pendingSummary.displayName, stringValue(pendingSummary.pluginId))}`;
     try {
-      await apply.mutateAsync({
+      const response = asRecord(await apply.mutateAsync({
         previewToken: stringValue(pendingChange.previewToken),
         payloadSha256: stringValue(pendingChange.payloadSha256),
         confirmText: 'apply',
+      }));
+      setCompletedChange({
+        summary,
+        receiptId: stringValue(asRecord(response.receipt).receiptId, stringValue(response.receiptId)),
       });
       setPendingChange({});
       setValidation({});
-      await Promise.all([versions.refetch(), installed.refetch()]);
+      await refreshCatalog();
     } catch (catalogError) {
       setError(publicErrorText(catalogError, 'Package 更改没有完成。'));
     }
@@ -576,12 +607,24 @@ function PawPackageCatalog() {
 
   return (
     <ManagementPage
-      actions={<Button leadingIcon={<RefreshCw size={15} />} loading={versions.isFetching || installed.isFetching} onClick={() => void Promise.all([versions.refetch(), installed.refetch()])} size="small">刷新</Button>}
+      actions={<Button leadingIcon={<RefreshCw size={15} />} loading={versions.isFetching || installed.isFetching} onClick={() => void refreshCatalog()} size="small">刷新</Button>}
       description="查看 Runtime 报告的 Package 来源、权限和版本；安装或更新前必须先预览。"
       routeId="plugins-catalog"
       title="Package 目录"
     >
-      <QueryState error={queryError} isPending={versions.isPending || installed.isPending} onRetry={() => void Promise.all([versions.refetch(), installed.refetch()])}>
+      <QueryState error={hasCatalogSnapshot ? null : queryError} isPending={!hasCatalogSnapshot && (versions.isPending || installed.isPending)} onRetry={() => void refreshCatalog()}>
+        {completedChange ? (
+          <InlineNotice title="Package 更改已完成" tone="success">
+            <p>{completedChange.summary}</p>
+            {completedChange.receiptId ? <p>回执 {completedChange.receiptId}</p> : null}
+          </InlineNotice>
+        ) : null}
+        {hasCatalogSnapshot && queryError ? (
+          <InlineNotice title="目录未能刷新，已保留上次结果" tone="warning">
+            <p>重新读取目录后，可以继续检查安装状态与版本。已完成的更改不会重复执行。</p>
+            <Button loading={versions.isFetching || installed.isFetching} onClick={() => void refreshCatalog()} size="small">重试读取目录</Button>
+          </InlineNotice>
+        ) : null}
         <ManagementSection
           description="目录只展示真实注册项；没有可用条目时保持空状态。"
           title="目录"
@@ -613,7 +656,7 @@ function PawPackageCatalog() {
             <InlineNotice title="等待你的确认" tone="warning">
               <div className="paw-system-package-approval">
                 <span><strong>{packageActionLabel(stringValue(pendingSummary.action))}：{stringValue(pendingSummary.displayName, stringValue(pendingSummary.pluginId))}</strong><small>{stringArray(pendingSummary.permissions).length ? `需要的权限：${stringArray(pendingSummary.permissions).join('、')}` : '无额外权限'}</small></span>
-                <div><Button disabled={busy} onClick={() => { setPendingChange({}); setValidation({}); }} size="small" variant="quiet">取消</Button><Button disabled={busy} loading={apply.isPending} onClick={() => void applyPendingChange()} size="small" variant="primary">确认更改</Button></div>
+                <div><Button disabled={busy} onClick={() => { setPendingChange({}); setValidation({}); }} size="small" variant="quiet">取消</Button><Button disabled={busy || Boolean(queryError)} loading={apply.isPending} onClick={() => void applyPendingChange()} size="small" variant="primary">确认更改</Button></div>
               </div>
             </InlineNotice>
           ) : null}
@@ -643,7 +686,7 @@ function PawPackageCatalog() {
                     <footer>
                       <span>{arrayRecords(item.versions).length} 个版本</span>
                       <Button
-                        disabled={!runtimeAvailable || !actionable || upToDate || busy}
+                        disabled={!runtimeAvailable || !actionable || upToDate || busy || Boolean(queryError)}
                         leadingIcon={<PackageCheck size={14} />}
                         loading={(validate.isPending || preview.isPending) && stringValue(validate.variables?.catalogId) === id}
                         onClick={() => void previewCatalogAction(item)}

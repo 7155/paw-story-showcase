@@ -1,0 +1,14 @@
+flowchart TB
+  u["个人工作目标<br/>研究 / 开发 / 持续任务"]
+  r["Room + Session<br/>分工 / 工具 / 汇总"]
+  m["Memory + Knowledge<br/>来源 / 召回 / 下一次工作"]
+  b["企业业务任务<br/>Cases / 标准 / 基线"]
+  e["Lab 实验<br/>执行 / 评分 / Keep 或 Reject"]
+  a["Extension App 候选<br/>前端 + Skill + 套件绑定"]
+  p["共享 Pi 执行基础<br/>模型 / Tool loop / transcript"]
+  u -->|"目标与上下文"| r
+  r -->|"产物与来源"| m
+  b -->|"固定业务验收"| e
+  e -->|"选定版本"| a
+  r -->|"Session 执行"| p
+  e -->|"Trial 适配执行"| p

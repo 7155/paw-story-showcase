@@ -1043,7 +1043,11 @@ export const contractSchemas = {
           "goalId",
           "goalRevision",
           "turnId",
-          "roomBound"
+          "roomBound",
+          "roomId",
+          "rootId",
+          "dispatchId",
+          "generation"
         ],
         "properties": {
           "todoId": {
@@ -1068,6 +1072,22 @@ export const contractSchemas = {
           },
           "roomBound": {
             "type": "boolean"
+          },
+          "roomId": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "rootId": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "dispatchId": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "generation": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       }
@@ -1566,6 +1586,24 @@ export const contractSchemas = {
               },
               "roomCoordinator": {
                 "$ref": "#/$defs/modelRoute"
+              }
+            },
+            "additionalProperties": false
+          },
+          "prompts": {
+            "type": "object",
+            "required": [
+              "systemInstructions",
+              "compactionInstructions"
+            ],
+            "properties": {
+              "systemInstructions": {
+                "type": "string",
+                "maxLength": 8000
+              },
+              "compactionInstructions": {
+                "type": "string",
+                "maxLength": 8000
               }
             },
             "additionalProperties": false
@@ -2855,13 +2893,23 @@ export const contractSchemas = {
         "const": "rag-ime.agent-lab-cost-receipt.v1"
       },
       "authority": {
-        "const": "pricing_estimate"
+        "enum": [
+          "pricing_estimate",
+          "pricing_lower_bound",
+          "runtime_cost_reconciled"
+        ]
       },
       "pricingIdentity": {
         "$ref": "#/$defs/pricingIdentity"
       },
       "usage": {
         "$ref": "#/$defs/usage"
+      },
+      "runtimeCostReceipt": {
+        "$ref": "#/$defs/runtimeCostReceipt"
+      },
+      "pricingLowerBound": {
+        "$ref": "#/$defs/pricingLowerBound"
       },
       "estimate": {
         "$ref": "#/$defs/estimate"
@@ -2883,6 +2931,64 @@ export const contractSchemas = {
         "$ref": "#/$defs/sha256"
       }
     },
+    "allOf": [
+      {
+        "if": {
+          "required": [
+            "runtimeCostReceipt"
+          ]
+        },
+        "then": {
+          "properties": {
+            "authority": {
+              "const": "runtime_cost_reconciled"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "authority": {
+              "const": "runtime_cost_reconciled"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "runtimeCostReceipt"
+          ]
+        }
+      },
+      {
+        "if": {
+          "required": [
+            "pricingLowerBound"
+          ]
+        },
+        "then": {
+          "properties": {
+            "authority": {
+              "const": "pricing_lower_bound"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "authority": {
+              "const": "pricing_lower_bound"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "pricingLowerBound"
+          ]
+        }
+      }
+    ],
     "$defs": {
       "sha256": {
         "type": "string",
@@ -3042,6 +3148,162 @@ export const contractSchemas = {
           }
         }
       },
+      "runtimeCostReceipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestCount",
+          "runtimeDbSha256",
+          "transcriptSha256s",
+          "databaseUsage",
+          "reportedCostUsd",
+          "sourceSha256"
+        ],
+        "properties": {
+          "requestCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "runtimeDbSha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "transcriptSha256s": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10000,
+            "items": {
+              "$ref": "#/$defs/sha256"
+            }
+          },
+          "databaseUsage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "uncachedInputTokens",
+              "cachedInputTokens",
+              "outputTokens"
+            ],
+            "properties": {
+              "uncachedInputTokens": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000000000000
+              },
+              "cachedInputTokens": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000000000000
+              },
+              "outputTokens": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000000000000
+              }
+            }
+          },
+          "trialAggregate": {
+            "$ref": "#/$defs/trialAggregate"
+          },
+          "reportedCostUsd": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "input",
+              "cacheRead",
+              "output",
+              "total"
+            ],
+            "properties": {
+              "input": {
+                "$ref": "#/$defs/amountDecimalUsd"
+              },
+              "cacheRead": {
+                "$ref": "#/$defs/amountDecimalUsd"
+              },
+              "output": {
+                "$ref": "#/$defs/amountDecimalUsd"
+              },
+              "total": {
+                "$ref": "#/$defs/amountDecimalUsd"
+              }
+            }
+          },
+          "sourceSha256": {
+            "$ref": "#/$defs/sha256"
+          }
+        }
+      },
+      "trialAggregate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sourceRef",
+          "sourceSha256",
+          "uncachedInputTokens",
+          "cachedInputTokens",
+          "outputTokens"
+        ],
+        "properties": {
+          "sourceRef": {
+            "$ref": "#/$defs/identity"
+          },
+          "sourceSha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "uncachedInputTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000000000
+          },
+          "cachedInputTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000000000
+          },
+          "outputTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000000000
+          }
+        }
+      },
+      "pricingLowerBound": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sourceSha256",
+          "tiers"
+        ],
+        "properties": {
+          "sourceSha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "tiers": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "inputTokensAbove",
+                "rates"
+              ],
+              "properties": {
+                "inputTokensAbove": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000000000
+                },
+                "rates": {
+                  "$ref": "#/$defs/rates"
+                }
+              }
+            }
+          }
+        }
+      },
       "billingNotProvided": {
         "type": "object",
         "additionalProperties": false,
@@ -3113,6 +3375,12 @@ export const contractSchemas = {
       },
       "usage": {
         "$ref": "#/$defs/usage"
+      },
+      "runtimeCostReceipt": {
+        "$ref": "#/$defs/runtimeCostReceipt"
+      },
+      "pricingLowerBound": {
+        "$ref": "#/$defs/pricingLowerBound"
       },
       "billedReceipt": {
         "$ref": "#/$defs/billedReceipt"
@@ -3270,6 +3538,162 @@ export const contractSchemas = {
           }
         ]
       },
+      "runtimeCostReceipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestCount",
+          "runtimeDbSha256",
+          "transcriptSha256s",
+          "databaseUsage",
+          "reportedCostUsd",
+          "sourceSha256"
+        ],
+        "properties": {
+          "requestCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "runtimeDbSha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "transcriptSha256s": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10000,
+            "items": {
+              "$ref": "#/$defs/sha256"
+            }
+          },
+          "databaseUsage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "uncachedInputTokens",
+              "cachedInputTokens",
+              "outputTokens"
+            ],
+            "properties": {
+              "uncachedInputTokens": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000000000000
+              },
+              "cachedInputTokens": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000000000000
+              },
+              "outputTokens": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000000000000
+              }
+            }
+          },
+          "trialAggregate": {
+            "$ref": "#/$defs/trialAggregate"
+          },
+          "reportedCostUsd": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "input",
+              "cacheRead",
+              "output",
+              "total"
+            ],
+            "properties": {
+              "input": {
+                "$ref": "#/$defs/decimalUsd"
+              },
+              "cacheRead": {
+                "$ref": "#/$defs/decimalUsd"
+              },
+              "output": {
+                "$ref": "#/$defs/decimalUsd"
+              },
+              "total": {
+                "$ref": "#/$defs/decimalUsd"
+              }
+            }
+          },
+          "sourceSha256": {
+            "$ref": "#/$defs/sha256"
+          }
+        }
+      },
+      "trialAggregate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sourceRef",
+          "sourceSha256",
+          "uncachedInputTokens",
+          "cachedInputTokens",
+          "outputTokens"
+        ],
+        "properties": {
+          "sourceRef": {
+            "$ref": "#/$defs/identity"
+          },
+          "sourceSha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "uncachedInputTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000000000
+          },
+          "cachedInputTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000000000
+          },
+          "outputTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000000000
+          }
+        }
+      },
+      "pricingLowerBound": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sourceSha256",
+          "tiers"
+        ],
+        "properties": {
+          "sourceSha256": {
+            "$ref": "#/$defs/sha256"
+          },
+          "tiers": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "inputTokensAbove",
+                "rates"
+              ],
+              "properties": {
+                "inputTokensAbove": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000000000
+                },
+                "rates": {
+                  "$ref": "#/$defs/rates"
+                }
+              }
+            }
+          }
+        }
+      },
       "billedReceipt": {
         "type": "object",
         "additionalProperties": false,
@@ -3370,6 +3794,16 @@ export const contractSchemas = {
           "blocked"
         ]
       },
+      "projectionState": {
+        "enum": [
+          "current",
+          "history"
+        ]
+      },
+      "supersededBy": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9._-]{0,159}$"
+      },
       "effectStatus": {
         "enum": [
           "improved",
@@ -3424,6 +3858,9 @@ export const contractSchemas = {
       "comparison": {
         "$ref": "#/$defs/comparison"
       },
+      "optimizationEvidence": {
+        "$ref": "#/$defs/optimizationEvidence"
+      },
       "star": {
         "$ref": "#/$defs/star"
       },
@@ -3443,6 +3880,190 @@ export const contractSchemas = {
       }
     },
     "$defs": {
+      "optimizationEvidence": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "provenance",
+          "patch",
+          "baselineTrace",
+          "caseComparisons",
+          "validationBoundary",
+          "gaps"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "available",
+              "partial",
+              "unavailable"
+            ]
+          },
+          "provenance": {
+            "const": "existing_run_artifacts"
+          },
+          "patch": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "kind",
+              "artifactPath",
+              "beforeRef",
+              "afterRef",
+              "unifiedDiff",
+              "reason"
+            ],
+            "properties": {
+              "status": {
+                "enum": [
+                  "available",
+                  "unavailable"
+                ]
+              },
+              "kind": {
+                "const": "frozen_configuration"
+              },
+              "artifactPath": {
+                "type": "string",
+                "maxLength": 400
+              },
+              "beforeRef": {
+                "type": "string",
+                "maxLength": 400
+              },
+              "afterRef": {
+                "type": "string",
+                "maxLength": 400
+              },
+              "unifiedDiff": {
+                "type": "string",
+                "maxLength": 16000
+              },
+              "reason": {
+                "$ref": "#/$defs/text"
+              }
+            }
+          },
+          "baselineTrace": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "runId",
+              "status",
+              "traceIds",
+              "reason"
+            ],
+            "properties": {
+              "runId": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "status": {
+                "enum": [
+                  "bound",
+                  "unavailable"
+                ]
+              },
+              "traceIds": {
+                "type": "array",
+                "maxItems": 32,
+                "items": {
+                  "type": "string",
+                  "pattern": "^trace:[a-zA-Z0-9:._-]{1,200}$"
+                }
+              },
+              "reason": {
+                "$ref": "#/$defs/text"
+              }
+            }
+          },
+          "caseComparisons": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "caseId",
+                "before",
+                "after"
+              ],
+              "properties": {
+                "caseId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "before": {
+                  "$ref": "#/$defs/scoredCaseSummary"
+                },
+                "after": {
+                  "$ref": "#/$defs/scoredCaseSummary"
+                }
+              }
+            }
+          },
+          "validationBoundary": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "candidateAware",
+              "candidateBlind",
+              "heldOutOpened",
+              "unbiasedPromotionClaimAllowed",
+              "costAuthority"
+            ],
+            "properties": {
+              "candidateAware": {
+                "type": "boolean"
+              },
+              "candidateBlind": {
+                "type": "boolean"
+              },
+              "heldOutOpened": {
+                "type": "boolean"
+              },
+              "unbiasedPromotionClaimAllowed": {
+                "type": "boolean"
+              },
+              "costAuthority": {
+                "enum": [
+                  "runtime_cost_reconciled",
+                  "unavailable"
+                ]
+              }
+            }
+          },
+          "gaps": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        }
+      },
+      "scoredCaseSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "passed",
+              "failed"
+            ]
+          },
+          "metrics": {
+            "$ref": "#/$defs/metrics"
+          }
+        }
+      },
       "sha256": {
         "type": "string",
         "pattern": "^[a-f0-9]{64}$"
@@ -5718,6 +6339,11 @@ export const contractSchemas = {
           "integer",
           "null"
         ]
+      },
+      "clientMessageId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
       },
       "provider": {
         "type": "string"
@@ -9965,6 +10591,7 @@ export const contractSchemas = {
           "plugins",
           "sandbox",
           "work_documents",
+          "lab_project",
           "desktop_semantic",
           "ls",
           "read",
@@ -10105,6 +10732,7 @@ export const contractSchemas = {
           "plugins",
           "sandbox",
           "work_documents",
+          "lab_project",
           "workspace_list",
           "workspace_lsp",
           "workspace_read",
@@ -10147,6 +10775,9 @@ export const contractSchemas = {
           "retry",
           "catalog",
           "read",
+          "command",
+          "execution_read",
+          "execution_command",
           "recent",
           "trace",
           "capture",
@@ -17353,6 +17984,9 @@ export const contractSchemas = {
       "entity": {
         "$ref": "#/$defs/node"
       },
+      "topicPage": {
+        "$ref": "#/$defs/topicPage"
+      },
       "attributes": {
         "$ref": "#/$defs/attributes"
       },
@@ -17384,6 +18018,269 @@ export const contractSchemas = {
       }
     },
     "$defs": {
+      "topicReference": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "id",
+          "referenceKind",
+          "referenceId"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "atom",
+              "evidence",
+              "event"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "referenceKind": {
+            "type": "string",
+            "enum": [
+              "atom",
+              "evidence",
+              "event"
+            ]
+          },
+          "referenceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 180
+          }
+        }
+      },
+      "topicEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "text",
+          "kind",
+          "status",
+          "claimState",
+          "atomIds",
+          "references",
+          "sourceStatus",
+          "lineageId",
+          "validFromMs",
+          "validToMs",
+          "supersedesId",
+          "supersededByIds",
+          "reason"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "kind": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "claimState": {
+            "type": "string",
+            "enum": [
+              "current",
+              "superseded"
+            ]
+          },
+          "atomIds": {
+            "type": "array",
+            "maxItems": 1,
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            }
+          },
+          "references": {
+            "type": "array",
+            "maxItems": 21,
+            "items": {
+              "$ref": "#/$defs/topicReference"
+            }
+          },
+          "sourceStatus": {
+            "type": "string",
+            "enum": [
+              "available",
+              "unavailable"
+            ]
+          },
+          "lineageId": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "validFromMs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "validToMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "supersedesId": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "supersededByIds": {
+            "type": "array",
+            "maxItems": 256,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            }
+          },
+          "reason": {
+            "type": "null"
+          }
+        }
+      },
+      "topicPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schemaVersion",
+          "bookId",
+          "revision",
+          "authority",
+          "freshness",
+          "summary",
+          "sections",
+          "sources",
+          "coverage"
+        ],
+        "properties": {
+          "schemaVersion": {
+            "type": "string",
+            "const": "rag-ime.memory-topic-page.v1"
+          },
+          "bookId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "revision": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "authority": {
+            "type": "string",
+            "const": "atom_projection"
+          },
+          "freshness": {
+            "type": "string",
+            "enum": [
+              "current",
+              "needs_refresh"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 900
+          },
+          "sections": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "current",
+              "constraints",
+              "openQuestions",
+              "history"
+            ],
+            "properties": {
+              "current": {
+                "type": "array",
+                "maxItems": 256,
+                "items": {
+                  "$ref": "#/$defs/topicEntry"
+                }
+              },
+              "constraints": {
+                "type": "array",
+                "maxItems": 256,
+                "items": {
+                  "$ref": "#/$defs/topicEntry"
+                }
+              },
+              "openQuestions": {
+                "type": "array",
+                "maxItems": 256,
+                "items": {
+                  "$ref": "#/$defs/topicEntry"
+                }
+              },
+              "history": {
+                "type": "array",
+                "maxItems": 256,
+                "items": {
+                  "$ref": "#/$defs/topicEntry"
+                }
+              }
+            }
+          },
+          "sources": {
+            "type": "array",
+            "maxItems": 80,
+            "items": {
+              "$ref": "#/$defs/topicReference"
+            }
+          },
+          "coverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "memberCount",
+              "visibleAtomCount",
+              "omittedAtomCount",
+              "truncated"
+            ],
+            "properties": {
+              "memberCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "visibleAtomCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "omittedAtomCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "truncated": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
       "nodeKind": {
         "type": "string",
         "enum": [
@@ -24341,6 +25238,41 @@ export const contractSchemas = {
                 "type": "integer",
                 "minimum": 1
               }
+            },
+            "project": {
+              "type": "string"
+            },
+            "claimState": {
+              "type": "string"
+            },
+            "validFromMs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "validToMs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "supersedesId": {
+              "type": "string"
+            },
+            "sourceUpdatedAtMs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sourceStartMs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sourceEndMs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "corroborationOnly": {
+              "type": "boolean"
+            },
+            "maySupportFacts": {
+              "type": "boolean"
             }
           }
         }
@@ -24506,6 +25438,28 @@ export const contractSchemas = {
                 }
               }
             }
+          }
+        }
+      },
+      "coverage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "processedThroughAtMs",
+          "lastRunAtMs"
+        ],
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "processedThroughAtMs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lastRunAtMs": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       },
@@ -25493,6 +26447,13 @@ export const contractSchemas = {
       "truncated": {
         "type": "boolean"
       },
+      "nextCursor": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^[0-9]+\\.[a-f0-9]{32}$"
+      },
       "items": {
         "type": "array",
         "maxItems": 100,
@@ -25957,6 +26918,21 @@ export const contractSchemas = {
           "evalRunId": {
             "type": "string",
             "maxLength": 160
+          },
+          "verificationReceiptId": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "replayCaseId": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "decision": {
+            "enum": [
+              "",
+              "kept",
+              "rejected"
+            ]
           },
           "testStatus": {
             "enum": [

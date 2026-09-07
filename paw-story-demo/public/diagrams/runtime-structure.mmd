@@ -1,0 +1,9 @@
+%% Source: PAW ARCHITECTURE.md and PROJECT.md, inspected 2026-09-05.
+flowchart TD
+    UI[PAWOS / Electron] -->|用户命令| S[PAW 服务层]
+    S -->|启动与控制执行| P[Pi Sessions / Room 组合]
+    P -->|模型与工具调用| T[Tools / Providers]
+    T -->|结果与运行事件| D[存储与状态投影]
+    D -->|读取状态与事件更新| UI
+    M[Memory / Knowledge] -->|按需检索上下文| P
+    T -->|错误回执| P

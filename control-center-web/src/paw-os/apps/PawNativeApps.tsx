@@ -13,13 +13,10 @@ import {
   Sparkles,
   type LucideIcon,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { useControlTransport } from '@/app/control-transport';
 import { openPawOsRoute, usePawOsDesktop } from '@/features/paw-os/surface-context';
-import { KnowledgeFeature } from '@/features/knowledge';
-import { EvalLabFeature } from '@/features/eval-lab';
-import { MemoryFeature } from '@/features/memory';
 import { useWorkDocumentWorkspace, type WorkDocumentScope } from '@/features/work-documents/api';
 import type { ControlPathId } from '@/platform/routes';
 import type { ControlRequest } from '@/platform/transport';
@@ -30,6 +27,10 @@ import { PawWorkbenchDocumentLifecycle } from './PawWorkbenchDocumentLifecycle';
 import { PawWorkbenchMigrated, type PawWorkbenchPageId } from './PawWorkbenchMigrated';
 import { PawWorkbenchDocumentRegisterDialog, PawWorkbenchGoalDialog, PawWorkbenchTaskDialog } from './PawWorkbenchOperations';
 import { PawWorkbenchPlanningTools } from './PawWorkbenchPlanningTools';
+
+const KnowledgeFeature = lazy(async () => ({ default: (await import('@/features/knowledge')).KnowledgeFeature }));
+const EvalLabFeature = lazy(async () => ({ default: (await import('@/features/eval-lab')).EvalLabFeature }));
+const MemoryFeature = lazy(async () => ({ default: (await import('@/features/memory')).MemoryFeature }));
 
 export type PawNativeAppId = Exclude<PawOsAppId, 'agent' | 'browser' | 'files' | 'terminal'>;
 type PawFeatureAppId = Exclude<PawNativeAppId, PawSystemAppId>;
@@ -79,7 +80,9 @@ export function PawNativeApp({ appId, initialRoute = '' }: { appId: PawNativeApp
         <MemoryRouter initialEntries={[route]} key={route}>
           <NativeRouteReporter expectedRoute={route} />
           <div className="paw-native-page" key={`${appId}:${pageId}`}>
-            <NativeSurface appId={appId} pageId={pageId} route={route} />
+            <Suspense fallback={<div className="paw-app-loading" role="status">正在打开 {app.label}…</div>}>
+              <NativeSurface appId={appId} pageId={pageId} route={route} />
+            </Suspense>
           </div>
         </MemoryRouter>
       </section>
@@ -172,7 +175,7 @@ function ProjectWorkbenchSurface({ pageId, route }: { pageId: PawWorkbenchPageId
   }
 
   const primaryAction = pageId === 'overview'
-    ? { label: '新任务', onClick: () => openPawOsRoute(desktop, '/planning') }
+    ? { label: '查看任务', onClick: () => openPawOsRoute(desktop, '/planning') }
     : pageId === 'planning'
       ? { label: '添加任务', onClick: () => setTaskDialogOpen(true) }
       : { label: '登记工作文档', onClick: () => setRegisterDialogOpen(true) };
@@ -232,8 +235,9 @@ function ProjectWorkbenchSurface({ pageId, route }: { pageId: PawWorkbenchPageId
       overview={overview.data}
       pageId={pageId}
       planning={planning.data}
-      planningTools={(
+      planningTools={(selectedTask) => (
         <PawWorkbenchPlanningTools
+          selectedTask={selectedTask}
           date={planningDate}
           onDateChange={setPlanningDate}
           onOpenAgent={(draft) => {

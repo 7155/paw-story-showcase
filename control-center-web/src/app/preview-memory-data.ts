@@ -1,4 +1,6 @@
+import { previewMemoryInputSources } from './preview-history-routes';
 import type { ControlRequest } from '@/platform/transport';
+import taskStory from '../../../showcase/task-story.v1.json';
 import type {
   MemoryReferenceV1,
   Reference,
@@ -189,11 +191,12 @@ export function previewMemoryReference(kind: string, referenceId: string): Memor
   });
 
   if (referenceKind === 'event') {
-    const text = referenceId.endsWith('202')
+    const inputSource = previewMemoryInputSources.find(item => referenceId.endsWith(`:${item.id}`));
+    const text = inputSource?.text ?? (referenceId.endsWith('202')
       ? '一天可能有上千次输入，但碎片和一次性内容不应该直接成为长期记忆；先整理，再按问题召回。'
       : referenceId.endsWith('10001')
       ? '面向用户的解释先给结论，再补充必要原因。'
-      : '除最新内容外，其他内容也应保留；网页只需更新，不必每次重写全部内容。';
+      : '除最新内容外，其他内容也应保留；网页只需更新，不必每次重写全部内容。');
     return {
       ...base,
       source: { kind: 'input_event', sourceKind: 'squirrel_input_segment', id: referenceId },
@@ -209,6 +212,7 @@ export function previewMemoryReference(kind: string, referenceId: string): Memor
         ownerKind: 'user',
         ownerId: 'default',
         occurredAtMs: now - 3_600_000,
+        ...(inputSource ? { sourceContextAvailable: true, sourceContext: { recentContext: '公开合成输入，用于说明记忆来源的回溯关系。', preedit: '', redacted: false, scopeProject: inputSource.project, usedFor: ['source_fingerprint', 'semantic_grouping'] } } : {}),
       },
       evidenceRefs: [],
     };
@@ -271,7 +275,7 @@ export function previewMemoryReference(kind: string, referenceId: string): Memor
       ref: makeReference('book', referenceId),
       item: {
         id: referenceId,
-        title: referenceId.includes('agent-runtime') ? '伙伴运行' : '表达品味与修改偏好',
+        title: referenceId.includes('agent-runtime') ? '伙伴运行' : referenceId.includes('preview-memory-governance') ? '技术表达、证据等级与 Agent 工作边界' : '表达品味与修改偏好',
         summary: '聚合当前 Atom 和来源证据，按当前问题提供有界检索入口。',
         status: 'active',
         type: 'topic',
@@ -390,19 +394,19 @@ export function previewActivityTimeline(date: string, status: string): Record<st
     previewActivitySegment({
       id: 'session-runtime-boundary',
       position: 0,
-      title: '确认 Session Runtime 的唯一 owner',
+      title: '确定工作台目标与四线分工',
       apps: ['com.openai.codex', 'com.google.Chrome'],
       startMs: dayStart + 8.4 * 3_600_000,
       endMs: dayStart + 8.58 * 3_600_000,
       eventCount: 318,
-      summary: '沿 Pi、PAW 与 Room 的调用链核对 transcript、Tool loop、Stop、compaction 和 recovery 由谁负责。',
+      summary: '对齐 PAW 工作台目标，确定输入、Memory、多 Agent 和 PAWOS 的交付；Pi 持有执行，Room 负责协调。',
       sourceKinds: ['squirrel_input_segment', 'pi_agent'],
       contextGroupIds: ['group:session-runtime', 'group:owner-boundary'],
     }),
     previewActivitySegment({
       id: 'memory-knowledge-boundary',
       position: 1,
-      title: '拆开 Memory、Knowledge 与当前 Context',
+      title: '输入与 Memory 对齐可召回来源',
       apps: ['com.openai.codex', 'com.google.Chrome'],
       startMs: dayStart + 9.2 * 3_600_000,
       endMs: dayStart + 12.1 * 3_600_000,
@@ -415,36 +419,36 @@ export function previewActivityTimeline(date: string, status: string): Record<st
     previewActivitySegment({
       id: 'light-room-cutover',
       position: 2,
-      title: 'Strong Room 切回 Light Room',
+      title: '四个 Agent 交换接口并汇总方案',
       apps: ['com.microsoft.VSCode', 'com.mitchellh.ghostty', 'com.openai.codex'],
       startMs: dayStart + 13.2 * 3_600_000,
       endMs: dayStart + 15.1 * 3_600_000,
       eventCount: 352,
-      summary: '删除重复 Agent Runtime，让 Partner 回到普通 Pi Session，只保留派发、公共事件与一个 final。',
+      summary: 'Input、Memory、多 Agent 与 PAWOS 分别交付方案；Facilitator 整合接口与依赖，保留每条线的负责人和来源。',
       sourceKinds: ['squirrel_input_segment', 'pi_agent'],
       contextGroupIds: ['group:room-runtime', 'group:pi-session', 'group:verification'],
     }),
     previewActivitySegment({
       id: 'room-frontend-iterations',
       position: 3,
-      title: '验证多 Agent 的复合视图',
+      title: '交付检查发现 PAWOS 方案被回滚',
       apps: ['com.openai.codex', 'com.figma.Desktop'],
       startMs: dayStart + 15.3 * 3_600_000,
       endMs: dayStart + 17.4 * 3_600_000,
       eventCount: 221,
-      summary: '分别用公开记录、任务表、关系视图和真实 Session 窗口回答因果、责任、协同与执行细节。',
+      summary: taskStory.incident,
       sourceKinds: ['squirrel_input_segment', 'pi_agent'],
       contextGroupIds: ['group:pawos-ui', 'group:frontend-craft'],
     }),
     previewActivitySegment({
       id: 'trace-repair-evidence',
       position: 4,
-      title: '闭合 Trace 与 Repair 证据链',
+      title: '比较两种修复，保留候选 B',
       apps: ['com.openai.codex', 'com.mitchellh.ghostty'],
       startMs: dayStart + 17.6 * 3_600_000,
       endMs: dayStart + 18.9 * 3_600_000,
       eventCount: 117,
-      summary: '把原失败、诊断报告、精确授权、变更证据、测试证据和同题复检绑定到同一来源链。',
+      summary: taskStory.memory,
       sourceKinds: ['pi_agent'],
       contextGroupIds: ['group:trace-runtime', 'group:repair-authority', 'group:verification'],
     }),
@@ -460,7 +464,7 @@ export function previewActivityTimeline(date: string, status: string): Record<st
     sourceEventIds: segments.flatMap((segment) => segment.sourceEventIds as number[]),
     sourceEventHash: hash,
     segments,
-    summary: '1,284 条完整输入被整理为 5 个可核对任务：Session owner、Context 治理、Light Room、复合前端与 Trace repair。',
+    summary: '合成来源整理为 5 个可核对任务：目标分工、输入与召回合同、四线交付、文件回滚检查、候选比较与接受的决定。',
     eventCount: segments.reduce((sum, segment) => sum + Number(segment.eventCount), 0),
     segmentCount: segments.length,
     observedStartMs: Math.min(...segments.map((segment) => Number(segment.startMs))),
@@ -921,6 +925,7 @@ export function previewMemoryEntity(kindValue: string, entityId: string): Record
     'input-boundary': previewMemoryGraphNode('tag:input-boundary', 'tag', '输入封口', 'Backspace 编辑，Enter 后持久化', 9, 'orange'),
     'input-method': previewMemoryGraphNode('group:input-method', 'group', '输入法', '输入质量、候选与上下文注入', 34, 'teal'),
     agent: previewMemoryGraphNode('group:agent', 'group', '伙伴运行资料', '会话、工具和长期记忆', 27, 'blue'),
+    'preview-memory-governance': previewMemoryGraphNode('book:preview-memory-governance', 'book', '技术表达、证据等级与 Agent 工作边界', '由当前 Atom 与原始来源组成的公开合成主题。', 2, 'teal'),
     'input-memory': previewMemoryGraphNode('book:input-memory', 'book', '输入法记忆与上下文', '完整输入段、App 来源和闪电联想边界', 12, 'green'),
   } as const;
   const fallback = previewMemoryGraphNode(
@@ -931,7 +936,8 @@ export function previewMemoryEntity(kindValue: string, entityId: string): Record
     0,
     'gray',
   );
-  const entity = catalog[entityId as keyof typeof catalog] ?? fallback;
+  const catalogId = entityId.replace(/^(book|tag|group):/, '');
+  const entity = catalog[catalogId as keyof typeof catalog] ?? fallback;
   const related = kind === 'tag'
     ? catalog['memory-quality']
     : kind === 'book'
@@ -958,6 +964,15 @@ export function previewMemoryEntity(kindValue: string, entityId: string): Record
     entityRevision: `sha256:${'b'.repeat(64)}`,
     project: 'wisdom-weasel-rag-ime',
     entity,
+    ...(kind === 'book' && catalogId === 'preview-memory-governance' ? { topicPage: {
+      schemaVersion: 'rag-ime.memory-topic-page.v1', bookId: entityId, revision: `sha256:${'b'.repeat(64)}`, authority: 'atom_projection', freshness: 'current', summary: String(entity.description),
+      sections: { current: ['atom:conclusion-first', 'atom:evidence-over-agreement'].map(id => {
+        const atom = previewMemoryReference('atom', id);
+        return { id, text: atom.item?.text ?? '', kind: 'principle', status: 'active', claimState: 'current', atomIds: [id], references: atom.evidenceRefs, sourceStatus: 'available', lineageId: id, validFromMs: Date.now() - 120000, validToMs: null, supersedesId: '', supersededByIds: [], reason: null };
+      }), constraints: [], openQuestions: [], history: [] },
+      sources: [{ kind: 'event', id: 'event:sanitized:10001', referenceKind: 'event', referenceId: 'event:sanitized:10001', label: '已清洗输入依据' }],
+      coverage: { memberCount: 2, visibleAtomCount: 2, omittedAtomCount: 0, truncated: false },
+    } } : {}),
     attributes: {
       type: kind === 'group' ? 'semantic' : kind === 'book' ? 'topic' : 'concept',
       aliases: kind === 'tag' && entityId === 'memory-quality' ? ['记忆治理'] : [],

@@ -1,3 +1,4 @@
+import { createPreviewTraceReportRoutes } from "./preview-trace-report-routes";
 import {
   MAX_COMPOSER_ATTACHMENT_BYTES,
   normalizeComposerAttachmentMimeType,
@@ -38,6 +39,10 @@ import type { AgentBackgroundJobV1 } from '@/contracts/generated/agent-backgroun
 import type { AgentApprovalV1 } from '@/contracts/generated/agent-approval.v1';
 import type { AgentPersonaV1 } from '@/contracts/generated/agent-persona.v1';
 import type { AgentWorkflowStateV1 } from '@/contracts/generated/agent-workflow-state.v1';
+import {
+  defaultRoomPermissionPolicy,
+  parseRoomPermissionPolicy,
+} from '@/features/rooms/room-types';
 import { createPreviewHistoryRoutes } from './preview-history-routes';
 import { createPreviewWorkDocumentRoutes } from './preview-work-document-routes';
 import {
@@ -65,6 +70,8 @@ import {
   previewConfigurationValues,
   previewLexiconReview,
 } from './preview-input-data';
+import { previewEvalLabEvidence, previewEvalLabRuns } from './preview-eval-lab-data';
+import { createPreviewLabProjectRoutes } from './preview-lab-project-data';
 
 /**
  * The mock transport has one broadcast event bus for convenience. Preview
@@ -247,6 +254,7 @@ export function createPreviewTransport(): MockControlTransport {
   let previewMemoryJob: Record<string, unknown> = {};
   let previewWorkflow = previewWorkflowState('session-preview');
   let previewInstalledExtensions = previewInstalledExtensionItems();
+  let previewSkills = previewSkillItems();
   let previewValidatedExtension: Record<string, unknown> = {};
   let previewExtensionChange: Record<string, unknown> = {};
   let previewLifecyclePolicies = previewLifecyclePolicyItems();
@@ -309,6 +317,7 @@ export function createPreviewTransport(): MockControlTransport {
   }));
   let companionConfigurationRevision = 1;
   let modelRouting = previewDefaultModelRouting();
+  let skillRouting = previewDefaultSkillRouting();
   let capabilityGlobalPreferences: Record<string, string> = {};
   let capabilityProjectPreferences: Record<string, Record<string, string>> = {};
   const capabilitySessionPreferences = new Map<string, Record<string, string>>();
@@ -334,6 +343,7 @@ export function createPreviewTransport(): MockControlTransport {
       .filter((pathId) => !controlRoute(pathId).subscription)
       .map((pathId) => [pathId, previewResponse(pathId)]),
   ) as Partial<Record<ControlPathId, MockRouteHandler>>;
+  Object.assign(routes, createPreviewLabProjectRoutes(), createPreviewTraceReportRoutes());
   routes['agent.session.snapshot'] = (request: ControlRequest) => (
     previewAgentSnapshot(stringValue(record(request.params).sessionId) || 'session-preview')
   );
@@ -555,6 +565,32 @@ export function createPreviewTransport(): MockControlTransport {
     return previewWorkflow;
   };
   routes['agent.extensions.list'] = () => ({ ok: true, items: previewInstalledExtensions });
+  routes['agent.extensions.skills.list'] = () => ({
+    schemaVersion: 'rag-ime.skill-inventory.v1',
+    ok: true,
+    runtimeAvailable: true,
+    revision: `sha256:${'e'.repeat(64)}`,
+    items: previewSkills,
+  });
+  routes['agent.extensions.skills.get'] = (request: ControlRequest) => {
+    const skillId = stringValue(record(request.query).skillId);
+    const item = previewSkills.find((candidate) => stringValue(candidate.skillId) === skillId);
+    if (!item) throw new Error('Skill 不存在或已经释放。');
+    const body = previewSkillBodies[skillId] || `# ${stringValue(item.name)}\n\n${stringValue(item.description)}\n`;
+    const bodyBytes = new TextEncoder().encode(body).byteLength;
+    return {
+      schemaVersion: 'rag-ime.skill-detail.v1',
+      ok: true,
+      revision: stringValue(item.contentRevision),
+      item: {
+        ...item,
+        body,
+        bodyBytes,
+        contentBytes: bodyBytes,
+        bodyTruncated: false,
+      },
+    };
+  };
   routes['agent.extensions.catalog'] = () => ({
     ok: true,
     items: previewExtensionCatalogItems(previewInstalledExtensions),
@@ -641,6 +677,7 @@ export function createPreviewTransport(): MockControlTransport {
       previewInstalledExtensions,
       previewExtensionChange,
     );
+    previewSkills = applyPreviewSkillChange(previewSkills, previewExtensionChange);
     return {
       ok: true,
       receipt: {
@@ -870,6 +907,7 @@ export function createPreviewTransport(): MockControlTransport {
     companionConfigurationRevision,
     defaultCompanion,
     modelRouting,
+    skillRouting,
     capabilityGlobalPreferences,
     capabilityProjectPreferences,
   );
@@ -878,6 +916,7 @@ export function createPreviewTransport(): MockControlTransport {
     if (Number(body.expectedRevision) !== companionConfigurationRevision) throw new Error('Preview companion configuration changed.');
     const changes = record(body.changes);
     const modelRouteChange = Object.entries(changes).find(([key]) => key.startsWith('modelRouting.'));
+    const skillRouteChange = Object.entries(changes).find(([key]) => key.startsWith('skillRouting.'));
     if (modelRouteChange) {
       const routeId = modelRouteChange[0].slice('modelRouting.'.length);
       if (!Object.hasOwn(modelRouting, routeId)) throw new Error('Preview model route is invalid.');
@@ -888,6 +927,30 @@ export function createPreviewTransport(): MockControlTransport {
       modelRouting = {
         ...modelRouting,
         [routeId]: { modelProfile, thinkingLevel },
+      };
+    } else if (skillRouteChange) {
+      const scenario = skillRouteChange[0].slice('skillRouting.'.length) as PreviewSkillScenario;
+      const requestedSkillRoute = skillRouteChange[1];
+      if (!Object.hasOwn(skillRouting, scenario)) throw new Error('Preview Skill scenario is invalid.');
+      if (
+        !Array.isArray(requestedSkillRoute)
+        || requestedSkillRoute.some((name) => typeof name !== 'string' || !name.trim())
+      ) {
+        throw new Error('Preview Skill route is invalid.');
+      }
+      const names = requestedSkillRoute.map((name) => name.trim());
+      if (
+        new Set(names).size !== names.length
+        || names.some((name) => {
+          const owner = PREVIEW_PRIVATE_SKILL_SCENARIOS[name];
+          return owner !== undefined && owner !== scenario;
+        })
+      ) {
+        throw new Error('Preview Skill route contains an invalid private Skill.');
+      }
+      skillRouting = {
+        ...skillRouting,
+        [scenario]: [...names].sort(),
       };
     } else if (Object.hasOwn(changes, 'sessionDefaults.capabilityDisclosurePreferences')) {
       capabilityGlobalPreferences = previewCapabilityPreferences(changes['sessionDefaults.capabilityDisclosurePreferences']);
@@ -907,6 +970,7 @@ export function createPreviewTransport(): MockControlTransport {
       companionConfigurationRevision,
       defaultCompanion,
       modelRouting,
+      skillRouting,
       capabilityGlobalPreferences,
       capabilityProjectPreferences,
     );
@@ -1283,11 +1347,20 @@ export function createPreviewTransport(): MockControlTransport {
   );
   routes['agent.rooms.list'] = (request: ControlRequest) => {
     const includeArchived = record(request.query).includeArchived === true;
+    const query = record(request.query);
+    const ownerAppId = Object.prototype.hasOwnProperty.call(query, 'ownerAppId')
+      ? stringValue(query.ownerAppId)
+      : null;
+    const surfaceKey = Object.prototype.hasOwnProperty.call(query, 'surfaceKey')
+      ? stringValue(query.surfaceKey)
+      : null;
     return {
       ok: true,
       rooms: [...previewRoomSnapshots.values()]
         .map((snapshot) => record(snapshot.room))
-        .filter((room) => includeArchived || room.status !== 'archived'),
+        .filter((room) => includeArchived || room.status !== 'archived')
+        .filter((room) => ownerAppId === null || stringValue(room.ownerAppId) === ownerAppId)
+        .filter((room) => surfaceKey === null || stringValue(room.surfaceKey) === surfaceKey),
     };
   };
   routes['agent.rooms.create'] = (request: ControlRequest) => {
@@ -1651,6 +1724,10 @@ function previewManagedFile(request: ControlRequest): Record<string, unknown> {
 
 function previewResponse(pathId: ControlPathId): unknown {
   switch (pathId) {
+    case 'agent.eval-lab.runs':
+      return () => previewEvalLabRuns();
+    case 'agent.eval-lab.evidence':
+      return (request: ControlRequest) => previewEvalLabEvidence({ query: record(request.query) as Record<string, string> });
     case 'observability.snapshot':
       return (request: ControlRequest) =>
         previewObservationSnapshot(record(request.query));
@@ -1774,10 +1851,12 @@ function previewResponse(pathId: ControlPathId): unknown {
     case 'agent.session.workspace.list':
       return (request: ControlRequest) => previewWorkspaceList(
         stringValue(record(request.query).path) || '/Volumes/work/wisdom-weasel-rag-ime',
+        stringValue(record(request.params).sessionId) || 'session-preview',
       );
     case 'agent.session.workspace.read':
       return (request: ControlRequest) => previewWorkspaceRead(
         stringValue(record(request.query).path) || '/Volumes/work/wisdom-weasel-rag-ime/README.md',
+        stringValue(record(request.params).sessionId) || 'session-preview',
       );
     case 'agent.rooms.list':
       return { ok: true, rooms: [previewRoomSnapshot('room-preview').room] };
@@ -2851,6 +2930,162 @@ function optionalPreviewNumber(value: unknown, fallback: number | null): number 
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : fallback;
 }
 
+const previewSkillBodies: Record<string, string> = {
+  'timeline-inspector.skill': [
+    '# Timeline Inspector',
+    '',
+    'Use this Skill to inspect a session timeline before writing a handoff.',
+    '',
+    '## Steps',
+    '',
+    '1. Read the timeline summary.',
+    '2. Identify the first user-visible regression.',
+    '3. Link the relevant trace evidence in the handoff.',
+    '',
+  ].join('\n'),
+  'incident-response': [
+    '# Incident Response',
+    '',
+    'Use this Skill to turn an incident into a bounded, evidence-backed repair plan.',
+    '',
+    '## Guardrails',
+    '',
+    '- Preserve the original evidence before changing state.',
+    '- Separate observed facts from hypotheses.',
+    '',
+  ].join('\n'),
+  'release-check': [
+    '# Release Check',
+    '',
+    'Use this project Skill to review release evidence before publishing.',
+    '',
+    '## Checklist',
+    '',
+    '- Confirm the changed surface was exercised.',
+    '- Record the exact artifact and revision.',
+    '',
+  ].join('\n'),
+};
+
+function previewSkillItems(): Record<string, unknown>[] {
+  return [
+    {
+      skillId: 'timeline-inspector.skill',
+      name: 'Timeline Inspector',
+      description: '检查会话时间线，并把首个用户可见回归连接到交接证据。',
+      sourceKind: 'package',
+      packageId: 'timeline-inspector',
+      packageVersion: '1.0.0',
+      resourcePath: 'skills/timeline-inspector/SKILL.md',
+      enabled: true,
+      installed: true,
+      installState: 'enabled',
+      digest: `sha256:${'1'.repeat(64)}`,
+      contentRevision: `sha256:${'1'.repeat(64)}`,
+      sizeBytes: 412,
+      management: 'package',
+      managementReason: 'Skill 生命周期属于整个 Pi Package；变更会在 Package 范围内预览并确认。',
+      actions: ['enable', 'disable', 'update', 'uninstall'],
+    },
+    {
+      skillId: 'incident-response',
+      name: 'Incident Response',
+      description: '把事故整理为有边界、可核验的修复计划。',
+      sourceKind: 'bundled',
+      resourcePath: 'integrations/pi/skills/incident-response/SKILL.md',
+      enabled: null,
+      installed: true,
+      installState: 'bundled',
+      digest: `sha256:${'2'.repeat(64)}`,
+      contentRevision: `sha256:${'2'.repeat(64)}`,
+      sizeBytes: 328,
+      management: 'inspect_only',
+      managementReason: 'Bundled Skill 由 Pi Runtime 提供，没有独立的启用开关。',
+      actions: [],
+    },
+    {
+      skillId: 'release-check',
+      name: 'Release Check',
+      description: '在发布前检查项目 Skill 的变更证据。',
+      sourceKind: 'project',
+      resourcePath: 'skills/release-check/SKILL.md',
+      enabled: null,
+      installed: true,
+      installState: 'project',
+      digest: `sha256:${'3'.repeat(64)}`,
+      contentRevision: `sha256:${'3'.repeat(64)}`,
+      sizeBytes: 286,
+      management: 'inspect_only',
+      managementReason: 'Project Skill 由工作区发现，没有独立的 Package 生命周期。',
+      actions: [],
+    },
+    {
+      skillId: 'systematic-debugging',
+      name: 'systematic-debugging',
+      description: '通过可复现证据定位跨层或间歇性故障。',
+      sourceKind: 'bundled',
+      resourcePath: 'integrations/pi/skills/systematic-debugging/SKILL.md',
+      enabled: null,
+      installed: true,
+      installState: 'bundled',
+      digest: `sha256:${'4'.repeat(64)}`,
+      contentRevision: `sha256:${'4'.repeat(64)}`,
+      sizeBytes: 364,
+      management: 'inspect_only',
+      managementReason: 'Bundled Skill 由 Pi Runtime 提供，没有独立的启用开关。',
+      actions: [],
+    },
+    {
+      skillId: 'facilitate-room',
+      name: 'facilitate-room',
+      description: '负责 Room 内的协作编排、工作分配与结果收束。',
+      sourceKind: 'bundled',
+      resourcePath: 'integrations/pi/skills/facilitate-room/SKILL.md',
+      enabled: null,
+      installed: true,
+      installState: 'bundled',
+      digest: `sha256:${'5'.repeat(64)}`,
+      contentRevision: `sha256:${'5'.repeat(64)}`,
+      sizeBytes: 392,
+      management: 'inspect_only',
+      managementReason: 'Bundled Skill 由 Pi Runtime 提供，没有独立的启用开关。',
+      actions: [],
+    },
+    {
+      skillId: 'trace-agent-diagnostics',
+      name: 'trace-agent-diagnostics',
+      description: '为 Trace Agent 提供诊断、证据核对与受控修复流程。',
+      sourceKind: 'bundled',
+      resourcePath: 'integrations/pi/skills/trace-agent-diagnostics/SKILL.md',
+      enabled: null,
+      installed: true,
+      installState: 'bundled',
+      digest: `sha256:${'6'.repeat(64)}`,
+      contentRevision: `sha256:${'6'.repeat(64)}`,
+      sizeBytes: 408,
+      management: 'inspect_only',
+      managementReason: 'Bundled Skill 由 Pi Runtime 提供，没有独立的启用开关。',
+      actions: [],
+    },
+    {
+      skillId: 'agent-eval-room-optimizer',
+      name: 'agent-eval-room-optimizer',
+      description: '为 Agent Lab 的评测实验优化协作策略与证据回路。',
+      sourceKind: 'bundled',
+      resourcePath: 'integrations/pi/skills/agent-eval-room-optimizer/SKILL.md',
+      enabled: null,
+      installed: true,
+      installState: 'bundled',
+      digest: `sha256:${'7'.repeat(64)}`,
+      contentRevision: `sha256:${'7'.repeat(64)}`,
+      sizeBytes: 416,
+      management: 'inspect_only',
+      managementReason: 'Bundled Skill 由 Pi Runtime 提供，没有独立的启用开关。',
+      actions: [],
+    },
+  ];
+}
+
 function previewInstalledExtensionItems(): Record<string, unknown>[] {
   return [{
     id: 'timeline-inspector',
@@ -2983,6 +3218,44 @@ function applyPreviewExtensionChange(
   }
   return installed;
 }
+function applyPreviewSkillChange(
+  skills: Record<string, unknown>[],
+  change: Record<string, unknown>,
+): Record<string, unknown>[] {
+  const action = stringValue(change.action);
+  const packageId = stringValue(change.pluginId);
+  if (!packageId) return skills;
+  return skills.map((skill) => {
+    if (stringValue(skill.packageId) !== packageId || stringValue(skill.sourceKind) !== 'package') {
+      return skill;
+    }
+    if (action === 'uninstall') {
+      return { ...skill, enabled: false, installed: false, installState: 'uninstalled' };
+    }
+    if (action === 'enable' || action === 'disable') {
+      return {
+        ...skill,
+        enabled: action === 'enable',
+        installed: true,
+        installState: action === 'enable' ? 'enabled' : 'disabled',
+      };
+    }
+    if (action === 'update') {
+      return {
+        ...skill,
+        packageVersion: stringValue(change.version) || '1.1.0',
+        enabled: true,
+        installed: true,
+        installState: 'enabled',
+      };
+    }
+    if (action === 'install') {
+      return { ...skill, enabled: change.enable !== false, installed: true, installState: change.enable === false ? 'disabled' : 'enabled' };
+    }
+    return skill;
+  });
+}
+
 
 function previewLifecyclePolicyItems(): Record<string, unknown>[] {
   return [
@@ -3897,6 +4170,10 @@ function previewApprovalItems(now = Date.now()): AgentApprovalV1[] {
     goalRevision: 4,
     turnId: 'turn:preview-approval',
     roomBound: false,
+    roomId: '',
+    rootId: '',
+    dispatchId: '',
+    generation: 0,
   };
   return [
     {
@@ -4222,10 +4499,19 @@ function previewThinkingLevel(value: unknown): NonNullable<AgentPersonaV1['defau
     : 'off';
 }
 
+type PreviewSkillScenario = 'ordinary' | 'room' | 'trace' | 'agentLab';
+
+const PREVIEW_PRIVATE_SKILL_SCENARIOS: Readonly<Partial<Record<string, PreviewSkillScenario>>> = {
+  'facilitate-room': 'room',
+  'trace-agent-diagnostics': 'trace',
+  'agent-eval-room-optimizer': 'agentLab',
+};
+
 function previewCompanionConfiguration(
   revision: number,
   defaults: { roleId: string; roleVersion: string },
   modelRouting: Record<string, { modelProfile: string; thinkingLevel: string }>,
+  skillRouting: Record<PreviewSkillScenario, string[]>,
   capabilityGlobalPreferences: Record<string, string>,
   capabilityProjectPreferences: Record<string, Record<string, string>>,
 ): Record<string, unknown> {
@@ -4240,6 +4526,7 @@ function previewCompanionConfiguration(
           capabilityDisclosurePreferences: capabilityGlobalPreferences,
         },
         modelRouting,
+        skillRouting,
         capabilityDisclosure: {
           projectPreferences: capabilityProjectPreferences,
         },
@@ -4261,11 +4548,27 @@ function previewDefaultModelRouting(): Record<string, { modelProfile: string; th
   }]));
 }
 
+function previewDefaultSkillRouting(): Record<PreviewSkillScenario, string[]> {
+  const general = ['systematic-debugging'];
+  return {
+    ordinary: [...general],
+    room: [...general, 'facilitate-room'].sort(),
+    trace: [...general, 'trace-agent-diagnostics'].sort(),
+    agentLab: [...general, 'agent-eval-room-optimizer'].sort(),
+  };
+}
+
 function previewCreatedRoomSnapshot(
   roomId: string,
   body: Record<string, unknown>,
 ): Record<string, unknown> {
   const now = Date.now();
+  const roomKind = stringValue(body.roomKind) === 'roleplay' ? 'roleplay' : 'collaboration';
+  const requestedPermissionPolicy = parseRoomPermissionPolicy(body.permissionPolicy, roomKind);
+  if (body.permissionPolicy !== undefined && !requestedPermissionPolicy) {
+    throw new Error('Room 分层权限策略无效。');
+  }
+  const permissionPolicy = requestedPermissionPolicy ?? defaultRoomPermissionPolicy(roomKind);
   const requestedParticipants = Array.isArray(body.participants)
     ? body.participants.map(record)
     : [];
@@ -4295,15 +4598,18 @@ function previewCreatedRoomSnapshot(
     id: roomId,
     title: stringValue(body.title),
     status: 'active',
-    roomKind: stringValue(body.roomKind) || 'collaboration',
+    roomKind,
     avatar: stringValue(body.avatar),
     description: stringValue(body.description),
     scenarioPrompt: stringValue(body.scenarioPrompt),
+    ownerAppId: stringValue(body.ownerAppId),
+    surfaceKey: stringValue(body.surfaceKey),
     routingPolicy: stringValue(body.routingPolicy) || 'natural',
     routingConfig: record(body.routingConfig),
     moderatorParticipantId: participants[0]!.id,
     workspaceRoots,
-    executionMode: stringValue(body.executionMode) || 'workspace_managed',
+    executionMode: permissionPolicy.room.executionMode,
+    permissionPolicy,
     createdAtMs: now,
     updatedAtMs: now,
     lastEventSequence: 0,
@@ -4378,7 +4684,7 @@ function previewRoomTopicMutation(
   };
 }
 
-function previewWorkspaceList(path: string): Record<string, unknown> {
+function previewWorkspaceList(path: string, sessionId: string): Record<string, unknown> {
   const root = '/Users/example/Projects/personal-agent-workbench';
   const items = path.endsWith('/control-center-web')
     ? [
@@ -4393,7 +4699,7 @@ function previewWorkspaceList(path: string): Record<string, unknown> {
   return {
     schemaVersion: 'rag-ime.agent-workspace-list.v1',
     ok: true,
-    sessionId: 'session-preview',
+    sessionId,
     root,
     path,
     items,
@@ -4401,14 +4707,21 @@ function previewWorkspaceList(path: string): Record<string, unknown> {
   };
 }
 
-function previewWorkspaceRead(path: string): Record<string, unknown> {
-  const content = path.endsWith('.md')
+function previewWorkspaceRead(path: string, sessionId: string): Record<string, unknown> {
+  const name = path.split('/').at(-1) ?? '';
+  const post = previewRoomSnapshot('room-preview').events.map(event => record(record(event.payload).post)).find(post => typeof post.content === 'string' && post.content.startsWith(`WorkPatch · ${name}：`));
+  const content = post ? `# ${name}
+
+公开合成 Room 交付
+
+${String(post.content).split('：').slice(1).join('：')}
+` : path.endsWith('.md')
     ? '# Personal Agent Workbench\n\n这是工作区文件预览。\n'
     : 'export function previewWorkspace() {\n  return "ready";\n}\n';
   return {
     schemaVersion: 'rag-ime.agent-workspace-read.v1',
     ok: true,
-    sessionId: 'session-preview',
+    sessionId,
     summary: `已读取 ${path.split('/').at(-1)}`,
     path,
     root: '/Users/example/Projects/personal-agent-workbench',
@@ -4419,27 +4732,6 @@ function previewWorkspaceRead(path: string): Record<string, unknown> {
     truncated: false,
     nextOffset: new TextEncoder().encode(content).byteLength,
   };
-}
-
-function record(value: unknown): Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : {};
-}
-
-function eventSessionId(value: unknown): string {
-  return stringValue(record(value).sessionId);
-}
-
-function eventRoomId(value: unknown): string {
-  return stringValue(record(value).roomId);
-}
-
-function resumeSequence(value: string, ownerId: string): number {
-  const prefix = `${ownerId}:`;
-  if (!value.startsWith(prefix)) return 0;
-  const sequence = Number(value.slice(prefix.length));
-  return Number.isInteger(sequence) && sequence >= 0 ? sequence : 0;
 }
 
 function previewRoomConversationSnapshot(
@@ -4462,4 +4754,26 @@ function previewRoomConversationSnapshot(
     deferredEventCount: allEvents.length - events.length,
     truncated: snapshot.truncated === true,
   };
+}
+
+
+function record(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function eventSessionId(value: unknown): string {
+  return stringValue(record(value).sessionId);
+}
+
+function eventRoomId(value: unknown): string {
+  return stringValue(record(value).roomId);
+}
+
+function resumeSequence(value: string, ownerId: string): number {
+  const prefix = `${ownerId}:`;
+  if (!value.startsWith(prefix)) return 0;
+  const sequence = Number(value.slice(prefix.length));
+  return Number.isInteger(sequence) && sequence >= 0 ? sequence : 0;
 }

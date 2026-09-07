@@ -4,88 +4,179 @@
   "apps": [
     {
       "id": "project-workbench",
-      "routes": ["/overview", "/planning", "/work-documents"],
+      "routes": [
+        "/overview",
+        "/planning",
+        "/work-documents"
+      ],
       "renderOwner": "control-center-web/src/paw-os/apps/PawNativeApps.tsx",
-      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx", "control-center-web/src/app/preview-work-document-routes.ts"],
+      "scenarioSources": [
+        "control-center-web/src/app/preview-control-transport.tsx",
+        "control-center-web/src/app/preview-work-document-routes.ts"
+      ],
       "claim": "interaction-rehearsal"
     },
     {
       "id": "agent",
-      "routes": ["/agent?session=session-preview", "/agent?session=session-memory", "/agent?session=session-reliability", "/agent?room=room-preview", "/rooms?room=room-preview"],
+      "routes": [
+        "/agent?session=session-preview",
+        "/agent?session=session-memory",
+        "/agent?session=session-reliability",
+        "/agent?room=room-preview",
+        "/rooms?room=room-preview"
+      ],
       "renderOwner": "control-center-web/src/paw-os/apps/PawAgentApp.tsx",
-      "scenarioSources": ["control-center-web/src/features/agent/preview-data.ts", "control-center-web/src/app/preview-room-data.ts"],
+      "scenarioSources": [
+        "control-center-web/src/features/agent/preview-data.ts",
+        "control-center-web/src/app/preview-room-data.ts",
+        "control-center-web/src/paw-os/showcase/PawHandsOnGuide.tsx",
+        "control-center-web/src/paw-os/showcase/hands-on-guide.ts"
+      ],
       "claim": "synthetic-preview"
     },
     {
       "id": "memory",
-      "routes": ["/memory", "/memory?view=organize", "/memory?layer=timelines"],
+      "routes": [
+        "/memory",
+        "/memory?view=organize",
+        "/memory?layer=timelines"
+      ],
       "renderOwner": "control-center-web/src/features/memory/index.tsx",
-      "scenarioSources": ["control-center-web/src/app/preview-memory-data.ts"],
+      "scenarioSources": [
+        "control-center-web/src/app/preview-memory-data.ts",
+        "control-center-web/src/paw-os/showcase/PawHandsOnGuide.tsx",
+        "control-center-web/src/paw-os/showcase/hands-on-guide.ts"
+      ],
       "claim": "synthetic-preview"
     },
     {
       "id": "knowledge",
-      "routes": ["/knowledge"],
+      "routes": [
+        "/knowledge"
+      ],
       "renderOwner": "control-center-web/src/features/knowledge/index.tsx",
-      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
+      "scenarioSources": [
+        "control-center-web/src/app/preview-control-transport.tsx"
+      ],
       "claim": "synthetic-preview"
     },
     {
       "id": "input-studio",
-      "routes": ["/input", "/input?view=lexicon", "/voice", "/history"],
+      "routes": [
+        "/input",
+        "/input?view=lexicon",
+        "/voice",
+        "/history"
+      ],
       "renderOwner": "control-center-web/src/paw-os/apps/PawSystemAppsMigrated.tsx",
-      "scenarioSources": ["control-center-web/src/app/preview-input-data.ts", "control-center-web/src/app/preview-history-routes.ts"],
+      "scenarioSources": [
+        "control-center-web/src/app/preview-input-data.ts",
+        "control-center-web/src/app/preview-history-routes.ts",
+        "control-center-web/src/paw-os/showcase/PawHandsOnGuide.tsx",
+        "control-center-web/src/paw-os/showcase/hands-on-guide.ts"
+      ],
       "claim": "interaction-rehearsal"
     },
     {
       "id": "app-center",
-      "routes": ["/plugins", "/plugins?view=catalog", "/plugins?view=proposals"],
+      "routes": [
+        "/plugins",
+        "/plugins?view=catalog",
+        "/plugins?view=proposals"
+      ],
       "renderOwner": "control-center-web/src/features/plugins/index.tsx",
-      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
+      "scenarioSources": [
+        "control-center-web/src/app/preview-control-transport.tsx"
+      ],
       "claim": "interaction-rehearsal"
     },
     {
       "id": "system-monitor",
-      "routes": ["/observability", "/context-debug", "/diagnostics"],
+      "routes": [
+        "/observability",
+        "/context-debug",
+        "/diagnostics"
+      ],
       "renderOwner": "control-center-web/src/paw-os/apps/PawSystemAppsMigrated.tsx",
-      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
+      "scenarioSources": [
+        "control-center-web/src/app/preview-control-transport.tsx",
+        "control-center-web/src/paw-os/showcase/PawHandsOnGuide.tsx",
+        "control-center-web/src/paw-os/showcase/hands-on-guide.ts",
+        "control-center-web/src/app/preview-trace-report-routes.ts"
+      ],
       "claim": "synthetic-preview"
     },
     {
       "id": "eval-lab",
-      "routes": ["/eval-lab"],
+      "routes": [
+        "/eval-lab",
+        "/eval-lab?project=lab-showcase-enterpriseops",
+        "/eval-lab?project=lab-showcase-rag",
+        "/eval-lab?project=lab-showcase-cloudops",
+        "/eval-lab?project=lab-showcase-memory"
+      ],
       "renderOwner": "control-center-web/src/features/eval-lab/index.tsx",
-      "scenarioSources": ["control-center-web/src/app/preview-eval-lab-data.ts", "control-center-web/src/features/eval-lab/eval-lab.css"],
+      "scenarioSources": [
+        "control-center-web/src/app/preview-lab-project-data.ts",
+        "control-center-web/src/app/preview-eval-lab-data.ts",
+        "showcase/lab-evidence.ts",
+        "showcase/lab-demo.ts",
+        "showcase/lab-flow.ts",
+        "control-center-web/src/paw-os/showcase/LabFlowControls.tsx",
+        "control-center-web/src/app/preview-lab-app-package.ts",
+        "control-center-web/src/paw-os/showcase/PawHandsOnGuide.tsx",
+        "control-center-web/src/paw-os/showcase/hands-on-guide.ts"
+      ],
       "claim": "synthetic-preview",
-      "boundary": "The Agent Lab is a public, read-only evidence showcase. It does not launch a private PAW Runtime, consume Held-out data, or expose source-local transcripts."
+      "boundary": "The /lab page starts before input import and executes deterministic offline rule evaluation against imported records/cases. A current passing evaluation can produce a runnable offline App ZIP. Historical Agent receipts remain separately labeled; no Provider, private Runtime, production service, or Held-out run is executed."
     },
     {
       "id": "system-settings",
-      "routes": ["/configuration", "/appearance", "/governance", "/approvals"],
+      "routes": [
+        "/configuration",
+        "/appearance",
+        "/governance",
+        "/approvals"
+      ],
       "renderOwner": "control-center-web/src/paw-os/apps/PawSystemAppsMigrated.tsx",
-      "scenarioSources": ["control-center-web/src/app/preview-input-data.ts", "control-center-web/src/app/preview-control-transport.tsx"],
+      "scenarioSources": [
+        "control-center-web/src/app/preview-input-data.ts",
+        "control-center-web/src/app/preview-control-transport.tsx"
+      ],
       "claim": "interaction-rehearsal"
     },
     {
       "id": "files",
-      "routes": ["/files"],
+      "routes": [
+        "/files"
+      ],
       "renderOwner": "control-center-web/src/features/files/PawOsFilesApp.tsx",
-      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
+      "scenarioSources": [
+        "control-center-web/src/app/preview-control-transport.tsx"
+      ],
       "claim": "synthetic-preview"
     },
     {
       "id": "browser",
-      "routes": ["/browser"],
+      "routes": [
+        "/browser"
+      ],
       "renderOwner": "control-center-web/src/paw-os/apps/PawBrowserApp.tsx",
-      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
+      "scenarioSources": [
+        "control-center-web/src/app/preview-control-transport.tsx"
+      ],
       "claim": "host-unavailable",
       "boundary": "The web Showcase renders PAW Browser chrome and synthetic snapshots, not a live Electron webview guest."
     },
     {
       "id": "terminal",
-      "routes": ["/terminal"],
+      "routes": [
+        "/terminal"
+      ],
       "renderOwner": "control-center-web/src/features/terminal/PawOsTerminalApp.tsx",
-      "scenarioSources": ["control-center-web/src/app/preview-control-transport.tsx"],
+      "scenarioSources": [
+        "control-center-web/src/app/preview-control-transport.tsx"
+      ],
       "claim": "host-unavailable",
       "boundary": "The terminal surface uses in-memory sample output and never starts a real PTY."
     }

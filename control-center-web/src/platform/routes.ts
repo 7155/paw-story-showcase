@@ -91,7 +91,7 @@ export const CONTROL_ROUTES = {
   'observability.traceDiagnosticReports.list': {
     method: 'GET',
     path: '/api/observability/trace-diagnostic-reports',
-    query: ['limit'],
+    query: ['limit', 'cursor'],
     responseContract: 'trace-diagnostic-report-list.v1',
   },
   'observability.traceDiagnosticReports.create': {
@@ -127,7 +127,7 @@ export const CONTROL_ROUTES = {
     method: 'POST',
     path: '/api/observability/trace-diagnostic-reports/:reportId/repair-verify',
     params: { reportId: null },
-    body: ['expectedRevision', 'repairReceiptId'],
+    body: ['expectedRevision', 'repairReceiptId', 'verificationReceiptId'],
     requiredBody: ['expectedRevision', 'repairReceiptId'],
     responseContract: 'trace-diagnostic-report.v1',
   },
@@ -403,6 +403,68 @@ export const CONTROL_ROUTES = {
     path: '/api/agent/eval-lab/evidence',
     query: ['runId', 'taskIndex'],
   },
+  'agent.eval-lab.golden.get': {
+    method: 'GET',
+    path: '/api/agent/eval-lab/golden',
+    query: ['suiteId'],
+  },
+  'agent.eval-lab.projects.get': {
+    method: 'GET',
+    path: '/api/agent/eval-lab/projects',
+    query: ['projectId', 'materialSetId', 'artifactId', 'artifactRevision'],
+  },
+  'agent.eval-lab.projects.command': {
+    method: 'POST',
+    path: '/api/agent/eval-lab/projects/command',
+    body: ['action', 'projectId', 'expectedRevision', 'clientRequestId', 'input'],
+    requiredBody: ['action', 'expectedRevision', 'clientRequestId', 'input'],
+  },
+  'agent.eval-lab.apps.get': { method: 'GET', path: '/api/agent/eval-lab/apps', query: ['appId', 'projectId', 'version', 'callId'] },
+  'agent.eval-lab.apps.command': { method: 'POST', path: '/api/agent/eval-lab/apps/command',
+    body: ['action', 'appId', 'expectedRevision', 'clientRequestId', 'input'],
+    requiredBody: ['action', 'appId', 'expectedRevision', 'clientRequestId', 'input'] },
+  'agent.eval-lab.apps.download': { method: 'GET', path: '/api/agent/eval-lab/apps/download', query: ['appId', 'version', 'target'], requiredQuery: ['appId', 'version', 'target'] },
+  'agent.eval-lab.trials.get': {
+    method: 'GET',
+    path: '/api/agent/eval-lab/trials',
+    query: ['jobId'],
+  },
+  'agent.eval-lab.trials.start': {
+    method: 'POST',
+    path: '/api/agent/eval-lab/trials/start',
+    body: ['clientRequestId', 'sceneId', 'spec'],
+    requiredBody: ['clientRequestId', 'sceneId', 'spec'],
+  },
+  'agent.eval-lab.trials.cancel': {
+    method: 'POST',
+    path: '/api/agent/eval-lab/trials/cancel',
+    body: ['jobId'],
+    requiredBody: ['jobId'],
+  },
+  'agent.eval-lab.golden.command': {
+    method: 'POST',
+    path: '/api/agent/eval-lab/golden/command',
+    body: ['action', 'suiteId', 'expectedRevision', 'clientRequestId', 'input'],
+    requiredBody: ['action', 'expectedRevision', 'clientRequestId', 'input'],
+  },
+  'agent.eval-lab.scene-recipes.get': {
+    method: 'GET',
+    path: '/api/agent/eval-lab/scene-recipes',
+    query: ['sceneId', 'experimentId'],
+    requiredQuery: ['sceneId'],
+  },
+  'agent.eval-lab.scene-recipes.apply': {
+    method: 'POST',
+    path: '/api/agent/eval-lab/scene-recipes/apply',
+    body: ['sceneId', 'experimentId', 'expectedRevision', 'clientRequestId'],
+    requiredBody: ['sceneId', 'experimentId', 'expectedRevision', 'clientRequestId'],
+  },
+  'agent.eval-lab.scene-recipes.rollback': {
+    method: 'POST',
+    path: '/api/agent/eval-lab/scene-recipes/rollback',
+    body: ['sceneId', 'expectedRevision', 'clientRequestId'],
+    requiredBody: ['sceneId', 'expectedRevision', 'clientRequestId'],
+  },
   'agent.sessions.create': {
     method: 'POST',
     path: '/api/agent/sessions',
@@ -462,6 +524,13 @@ export const CONTROL_ROUTES = {
     query: ['path', 'offset', 'limit'],
     requiredQuery: ['path'],
   },
+  'agent.session.workspace.save': {
+    method: 'POST',
+    path: '/api/agent/sessions/:sessionId/workspace-file',
+    params: { sessionId: null },
+    body: ['path', 'content', 'resourceRevision'],
+    requiredBody: ['path', 'content', 'resourceRevision'],
+  },
   'agent.session.rename': {
     method: 'PATCH',
     path: '/api/agent/sessions/:sessionId',
@@ -499,7 +568,7 @@ export const CONTROL_ROUTES = {
     method: 'POST',
     path: '/api/agent/sessions/:sessionId/prompt',
     params: { sessionId: null },
-    body: ['message', 'attachments', 'clientMessageId', 'retryOfClientMessageId', 'delivery'],
+    body: ['message', 'attachments', 'clientMessageId', 'retryOfClientMessageId', 'delivery', 'screenContext'],
     requiredBody: ['message'],
   },
   'agent.session.rewrite': {
@@ -1092,7 +1161,7 @@ export const CONTROL_ROUTES = {
   'agent.memoryMaintenance.trigger': {
     method: 'POST',
     path: '/api/agent/memory-maintenance',
-    body: ['project', 'ownerKind', 'ownerId', 'instruction', 'manual', 'maxSources'],
+    body: ['project', 'ownerKind', 'ownerId', 'instruction', 'manual', 'maxSources', 'catalogOnly'],
   },
   'agent.subagents.templates': {
     method: 'GET',

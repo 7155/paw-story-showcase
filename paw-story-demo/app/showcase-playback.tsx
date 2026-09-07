@@ -70,6 +70,9 @@ export function ShowcasePlayback({
         <button aria-label="重新播放演示" onClick={onRestart} title="重新播放演示" type="button"><RefreshCw size={14}/></button>
         {trailing}
       </div>
+      <div className="showcase-playback__stages" role="group" aria-label="直接选择演示阶段">
+        {stages.map((stage, index) => <button key={stage.id} type="button" aria-pressed={index === safeStep} onClick={() => onSeek(index)}><span>{String(index + 1).padStart(2, "0")}</span>{stage.label}</button>)}
+      </div>
     </section>
   );
 }

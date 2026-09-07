@@ -1,5 +1,10 @@
 "use client";
 
+import "./full-showcase.css";
+import { NativeDemo } from "./native-demo";
+import { LabShowcase } from "./lab/lab-showcase";
+import { GuidedShowcase, navigateGuidedChapter } from "./guided-showcase";
+
 import {
   ArrowDown,
   ArrowRight,
@@ -23,19 +28,18 @@ import {
   SquareArrowOutUpRight,
 } from "lucide-react";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { Badge } from "@/components/launch/badge";
-import { LinkButton } from "@/components/launch/link-button";
 import { ResumeSection } from "./resume-section";
-import { CollaborationResult, ImprovementSection, TaskIntroduction } from "./story-journey";
+import { PrecisionStory } from "./precision-story";
+import { CollaborationResult, ImprovementSection } from "./story-journey";
 import { ShowcasePlayback, type ShowcaseStage } from "./showcase-playback";
 import { GithubBadge, GithubMark, PawMark, useInView, useLoop, useOnScreen, useTimedLoop } from "./ui-shared";
 
 const chapters = [
-  { id: "agents", index: "01", label: "交付" },
-  { id: "reliability", index: "02", label: "评测" },
+  { id: "agents", index: "01", label: "协作" },
+  { id: "reliability", index: "02", label: "诊断" },
   { id: "improvement", index: "03", label: "改进" },
-  { id: "memory", index: "04", label: "继续" },
-  { id: "input", index: "05", label: "入口" },
+  { id: "memory", index: "04", label: "记忆" },
+  { id: "input", index: "05", label: "输入" },
 ];
 
 // three.js stays out of the initial bundle; the chunk loads only when the
@@ -180,7 +184,7 @@ const orbitalWork = [
     subWorker: "Skill · rag-retrieval-optimization",
     subVerify: "数据链 · 1,284 inputs / 5 tasks / 3 preferences",
     metric: "1,284 → 5 → 按题召回",
-    summary: "一句普通寒暄会自然带回今天的时间线；用户只说“今天有点累”，Agent 再结合相关习惯关心并续接工作。原始输入仍在来源层，不整段灌进 Agent。",
+    summary: "用户问“继续昨天的 PAW 工作台方案”，Agent 找回交付与已接受的修复，再解释为什么选择候选 B。原始输入仍在来源层，不整段灌进 Agent。",
     tdd: "WORKPATCH · RECALL BOUNDED",
   },
   {
@@ -234,27 +238,42 @@ function useTypewriter(text: string, active: boolean, speedMs = 44) {
 
 
 function Navbar() {
+  const [activeChapter, setActiveChapter] = useState("");
+
+  useEffect(() => {
+    if (!("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver((entries) => {
+      const current = entries.find((entry) => entry.isIntersecting);
+      if (current) setActiveChapter(current.target.id);
+    }, { rootMargin: "-15% 0px -70% 0px" });
+    for (const { id } of [...chapters, { id: "lab" }]) {
+      const section = document.getElementById(id);
+      if (section) observer.observe(section);
+    }
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <header className="border-border/60 bg-background/80 sticky top-0 z-50 w-full border-b backdrop-blur-xl">
-      <div className="max-w-[1420px] mx-auto flex h-16 items-center justify-between px-5 sm:px-8">
-        <a href="#top" className="text-foreground flex items-center gap-2.5 transition-opacity hover:opacity-85" aria-label="回到顶部">
+    <header className="story-navbar">
+      <div className="story-navbar-main">
+        <a href="#top" className="story-brand" aria-label="回到顶部">
           <span className="text-brand"><PawMark /></span>
           <span className="text-[16px] font-bold tracking-tight">PAW</span>
-          <span className="text-muted-foreground/80 hidden font-mono text-[10px] tracking-widest sm:inline">STORY SHOWCASE</span>
+
         </a>
-        <nav className="hidden items-center gap-1.5 xl:flex" aria-label="任务与改进的五个阶段">
+        <nav className="story-chapter-nav" aria-label="任务与改进的五个阶段">
           {chapters.map((chapter) => (
-            <a href={`#${chapter.id}`} key={chapter.id} className="text-muted-foreground hover:text-foreground hover:bg-black/[0.04] rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all">
+            <a aria-current={activeChapter === chapter.id ? "location" : undefined} href={`#${chapter.id}`} key={chapter.id} onClick={() => setActiveChapter(chapter.id)}>
               <span className="text-brand mr-1.5 font-mono text-[11px] font-semibold">{chapter.index}</span>{chapter.label}
             </a>
           ))}
         </nav>
-        <div className="flex items-center gap-3">
-          <span className="hidden lg:inline-flex"><Badge variant="outline" className="font-mono text-[10.5px] tracking-wider rounded-full px-2.5 py-0.5 border-black/[0.08]"><span className="bg-brand size-1.5 rounded-full mr-1" />真实组件交互 · SYNTHETIC DATA</Badge></span>
+        <div className="story-navbar-actions">
+          <a className="story-lab-link" href="#lab" aria-current={activeChapter === "lab" ? "location" : undefined} onClick={() => setActiveChapter("lab")}>Agent Lab<ArrowRight size={13}/></a>
           <MoreFeaturesMenu/>
-          <a className="resume-nav-link" href="#framework">框架与技术</a>
+          <a className="resume-nav-link" href="#framework-overview">框架与技术</a>
           <a aria-label="作者 GitHub · 7155" className="gh-icon" href="https://github.com/7155" rel="noreferrer" target="_blank"><GithubMark size={17}/></a>
-          <LinkButton href="https://github.com/7155/paw-story-showcase" variant="outline" size="sm" iconRight={<SquareArrowOutUpRight />}>源码</LinkButton>
+          <a className="story-source-link" href="https://github.com/7155/paw-story-showcase" rel="noreferrer" target="_blank">源码<SquareArrowOutUpRight size={14}/></a>
         </div>
       </div>
     </header>
@@ -273,8 +292,9 @@ function MoreFeaturesMenu() {
     <details className="more-features-menu">
       <summary aria-label="打开更多功能"><span>更多功能</span><ArrowDown size={13}/></summary>
       <nav aria-label="更多 PAWOS 功能">
+        <a href="/"><ArrowRight size={15}/><span><strong>项目故事</strong><small>从目标、协作到改进的完整讲述</small></span><ArrowRight size={12}/></a>
         <a href="/details/frontend"><PanelsTopLeft size={15}/><span><strong>前端演进</strong><small>多 Agent 一个月的七种视图</small></span><ArrowRight size={12}/></a>
-        <a href="/details/sandbox"><ShieldCheck size={15}/><span><strong>垂直沙盒</strong><small>RAG、CloudOps 与 Trace 真实回执</small></span><ArrowRight size={12}/></a>
+        <a href="/lab"><ShieldCheck size={15}/><span><strong>Agent Lab</strong><small>四个垂直场景、真实前端与公开实验</small></span><ArrowRight size={12}/></a>
         {features.map((feature) => (
           <a aria-disabled={!browserReady} href={browserReady ? pawOsSurfaceUrl(feature.route, feature.showcaseId) : undefined} key={feature.label} rel="noreferrer" target="_blank">
             <feature.Icon size={15}/><span><strong>{feature.label}</strong><small>{feature.detail}</small></span><SquareArrowOutUpRight size={12}/>
@@ -286,6 +306,7 @@ function MoreFeaturesMenu() {
 }
 
 function ImeDemo() {
+  const reducedMotion = useSyncExternalStore(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot);
   const [scenarioId, setScenarioId] = useState<(typeof inputScenarios)[number]["id"]>("report");
   const [acceptedText, setAcceptedText] = useState<string | null>(null);
   const [decisionReceipt, setDecisionReceipt] = useState<"accepted" | "rejected" | null>(null);
@@ -293,10 +314,10 @@ function ImeDemo() {
   const { ref: imeViewRef, onScreen: imeOnScreen } = useOnScreen<HTMLDivElement>();
   const caretRef = useRef<HTMLElement>(null);
   const [popupAnchor, setPopupAnchor] = useState({ left: 16, top: 420, ready: false });
-  const playback = useTimedLoop(inputTimelineDurations, [12], imeOnScreen);
+  const playback = useTimedLoop(inputTimelineDurations, [12], imeOnScreen && !reducedMotion);
   const scenario = inputScenarios.find((item) => item.id === scenarioId) ?? inputScenarios[0];
-  const typedPrefix = useTypewriter(scenario.typingPrefix, playback.step === 0, 38);
-  const typedRoman = useTypewriter(scenario.compositionRoman, playback.step === 1, 85);
+  const typedPrefix = useTypewriter(scenario.typingPrefix, playback.step === 0 && !reducedMotion, 38);
+  const typedRoman = useTypewriter(scenario.compositionRoman, playback.step === 1 && !reducedMotion, 85);
   const stageIndex = Math.max(0, Math.min(3, playback.step - 6));
   const showComposition = playback.step === 1;
   const showPending = playback.step === 3;
@@ -492,8 +513,9 @@ function ImeDemo() {
 const voiceTimelineDurations = [1_800, 2_000, 2_400, 2_000, 3_800, 3_200] as const;
 
 function VoiceInputDemo() {
+  const reducedMotion = useSyncExternalStore(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot);
   const { ref: voiceViewRef, onScreen: voiceOnScreen } = useOnScreen<HTMLDivElement>();
-  const playback = useTimedLoop(voiceTimelineDurations, [], voiceOnScreen);
+  const playback = useTimedLoop(voiceTimelineDurations, [], voiceOnScreen && !reducedMotion);
   const stageLabels = ["准备就绪", "按住说话", "实时转写", "松开按键", "文字定稿", "写回应用"];
   const interim = playback.step <= 1
     ? ""
@@ -575,7 +597,7 @@ function Slide({ id, index, title, sub, detailHref, detailLabel, secondaryDetail
         <div className="slide-links">
           {detailHref && detailLabel ? <a className="slide-detail" href={detailHref}>{detailLabel}<ArrowRight size={13}/></a> : null}
           {secondaryDetailHref && secondaryDetailLabel ? <a className="slide-detail slide-detail--secondary" href={secondaryDetailHref}>{secondaryDetailLabel}<ArrowRight size={13}/></a> : null}
-          {projects.map((project) => <GithubBadge href={project.href} key={project.href} label={project.label}/>)}
+          {projects.length > 0 && <details className="slide-sources"><summary>源码</summary><div>{projects.map((project) => <GithubBadge href={project.href} key={project.href} label={project.label}/>)}</div></details>}
         </div>
       </header>
       <div className={bare ? "slide-frame slide-frame--bare" : "slide-frame"}>{children}</div>
@@ -586,7 +608,7 @@ function Slide({ id, index, title, sub, detailHref, detailLabel, secondaryDetail
 function InputSlide() {
   const [inputMode, setInputMode] = useState<"keyboard" | "voice">("keyboard");
   return (
-    <Slide detailHref="/details/input" detailLabel="输入详情" id="input" projects={[{ href: "https://github.com/7155/minimind-ime", label: "minimind-ime" }, { href: "https://github.com/7155/aios", label: "AIOS-IME" }]} index="05 · 回到日常工作的入口" sub="有了可召回的上下文，下一次继续工作可以从正在写的文档开始。下面用 PAW 的设计复盘展示：提交完整输入、找回相关资料、生成补充，再由你决定写回。" title="让每个输入框，都成为一个了解你的 AI 入口。">
+    <Slide detailHref="/details/input" detailLabel="输入详情" id="input" projects={[{ href: "https://github.com/7155/minimind-ime", label: "minimind-ime" }, { href: "https://github.com/7155/aios", label: "AIOS-IME" }]} index="05 · 回到日常工作的入口" sub="输入、找回资料，再决定写回。" title="在输入的地方，继续工作。">
       <div className="slide-frame-bar">
         <div className="slide-switch" role="group" aria-label="切换输入能力演示">
           <button aria-pressed={inputMode === "keyboard"} onClick={() => setInputMode("keyboard")} type="button"><Keyboard size={14}/>智能输入法</button>
@@ -608,21 +630,21 @@ const contextTabs = [
 ] as const;
 
 const memoryShowcaseStages = [
-  { id: "history-list", label: "查看采集结果", detail: "进入输入记录，鼠标定位到一条真实采集项" },
+  { id: "history-list", label: "查看采集结果", detail: "查看合成输入记录中的工作台决定" },
   { id: "history-detail", label: "打开原始输入", detail: "点击具体记录，查看 App、时间与完整输入" },
   { id: "daily-memory", label: "一天整理结果", detail: "关闭详情并切换 Memory，查看当天任务与记忆" },
   { id: "graph", label: "关系 Graph", detail: "打开关系图，查看输入、任务、偏好与来源连接" },
-  { id: "recall", label: "对话找回", detail: "进入 Agent 对话，让当天记忆自然参与回答" },
+  { id: "recall", label: "对话找回", detail: "继续工作台方案，找回交付与修复决定" },
   { id: "evidence", label: "证据回跳", detail: "展开召回依据，再点击来源返回同一条原始输入" },
 ] as const satisfies readonly ShowcaseStage[];
 
 const memoryShowcaseDurations = [4_200, 4_800, 5_000, 4_800, 5_200, 6_800] as const;
 
-function ContextSlide() {
+function ContextSlide({ manual = false }: { manual?: boolean }) {
   const [activeTabId, setActiveTabId] = useState<(typeof contextTabs)[number]["id"]>("memory");
   const { ref: memoryViewRef, onScreen: memoryOnScreen } = useOnScreen<HTMLDivElement>();
   const reducedMotion = useSyncExternalStore(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot);
-  const memoryPlayback = useTimedLoop(memoryShowcaseDurations, [], memoryOnScreen && activeTabId === "memory" && !reducedMotion);
+  const memoryPlayback = useTimedLoop(memoryShowcaseDurations, [], memoryOnScreen && activeTabId === "memory" && !reducedMotion, false, !manual);
   const setMemoryPlaying = memoryPlayback.setPlaying;
   const [memoryReplayEpoch, setMemoryReplayEpoch] = useState(0);
   const browserReady = useSyncExternalStore(subscribeBrowserReady, browserSnapshot, serverSnapshot);
@@ -639,7 +661,7 @@ function ContextSlide() {
   };
 
   return (
-    <Slide detailHref="/details/context" detailLabel="上下文详情" id="memory" projects={[{ href: "https://github.com/7155/paw-story-showcase", label: "paw-story-showcase" }, { href: "https://github.com/7155/personal-agent-workbench", label: "personal-agent-workbench" }]} index="04 · 下一次继续工作" sub="工作结束后，项目决定、相关输入与资料需要能被再次找到。这个独立的日常工作场景展示输入如何整理为任务与记忆，再按当前问题召回，并返回原始来源。" title="下次接着做，不必从头解释。">
+    <Slide detailHref="/details/context" detailLabel="上下文详情" id="memory" projects={[{ href: "https://github.com/7155/paw-story-showcase", label: "paw-story-showcase" }, { href: "https://github.com/7155/personal-agent-workbench", label: "personal-agent-workbench" }]} index="04 · 下一次继续工作" sub="保存已接受的决定，需要时带着来源找回来。" title="下次接着做，不必从头解释。">
       <div className="slide-frame-bar">
         <div className="slide-switch" role="tablist" aria-label="切换上下文前端">
           {contextTabs.map((tab) => (
@@ -655,7 +677,7 @@ function ContextSlide() {
             disabled={reducedMotion}
             onRestart={restartMemory}
             onSeek={(step) => memoryPlayback.goTo(step, false)}
-            onToggle={() => setMemoryPlaying(!memoryPlayback.playing)}
+            onToggle={() => memoryPlayback.step === memoryShowcaseDurations.length - 1 && !memoryPlayback.playing ? restartMemory() : setMemoryPlaying(!memoryPlayback.playing)}
             playing={memoryPlayback.playing && memoryOnScreen && !reducedMotion}
             stages={memoryShowcaseStages}
             step={memoryPlayback.step}
@@ -703,27 +725,31 @@ function RealSurface({ route, showcaseId, title, active = true, director }: {
   const [instanceId] = useState(() => `story-${showcaseId}`);
   const requestSequenceRef = useRef(0);
   const sentEpochRef = useRef(-1);
+  const sentDirectorRef = useRef("");
   const [inView, setInView] = useState(false);
+  const [visible, setVisible] = useState(false);
   const [loadedDocument, setLoadedDocument] = useState("");
   const [directorReadyDocument, setDirectorReadyDocument] = useState("");
   const browserReady = useSyncExternalStore(subscribeBrowserReady, browserSnapshot, serverSnapshot);
 
   useEffect(() => {
     const node = hostRef.current;
-    if (!node || inView) return;
-    if (typeof IntersectionObserver === "undefined") {
-      const timer = window.setTimeout(() => setInView(true), 0);
-      return () => window.clearTimeout(timer);
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry?.isIntersecting) {
-        setInView(true);
-        observer.disconnect();
-      }
-    }, { rootMargin: "240px" });
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [inView]);
+    if (!node) return;
+    let frame = 0;
+    const measure = () => {
+      const rect = node.getBoundingClientRect();
+      const next = rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < window.innerHeight;
+      setVisible(next);
+      if (next) setInView(true);
+    };
+    const schedule = () => { window.cancelAnimationFrame(frame); frame = window.requestAnimationFrame(measure); };
+    const observer = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver(schedule);
+    observer?.observe(node);
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    schedule();
+    return () => { observer?.disconnect(); window.cancelAnimationFrame(frame); window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule); };
+  }, []);
 
   const source = useMemo(
     () => (browserReady && inView && active ? pawOsSurfaceUrl(route, showcaseId, instanceId) : ""),
@@ -743,7 +769,6 @@ function RealSurface({ route, showcaseId, title, active = true, director }: {
       if (!payload || payload.channel !== "paw.showcase" || payload.version !== 1) return;
       if (payload.showcaseId !== showcaseId || payload.instanceId !== instanceId) return;
       if (payload.type === "ready") {
-        sentEpochRef.current = -1;
         setDirectorReadyDocument(documentSource);
       }
     };
@@ -753,7 +778,11 @@ function RealSurface({ route, showcaseId, title, active = true, director }: {
 
   useEffect(() => {
     const target = frameRef.current?.contentWindow;
-    if (!target || !source || !loaded || !directorReady || !director) return;
+    if (!target || !source || !loaded || !directorReady || !director || !visible) return;
+    const commandKey = JSON.stringify([source, director.stageId, director.eventIndex, director.playing, director.replayEpoch]);
+    // Returning to a viewport is not a request to rewind the user's in-app work.
+    if (sentDirectorRef.current === commandKey) return;
+    sentDirectorRef.current = commandKey;
     const targetOrigin = new URL(source, window.location.href).origin;
     const send = (command: "stage.set" | "seek" | "playback.set" | "replay.reset") => {
       requestSequenceRef.current += 1;
@@ -779,15 +808,15 @@ function RealSurface({ route, showcaseId, title, active = true, director }: {
     send("stage.set");
     send("seek");
     send("playback.set");
-  }, [director, directorReady, instanceId, loaded, showcaseId, source]);
+  }, [director, directorReady, instanceId, loaded, showcaseId, source, visible]);
 
   return (
-    <div className="real-surface" data-loaded={loaded || undefined} ref={hostRef}>
+    <div className="real-surface" data-loaded={loaded || undefined} inert={!visible} ref={hostRef}>
       <div className="real-surface-loading" role="status"><RefreshCw size={18}/><span><strong>正在打开实际 PAWOS 窗口</strong><small>界面与交互来自本项目 control-center-web · 公开合成数据</small></span></div>
       <iframe
         allow="clipboard-read; clipboard-write"
         loading="lazy"
-        onLoad={() => { if (documentSource) setLoadedDocument(documentSource); }}
+        onLoad={() => { if (documentSource) { sentEpochRef.current = -1; sentDirectorRef.current = ""; setLoadedDocument(documentSource); } }}
         ref={frameRef}
         sandbox="allow-forms allow-popups allow-same-origin allow-scripts"
         src={source || undefined}
@@ -800,12 +829,13 @@ function RealSurface({ route, showcaseId, title, active = true, director }: {
 function RoomSlide() {
   const { ref, inView } = useInView<HTMLDivElement>();
   return (
-    <Slide bare detailHref="/details/agents" detailLabel="协作详情" secondaryDetailHref="/details/frontend" secondaryDetailLabel="前端演进" id="agents" projects={[{ href: "https://github.com/7155/personal-agent-workbench", label: "personal-agent-workbench" }, { href: "https://github.com/7155/paw-story-showcase", label: "paw-story-showcase" }]} index="01 · 协作交付" sub="以 PAW 立项为例：输入、记忆、多 Agent 和桌面四条产品线分别推进，交换接口与依赖，再汇成一个共同方案。每个 Agent 都能回看原始目标，必要时提出质疑；Facilitator 负责整合交付。" title="一个目标，怎样变成共同完成的结果？">
-      <div className="slide-deferred" ref={ref}>
+    <section className="slide story-room-stage" id="agents" aria-labelledby="room-stage-title">
+      <header className="room-stage-heading"><h2 id="room-stage-title">独立执行，共同交付。</h2><a href="/details/agents">协作详情<ArrowRight size={15}/></a></header>
+      <div className="slide-frame slide-frame--bare"><div className="slide-deferred" ref={ref}>
         {inView ? <RoomTransformationDemo/> : null}
-      </div>
-      <CollaborationResult />
-    </Slide>
+      </div></div>
+      <details className="overview-explanation"><summary>查看任务交付与故障背景</summary><CollaborationResult/></details>
+    </section>
   );
 }
 
@@ -881,7 +911,7 @@ function reducedMotionSnapshot(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function ReliabilitySlide() {
+function ReliabilitySlide({ manual = false }: { manual?: boolean }) {
   const { ref: reliabilityViewRef, onScreen: reliabilityOnScreen } = useOnScreen<HTMLDivElement>();
   const reducedMotion = useSyncExternalStore(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot);
   const [replayEpoch, setReplayEpoch] = useState(0);
@@ -889,6 +919,8 @@ function ReliabilitySlide() {
     reliabilityStageDurations,
     [],
     reliabilityOnScreen && !reducedMotion,
+    false,
+    !manual,
   );
   const setReliabilityPlaying = playback.setPlaying;
   const browserReady = useSyncExternalStore(subscribeBrowserReady, browserSnapshot, serverSnapshot);
@@ -908,10 +940,12 @@ function ReliabilitySlide() {
   return (
     <Slide
       id="reliability"
+      detailHref="/details/sandbox"
+      detailLabel="诊断详情"
       index="02 · 对照要求检查结果"
       projects={[{ href: "https://github.com/7155/personal-agent-workbench", label: "personal-agent-workbench" }, { href: "https://github.com/7155/paw-story-showcase", label: "paw-story-showcase" }]}
-      sub="交付之后，把原始要求与实际行为、测试结果逐项对照。下面切到一个独立的故障回放：从工具错误和执行停滞找到原因，修复后重跑同一案例，检查原来的问题是否消失。"
-      title="Agent 出错以后，怎样证明它真的变好了？"
+      sub="沿运行记录定位原因，修复后重跑验证。"
+      title={manual ? "出错之后，沿证据往回走。" : "Agent 出错以后，怎样证明它真的变好了？"}
     >
       <div ref={reliabilityViewRef}>
         <ShowcasePlayback
@@ -919,18 +953,21 @@ function ReliabilitySlide() {
           disabled={reducedMotion}
           onRestart={restartReliability}
           onSeek={(step) => playback.goTo(step, false)}
-          onToggle={() => playback.setPlaying(!playback.playing)}
+          onToggle={() => playback.step === reliabilityStageDurations.length - 1 && !playback.playing ? restartReliability() : playback.setPlaying(!playback.playing)}
           playing={playback.playing && reliabilityOnScreen && !reducedMotion}
           stages={reliabilityPlaybackStages}
           step={playback.step}
           trailing={fullscreenUrl ? <a className="slide-open" href={fullscreenUrl} rel="noreferrer" target="_blank">全屏打开<SquareArrowOutUpRight size={12}/></a> : null}
         />
       </div>
+      <details className="reliability-explanation" open={!manual}>
+      <summary>当前阶段：{activeStage.label} · 展开诊断说明</summary>
       <aside className="reliability-stage-note" aria-live="polite" data-stage={activeStage.id}>
         <b>{activeStage.status}</b><p>{activeStage.body}</p>
         <dl>{activeStage.facts.map((fact) => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}</dl>
         <small>PUBLIC SYNTHETIC REPLAY · 公开合成回放（演示耗时不代表真实运行时性能）</small>
       </aside>
+      </details>
       <div className="slide-frame-body reliability-surface" data-stage={activeStage.id}>
         <RealSurface
           director={{
@@ -976,22 +1013,22 @@ const roomMorphTargets = [
 function RoomTransformationDemo() {
   const orbitLoop = useLoop(orbitalWork.length, 1700, false);
   const setOrbitPlaying = orbitLoop.setPlaying;
-  const [stage, setStage] = useState<RoomStage>("orbit");
+  const [stage, setStage] = useState<RoomStage>("windows");
   const [playing, setPlaying] = useState(false);
   const [runKey, setRunKey] = useState(0);
   const reducedMotion = useSyncExternalStore(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot);
   const [morphGeometry, setMorphGeometry] = useState<MorphGeometry[]>([]);
   const roomRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const startedRef = useRef(false);
-  const stageStateRef = useRef<RoomStage>("orbit");
+  const stageStateRef = useRef<RoomStage>("windows");
+  const browserReady = useSyncExternalStore(subscribeBrowserReady, browserSnapshot, serverSnapshot);
 
   useEffect(() => {
     stageStateRef.current = stage;
   }, [stage]);
 
-  // Pause the WebGL orbit loop when the stage scrolls out of view; resume the
-  // ambient orbit when it comes back. Morph and window stages are untouched.
+  // Scrolling away pauses the mechanism. Returning keeps the presenter's stage
+  // and pause choice, so the real workbench never waits for an opening sequence.
   useEffect(() => {
     const node = roomRef.current;
     if (!node || !("IntersectionObserver" in window)) return;
@@ -1001,9 +1038,6 @@ function RoomTransformationDemo() {
           setPlaying(false);
           setOrbitPlaying(false);
         }
-      } else if (startedRef.current && stageStateRef.current === "orbit" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        setPlaying(true);
-        setOrbitPlaying(true);
       }
     }, { threshold: 0.1 });
     observer.observe(node);
@@ -1096,38 +1130,6 @@ function RoomTransformationDemo() {
     return () => media.removeEventListener("change", handlePreference);
   }, [setOrbitPlaying]);
 
-  useEffect(() => {
-    const node = roomRef.current;
-    if (!node || startedRef.current) return;
-
-    const startSequence = () => {
-      if (startedRef.current) return;
-      startedRef.current = true;
-      if (!reducedMotion) {
-        setPlaying(true);
-        setOrbitPlaying(true);
-      }
-    };
-
-    if (!("IntersectionObserver" in window)) {
-      startSequence();
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          startSequence();
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.35 },
-    );
-    observer.observe(node);
-
-    return () => observer.disconnect();
-  }, [reducedMotion, setOrbitPlaying]);
-
   const restart = () => {
     orbitLoop.restart();
     setStage("orbit");
@@ -1179,17 +1181,18 @@ function RoomTransformationDemo() {
         playing={playing}
         stages={roomPlaybackStages}
         step={roomStep}
+        trailing={browserReady ? <a className="slide-open" href={pawOsShowcaseUrl()} rel="noreferrer" target="_blank">全屏操作<SquareArrowOutUpRight size={14}/></a> : null}
       />
       <div className="room-transformation-stage" ref={stageRef}>
         <div className="room-orbit-layer" aria-hidden={stage === "windows"}>
-          <Suspense fallback={<div className="solar-3d-fallback"><Orbit size={18}/><span>正在加载 3D 引力场…</span></div>}>
+          {stage !== "windows" ? <Suspense fallback={<div className="solar-3d-fallback"><Orbit size={18}/><span>正在加载 3D 引力场…</span></div>}>
             <SolarSystem3D
               activeStep={orbitLoop.step}
               isPlaying={playing && orbitLoop.playing}
               onSelectStep={selectPartner}
               orbitalWork={orbitalWork}
             />
-          </Suspense>
+          </Suspense> : null}
           <div className="room-orbit-caption"><span><i/> SOL</span><p><strong>多维检测</strong>不同 Agent 分别实现、质疑和验收；Reviewer Skill 明确对照用户原话、需求文档、程序行为与测试证据。独立工作并行推进，Room 负责传递任务、上下文与结果。</p></div>
         </div>
 
@@ -1262,13 +1265,13 @@ function PawOsLiveRoom({ visible }: { visible: boolean }) {
 function pawOsSurfaceUrl(route: string, showcaseId: string, instanceId?: string): string {
   const instanceQuery = instanceId ? `&showcaseInstance=${encodeURIComponent(instanceId)}` : "";
   const query = `?controlTransport=mock&frontend=paw-os&showcase=${encodeURIComponent(showcaseId)}${instanceQuery}#${route}`;
-  if (typeof window === "undefined") return `/pawos/${query}`;
-  const localStoryHost = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+  if (typeof window === "undefined") return `/pawos/index.html${query}`;
+  const localStoryHost = process.env.NODE_ENV !== "production" && ["localhost", "127.0.0.1"].includes(window.location.hostname)
     && window.location.port !== "5174";
   if (localStoryHost) {
     return `${window.location.protocol}//${window.location.hostname}:5174/${query}`;
   }
-  return `/pawos/${query}`;
+  return `/pawos/index.html${query}`;
 }
 
 function subscribeBrowserReady(): () => void {
@@ -1292,7 +1295,7 @@ function Footer() {
     <footer className="border-border border-t">
       <div className="max-w-container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-10 text-center sm:flex-row sm:text-left">
         <div className="text-foreground flex items-center gap-2.5 text-sm"><span className="text-brand"><PawMark /></span><span className="font-semibold">PAW Story Showcase</span></div>
-        <p className="text-muted-foreground max-w-md text-xs leading-relaxed">真实前端组件 + 明确标注的合成演示数据；本页不证明 PAW Runtime 安装或前台验收状态。</p>
+        <p className="text-muted-foreground max-w-md text-xs leading-relaxed">公开演示，不代表私有 Runtime 或生产验收。</p>
         <div className="text-muted-foreground flex items-center gap-4 text-xs font-medium">
           <a aria-label="作者 GitHub · 7155" className="hover:text-foreground transition-colors inline-flex items-center gap-1.5" href="https://github.com/7155" rel="noreferrer" target="_blank"><GithubMark size={14}/>7155</a>
           <a className="hover:text-foreground transition-colors" href="https://github.com/7155/paw-story-showcase" rel="noreferrer" target="_blank">Showcase</a>
@@ -1305,18 +1308,55 @@ function Footer() {
 }
 
 
-export default function Home() {
+export function ReferenceProductStory() {
   return (
-    <main className="home" id="top">
+    <main className="home full-showcase guided-home" id="top" onClick={navigateGuidedChapter}>
       <Navbar/>
-      <TaskIntroduction/>
-      <RoomSlide/>
-      <ReliabilitySlide/>
-      <ImprovementSection/>
-      <ContextSlide/>
-      <InputSlide/>
-      <ResumeSection/>
+      <GuidedShowcase panels={{
+        agents: <RoomSlide/>,
+        reliability: <ReliabilitySlide manual/>,
+        improvement: <ImprovementSection/>,
+        lab: <LabShowcase scenario="rag" embedded/>,
+        memory: <ContextSlide manual/>,
+        input: <InputSlide/>,
+        "framework-overview": <section className="overview-framework" id="framework-overview"><ResumeSection/></section>,
+      }}/>
       <Footer/>
     </main>
   );
 }
+
+export function FullProductStory() {
+  return <main className="home full-showcase guided-home" id="top" onClick={navigateGuidedChapter}>
+    <Navbar/>
+    <GuidedShowcase panels={{
+      agents: <NativeDemo id="agents" route="/agent?room=room-preview" title="真实 PAW Room 协作工作区"/>,
+      reliability: <NativeDemo id="reliability" route="/observability" title="真实 PAW Trace 运行记录"/>,
+      improvement: <NativeDemo id="improvement" route="/eval-lab" title="真实 PAW Agent Lab 候选与实验"/>,
+      lab: <LabShowcase scenario="rag" embedded/>,
+      memory: <NativeDemo id="memory" route="/memory" title="真实 PAW Memory 工作区"/>,
+      input: <NativeDemo id="input" route="/input" title="真实 PAW Input Studio"/>,
+      "framework-overview": <NativeDemo id="framework-overview" route="/context-debug" title="真实 PAW 上下文运行检查"/>,
+    }}/>
+    <Footer/>
+  </main>;
+}
+
+function fullDemoSnapshot() { return new URLSearchParams(window.location.search).get("view") !== "story"; }
+
+function LiveRoomChapter() {
+  const ready = useSyncExternalStore(subscribeBrowserReady, browserSnapshot, serverSnapshot);
+  return <section id="agents" className="precision-live-room">
+    <header className="precision-chapter-heading"><h2>独立执行，彼此协作。</h2><p>直接操作真实 Room：查看四条产品线、公共交接与工作文档。观察每个 Agent 的独立工作，如何汇成同一份交付。</p></header>
+    <div className="precision-live-rail"><p>真实 PAWOS 前端 · 公开合成任务 · 可直接操作</p>{ready && <a href={pawOsShowcaseUrl()} target="_blank" rel="noreferrer">全屏操作 Room <SquareArrowOutUpRight size={16}/></a>}</div>
+    <div className="precision-live-room-surface"><RealSurface route="/agent?room=room-preview" showcaseId="room-flow" title="真实 PAWOS Room · 四条产品线与共同交付"/></div>
+    <p className="precision-live-caption">先查看任务与参与者，再打开工作文档检查交付。这里运行的是项目真实前端，不是产品截图；数据与执行回放为公开合成场景。</p>
+  </section>;
+}
+
+export function StoryReference() {
+  const full = useSyncExternalStore(subscribeBrowserReady, fullDemoSnapshot, browserSnapshot);
+  return full ? <FullProductStory/> : <PrecisionStory room={<LiveRoomChapter/>} trace={<ReliabilitySlide manual/>} memory={<ContextSlide manual/>}/>;
+}
+
+export default function Home() { return <FullProductStory/>; }

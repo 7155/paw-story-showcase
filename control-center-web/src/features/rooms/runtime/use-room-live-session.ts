@@ -8,6 +8,10 @@ import {
   type RoomEventSnapshot,
 } from '@/contracts/room-reducer';
 import type { UiRoomEvent } from '@/contracts/ui-events';
+import {
+  ownerRecoveryDelayMs,
+  retryAfterMsFromError,
+} from '@/platform/recovery-policy';
 import type { ControlTransport } from '@/platform/transport';
 import { useRoomLiveStore } from '../state/live-store';
 
@@ -141,7 +145,17 @@ function createSharedRoomLiveSession(
   let lastErrorFallback = '';
 
   const broadcast = (notify: (listener: RoomLiveSessionCallbacks) => void) => {
-    for (const listener of listeners) notify(listener);
+    for (const listener of listeners) {
+      try {
+        notify(listener);
+      } catch (error) {
+        // Multiple Room/planet windows share one authoritative subscription.
+        // A local render callback is not a transport failure and must not
+        // prevent the remaining windows from receiving the same terminal or
+        // message event (nor force the SSE cursor into reconnect recovery).
+        console.error('Room live-session listener failed', error);
+      }
+    }
   };
   const setLoading = (next: boolean) => {
     loading = next;
@@ -168,6 +182,15 @@ function createSharedRoomLiveSession(
     recoveryAttempt = 0;
     clearRecoveryTimer();
   };
+  const markConnectionStable = () => {
+    resetRecoveryBackoff();
+    if (connected && recoveryState === 'synced') return;
+    connected = true;
+    lastError = undefined;
+    lastErrorFallback = '';
+    setRecoveryState('synced');
+    broadcast((listener) => listener.onConnectionRestored(roomId));
+  };
   const scheduleSnapshotReload = (resetBackoff = false) => {
     if (resetBackoff) resetRecoveryBackoff();
     else clearRecoveryTimer();
@@ -187,13 +210,16 @@ function createSharedRoomLiveSession(
     setRecoveryState('recovering');
     scheduleSnapshotReload(true);
   };
-  const scheduleAutomaticRecovery = () => {
+  const scheduleAutomaticRecovery = (error?: unknown) => {
     if (!active || recoveryTimer !== undefined || reloadQueued || snapshotReloadPending) return;
     const attempt = recoveryAttempt + 1;
-    const delayMs = Math.min(
-      ROOM_RECOVERY_BASE_DELAY_MS * (2 ** recoveryAttempt),
-      ROOM_RECOVERY_MAX_DELAY_MS,
-    );
+    const delayMs = ownerRecoveryDelayMs({
+      ownerId: `room:${roomId}`,
+      attempt: recoveryAttempt,
+      baseDelayMs: ROOM_RECOVERY_BASE_DELAY_MS,
+      maxDelayMs: ROOM_RECOVERY_MAX_DELAY_MS,
+      retryAfterMs: retryAfterMsFromError(error),
+    });
     recoveryAttempt = attempt;
     setRecoveryState(attempt >= ROOM_RECOVERY_VISIBLE_RETRY_ATTEMPT ? 'failed' : 'recovering');
     recoveryTimer = setTimeout(() => {
@@ -347,6 +373,7 @@ function createSharedRoomLiveSession(
     batcher.clear();
     unsubscribe?.();
     unsubscribe = undefined;
+    connected = false;
     snapshotController = new AbortController();
     try {
       const snapshot = await requestPreferredSnapshot(
@@ -375,14 +402,9 @@ function createSharedRoomLiveSession(
           lastEventId: resumeToken,
         },
         {
-          open: () => {
+          stable: () => {
             if (!active || subscriptionGeneration !== generation) return;
-            resetRecoveryBackoff();
-            connected = true;
-            lastError = undefined;
-            lastErrorFallback = '';
-            setRecoveryState('synced');
-            broadcast((listener) => listener.onConnectionRestored(roomId));
+            markConnectionStable();
           },
           next: (event) => {
             if (!active || subscriptionGeneration !== generation) return;
@@ -398,6 +420,12 @@ function createSharedRoomLiveSession(
               )
             ) {
               scheduleMetadataRefresh();
+            }
+            if (event.eventType !== 'snapshot_required') {
+              // Schema validation happens before observer delivery. This is a
+              // durable progress proof even for older transports without the
+              // optional stable callback.
+              markConnectionStable();
             }
           },
           error: (error) => {
@@ -415,7 +443,7 @@ function createSharedRoomLiveSession(
                 error,
                 lastErrorFallback,
               ));
-              scheduleAutomaticRecovery();
+              scheduleAutomaticRecovery(error);
             }
           },
           snapshotRequired: () => {
@@ -427,8 +455,8 @@ function createSharedRoomLiveSession(
         },
       );
       if (conversationSnapshot) scheduleDeferredSnapshot(requestGeneration);
-      // Connection state is cleared by the stream's open callback, not merely
-      // because subscription setup returned.
+      // Connection state is restored only by a stable frame/event callback,
+      // not merely because subscription setup or HTTP headers returned.
     } catch (error) {
       if (
         active
@@ -445,7 +473,7 @@ function createSharedRoomLiveSession(
           lastErrorFallback,
         ));
         setLoading(false);
-        scheduleAutomaticRecovery();
+        scheduleAutomaticRecovery(error);
       }
     } finally {
       snapshotRunning = false;

@@ -2,6 +2,10 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { createAgentDeltaBatcher } from '@/contracts/batching';
 import type { UiAgentEvent } from '@/contracts/ui-events';
+import {
+  ownerRecoveryDelayMs,
+  retryAfterMsFromError,
+} from '@/platform/recovery-policy';
 import type { ControlTransport } from '@/platform/transport';
 import { agentProjection, useAgentLiveStore } from '../state/live-store';
 
@@ -169,7 +173,6 @@ function createSharedAgentLiveSession(
   let snapshotAttempted = false;
   let loadedView: AgentSnapshotView | undefined;
   let latestSnapshot: AgentLiveSnapshot | undefined;
-  let lastSnapshotError: AgentLiveSnapshotError | undefined;
   let lastConnectionError: unknown;
   let connected = false;
   let snapshotTask: Promise<boolean> | undefined;
@@ -183,7 +186,16 @@ function createSharedAgentLiveSession(
   let recoveryTimer: ReturnType<typeof setTimeout> | undefined;
 
   const broadcast = (notify: (listener: AgentLiveSessionCallbacks) => void) => {
-    for (const { listener } of listeners.values()) notify(listener);
+    for (const { listener } of listeners.values()) {
+      try {
+        notify(listener);
+      } catch {
+        // A view callback is a secondary consumer of the shared Runtime
+        // projection. One broken/unmounting window must neither starve the
+        // remaining windows nor escape through observer.next as a transport
+        // failure that tears down the sole Session stream.
+      }
+    }
   };
   const setLoading = (next: boolean) => {
     loading = next;
@@ -202,12 +214,23 @@ function createSharedAgentLiveSession(
     recoveryAttempt = 0;
     clearRecoveryTimer();
   };
-  const scheduleAutomaticRecovery = () => {
+  const markConnectionStable = () => {
+    resetRecoveryBackoff();
+    if (connected && recoveryState === 'synced') return;
+    connected = true;
+    lastConnectionError = undefined;
+    setRecoveryState('synced');
+    broadcast((listener) => listener.onConnectionRestored?.(sessionId));
+  };
+  const scheduleAutomaticRecovery = (error?: unknown) => {
     if (!active || !shouldStream() || recoveryTimer !== undefined) return;
-    const delayMs = Math.min(
-      AGENT_RECOVERY_BASE_DELAY_MS * (2 ** recoveryAttempt),
-      AGENT_RECOVERY_MAX_DELAY_MS,
-    );
+    const delayMs = ownerRecoveryDelayMs({
+      ownerId: `agent:${sessionId}`,
+      attempt: recoveryAttempt,
+      baseDelayMs: AGENT_RECOVERY_BASE_DELAY_MS,
+      maxDelayMs: AGENT_RECOVERY_MAX_DELAY_MS,
+      retryAfterMs: retryAfterMsFromError(error),
+    });
     recoveryAttempt += 1;
     setRecoveryState(
       recoveryAttempt >= AGENT_RECOVERY_VISIBLE_FAILURE_ATTEMPT
@@ -276,10 +299,14 @@ function createSharedAgentLiveSession(
   };
   const batcher = createAgentDeltaBatcher((events) => {
     if (!active) return;
+    // Preserve the last cursor that the reducer had actually committed. The
+    // final event in this batch may be the future event that exposed the gap;
+    // using that sequence would reject a valid intermediate repair snapshot.
+    const preserveAfterSequence = agentProjection(sessionId).lastSequence;
     const needsSnapshot = useAgentLiveStore.getState().applyEvents(sessionId, events);
     if (needsSnapshot) {
       scheduleSnapshotReload({
-        preserveAfterSequence: events.at(-1)?.sequence,
+        preserveAfterSequence,
       });
     } else {
       broadcast((listener) => listener.onEvents?.(events));
@@ -329,25 +356,51 @@ function createSharedAgentLiveSession(
       const presentable = actualView === 'full' || recentAgentSnapshotIsPresentable(value);
       const sequence = agentSnapshotSequence(value);
       const resumeToken = agentSnapshotResumeToken(value);
+      const projectionBeforeHydration = agentProjection(sessionId);
+      // Equality is authoritative only for a quiescent snapshot. A stale busy
+      // snapshot at the same cursor must not overwrite a terminal SSE event;
+      // idle/quiescent metadata at that cursor may settle activity left behind
+      // by a dropped stream.
+      const equalCursorIsQuiescent = request.preserveAfterSequence !== undefined
+        && sequence === request.preserveAfterSequence
+        && isRecord(value)
+        && (value.runtimeQuiescent === true || value.partial !== true)
+        && typeof value.status === 'string'
+        && ['idle', 'ready', 'stopped', 'active'].includes(value.status);
+      // An explicit replay gap is different from an ordinary reconnect: the
+      // reducer has already fenced every following event until a snapshot
+      // clears `needsSnapshot`. If the server has no newer durable event, its
+      // equal-cursor snapshot is still the only authoritative repair, including
+      // while the Runtime remains busy.
+      const equalCursorRepairsGap = projectionBeforeHydration.needsSnapshot
+        && sequence === projectionBeforeHydration.lastSequence;
+      const retainNewerTerminal = presentable
+        && equalCursorRepairsGap
+        && isTerminalAgentProjection(projectionBeforeHydration)
+        && isBusyAgentSnapshot(value);
       const shouldHydrate = presentable
+        && !retainNewerTerminal
         && (
           request.preserveAfterSequence === undefined
           || sequence > request.preserveAfterSequence
+          || equalCursorIsQuiescent
+          || equalCursorRepairsGap
         );
       if (shouldHydrate) useAgentLiveStore.getState().hydrate(sessionId, value);
+      const repairedWithoutRegression = retainNewerTerminal
+        && clearEqualCursorGap(sessionId, sequence, resumeToken);
       const snapshot = {
         sessionId,
         value,
         view: actualView,
         presentable,
-        hydrated: shouldHydrate,
+        hydrated: shouldHydrate || repairedWithoutRegression,
         sequence,
         resumeToken,
       };
       snapshotAttempted = true;
       loadedView = actualView;
       latestSnapshot = snapshot;
-      lastSnapshotError = undefined;
       setLoading(false);
       broadcast((listener) => listener.onSnapshot?.(snapshot));
       if (shouldStream()) maybeSubscribe();
@@ -363,15 +416,13 @@ function createSharedAgentLiveSession(
         error,
         recoverable,
       };
-      lastSnapshotError = failure;
       setLoading(false);
       setRecoveryState('failed');
       broadcast((listener) => listener.onSnapshotError?.(failure));
-      if (recoverable && shouldStream()) {
-        maybeSubscribe();
-        return true;
-      }
-      return false;
+      const resumeStream = recoverable && shouldStream();
+      if (resumeStream) maybeSubscribe();
+      if (shouldStream()) scheduleAutomaticRecovery(error);
+      return resumeStream;
     }
   }
 
@@ -433,6 +484,7 @@ function createSharedAgentLiveSession(
   function maybeSubscribe(): void {
     if (!active || !shouldStream() || !snapshotAttempted || unsubscribe) return;
     const subscriptionGeneration = ++streamGeneration;
+    if (!connected) setRecoveryState('recovering');
     try {
       unsubscribe = transport.subscribe<UiAgentEvent>(
         {
@@ -441,26 +493,34 @@ function createSharedAgentLiveSession(
           lastEventId: currentResumeToken(),
         },
         {
-          open: () => {
+          stable: () => {
             if (!active || subscriptionGeneration !== streamGeneration) return;
-            resetRecoveryBackoff();
-            connected = true;
-            lastConnectionError = undefined;
-            broadcast((listener) => listener.onConnectionRestored?.(sessionId));
+            markConnectionStable();
           },
           next: (event) => {
             if (!active || subscriptionGeneration !== streamGeneration) return;
             if (event.eventType === 'snapshot_required') {
               batcher.flush();
+              // `snapshot_required` is a transient recovery control. The
+              // backend intentionally gives it `currentSequence + 1` without
+              // advancing the durable journal, so using the control sequence
+              // as the preservation fence makes the authoritative snapshot at
+              // `currentSequence` look stale and reconnects from the old
+              // cursor forever. Fence only the durable projection that was
+              // actually applied before this control arrived.
+              const preserveAfterSequence = agentProjection(sessionId).lastSequence;
               const needsSnapshot = useAgentLiveStore.getState().applyEvents(sessionId, [event]);
               broadcast((listener) => listener.onEvent?.(event));
               if (needsSnapshot) {
-                scheduleSnapshotReload({ preserveAfterSequence: event.sequence });
+                scheduleSnapshotReload({ preserveAfterSequence });
               }
               return;
             }
             batcher.push(event);
             broadcast((listener) => listener.onEvent?.(event));
+            // A schema-validated durable event is also sufficient evidence for
+            // transports that predate the optional stable callback.
+            markConnectionStable();
           },
           error: (error) => {
             if (!active || subscriptionGeneration !== streamGeneration) return;
@@ -471,7 +531,7 @@ function createSharedAgentLiveSession(
             lastConnectionError = error;
             setRecoveryState('recovering');
             broadcast((listener) => listener.onConnectionError?.(sessionId, error));
-            scheduleAutomaticRecovery();
+            scheduleAutomaticRecovery(error);
           },
         },
       );
@@ -481,7 +541,7 @@ function createSharedAgentLiveSession(
       lastConnectionError = error;
       setRecoveryState('recovering');
       broadcast((listener) => listener.onConnectionError?.(sessionId, error));
-      scheduleAutomaticRecovery();
+      scheduleAutomaticRecovery(error);
     }
   }
 
@@ -511,7 +571,6 @@ function createSharedAgentLiveSession(
     snapshotAttempted = false;
     loadedView = undefined;
     latestSnapshot = undefined;
-    lastSnapshotError = undefined;
     lastConnectionError = undefined;
   }
 
@@ -592,6 +651,52 @@ function agentSnapshotResumeToken(value: unknown): string {
     : typeof value.lastEventId === 'string'
       ? value.lastEventId
       : '';
+}
+
+function isTerminalAgentProjection(projection: ReturnType<typeof agentProjection>): boolean {
+  if (!['idle', 'ready', 'stopped', 'active', 'failed', 'faulted'].includes(projection.status)) {
+    return false;
+  }
+  return !projection.turnOrder.some((turnId) => (
+    ['queued', 'running', 'waiting'].includes(projection.turnsById[turnId]?.status ?? '')
+  ));
+}
+
+function isBusyAgentSnapshot(value: unknown): boolean {
+  if (!isRecord(value) || typeof value.status !== 'string') return false;
+  return ['busy', 'working', 'waiting', 'aborting', 'stopping'].includes(value.status);
+}
+
+function clearEqualCursorGap(
+  sessionId: string,
+  sequence: number,
+  resumeToken: string,
+): boolean {
+  let repaired = false;
+  useAgentLiveStore.setState((state) => {
+    const current = state.projections[sessionId];
+    if (
+      !current
+      || !current.needsSnapshot
+      || current.lastSequence !== sequence
+      || !isTerminalAgentProjection(current)
+    ) return state;
+    repaired = true;
+    const nextResumeToken = resumeToken || current.resumeToken;
+    return {
+      projections: {
+        ...state.projections,
+        [sessionId]: {
+          ...current,
+          lastEventId: nextResumeToken || current.lastEventId,
+          resumeToken: nextResumeToken,
+          needsSnapshot: false,
+          gap: undefined,
+        },
+      },
+    };
+  });
+  return repaired;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

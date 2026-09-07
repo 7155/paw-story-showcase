@@ -14,12 +14,91 @@ const vite = await createServer({
   appType: "custom",
   configFile: false,
   root,
+  // The read-only SSR harness must not invalidate the live preview optimizer.
+  cacheDir: path.join(root, "node_modules/.cache/story-unit-vite"),
   resolve: { alias: { "@": root } },
   server: { middlewareMode: true },
 });
 
 after(async () => {
   await vite.close();
+});
+
+test("current Lab snapshot drives four scenarios and homepage without rewriting historical receipts", async () => {
+  const { currentLabExperiments } = await vite.ssrLoadModule("/app/lab-evidence.ts");
+  const { CurrentExperimentPanel } = await vite.ssrLoadModule("/app/details/sandbox/sandbox-lab.tsx");
+  const { ResumeSection } = await vite.ssrLoadModule("/app/resume-section.tsx");
+  const publicSnapshot = JSON.parse(await readFile(path.join(root, "public/evidence/vertical-evals/agent-lab-current-20260905.v1.json"), "utf8"));
+  const homeHtml = renderToStaticMarkup(React.createElement(ResumeSection));
+  assert.deepEqual(currentLabExperiments.map(e => e.key), ["enterpriseops", "rag", "cloudops", "memory"]);
+  for (const experiment of currentLabExperiments) {
+    const source = publicSnapshot.experiments.find(e => e.id === experiment.id);
+    const html = renderToStaticMarkup(React.createElement(CurrentExperimentPanel, { experiment }));
+    assert.ok(html.includes(experiment.id));
+    assert.ok(html.includes(experiment.costBefore));
+    assert.ok(html.includes(experiment.costAfter));
+    assert.ok(homeHtml.includes(experiment.qualityAfter));
+    assert.ok(homeHtml.includes(experiment.costAfter));
+    assert.match(html, /非 Provider 账单/);
+    assert.equal(experiment.stages.length, source.stages.length);
+    assert.ok(experiment.stages.every((stage, index) => stage.costUsd === source.stages[index].costUsd));
+  }
+  const rag = currentLabExperiments.find(e => e.key === "rag");
+  assert.deepEqual(rag.stages.map(s => s.decision), ["reject", "reject", "keep"]);
+  const ragHtml = renderToStaticMarkup(React.createElement(CurrentExperimentPanel, { experiment: rag }));
+  assert.match(ragHtml, /candidate-aware/);
+  assert.match(ragHtml, /非盲测、非 Held-out/);
+  assert.match(ragHtml, /标准修订不代表模型能力提升/);
+  const memory = currentLabExperiments.find(e => e.key === "memory");
+  assert.equal(memory.stages.length, 2);
+  assert.equal(memory.id, "memory.maintenance-pi-model-only-20260905-r3.v1");
+  assert.match(memory.costLabel, /Runtime 用量对账估算/);
+  assert.match(memory.scope, /合成数据/);
+  assert.match(memory.qualityAfter, /5 次整理决策.*6 个受治理 atom.*检索门禁通过/);
+  assert.doesNotMatch(memory.qualityAfter, /4\/4|1\/1/);
+  assert.equal(memory.costBefore, "$0.163425");
+  assert.equal(memory.costAfter, "$0.0071846");
+  assert.ok(memory.candidate.metrics.totalTokens > memory.baseline.metrics.totalTokens);
+  const cloud = currentLabExperiments.find(e => e.key === "cloudops");
+  assert.match(cloud.stages[1].quality, /FA 83\.33% · JRA 75%/);
+  assert.match(homeHtml, /多 Agent 尚无同预算 matched A\/B 收益比例/);
+  assert.doesNotMatch(homeHtml, /Luna 的低成本分支因质量回退被拒绝/);
+  const oldReceipt = JSON.parse(await readFile(path.join(root, "public/evidence/vertical-evals/enterprise-rag-answer-luna-max-validation-20260902.v1.json"), "utf8"));
+  assert.equal(oldReceipt.status, "rejected");
+});
+
+test("sandbox server entry selects the requested current scenario and has one scenario selector", async () => {
+  const { default: Page } = await vite.ssrLoadModule("/app/details/sandbox/page.tsx");
+  for (const [scenario, label] of [["rag", "Enterprise RAG"], ["cloudops", "CloudOps"], ["memory", "Memory Maintenance"], ["enterpriseops", "EnterpriseOps"], ["unknown", "EnterpriseOps"]]) {
+    const element = await Page({ searchParams: Promise.resolve({ scenario }) });
+    const html = renderToStaticMarkup(element);
+    assert.ok(html.includes(`aria-label="${label} 当前实验"`), `initial response selects ${scenario}`);
+    assert.equal((html.match(/aria-label="选择当前实验"/g) ?? []).length, 1);
+    assert.doesNotMatch(html, /选择垂直 Agent 运行|approval Agent 独立仲裁|用户选定 finding、owner 与 workspace roots，才创建/);
+    assert.match(html, /单次执行授权/);
+    assert.match(html, /不增加逐 Tool 批准/);
+    assert.match(html, /Runtime 执行/);
+    assert.match(html, /独立规则验证/);
+  }
+});
+
+test("standalone Lab page selects four real project surfaces with matching public evidence", async () => {
+  const { default: Page } = await vite.ssrLoadModule("/app/lab/page.tsx");
+  const { currentLabExperiments } = await vite.ssrLoadModule("/app/lab-evidence.ts");
+  for (const experiment of currentLabExperiments) {
+    const html = renderToStaticMarkup(await Page({ searchParams: Promise.resolve({ scenario: experiment.key }) }));
+    assert.match(html, /从导入数据，到导出 App/);
+    assert.equal((html.match(/<iframe/g) ?? []).length, 1);
+    assert.ok(html.includes(`${experiment.label} · 真实 PAW Lab 项目工作区`));
+    assert.ok(html.includes(`href="/lab?scenario=${experiment.key}" aria-current="page"`));
+    assert.ok(html.includes(experiment.id));
+    assert.ok(html.includes(experiment.qualityAfter));
+    assert.ok(html.includes(experiment.costAfter));
+    assert.match(html, /不启动新模型运行/);
+    assert.match(html, /工作区里的演示编辑不会改变这些结果/);
+  }
+  const { FullProductStory } = await vite.ssrLoadModule("/app/page.tsx");
+  assert.match(renderToStaticMarkup(React.createElement(FullProductStory)), /class="story-lab-link" href="#lab"/);
 });
 
 async function readCssTree(directory) {
@@ -35,6 +114,22 @@ async function readCssTree(directory) {
   );
   return contents.join("\n");
 }
+
+test("every speaking route explains a choice, rejected alternative, failure, cost and evidence", async () => {
+  const { DecisionGuide } = await vite.ssrLoadModule("/app/details/decision-guide.tsx");
+  for (const topic of ["agents", "evaluation", "frontend", "context", "input"]) {
+    const html = renderToStaticMarkup(React.createElement(DecisionGuide, { topic }));
+    for (const label of ["架构选择", "为什么不选另一条路", "踩过的坑与反证", "保留下来的代价", "现场展示什么证据"]) assert.ok(html.includes(label), `${topic}: ${label}`);
+    assert.match(html, /id="decision-guide"/);
+    assert.doesNotMatch(html, /undefined/);
+  }
+  const agents = renderToStaticMarkup(React.createElement(DecisionGuide, { topic: "agents" }));
+  assert.match(agents, /ACK 写入前崩溃/);
+  assert.match(agents, /dispatch-ack-gap\.mmd/);
+  const evaluation = renderToStaticMarkup(React.createElement(DecisionGuide, { topic: "evaluation" }));
+  assert.match(evaluation, /Held-out.*1\/8/);
+  assert.match(evaluation, /shadow Validation/);
+});
 
 test("emits the catalog's animation and scrolling utilities", async () => {
   const css = await readCssTree(path.join(root, "dist"));
@@ -85,8 +180,50 @@ test("renders sidebar skeletons deterministically", async () => {
   assert.match(first, /--skeleton-width:70%/);
 });
 
-test("renders the Reliability chapter and keeps its real PAWOS fixture connected", async () => {
+test("unified home contains every demo and resolved module detail links", async () => {
   const { default: Home } = await vite.ssrLoadModule("/app/page.tsx");
+  const html = renderToStaticMarkup(React.createElement(Home));
+  assert.match(html, /class="home full-showcase guided-home"/);
+  assert.equal((html.match(/<main[ >]/g) || []).length, 1);
+  assert.equal((html.match(/<h1[ >]/g) || []).length, 1);
+  for (const id of ["agents", "reliability", "improvement", "lab", "memory", "input", "framework-overview"]) {
+    assert.equal((html.match(new RegExp(`id="${id}"`, "g")) || []).length, 1);
+  }
+  const directory = html.slice(html.indexOf('class="showcase-directory guided-directory"'), html.indexOf('</nav>', html.indexOf('class="showcase-directory guided-directory"')));
+  assert.equal((directory.match(/href="#/g) || []).length, 7);
+  assert.equal((html.match(/class="guided-panel"/g) || []).length, 7);
+  assert.equal((html.match(/class="guided-panel" hidden=""/g) || []).length, 6);
+  assert.match(directory, /href="#agents" aria-current="step"/);
+  for (const [, anchor] of directory.matchAll(/href="#([^"]+)"/g)) assert.ok(html.includes(`id="${anchor}"`), anchor);
+  const { showcaseChapters } = await vite.ssrLoadModule("/app/showcase-directory.tsx");
+  for (const item of showcaseChapters) await readFile(path.join(root, `app${item.href}/page.tsx`), "utf8");
+  assert.match(html, /下一步：诊断/);
+  assert.equal((html.match(/<iframe/g) || []).length, 7);
+  for (const title of ["真实 PAW Room 协作工作区", "真实 PAW Trace 运行记录", "真实 PAW Agent Lab 候选与实验", "真实 PAW Memory 工作区", "真实 PAW Input Studio", "真实 PAW 上下文运行检查"]) assert.ok(html.includes(title));
+  assert.doesNotMatch(html, /story-candidates|improvement-steps|输入法演示进度/);
+
+  assert.match(html, /lab-showcase--embedded/);
+  assert.match(html, /从导入数据，到导出 App/);
+  assert.match(html, /不启动新模型运行/);
+  assert.match(html, /href="\/lab\?scenario=rag"/);
+  const source = await readFile(path.join(root, "app/precision-story.tsx"), "utf8");
+  assert.match(source, /window\.innerHeight \* \.38/);
+  assert.doesNotMatch(source, /rootMargin: "-38%/);
+  assert.match(source, /observer\.disconnect/);
+  assert.match(source, /task\.checkLabels/);
+  assert.doesNotMatch(source, /setRecall|task\.nextResponse/);
+  const pageSource = await readFile(path.join(root, "app/page.tsx"), "utf8");
+  assert.match(pageSource, /trace=\{<ReliabilitySlide manual\/>\}/);
+  assert.match(pageSource, /memory=\{<ContextSlide manual\/>\}/);
+  assert.match(pageSource, /if \(sentDirectorRef\.current === commandKey\) return/);
+  const css = await readFile(path.join(root, "app/precision-story.css"), "utf8");
+  assert.match(css, /prefers-reduced-motion:reduce/);
+  assert.match(css, /position: sticky/);
+  assert.match(css, /max-width:760px/);
+});
+
+test("renders the Reliability chapter and keeps its real PAWOS fixture connected", async () => {
+  const { ReferenceProductStory: Home } = await vite.ssrLoadModule("/app/page.tsx");
   const html = renderToStaticMarkup(React.createElement(Home));
   const pageSource = await readFile(path.join(root, "app/page.tsx"), "utf8");
   const styleSource = await readFile(path.join(root, "app/globals.css"), "utf8");
@@ -108,8 +245,8 @@ test("renders the Reliability chapter and keeps its real PAWOS fixture connected
   );
 
   assert.match(html, /id="reliability"/);
-  assert.match(html, /<h1[^>]*>多个 Agent 协作完成任务/);
-  assert.match(html, /<h2[^>]*>让每个输入框，都成为一个了解你的 AI 入口/);
+  assert.match(html, /<h1[^>]*>从协作，到可交付的结果/);
+  assert.match(html, /<h2[^>]*>在输入的地方，继续工作/);
   assert.ok(html.indexOf('id="agents"') < html.indexOf('id="reliability"'));
   assert.ok(html.indexOf('id="reliability"') < html.indexOf('id="input"'));
   assert.ok(html.indexOf('id="reliability"') < html.indexOf('id="improvement"'));
@@ -120,8 +257,10 @@ test("renders the Reliability chapter and keeps its real PAWOS fixture connected
   assert.match(html, /href="\/details\/frontend"/);
   assert.match(html, /知识图谱/);
   assert.match(html, /沙盒 Browser/);
-  assert.match(html, /Agent 出错以后，怎样证明它真的变好了/);
-  assert.match(html, /把原始要求与实际行为、测试结果逐项对照/);
+  assert.match(html, /出错之后，沿证据往回走/);
+  assert.match(html, /class="home full-showcase guided-home"/);
+  assert.doesNotMatch(html, /data-playing="true"/);
+  assert.match(html, /沿运行记录定位原因，修复后重跑验证/);
   assert.match(html, /运行异常/);
   assert.match(pageSource, /Trace 诊断/);
   assert.match(pageSource, /授权修复/);
@@ -159,11 +298,11 @@ test("renders the Reliability chapter and keeps its real PAWOS fixture connected
   assert.doesNotMatch(previewData, /八项硬门槛/);
   assert.match(previewData, /任务完成硬门槛通过，八项评分均已生成/);
   assert.match(previewData, /mode === 'diagnostic'/);
-  assert.match(previewData, /嗨，今天怎么样？/);
-  assert.match(previewData, /你今天其实推进了不少/);
-  assert.match(previewData, /还行，就是今天有点累/);
-  assert.match(previewData, /你最近反复在意的不是“功能堆得多”/);
-  assert.match(previewData, /几个 Agent 之间最难的交接跑通了/);
+  assert.match(previewData, /text: taskStory.nextPrompt/);
+  assert.match(previewData, /text: taskStory.nextResponse/);
+  assert.match(previewData, /为什么保留候选 B/);
+  assert.match(previewData, /taskStory.memory/);
+  assert.match(previewData, /taskStory.rejected.result/);
   assert.doesNotMatch(previewData, /行星之间真的能沟通/);
   assert.doesNotMatch(previewData, /我今天主要做了什么？/);
   assert.doesNotMatch(previewData, /我最近反复强调的偏好有哪些？/);
@@ -175,7 +314,8 @@ test("renders the Reliability chapter and keeps its real PAWOS fixture connected
   assert.match(pageSource, /showcaseId=\{reliabilityShowcaseId\}/);
   assert.doesNotMatch(pageSource, /<RealSurface\s+key=\{showcaseId\}/s);
   assert.match(pageSource, /useTimedLoop/);
-  assert.match(pageSource, /useTimedLoop\(inputTimelineDurations, \[12\], imeOnScreen\)/);
+  assert.match(pageSource, /useTimedLoop\(inputTimelineDurations, \[12\], imeOnScreen && !reducedMotion\)/);
+  assert.match(pageSource, /useTimedLoop\(voiceTimelineDurations, \[\], voiceOnScreen && !reducedMotion\)/);
   assert.match(pageSource, /useSyncExternalStore\(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot\)/);
   assert.match(pageSource, /function subscribeReducedMotion/);
   assert.doesNotMatch(pageSource, /setReducedMotion/);
@@ -199,36 +339,36 @@ test("renders the Reliability chapter and keeps its real PAWOS fixture connected
   assert.match(styleSource, /\.slide-frame--bare \.slide-deferred\{flex:0 0 auto;min-height:0\}/);
   assert.match(styleSource, /\.slide-frame--bare \.room-transformation\{flex:0 0 auto\}/);
   assert.match(styleSource, /\.slide-frame--bare \.room-transformation-stage\{flex:0 0 auto;width:100%;height:auto;min-height:0;aspect-ratio:4\/3\}/);
-  assert.match(roomData, /Pi 可以做成网关型 Agent 吗/);
-  assert.match(roomData, /后来你说输入法的零散输入很乱/);
+  assert.match(roomData, /这次工作台方案中/);
+  assert.match(roomData, /输入这条线需要先确定/);
   assert.match(roomData, /Skill，还是返回结构化变更的 Tool/);
-  assert.match(roomData, /最开始那套强规范多 Agent/);
-  assert.match(roomData, /Git、Docs 和 Codex 对话/);
+  assert.match(roomData, /每条线有明确负责人、接口和交付即可/);
+  assert.match(roomData, /按任务保留已接受决定和交付来源/);
   assert.match(roomData, /行星通信/);
   assert.match(roomData, /sourceParticipantId/);
   assert.match(roomData, /targetParticipantId/);
-  assert.match(roomData, /project-interview-forensics/);
+  assert.match(roomData, /showcase\/task-story/);
   assert.match(roomData, /rag-retrieval-optimization/);
   assert.match(roomData, /implementation-planning/);
   assert.match(roomData, /organize-work-documents/);
-  assert.match(roomData, /找到三段因果连续的用户原话/);
+  assert.match(roomData, /找到四条产品线与共同交付要求/);
   assert.doesNotMatch(roomData, /DECISION：/);
   assert.match(roomData, /title: 'PAW 立项'/);
   assert.doesNotMatch(roomData, /开发历程与面试故事/);
   assert.match(roomData, /产品线 4\/4/);
   assert.match(roomData, /throughSequence \?\? 69/);
   assert.match(roomData, /P0 = 1/);
-  assert.match(roomData, /P0 1 → 0/);
+  assert.match(roomData, /产物回滚缺口仍开放/);
   assert.match(roomData, /usage: lane\.usage/);
 });
 
 test("renders the clickable vertical sandbox evidence lab from sanitized real receipts", async () => {
-  const { default: Home } = await vite.ssrLoadModule("/app/page.tsx");
+  const { ReferenceProductStory: Home } = await vite.ssrLoadModule("/app/page.tsx");
   const { default: SandboxDetail } = await vite.ssrLoadModule(
     "/app/details/sandbox/page.tsx",
   );
   const homeHtml = renderToStaticMarkup(React.createElement(Home));
-  const detailHtml = renderToStaticMarkup(React.createElement(SandboxDetail));
+  const detailHtml = renderToStaticMarkup(await SandboxDetail({ searchParams: Promise.resolve({}) }));
   const detailSource = await readFile(
     path.join(root, "app/details/sandbox/sandbox-lab.tsx"),
     "utf8",
@@ -258,14 +398,15 @@ test("renders the clickable vertical sandbox evidence lab from sanitized real re
   );
 
   assert.match(homeHtml, /href="\/details\/sandbox"/);
-  assert.match(homeHtml, /垂直沙盒/);
+  assert.match(homeHtml, /class="story-lab-link" href="#lab"/);
   assert.match(detailHtml, /四个真实项目，每个都有一张候选矩阵/);
   assert.match(detailHtml, /Enterprise RAG/);
   assert.match(detailHtml, /CloudOps/);
   assert.match(detailHtml, /Trace Agent/);
   assert.match(detailHtml, /Memory Maintenance/);
   assert.match(detailHtml, /EnterpriseOps CSM/);
-  assert.match(detailHtml, /44\.78%/);
+  const ragDetailHtml = renderToStaticMarkup(await SandboxDetail({ searchParams: Promise.resolve({ scenario: "rag" }) }));
+  assert.match(ragDetailHtml, /44\.78%/); // Retrieval history belongs to the selected RAG scenario.
   assert.equal(lunaReceipt.status, "rejected");
   assert.equal(lunaReceipt.heldOutEvaluated, false);
   assert.deepEqual(Object.keys(lunaReceipt.lanes), ["baseline", "skill", "tuned", "agentic"]);
@@ -285,8 +426,8 @@ test("renders the clickable vertical sandbox evidence lab from sanitized real re
   assert.match(detailSource, /5 \/ 5/);
   assert.match(detailSource, /24,399 CLI tokens/);
   assert.match(detailSource, /834\.945s/);
-  assert.match(detailHtml, /2 \/ 9 cited facts/);
-  assert.match(detailHtml, /Baseline/);
+  assert.match(detailSource, /2 \/ 9 cited facts/); // Retained historical RAG event; initial current panel is EnterpriseOps.
+  assert.match(detailHtml, /HISTORICAL VALIDATION LEDGER/);
   assert.match(detailSource, /V1 · search/);
   assert.match(detailSource, /V1 FAILED · V2–V4 REJECTED/);
   assert.match(detailSource, /共享 Reviewer/);
@@ -326,9 +467,8 @@ test("renders the clickable vertical sandbox evidence lab from sanitized real re
   assert.match(detailSource, /Luna Max · baseline/);
   assert.match(detailSource, /420\.642s · 7,713 tok · 12 Tool/);
   assert.match(detailHtml, /source-local candidate 都未安装/);
-  assert.match(detailHtml, /role="tablist"/);
-  assert.match(detailHtml, /role="tab"/);
-  assert.match(detailHtml, /role="tabpanel"/);
+  assert.match(detailHtml, /aria-label="选择当前实验"/);
+  assert.match(detailHtml, /aria-label="EnterpriseOps 当前实验"/);
   assert.match(
     detailHtml,
     /href="\/evidence\/vertical-evals\/cloudops-agent-validation-20260901\.v1\.json"/,
@@ -342,7 +482,7 @@ test("renders the clickable vertical sandbox evidence lab from sanitized real re
     /href="\/evidence\/vertical-evals\/enterpriseops-csm-suite-v2-summary-20260903\.v2\.json"/,
   );
   assert.match(detailSource, /useState/);
-  assert.match(detailSource, /aria-selected/);
+  assert.match(detailSource, /aria-pressed/);
   assert.match(detailSource, /selectedEvent\.evidenceHref \?\? activeRun\.evidenceHref/);
   assert.doesNotMatch(detailHtml, /\/Users\//);
   assert.doesNotMatch(detailHtml, /\/Volumes\//);
@@ -606,9 +746,9 @@ test("keeps the public resume slice source-bound and easy to enter", async () =>
 
   assert.match(html, /id="resume"/);
   assert.match(html, /aria-label="公开可核查的项目结果"/);
-  assert.match(html, /3\/31 → 26\/31/);
-  assert.match(html, /\.6128 → \.8872/);
-  assert.match(html, /1\/8 Held-out/);
+  assert.match(html, /3\/3 任务 · 31\/31 验收/);
+  assert.match(html, /9\/9 引用事实 · 4\/4 任务/);
+  assert.match(html, /历史 one-shot Held-out 1\/8/);
   assert.match(html, /id="framework"/);
   assert.match(html, /aria-label="PAW 系统框架"/);
   assert.match(html, /用户目标进入 Pi Session/);

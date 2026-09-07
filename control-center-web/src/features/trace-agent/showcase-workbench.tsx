@@ -1,4 +1,5 @@
 import { CheckCircle2, GitCompareArrows, Search, ShieldCheck, Sparkles, Wrench } from 'lucide-react';
+import taskStory from '../../../../showcase/task-story.v1.json';
 import { useEffect, useLayoutEffect, useState, type CSSProperties } from 'react';
 import { Button } from '@/components/primitives';
 import type { TraceVerificationReceiptV1 } from '@/contracts/generated/trace-verification-receipt.v1';
@@ -6,6 +7,8 @@ import type { TraceVerificationReceiptV1 } from '@/contracts/generated/trace-ver
 type TraceShowcasePhase = 'idle' | 'diagnosing' | 'reported' | 'confirming' | 'repairing' | 'recheck' | 'comparing' | 'verified';
 
 const diagnosticReport = [
+  taskStory.title + ' · ' + taskStory.incident,
+  taskStory.diagnosis,
   '结论：四个异常不是同一个问题。Tool error 的第一根因是 Workflow 在辅助登记失败后撤销真实写入；14m32s 来自重复上下文与 6 次无效重试；Sub Agent 前台化来自错误的展示生命周期；Skill 测评则只看了 Worker 自我总结。',
   '',
   'Trace 证据：workspace_write receipt 已成功，rollback 发生在 documentSync owner；主 Session 等待前台 child，background 标记没有进入 projection；Reviewer SkillRef 已加载，但 Eval criteria 缺少 user_requirement、program_behavior 与 regression_tests。',
@@ -14,6 +17,7 @@ const diagnosticReport = [
 ].join('\n');
 
 const repairReport = [
+  taskStory.repair,
   '已创建有界 Repair Session。',
   '1. 修改 documentSync owner：失败不再回滚真实产物。',
   '2. 修正 Sub Agent lifecycle projection：background 不进入前台工作区。',
@@ -90,7 +94,7 @@ export function TraceShowcaseWorkbench() {
 
       <section className="trace-showcase-handoff">
         <span><Search size={16}/></span>
-        <div><small>来自 Agent 工作记录</small><strong>Tool error · Workflow 事故</strong><p>同时关联耗时过长、Sub Agent 前台化与 Skill 测评漂移三条异常信号；先诊断，不自动写入。</p></div>
+        <div><small>来自 PAW 工作台方案的合成执行记录</small><strong>Tool error · Workflow 事故</strong><p>{taskStory.incident}</p></div>
         <Button
           data-trace-action="start-diagnostic"
           disabled={phase !== 'idle'}

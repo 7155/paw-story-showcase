@@ -1,0 +1,14 @@
+flowchart TB
+  s["上下文记录<br/>pending + 生命周期 + 来源"]
+  m["materialize<br/>到期过滤 / lane / 条数与预算"]
+  r["预留 deliveryId<br/>once/turn → consumed"]
+  p["Pi Runtime<br/>实际收到内容才可使用"]
+  a["mark_delivered<br/>关联真实 turnId"]
+  c["再次读取<br/>persistent 可保留；once 不重入"]
+  x["预留后、送达前崩溃<br/>可能遗漏；不伪称 exactly-once"]
+  s -->|"候选记录"| m
+  m -->|"选中 items"| r
+  r -->|"Runtime RPC"| p
+  p -->|"接受回执"| a
+  a -->|"后续读取"| c
+  r -->|"进程中断"| x

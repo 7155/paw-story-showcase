@@ -2,6 +2,10 @@ import { Bot, BrainCircuit, Radio, Users } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { publishGlobalNotice } from '@/components/feedback';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/primitives';
+import {
+  isModelQuotaError,
+  publicAgentErrorText,
+} from '@/features/agent/public-error';
 import { usePawDesktopApi } from '../runtime/desktop-context';
 import { projectRunningWayfinderWork, type WayfinderWorkItem } from './wayfinder-work-projection';
 import { usePawWorkDirectory, type PawMemoryMaintenanceActivity } from './PawWorkDirectory';
@@ -124,13 +128,16 @@ function useRuntimeCompletionNotices({
   sessions: ReturnType<typeof usePawWorkDirectory>['sessions'];
 }) {
   const previousRef = useRef<Map<string, BackgroundActivityItem> | null>(null);
+  const previousSessionsRef = useRef<typeof sessions | null>(null);
   useEffect(() => {
     const current = new Map(running.map((item) => [item.key, item]));
     const previous = previousRef.current;
     if (!previous) {
       previousRef.current = current;
+      previousSessionsRef.current = sessions;
       return;
     }
+    const previousSessions = previousSessionsRef.current ?? [];
     const nextPrevious = new Map(current);
     for (const [key, item] of previous) {
       if (current.has(key)) continue;
@@ -149,6 +156,13 @@ function useRuntimeCompletionNotices({
          only a still-present canonical object may close a live notification. */
       if (item.kind === 'maintenance' && maintenanceJob?.id !== item.id) continue;
       if (item.kind !== 'maintenance' && !session && !room) continue;
+      const terminalPartner = item.kind === 'room' ? sessions.find((candidate) => (
+        candidate.roomParticipant?.roomId === item.id
+        && candidate.status !== 'busy'
+        && previousSessions.some((previousSession) => (
+          previousSession.id === candidate.id && previousSession.status === 'busy'
+        ))
+      )) : undefined;
       const failedPartner = item.kind === 'room' && sessions.some((candidate) => (
         candidate.roomParticipant?.roomId === item.id && candidate.status === 'faulted'
       ));
@@ -157,11 +171,11 @@ function useRuntimeCompletionNotices({
         || room?.workItems?.some((workItem) => workItem.state === 'blocked')
         || (item.kind === 'maintenance' && (maintenanceJob?.state === 'failed' || maintenanceJob?.state === 'expired'));
       publishGlobalNotice({
-        id: `runtime-transition:${key}:${Date.now()}`,
+        id: runtimeCompletionNoticeId({ item, maintenanceJob, room, session, terminalPartner }),
         title: needsAttention ? `${item.title} 需要处理` : `${item.title} 已结束运行`,
         message: item.kind === 'maintenance'
           ? needsAttention
-            ? `自动记忆整理失败，可在 Memory 中检查并重试。${maintenanceJob?.error ? ` ${maintenanceJob.error}` : ''}`
+            ? `自动记忆整理失败，可在 Memory 中检查并重试。${maintenanceJob?.error ? ` ${maintenanceFailureDetail(maintenanceJob.error)}` : ''}`
             : '自动记忆整理已完成，可在 Memory 中查看最新状态。'
           : item.kind === 'room'
             ? failedPartner
@@ -172,5 +186,69 @@ function useRuntimeCompletionNotices({
       });
     }
     previousRef.current = nextPrevious;
+    if (sessionStatusFresh) previousSessionsRef.current = sessions;
   }, [maintenanceJob, maintenanceStatusFresh, roomStatusFresh, rooms, running, sessionStatusFresh, sessions]);
+}
+
+export function maintenanceFailureDetail(error: string): string {
+  // Keep ordinary provider diagnostics available to the user, but collapse
+  // the old raw bootstrap-budget exception into the same non-blocking copy as
+  // foreground Agent errors. The full error remains in the Runtime receipt.
+  if (isModelQuotaError(error)) {
+    return '本轮记忆整理因模型服务额度暂时用尽而跳过，不影响对话；稍后可重试或切换已配置模型。';
+  }
+  return publicAgentErrorText(error, error);
+}
+
+/**
+ * A poll is transport activity, not a new user event. Use the Runtime's stable
+ * causal identity so later metadata updates replace the same notice. Titles,
+ * summaries and timestamps are mutable presentation data, never identity.
+ */
+function runtimeCompletionNoticeId({
+  item,
+  maintenanceJob,
+  room,
+  session,
+  terminalPartner,
+}: {
+  item: BackgroundActivityItem;
+  maintenanceJob: ReturnType<typeof usePawWorkDirectory>['maintenanceJob'];
+  room: ReturnType<typeof usePawWorkDirectory>['rooms'][number] | undefined;
+  session: ReturnType<typeof usePawWorkDirectory>['sessions'][number] | undefined;
+  terminalPartner: ReturnType<typeof usePawWorkDirectory>['sessions'][number] | undefined;
+}): string {
+  if (item.kind === 'maintenance') {
+    const job = maintenanceJob?.id === item.id ? maintenanceJob : undefined;
+    return `runtime-transition:maintenance:${job?.id || item.id}:${job?.state || 'terminal'}`;
+  }
+  if (item.kind === 'session') {
+    const identity = terminalCausalIdentity(session);
+    return `runtime-transition:session:${item.id}:${identity || 'unidentified-terminal'}`;
+  }
+  if (terminalPartner) {
+    const identity = terminalCausalIdentity(terminalPartner);
+    return `runtime-transition:room:${item.id}:${terminalPartner.id}:${identity || 'unidentified-terminal'}`;
+  }
+  const roomIdentity = terminalCausalIdentity(room);
+  return `runtime-transition:room:${item.id}:${roomIdentity || 'unidentified-terminal'}`;
+}
+
+const TERMINAL_CAUSAL_ID_FIELDS = [
+  'lastTerminalTurnId',
+  'terminalEventId',
+  'turnId',
+  'rootId',
+  'runId',
+  'traceId',
+] as const;
+
+function terminalCausalIdentity(value: unknown): string {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return '';
+  const record = value as Record<string, unknown>;
+  for (const field of TERMINAL_CAUSAL_ID_FIELDS) {
+    const identity = typeof record[field] === 'string' ? record[field].trim() : '';
+    if (identity) return `${field}:${identity}`;
+  }
+  return '';
 }

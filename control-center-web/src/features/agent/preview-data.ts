@@ -1,3 +1,4 @@
+import taskStory from "../../../../showcase/task-story.v1.json";
 import type { AgentSnapshot } from '@/contracts/agent-reducer';
 import type { UiAgentEvent } from '@/contracts/ui-events';
 import type { AgentPersonaV1 } from '@/contracts/generated/agent-persona.v1';
@@ -161,7 +162,7 @@ export const previewSessions: SessionSummary[] = [
   },
   {
     id: 'session-memory-greeting',
-    title: '今天聊聊 · 开场',
+    title: 'PAW 工作台 · 找回交付',
     mode: 'coordinator',
     status: 'idle',
     roleId: 'companion-present-v1',
@@ -175,12 +176,12 @@ export const previewSessions: SessionSummary[] = [
     updatedAtMs: previewNow - 43 * 60_000,
     workspaceRoots: [],
     messageCount: 2,
-    lastMessagePreview: '看起来是很有进展、也挺密的一天。要继续收尾，还是先缓一缓？',
+    lastMessagePreview: taskStory.nextResponse,
     modelProfile: 'openai/gpt-5.4',
   },
   {
     id: 'session-memory',
-    title: '今天聊聊 · 继续',
+    title: 'PAW 工作台 · 继续方案',
     mode: 'coordinator',
     status: 'idle',
     roleId: 'companion-present-v1',
@@ -194,7 +195,7 @@ export const previewSessions: SessionSummary[] = [
     updatedAtMs: previewNow - 42 * 60_000,
     workspaceRoots: [],
     messageCount: 4,
-    lastMessagePreview: '明天继续时，我会从今天的整理结果和交接记录接上。',
+    lastMessagePreview: taskStory.memory,
     modelProfile: 'openai/gpt-5.4',
   },
   {
@@ -1011,48 +1012,32 @@ function previewMemoryRecallSession(
   const messages = [
     message(sessionId, greetingTurn, 'memory-user-greeting', 'user', [
       block('memory-user-greeting-text', 'text', {
-        text: '嗨，今天怎么样？',
+        text: taskStory.nextPrompt,
       }),
     ], base),
     message(sessionId, greetingTurn, 'memory-assistant-greeting', 'assistant', [
       block('memory-assistant-greeting-text', 'text', {
-        text: [
-          '嗨，我挺好。你今天其实推进了不少：',
-          '',
-          '- 早上先把输入法范围、真实前端和不发布边界收成了 **PAW 立项**约束；',
-          '- 中午把高频输入里的稳定偏好和一次性任务分开，理顺了 Memory 治理；',
-          '- 下午把 Input History → Memory → Agent 串进同一个真实 PAWOS；',
-          '- 后来又把几个 Agent 之间的接口、依赖和证据串成了完整交接；',
-          '- 收尾时还核对了 WorkPatch、Docs、Reviewer 和公开数据边界。',
-          '',
-          '看起来是很有进展、也挺密的一天。你现在更想趁着劲继续收尾，还是先缓一缓？',
-        ].join('\n'),
+        text: taskStory.nextResponse,
       }),
     ], base + 28_000),
     message(sessionId, tiredTurn, 'memory-user-tired', 'user', [
       block('memory-user-tired-text', 'text', {
-        text: '还行，就是今天有点累。',
+        text: '为什么保留候选 B，没有选择候选 A？',
       }),
     ], base + 64_000),
     message(sessionId, tiredTurn, 'memory-assistant-tired', 'assistant', [
       block('memory-assistant-tired-text', 'text', {
-        text: [
-          '那就先别硬撑了。你今天已经把几个 Agent 之间最难的交接跑通了，这件事本身就很消耗。',
-          '',
-          '而且你最近反复在意的不是“功能堆得多”，而是它要 **真实、有用**，新增时还不能把已经做好的东西弄丢。今天这一步做到了：几个 Agent 不只是同时开着，而是真的把接口、依赖和证据交给了下一个；Memory 也不是一张讲概念的卡片，而是在真实 App 里接住了输入记录、整理结果和这段对话。',
-          '',
-          '先到这里也可以。明天继续时，我会从今天的整理结果和交接记录接上，不用你再讲一遍。',
-        ].join('\n'),
+        text: taskStory.memory + '\n\n' + taskStory.rejected.result + '\n' + taskStory.kept.result,
       }),
     ], base + 102_000),
   ];
   const rows: Array<[string, UiAgentEvent['eventType'], Record<string, unknown>]> = [
-    [greetingTurn, 'tool_started', { toolCallId: 'memory-recall-today', toolId: 'memory', operation: 'recall', summary: '从“今天”与当前会话上下文召回最近活动时间线', args: { scope: 'today_timeline', limit: 1, rawInput: false } }],
-    [greetingTurn, 'tool_finished', { toolCallId: 'memory-recall-today', toolId: 'memory', operation: 'recall', summary: '自然对话命中 5 个已整理任务；未读取原始输入', status: 'completed', result: { sourceEvents: 1_284, includedTasks: 5, rawInputCopied: false } }],
-    [greetingTurn, 'turn_completed', { summary: '结合今日时间线回应寒暄，并询问当前状态' }],
-    [tiredTurn, 'tool_started', { toolCallId: 'memory-recall-preferences', toolId: 'memory', operation: 'recall', summary: '根据疲劳感受与当前项目进展召回相关交流偏好', args: { scope: 'user_preferences', query: '真实 有用 保留已有 多 Agent 交接', limit: 4 } }],
-    [tiredTurn, 'tool_finished', { toolCallId: 'memory-recall-preferences', toolId: 'memory', operation: 'recall', summary: '召回 3 条相关偏好，排除无关项目与 Runtime 状态', status: 'completed', result: { included: 3, excluded: 11, runtimeStateIncluded: false } }],
-    [tiredTurn, 'turn_completed', { summary: '结合偏好回应情绪，并保留明日续接点' }],
+    [greetingTurn, 'tool_started', { toolCallId: 'memory-recall-today', toolId: 'memory', operation: 'recall', summary: '从 PAW 工作台任务召回交付与已接受决定', args: { scope: 'today_timeline', limit: 1, rawInput: false } }],
+    [greetingTurn, 'tool_finished', { toolCallId: 'memory-recall-today', toolId: 'memory', operation: 'recall', summary: '命中已整理任务中的交付与修复决定；未读取原始输入', status: 'completed', result: { sourceEvents: 1_284, includedTasks: 5, rawInputCopied: false } }],
+    [greetingTurn, 'turn_completed', { summary: '给出交付状态、接受的修复与下一步' }],
+    [tiredTurn, 'tool_started', { toolCallId: 'memory-recall-preferences', toolId: 'memory', operation: 'recall', summary: '根据候选比较问题召回当时的验证依据', args: { scope: 'project_decisions', query: taskStory.title, limit: 4 } }],
+    [tiredTurn, 'tool_finished', { toolCallId: 'memory-recall-preferences', toolId: 'memory', operation: 'recall', summary: '召回候选 A、候选 B 与验证条件，排除无关项目与 Runtime 状态', status: 'completed', result: { included: 3, excluded: 11, runtimeStateIncluded: false } }],
+    [tiredTurn, 'turn_completed', { summary: '解释候选取舍，并保留继续实施的来源' }],
   ];
   const visibleMessageCount = mode === 'greeting' ? 2 : messages.length;
   const visibleRows = mode === 'greeting' ? rows.slice(0, 3) : rows;

@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="864pt" height="619.2pt" viewBox="0 0 864 619.2" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <title>Enterprise RAG：两种比较，必须分开读</title>
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>Enterprise RAG：两种比较，必须分开读</dc:title>
+    <dc:date>2026-09-05</dc:date>
+    <dc:description>三阶段 7/9→8/9→9/9 与同输出重评分 4/9→9/9 是不同实验轴。</dc:description>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.6, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 619.2
+L 864 619.2
+L 864 0
+L 0 0
+z
+" style="fill: #f7f8fa"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 190.08 284.832
+L 734.4 284.832
+L 734.4 130.032
+L 190.08 130.032
+z
+" style="fill: #f7f8fa"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 190.08 284.832
+L 190.08 130.032
+" clip-path="url(#p367d4e0b38)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.16; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2">
+      <defs>
+       <path id="m6a13a4a872" d="M 0 0
+L 0 3.5
+" style="stroke: #56616c; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#m6a13a4a872" x="190.08" y="284.832" style="fill: #56616c; stroke: #56616c; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: middle; fill: #56616c" x="190.08" y="303.172" transform="rotate(-0 190.08 303.172)">0</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 293.76 284.832
+L 293.76 130.032
+" clip-path="url(#p367d4e0b38)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.16; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4">
+      <g>
+       <use xlink:href="#m6a13a4a872" x="293.76" y="284.832" style="fill: #56616c; stroke: #56616c; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: middle; fill: #56616c" x="293.76" y="303.172" transform="rotate(-0 293.76 303.172)">2</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 397.44 284.832
+L 397.44 130.032
+" clip-path="url(#p367d4e0b38)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.16; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6">
+      <g>
+       <use xlink:href="#m6a13a4a872" x="397.44" y="284.832" style="fill: #56616c; stroke: #56616c; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: middle; fill: #56616c" x="397.44" y="303.172" transform="rotate(-0 397.44 303.172)">4</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_7">
+      <path d="M 501.12 284.832
+L 501.12 130.032
+" clip-path="url(#p367d4e0b38)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.16; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_8">
+      <g>
+       <use xlink:href="#m6a13a4a872" x="501.12" y="284.832" style="fill: #56616c; stroke: #56616c; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: middle; fill: #56616c" x="501.12" y="303.172" transform="rotate(-0 501.12 303.172)">6</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_9">
+      <path d="M 604.8 284.832
+L 604.8 130.032
+" clip-path="url(#p367d4e0b38)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.16; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_10">
+      <g>
+       <use xlink:href="#m6a13a4a872" x="604.8" y="284.832" style="fill: #56616c; stroke: #56616c; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_5">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: middle; fill: #56616c" x="604.8" y="303.172" transform="rotate(-0 604.8 303.172)">8</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_11">
+      <path d="M 708.48 284.832
+L 708.48 130.032
+" clip-path="url(#p367d4e0b38)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.16; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_12">
+      <g>
+       <use xlink:href="#m6a13a4a872" x="708.48" y="284.832" style="fill: #56616c; stroke: #56616c; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_6">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: middle; fill: #56616c" x="708.48" y="303.172" transform="rotate(-0 708.48 303.172)">10</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_13"/>
+     <g id="text_7">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: end; fill: #374151" x="178.08" y="156.811091" transform="rotate(-0 178.08 156.811091)">Sol 原配置</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_14"/>
+     <g id="text_8">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: end; fill: #374151" x="178.08" y="213.102" transform="rotate(-0 178.08 213.102)">Luna 只换模型</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_15"/>
+     <g id="text_9">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: end; fill: #374151" x="178.08" y="269.392909" transform="rotate(-0 178.08 269.392909)">Luna + Prompt</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 190.08 137.068364
+L 552.96 137.068364
+L 552.96 165.213818
+L 190.08 165.213818
+z
+" clip-path="url(#p367d4e0b38)" style="fill: #326789"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 190.08 193.359273
+L 604.8 193.359273
+L 604.8 221.504727
+L 190.08 221.504727
+z
+" clip-path="url(#p367d4e0b38)" style="fill: #9b5426"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 190.08 249.650182
+L 656.64 249.650182
+L 656.64 277.795636
+L 190.08 277.795636
+z
+" clip-path="url(#p367d4e0b38)" style="fill: #6657a6"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 190.08 284.832
+L 734.4 284.832
+" style="fill: none; stroke: #b6bec7; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'Heiti TC'; text-anchor: start; fill: #202532" x="566.568" y="155.88031" transform="rotate(-0 566.568 155.88031)">7/9</text>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'Heiti TC'; text-anchor: start; fill: #202532" x="618.408" y="212.171219" transform="rotate(-0 618.408 212.171219)">8/9</text>
+   </g>
+   <g id="text_12">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'Heiti TC'; text-anchor: start; fill: #202532" x="670.248" y="268.462128" transform="rotate(-0 670.248 268.462128)">9/9</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 17px; font-family: 'Heiti TC'; text-anchor: start; fill: #202532" x="190.08" y="108.032" transform="rotate(-0 190.08 108.032)">模型 / Prompt 三阶段 · 同一 r6 标准</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_7">
+    <path d="M 190.08 495.36
+L 734.4 495.36
+L 734.4 390.096
+L 190.08 390.096
+z
+" style="fill: #f7f8fa"/>
+   </g>
+   <g id="matplotlib.axis_3">
+    <g id="xtick_7">
+     <g id="line2d_16">
+      <path d="M 190.08 495.36
+L 190.08 390.096
+" clip-path="url(#pa2904625cb)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.16; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_17">
+      <g>
+       <use xlink:href="#m6a13a4a872" x="190.08" y="495.36" style="fill: #56616c; stroke: #56616c; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_14">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: middle; fill: #56616c" x="190.08" y="513.7" transform="rotate(-0 190.08 513.7)">0</text>
+     </g>
+    </g>
+    <g id="xtick_8">
+     <g id="line2d_18">
+      <path d="M 293.76 495.36
+L 293.76 390.096
+" clip-path="url(#pa2904625cb)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.16; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_19">
+      <g>
+       <use xlink:href="#m6a13a4a872" x="293.76" y="495.36" style="fill: #56616c; stroke: #56616c; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_15">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: middle; fill: #56616c" x="293.76" y="513.7" transform="rotate(-0 293.76 513.7)">2</text>
+     </g>
+    </g>
+    <g id="xtick_9">
+     <g id="line2d_20">
+      <path d="M 397.44 495.36
+L 397.44 390.096
+" clip-path="url(#pa2904625cb)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.16; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_21">
+      <g>
+       <use xlink:href="#m6a13a4a872" x="397.44" y="495.36" style="fill: #56616c; stroke: #56616c; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_16">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: middle; fill: #56616c" x="397.44" y="513.7" transform="rotate(-0 397.44 513.7)">4</text>
+     </g>
+    </g>
+    <g id="xtick_10">
+     <g id="line2d_22">
+      <path d="M 501.12 495.36
+L 501.12 390.096
+" clip-path="url(#pa2904625cb)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.16; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_23">
+      <g>
+       <use xlink:href="#m6a13a4a872" x="501.12" y="495.36" style="fill: #56616c; stroke: #56616c; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_17">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: middle; fill: #56616c" x="501.12" y="513.7" transform="rotate(-0 501.12 513.7)">6</text>
+     </g>
+    </g>
+    <g id="xtick_11">
+     <g id="line2d_24">
+      <path d="M 604.8 495.36
+L 604.8 390.096
+" clip-path="url(#pa2904625cb)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.16; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_25">
+      <g>
+       <use xlink:href="#m6a13a4a872" x="604.8" y="495.36" style="fill: #56616c; stroke: #56616c; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_18">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: middle; fill: #56616c" x="604.8" y="513.7" transform="rotate(-0 604.8 513.7)">8</text>
+     </g>
+    </g>
+    <g id="xtick_12">
+     <g id="line2d_26">
+      <path d="M 708.48 495.36
+L 708.48 390.096
+" clip-path="url(#pa2904625cb)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.16; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_27">
+      <g>
+       <use xlink:href="#m6a13a4a872" x="708.48" y="495.36" style="fill: #56616c; stroke: #56616c; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_19">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: middle; fill: #56616c" x="708.48" y="513.7" transform="rotate(-0 708.48 513.7)">10</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_4">
+    <g id="ytick_4">
+     <g id="line2d_28"/>
+     <g id="text_20">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: end; fill: #374151" x="178.08" y="416.499818" transform="rotate(-0 178.08 416.499818)">旧标准</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_29"/>
+     <g id="text_21">
+      <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: end; fill: #374151" x="178.08" y="480.296182" transform="rotate(-0 178.08 480.296182)">r6 标准</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_8">
+    <path d="M 190.08 394.880727
+L 397.44 394.880727
+L 397.44 426.778909
+L 190.08 426.778909
+z
+" clip-path="url(#pa2904625cb)" style="fill: #326789"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 190.08 458.677091
+L 656.64 458.677091
+L 656.64 490.575273
+L 190.08 490.575273
+z
+" clip-path="url(#pa2904625cb)" style="fill: #9b5426"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 190.08 495.36
+L 734.4 495.36
+" style="fill: none; stroke: #b6bec7; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_22">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'Heiti TC'; text-anchor: start; fill: #202532" x="411.048" y="415.569037" transform="rotate(-0 411.048 415.569037)">4/9</text>
+   </g>
+   <g id="text_23">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'Heiti TC'; text-anchor: start; fill: #202532" x="670.248" y="479.365401" transform="rotate(-0 670.248 479.365401)">9/9</text>
+   </g>
+   <g id="text_24">
+    <text style="font-size: 17px; font-family: 'Heiti TC'; text-anchor: start; fill: #202532" x="190.08" y="368.096" transform="rotate(-0 190.08 368.096)">评分标准校准 · 同一候选输出</text>
+   </g>
+  </g>
+  <g id="text_25">
+   <text style="font-weight: 700; font-size: 25px; font-family: 'Heiti TC'; text-anchor: start; fill: #202532" x="47.52" y="40.248" transform="rotate(-0 47.52 40.248)">Enterprise RAG：两种比较，必须分开读</text>
+  </g>
+  <g id="text_26">
+   <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: start; fill: #586375" x="47.52" y="71.208" transform="rotate(-0 47.52 71.208)">上：不同运行统一按 r6 评分。下：同一份冻结输出更换评分标准；没有重新调用模型。</text>
+  </g>
+  <g id="text_27">
+   <text style="font-size: 14px; font-family: 'Heiti TC'; text-anchor: start; fill: #202532" x="190.08" y="340.56" transform="rotate(-0 190.08 340.56)">r6 已观察候选：candidate-aware，不是独立隐藏测试。</text>
+  </g>
+  <g id="text_28">
+   <text style="font-size: 13px; font-family: 'Heiti TC'; text-anchor: start; fill: #202532" x="190.08" y="547.992" transform="rotate(-0 190.08 547.992)">离线重评分：Provider 调用 0；Judge 调用 0。分数变化不等于模型变强。</text>
+  </g>
+  <g id="text_29">
+   <text style="font-size: 11px; font-family: 'Heiti TC'; text-anchor: start; fill: #202532" x="47.52" y="591.336" transform="rotate(-0 47.52 591.336)">PAW · 已有实验记录 / 2026-09-05 · 估算成本非账单；单轮 Validation 非泛化证明</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p367d4e0b38">
+   <rect x="190.08" y="130.032" width="544.32" height="154.8"/>
+  </clipPath>
+  <clipPath id="pa2904625cb">
+   <rect x="190.08" y="390.096" width="544.32" height="105.264"/>
+  </clipPath>
+ </defs>
+</svg>

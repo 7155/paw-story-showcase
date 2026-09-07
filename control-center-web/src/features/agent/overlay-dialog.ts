@@ -57,7 +57,7 @@ export function useModalPanel({
       const preferred = initialFocusSelector
         ? activePanel.querySelector<HTMLElement>(initialFocusSelector)
         : null;
-      (preferred ?? focusableElements(activePanel)[0] ?? activePanel).focus();
+      (preferred ?? focusableElements(activePanel)[0] ?? activePanel).focus({ preventScroll: true });
     });
 
     function handleKeyDown(event: KeyboardEvent): void {
@@ -94,7 +94,7 @@ export function useModalPanel({
       cancelAnimationFrame(frame);
       document.removeEventListener('keydown', handleKeyDown, true);
       const target = returnFocusRef.current ?? previousFocus;
-      if (target?.isConnected) requestAnimationFrame(() => target.focus());
+      if (target?.isConnected) requestAnimationFrame(() => target.focus({ preventScroll: true }));
     };
   }, [active, initialFocusSelector, panelRef, returnFocusRef]);
 }

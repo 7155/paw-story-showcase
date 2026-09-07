@@ -12,9 +12,9 @@ describe('PAW kickoff showcase direction', () => {
       pawRoomFlowShowcaseNavigationAtSequence(24),
       pawRoomFlowShowcaseNavigationAtSequence(53),
     ]).toEqual([
-      { view: 'conversation', label: '公开记录' },
+      { view: 'conversation', label: '完整记录' },
       { view: 'collaboration', label: '协同模式' },
-      { view: 'conversation', label: '公开记录' },
+      { view: 'conversation', label: '完整记录' },
     ]);
     expect(pawRoomFlowShowcaseNavigationAtSequence(2)).toBeNull();
   });

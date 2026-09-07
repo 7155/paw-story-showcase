@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "paw.showcase-task-story.v1",
+  "dataMode": "synthetic-preview-only",
+  "taskId": "demo:orbit-workbench:001",
+  "title": "PAW 立项 · 可继续工作的个人工作台",
+  "request": "一起完成 PAW 工作台方案：输入、记忆、多 Agent 和桌面四条线可以并行，但接口必须对齐。最后交付四份方案、一份整合说明，并检查文件真的保留。下次继续时，请找回今天接受的决定。（公开合成任务）",
+  "deliverable": "input-method-plan.md、memory-value-loop.md、multi-agent-room-plan.md、pawos-projection-plan.md，以及共同的交付说明。",
+  "incident": "四条线都报告完成，但整合时找不到 pawos-projection-plan.md。Trace 显示 workspace_write 成功后，辅助 WorkDocument 登记失败触发回滚，把已保存的方案撤销了。",
+  "diagnosis": "第一根因在登记失败后的补偿流程：它把辅助索引错误当成文件写入失败。方案内容已生成，继续重试生成无法修复这个问题。",
+  "repair": "保留已成功写入的方案，将登记失败记录为可恢复待办；按文件存在、内容正确和重复登记不产生副本三项检查重放。",
+  "rejected": {
+    "name": "候选 A · 忽略登记错误",
+    "result": "方案保住了，但下一次检索仍找不到它；缺少登记待办，拒绝采用。",
+    "checks": [true, false, false]
+  },
+  "kept": {
+    "name": "候选 B · 保留方案并记录待办",
+    "result": "方案存在、来源可定位、重复登记不产生副本；保留为本次演示的修复方案。",
+    "checks": [true, true, true]
+  },
+  "checkLabels": ["方案文件保留", "登记待办可恢复", "重复登记不产生副本"],
+  "memory": "PAW 工作台方案决定：已成功写入的产物不能因辅助登记失败而被回滚；登记失败保留可恢复待办。候选 A 被拒绝，候选 B 通过合成重放检查。",
+  "nextPrompt": "继续昨天的 PAW 工作台方案，先告诉我交付到了哪里。",
+  "nextResponse": "四条产品线的方案已经汇总。昨天发现 PAWOS 方案被辅助登记失败回滚，候选 A 因缺少恢复路径被拒绝，候选 B 保留了文件和登记待办。接下来可以从 pawos-projection-plan.md 继续；这里是当时接受的决定和来源。"
+}

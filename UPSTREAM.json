@@ -1,22 +1,19 @@
 {
   "schemaVersion": "paw.showcase-upstream.v1",
-  "snapshotDate": "2026-08-30",
+  "snapshotDate": "2026-09-07",
   "sourceRepository": "7155/personal-agent-workbench",
   "sourceVisibilityAtSnapshot": "private",
-  "sourceCommit": "b0e26bae9b76108bf0d5a3713f97213afeaba0c4",
+  "sourceCommit": "955e0ed6b63d9ba612ce5dcbefc52b3bf6da5209",
   "sourceSubtree": "control-center-web",
   "snapshotMode": "working-tree-selected-frontend",
   "sourceWorkingTreeAtSnapshot": {
     "state": "dirty",
-    "scope": "control-center-web production frontend files",
-    "capturedAt": "2026-08-30T18:42:21+08:00",
-    "mergeBaseCommit": "cc1eca9ef7223addb6c55e93b680c1f361f6ab3b",
-    "selectedSourceInputFileCount": 185,
-    "selectedSourceInputSha256": "05108a774c024b1209eca82cbac014f8ccbc9d30ec6a47da85ed9f1b9a6befc9",
-    "adoptedUnmodifiedSourceFileCount": 177,
-    "adoptedUnmodifiedSourceSha256": "2d7c4dd724ee8c59a51bd11976d513f85a40f2bc8dea1d77ab64d6b0c629b38a",
-    "derivativeSelectedTreeSha256": "7be7384a1170b79def39af1af2aad0b55e2a4b2bfdfda22fd89a808923236812",
-    "note": "The snapshot includes current uncommitted frontend work above sourceCommit; sourceCommit is the provenance anchor, while capturedAt and selectedSourceInputSha256 identify the imported working-tree input."
+    "scope": "control-center-web/src and public production frontend files, including the preview transport helper; product test cases, documents, dependencies and outputs excluded",
+    "capturedAt": "2026-09-07T17:07:26.566353+08:00",
+    "sourceInputFileCount": 797,
+    "sourceInputSha256": "7d6f3d3e93cbc33e9311f10eba5f096600324b7ab5612f128d4af63a3452f699",
+    "sourceManifest": "manifest/frontend-source-snapshot.v1.json",
+    "note": "The source commit is the provenance anchor; the manifest records captured working-tree file hashes and their public adaptations. The production preview transport helper was captured at 17:38 to match the current stream-stability contract."
   },
   "sourceRefreshes": [
     {
@@ -44,6 +41,22 @@
       "mergedShowcaseFileCount": 7,
       "derivativeSelectedTreeSha256": "0e65641d0d23122c3b15571266078eca9ead754b14122a2813ab4b0ee555f719",
       "note": "The refresh adopts the current PAW working-tree frontend without importing private product documents, product tests, the vertical Extension App package, Runtime data, or build output. Seven public intersections retain only synthetic-demo behavior: Memory source jump, Trace showcase routing and styles, Agent Trace handoff selectors, the four-planet Room filter, Trace handoff layout, and per-showcase desktop persistence."
+    },
+    {
+      "capturedAt": "2026-09-07T17:07:26.566353+08:00",
+      "sourceCommit": "955e0ed6b63d9ba612ce5dcbefc52b3bf6da5209",
+      "sourceWorkingTreeState": "dirty",
+      "previousCapture": "2026-08-31T21:21:39+08:00",
+      "scope": "Current PAW source frontend: stellar desktop, Agent conversation and turn evidence, Room focus, Memory topic pages, Browser library, App Center, and generic Lab/Knowledge workspaces",
+      "selectedSourceInputFileCount": 291,
+      "selectedSourceInputSha256": "1bb4baa4daa50650c7c29cff37bcae8d28fde4cfcca137ee059af2ed60bb2df7",
+      "adoptedUnmodifiedSourceFileCount": 277,
+      "mergedShowcaseFileCount": 14,
+      "derivativeSelectedTreeSha256": "312381c722a79a1e838bcd89c1ff2549890037922c15139c70f7a2f5d94f5ea5",
+      "sourceManifest": "manifest/frontend-source-snapshot.v1.json",
+      "note": "Captures current uncommitted source frontend work above the commit anchor. The public transport and 69-event Room, Memory and Trace directors remain synthetic. New Lab project/artifact/Knowledge reads and local edits are in-memory demonstrations; Provider execution and indexing are unavailable; offline App packaging is covered separately below. Older product-only visibility and permission differences now follow current PAW. The standalone /lab page projects four editable demo projects and fixed public candidate receipts from a shared evidence module.",
+      "labFlowBoundary": "Showcase-only controls now start each vertical project before import, evaluate actual local deterministic rules on imported records/cases, and package the same frozen inputs and rules as an offline App. Historical Agent receipts remain separate. No Provider or private Runtime is executed.",
+      "handsOnBoundary": "Native frontend guides automatically click highlighted controls on visible pages, with pause/resume and expected DOM result checks before continuing. No direct fixture state replay, Provider, private Runtime or native input-method effect. Public adapters preserve Session identity and source history."
     }
   ],
   "dataMode": "synthetic-preview-only",
@@ -53,9 +66,21 @@
     "redact machine-specific example paths",
     "add a public scenario catalog, boundary guide, App audit, and privacy checker",
     "preserve synthetic fixtures, showcase direction, and per-scenario desktop persistence while adopting the current PAW shell",
-    "auto-play a real Input History to Memory to Agent recall flow with synthetic governed data",
     "run PAW kickoff in Room with four communicating implementation planets and gate Reviewer until Docs integration",
-    "exclude private product documents, repository history, dependencies, output, and Runtime data"
+    "exclude private product documents, repository history, dependencies, output, and Runtime data",
+    "use native frontend click-through guides in the primary and detail pages; keep legacy synthetic playback code as explanatory references"
   ],
-  "proofBoundary": "This working-tree snapshot proves selected source provenance and a runnable synthetic-data web showcase only; it is not a clean upstream commit, Runtime, install, or foreground receipt."
+  "proofBoundary": "This working-tree snapshot proves selected source provenance and a runnable synthetic-data web showcase only; it is not a clean upstream commit, Runtime, install, or foreground receipt.",
+  "initialWorkingTreeSnapshot": {
+    "state": "dirty",
+    "scope": "control-center-web production frontend files",
+    "capturedAt": "2026-08-30T18:42:21+08:00",
+    "mergeBaseCommit": "cc1eca9ef7223addb6c55e93b680c1f361f6ab3b",
+    "selectedSourceInputFileCount": 185,
+    "selectedSourceInputSha256": "05108a774c024b1209eca82cbac014f8ccbc9d30ec6a47da85ed9f1b9a6befc9",
+    "adoptedUnmodifiedSourceFileCount": 177,
+    "adoptedUnmodifiedSourceSha256": "2d7c4dd724ee8c59a51bd11976d513f85a40f2bc8dea1d77ab64d6b0c629b38a",
+    "derivativeSelectedTreeSha256": "7be7384a1170b79def39af1af2aad0b55e2a4b2bfdfda22fd89a808923236812",
+    "note": "The snapshot includes current uncommitted frontend work above sourceCommit; sourceCommit is the provenance anchor, while capturedAt and selectedSourceInputSha256 identify the imported working-tree input."
+  }
 }

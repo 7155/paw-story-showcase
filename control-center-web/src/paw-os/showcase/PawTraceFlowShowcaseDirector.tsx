@@ -219,14 +219,21 @@ export function PawTraceFlowShowcaseDirector() {
     post({ type: 'ack', requestId: command.requestId, command: command.command, accepted: true, phase: 'idle' });
   }, [api, clearTimers, instanceId, openAgentIncident, post, stageId]);
 
+  const commandHandlerRef = useRef(applyCommand);
+  const postRef = useRef(post);
+  useEffect(() => {
+    commandHandlerRef.current = applyCommand;
+    postRef.current = post;
+  }, [applyCommand, post]);
+
   useEffect(() => {
     const onMessage = (event: MessageEvent<unknown>) => {
       if (event.source !== window.parent || event.origin !== parentOriginRef.current) return;
       if (!isPawTraceShowcaseCommand(event.data)) return;
-      applyCommand(event.data);
+      commandHandlerRef.current(event.data);
     };
     window.addEventListener('message', onMessage);
-    const ready = () => post({ type: 'ready', phase: 'idle', capabilities: { stage: true, seek: true, playback: true, cursor: true, stream: true } });
+    const ready = () => postRef.current({ type: 'ready', phase: 'idle', capabilities: { stage: true, seek: true, playback: true, cursor: true, stream: true } });
     ready();
     const retry = window.setTimeout(ready, 240);
     timersRef.current.add(retry);
@@ -235,7 +242,7 @@ export function PawTraceFlowShowcaseDirector() {
       window.removeEventListener('message', onMessage);
       clearTimers();
     };
-  }, [applyCommand, clearTimers, openAgentIncident, post]);
+  }, [clearTimers, openAgentIncident]);
 
   useEffect(() => {
     void runStage(stageId);

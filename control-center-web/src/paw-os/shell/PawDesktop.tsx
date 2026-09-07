@@ -1,11 +1,11 @@
 import { Archive, ArchiveRestore, ArrowUpRight, Bot, Earth, Grid3X3, LayoutGrid, Maximize2, Minus, PanelLeft, PanelRight, PanelsTopLeft, Pin, PinOff, Settings, X } from 'lucide-react';
 import { Fragment, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
 import { ConnectionIndicator } from '@/components/feedback';
-import { pawApp, pawAppForPath, pawApps, type PawAppDefinition, type PawAppId } from '../runtime/app-registry';
+import { pawApp, pawAppForPath, pawApps, currentPawApps, type PawAppDefinition, type PawAppId } from '../runtime/app-registry';
 import { usePawDesktopApi, usePawDesktopStore } from '../runtime/desktop-context';
 import { dockMagnetics } from './dock-magnification';
 import { PawAppIcon, PawBrandMark } from './PawAppIcon';
-import { PawCompositionField } from './PawCompositionField';
+import { PawStellarWallpaper } from './PawStellarBackdrop';
 import { pulsePawComposition } from '../runtime/composition-pulse';
 import { PawContextMenu, type PawContextMenuCloseReason, type PawContextMenuItem } from './PawContextMenu';
 import { pawDesktopGridEntries, pawDesktopGridPosition, pawDesktopMovePosition, pawDesktopOccupiedPositions, pawDesktopResolvePersistedPositions, pawDesktopSnapPosition, usePawDesktopGridLayout } from './desktop-grid';
@@ -19,6 +19,10 @@ import { PawWorkDirectoryProvider } from './PawWorkDirectory';
 import { isPawExtensionAppId, pawExtensionApp, pawExtensionApps } from '../extensions/registry';
 import { PawExtensionInstallationProvider, usePawExtensionInstallation } from '../extensions/installation';
 import { warmPawAppProcess } from '../apps/PawApps';
+import {
+  PAW_BUILD_COMMIT,
+  PAW_PRODUCT_BUILD_LABEL,
+} from '@/product-identity';
 
 type PawMenuTarget =
   | { kind: 'desktop' }
@@ -40,9 +44,15 @@ const LAUNCHPAD_GROUP_LABEL: Record<(typeof LAUNCHPAD_GROUP_ORDER)[number], stri
   tool: '工具',
   system: '系统',
 };
-const DESKTOP_APP_IDS: readonly PawAppId[] = LAUNCHPAD_GROUP_ORDER.flatMap((kind) => (
-  pawApps.filter((app) => !isPawExtensionAppId(app.id) && launchpadGroup(app) === kind).map((app) => app.id)
-));
+const CORE_WORK_APP_IDS: readonly PawAppId[] = ['agent', 'eval-lab'];
+const DESKTOP_APP_IDS: readonly PawAppId[] = [
+  ...CORE_WORK_APP_IDS,
+  ...LAUNCHPAD_GROUP_ORDER.flatMap((kind) => (
+    pawApps.filter((app) => !isPawExtensionAppId(app.id)
+      && !CORE_WORK_APP_IDS.includes(app.id)
+      && launchpadGroup(app) === kind).map((app) => app.id)
+  )),
+];
 const PAW_APP_IDS = new Set<PawAppId>(pawApps.map((app) => app.id));
 const PAW_DOCK_APP_MIME = 'application/x-paw-dock-app';
 
@@ -72,6 +82,7 @@ function PawDesktopSurface() {
   const desktopRef = useRef<HTMLDivElement>(null);
   const gridLayout = usePawDesktopGridLayout();
   const installation = usePawExtensionInstallation();
+  const initialExtensionRouteConsumed = useRef(false);
   const persistedIconPositions = usePawDesktopStore((state) => state.wayfinder.iconPositions);
   const activeWindowId = usePawDesktopStore((state) => state.activeWindowId);
   const activeAppId = usePawDesktopStore((state) => (
@@ -111,7 +122,13 @@ function PawDesktopSurface() {
     state.setExtensionAppGate(installation.status, installation.enabledExtensionIds);
   }, [api, installation.enabledExtensionIds, installation.status]);
   useEffect(() => {
-    if (!installation.ready) return;
+    if (!installation.ready || initialExtensionRouteConsumed.current) return;
+    /* The initial route arrives before Package inventory can authorize an
+     * Extension App, so consume that pending deep-link once when inventory
+     * first becomes ready. Later ready -> loading -> ready polling cycles are
+     * background state changes, not launch intent: a user-closed App must stay
+     * closed until an icon, Dock item or new route explicitly opens it. */
+    initialExtensionRouteConsumed.current = true;
     const route = window.location.hash.replace(/^#/, '');
     const app = pawAppForPath(route);
     if (!app || !isPawExtensionAppId(app.id) || !installation.enabledExtensionIds.has(app.id)) return;
@@ -269,7 +286,11 @@ function PawDesktopSurface() {
     else state.openApp(appId, { title: pawApp(appId).label });
     state.setLaunchpadOpen(false);
     pulsePawComposition('app', .72);
-    window.history.replaceState(null, '', `${window.location.search}#${pawApp(appId).route}`);
+    // Returning to an existing window keeps its page. The reload entry point
+    // must follow that page too, rather than silently pointing at the App home.
+    const currentRoute = existingWindowId ? api.getState().windows[existingWindowId]?.initialRoute : undefined;
+    const route = currentRoute && pawAppForPath(currentRoute)?.id === appId ? currentRoute : pawApp(appId).route;
+    window.history.replaceState(window.history.state, '', `${window.location.search}#${route}`);
   }, [api, installation.enabledExtensionIds]);
   const toggleLaunchpad = useCallback(() => {
     const state = api.getState();
@@ -360,8 +381,11 @@ function PawDesktopSurface() {
    * [data-paw-desktop-ui] and never starts a band. */
   const startLasso = useCallback((event: ReactPointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;
-    const target = event.target as HTMLElement;
-    if (target.closest('button, input, textarea, select, a, summary, [data-paw-window-id], [data-paw-text-selection], [data-paw-desktop-ui], [data-wayfinder-icon]')) {
+    const target = event.target;
+    // Body Portals still bubble through the desktop's React tree. Only the
+    // viewport's own DOM can start a selection or capture its pointer.
+    if (!(target instanceof Element) || !event.currentTarget.contains(target)) return;
+    if (target.closest('button, input, textarea, select, a, summary, [role="button"], [role="menu"], [role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"], [role="listbox"], [role="option"], [role="combobox"], [role="dialog"], [data-paw-window-id], [data-paw-text-selection], [data-paw-desktop-ui], [data-wayfinder-icon]')) {
       /* Like the macOS desktop, pressing a window or desktop furniture drops
        * the icon selection; icons themselves handle their own clicks. */
       if (!target.closest('[data-desktop-app], [data-wayfinder-icon]')) {
@@ -685,7 +709,15 @@ function PawDesktopSurface() {
       ref={desktopRef}
     >
       <header className="paw-menu-bar">
-        <button aria-label="打开全部 App" className="paw-system-mark" onClick={toggleLaunchpad} type="button"><PawBrandMark size={15} /><span className="paw-brand-wordmark">PAW</span></button>
+        <button aria-label="打开全部 App" className="paw-system-mark" onClick={toggleLaunchpad} type="button">
+          <PawBrandMark size={15} />
+          <span className="paw-brand-wordmark">PAW</span>
+          <span
+            className="paw-brand-version"
+            data-paw-product-version
+            title={`PAW ${PAW_PRODUCT_BUILD_LABEL} · 构建 ${PAW_BUILD_COMMIT}`}
+          >{PAW_PRODUCT_BUILD_LABEL}</span>
+        </button>
         <div className="paw-menu-menus">
           <button
             aria-expanded={contextMenu?.kind === 'menubar' && contextMenu.menu === 'app'}
@@ -918,7 +950,7 @@ const Wayfinder = memo(function Wayfinder({ onArchive, onOpen, onSelectIcon, sel
   return (
     <section className="paw-wayfinder" aria-label="项目场" onDragOver={(event) => { if ([...event.dataTransfer.types].includes(WAYFINDER_DRAG_MIME)) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; } }} onDrop={dropOnDesktop}>
       <div aria-hidden="true" className="paw-field-media">
-        <PawCompositionField effects />
+        <PawStellarWallpaper />
       </div>
       {/* The first viewport is one composition, not two matching corner cards
           around an empty middle: a single column states what the machine is
@@ -1212,18 +1244,21 @@ function PawLaunchpad({ onClose, onOpen }: { onClose: () => void; onOpen: (id: P
   const installation = usePawExtensionInstallation();
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return pawApps.filter((app) => {
+    return currentPawApps().filter((app) => {
       if (!needle) return true;
       return [app.label, app.shortLabel, app.tagline, app.id].some((part) => part.toLowerCase().includes(needle));
     });
-  }, [query]);
+  }, [query, installation.enabledExtensionIds]);
   const groups = useMemo(() => {
     // A running index across groups drives the cascade arrival: each group
     // header takes its own beat and its tiles follow, so the archive opens as
     // one choreography that reads in document order — section, then contents.
     let order = 0;
     return LAUNCHPAD_GROUP_ORDER.flatMap((kind) => {
-      const apps = filtered.filter((app) => launchpadGroup(app) === kind);
+      const apps = filtered.filter((app) => launchpadGroup(app) === kind).sort((left, right) => {
+        const priority = (app: PawAppDefinition) => CORE_WORK_APP_IDS.includes(app.id) ? CORE_WORK_APP_IDS.indexOf(app.id) : CORE_WORK_APP_IDS.length;
+        return priority(left) - priority(right);
+      });
       return apps.length
         ? [{ kind, label: LAUNCHPAD_GROUP_LABEL[kind], order: order++, apps: apps.map((app) => ({ app, order: order++ })) }]
         : [];
@@ -1351,7 +1386,7 @@ function readDraggedAppId(dataTransfer: DataTransfer): PawAppId | null {
 
 function appIdFromDragValue(value: string): PawAppId | null {
   const candidate = value.startsWith('app:') ? value.slice(4) : value;
-  return PAW_APP_IDS.has(candidate as PawAppId) ? candidate as PawAppId : null;
+  return PAW_APP_IDS.has(candidate as PawAppId) || isPawExtensionAppId(candidate) ? candidate as PawAppId : null;
 }
 
 function sameIconSelection(left: ReadonlySet<string>, right: ReadonlySet<string>): boolean {
@@ -1364,7 +1399,7 @@ function sameIconSelection(left: ReadonlySet<string>, right: ReadonlySet<string>
 
 function launchpadGroup(app: PawAppDefinition): (typeof LAUNCHPAD_GROUP_ORDER)[number] {
   if (app.id === 'memory' || app.id === 'knowledge') return 'library';
-  if (app.id === 'project-workbench' || app.kind === 'agent') return 'work';
+  if (app.id === 'project-workbench' || CORE_WORK_APP_IDS.includes(app.id) || app.kind === 'agent') return 'work';
   if (app.kind === 'system') return 'system';
   return 'tool';
 }

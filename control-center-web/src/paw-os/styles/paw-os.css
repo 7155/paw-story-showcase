@@ -736,9 +736,9 @@ html[data-paw-native-host='macos'] .paw-menu-bar > .paw-menu-status { grid-colum
   transform-origin: var(--paw-menu-origin, 0 0);
 }
 
-/* Windows fill the menu-below desktop plane. The resident Dock is an overlay,
-   so it must not reserve a permanent gutter or make a maximized App visibly
-   shorter than the screen. */
+/* The layer fills the menu-below desktop plane so maximized and collaboration
+   layouts can use it completely. Ordinary persisted window bounds reserve the
+   resident Dock's pointer plane in desktop-store.ts. */
 .paw-window-layer { position: absolute; z-index: 10; inset: 0; pointer-events: none; }
 .paw-window-shell {
   position: absolute; min-width: 280px; min-height: 210px; pointer-events: auto; transform-origin: 0 0;
@@ -909,12 +909,6 @@ html[data-paw-native-host='macos'] .paw-menu-bar > .paw-menu-status { grid-colum
   flex: 0 0 24px;
   display: grid; place-items: center; padding: 6px;
   cursor: pointer;
-  border: 0;
-  background: transparent;
-  border-radius: 50%;
-}
-.paw-traffic-lights > button::before {
-  border-radius: 50%;
 }
 .paw-traffic-lights > button svg { position: relative; z-index: 1; width: 7px; height: 7px; }
 
@@ -1025,7 +1019,8 @@ html[data-paw-native-host='macos'] .paw-menu-bar > .paw-menu-status { grid-colum
 .paw-overview-window-target:focus-visible { outline: 4px solid var(--paw-accent); outline-offset: 5px; }
 
 /* Dock structure. It is a resident macOS-style shelf floating above App
-   windows; it does not reserve height in the window layer beneath it. */
+   windows. The layer stays full-height, while ordinary window bounds stop
+   above this shelf so App controls remain clickable. */
 .paw-dock {
   position: absolute; z-index: 90; left: 50%; bottom: 12px; height: var(--paw-dock-h);
   display: flex; align-items: center; gap: 5px; padding: 8px 11px;
@@ -1262,6 +1257,17 @@ html[data-paw-native-host='macos'] .paw-menu-bar > .paw-menu-status { grid-colum
   --paw-app-selection: color-mix(in oklab, var(--paw-panel-strong) 84%, var(--paw-app-accent));
   --app-color: var(--paw-app-accent);
 }
+[data-app='eval-lab'] {
+  --paw-app-accent: #a85c0a;
+  --paw-app-accent-strong: #7e4307;
+  --paw-app-support: #3d7a91;
+  --paw-app-material-family: evaluation;
+  --paw-app-canvas: color-mix(in oklab, var(--paw-panel-strong) 97.8%, var(--paw-app-support));
+  --paw-app-nav: color-mix(in oklab, var(--paw-panel-soft) 90.5%, var(--paw-app-support));
+  --paw-app-surface: color-mix(in oklab, var(--paw-panel-strong) 96.2%, var(--paw-app-accent));
+  --paw-app-selection: color-mix(in oklab, var(--paw-panel-strong) 82.5%, var(--paw-app-support));
+  --app-color: var(--paw-app-accent);
+}
 [data-app='system-settings'] {
   --paw-app-accent: #53617f;
   --paw-app-accent-strong: #3e4961;
@@ -1446,7 +1452,7 @@ html[data-paw-native-host='macos'] .paw-menu-bar > .paw-menu-status { grid-colum
 }
 @container paw-window (max-width: 375px) {
   .paw-window-titlebar { padding-inline: 8px; column-gap: 6px; }
-  .paw-traffic-lights { gap: 5px; }
+  .paw-traffic-lights { gap: 0; }
   /* Labels hide before icons: the caption text goes, the identity mark and
      every window verb stay at full size. */
   .paw-window-title > strong { display: none; }
@@ -2113,6 +2119,8 @@ html[data-paw-native-host='macos'] .paw-menu-bar > .paw-menu-status { grid-colum
   flex: none;
 }
 .paw-wayfinder-work__project-content-actions > button {
+  flex-shrink: 0;
+  white-space: nowrap;
   width: 28px;
   height: 28px;
   display: grid;
@@ -2120,6 +2128,12 @@ html[data-paw-native-host='macos'] .paw-menu-bar > .paw-menu-status { grid-colum
   border-radius: 8px;
   color: var(--paw-muted);
   cursor: pointer;
+}
+.paw-wayfinder-work__project-content-actions > .paw-wayfinder-work__project-content-galaxy {
+  display: inline-flex;
+  width: auto;
+  gap: 6px;
+  padding: 0 8px;
 }
 .paw-wayfinder-work__project-content-actions > button:hover,
 .paw-wayfinder-work__project-content-actions > button:focus-visible {

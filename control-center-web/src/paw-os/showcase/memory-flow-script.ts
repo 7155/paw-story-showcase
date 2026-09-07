@@ -69,9 +69,9 @@ export const pawMemoryFlowShowcaseStages: readonly PawMemoryFlowShowcaseStage[] 
     appId: 'agent',
     route: '/agent?session=session-memory',
     label: '对话找回',
-    title: '打开 Agent，一句普通对话自然找回今天',
-    detail: '回答快速流式出现；不会把全天原始输入整段灌入上下文。',
-    readyText: '今天有点累',
+    title: '打开 Agent，继续昨天的 PAW 工作台方案',
+    detail: '找回交付状态、候选取舍和来源，不把全天原始输入整段灌入上下文。',
+    readyText: '继续昨天的 PAW 工作台方案',
     durationMs: 5_200,
   },
   {

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "paw.story.vertical-evidence-manifest.v1",
-  "generatedAt": "2026-09-03",
+  "generatedAt": "2026-09-05",
   "projection": "privacy-safe public subset; raw Agent reasoning, credentials, host paths, qrels, gold and private transcripts are excluded",
   "items": [
     {
@@ -104,6 +104,14 @@
       "publicFile": "memory-maintenance-validation-20260902.v1.json",
       "publicFileSha256": "1558ec49b1f501b7411bd3808b7d5f6af2fc9d8884410f7a3d60cf3a7a229b3b",
       "sourceReceiptSha256": "611a287519a8546bf7d878c5684ecd7a6b30a6d552d5f8c6ecf0424b5feb14f9"
+    },
+    {
+      "id": "agent-lab-current-20260905",
+      "publicFile": "agent-lab-current-20260905.v1.json",
+      "publicFileSha256": "2e78c74c80163cef6145a6dbc424c1b4730647999e44d8d4845c2d076a8abec4",
+      "sourceReceiptSha256": "2b166a11dd90baaf1b309ec29443a7682e934e7de4c59b5233593f0b7e0e136a",
+      "sourceHashEncoding": "UTF-8 JSON; sorted keys; compact separators; ensure_ascii=false",
+      "incrementalSourceExperimentSha256": "fa0f232e40dcdb86aaf5e5579efcc934cf693fc838a130074292dbbd1d5c41db"
     }
   ]
 }

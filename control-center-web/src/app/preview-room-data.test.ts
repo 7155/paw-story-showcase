@@ -32,12 +32,12 @@ describe('PAW kickoff Room fixture', () => {
     const snapshot = previewRoomSnapshot('room-preview', { throughSequence: 20 });
     const text = JSON.stringify(snapshot.events);
 
-    expect(text).toContain('Pi 可以做成网关型 Agent 吗');
+    expect(text).toContain('这次工作台方案中');
     expect(text).toContain('Sidecar 权威会话状态中间层会影响效率');
     expect(text).toContain('杜绝噪声和单个词注入 Agent 上下文');
     expect(text).toContain('应该是工具，不是技能，因为这个涉及结构化返回');
-    expect(text).toContain('最开始那套强规范多 Agent');
-    expect(text).toContain('可能好几天的工作才有一次真正有价值的变化');
+    expect(text).toContain('每条线有明确负责人、接口和交付即可');
+    expect(text).toContain('按任务保留已接受决定和交付来源');
     expect(text).not.toContain('DECISION：');
   });
 

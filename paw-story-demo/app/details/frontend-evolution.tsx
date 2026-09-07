@@ -213,7 +213,7 @@ export function FrontendEvolutionDetail() {
         { label: "paw-story-showcase", href: "https://github.com/7155/paw-story-showcase" },
       ]}
       title="一个月里，多 Agent 前端为什么换了七种视图？"
-      sub="从结构化 Room、Kernel 控制面、公开对话、任务卡与任务图，到 Light Room、行星 Mesh 和真实窗口：这不是技术栈 Logo 墙，而是一段持续寻找协作可见性的真实前端选型史。"
+      sub="从结构化 Room、Kernel 控制面、公开对话、任务卡与任务图，到 Light Room、行星 Mesh 和真实窗口：看每次选择怎样帮助用户理解任务、交接与结果，又暴露了什么问题。"
     >
       <section className="frontend-evolution-intro" aria-labelledby="frontend-evolution-intro-title">
         <div>
@@ -320,16 +320,21 @@ export function FrontendEvolutionDetail() {
 }
 
 function EvolutionDiagram({ kind }: { kind: EvolutionVisual }) {
+  const models: Record<EvolutionVisual, { title: string; nodes: string[]; caption: string }> = {
+    room: { title: "结构化参与者", nodes: ["共同任务", "Facilitator", "Partner Sessions", "汇总结果"], caption: "让责任人可见，但参与者列表仍不足以解释交接。" },
+    kernel: { title: "两个状态所有者", nodes: ["Room Kernel：分派与预算", "Pi Session：接受并执行", "ACK：写入前可能崩溃", "协调状态与执行状态失配"], caption: "治理能力更强，也引入重复状态与跨边界恢复成本。" },
+    conversation: { title: "公开交接", nodes: ["用户明确边界", "Facilitator 拆分责任", "Partner 交付 WorkPatch", "Tool 结果进入公共对话"], caption: "过程能读懂，但长对话难以替代任务状态。" },
+    tasks: { title: "任务与依赖", nodes: ["输入链：执行中", "Memory：等待接口", "Room：等待评审", "依赖满足后汇总"], caption: "依赖更清晰；重试与恢复仍可能产生多份状态投影。" },
+    light: { title: "执行权回到 Session", nodes: ["Facilitator Session", "TaskBrief / WorkItem", "独立 Partner Sessions", "公共事件 / 一个最终结果"], caption: "Room 只组织协作，Pi 保持执行、上下文和恢复权威。" },
+    spatial: { title: "关系投影，而非新 Runtime", nodes: ["共同目标", "四条工作轨道", "跨 Agent 交接", "工作补丁汇合"], caption: "空间帮助解释关系，不能替代因果时间线和真实窗口。" },
+    timeline: { title: "因果与细节分层", nodes: ["计划：确定边界", "执行：返回补丁", "交接：对齐依赖", "结果：回到真实窗口"], caption: "时间线解释发生顺序，真实应用承接操作细节。" },
+  };
+  const model = models[kind];
   return (
-    <div aria-hidden="true" className={`frontend-evolution-diagram frontend-evolution-diagram--${kind}`}>
-      <header><i/><i/><i/><span>PAW · ROOM</span></header>
-      {kind === "room" ? <div className="fed-room"><b>PAW 计划</b><span>Root · Facilitator</span><span>Mars · Partner</span><span>Venus · Partner</span><small>3 participants · public room</small></div> : null}
-      {kind === "kernel" ? <div className="fed-kernel"><strong>ROOT · generation 2</strong><span>Dispatch 4 / 8</span><span>Token 18k / 32k</span><span>Context · sealed</span><span>Capability · sealed</span><div><i/><i/><i/></div></div> : null}
-      {kind === "conversation" ? <div className="fed-conversation"><span><i/>你：先明确边界，再开始并行。</span><span><i/>Facilitator：拆为三条责任线。</span><span><i/>Mars：已交付 WorkPatch。</span><b>Tool result · 3 files changed</b></div> : null}
-      {kind === "tasks" ? <div className="fed-tasks"><span><b>输入链</b><small>RUNNING</small></span><span><b>Memory</b><small>WAITING</small></span><span><b>Room</b><small>REVIEW</small></span><svg viewBox="0 0 100 55"><path d="M18 12 L50 28 L82 12 M50 28 L50 48"/></svg></div> : null}
-      {kind === "light" ? <div className="fed-light"><b>Facilitator Session</b><span>TaskBrief</span><i/><span>WorkItem</span><div><small>Mars Session</small><small>Venus Session</small><small>Jupiter Session</small></div><footer>PUBLIC EVENTS · ONE FINAL</footer></div> : null}
-      {kind === "spatial" ? <div className="fed-spatial"><b>SOL</b><span data-orbit="1">MARS</span><span data-orbit="2">VENUS</span><span data-orbit="3">JUPITER</span><span data-orbit="4">SATURN</span><svg viewBox="0 0 100 70"><path d="M14 22 Q50 48 82 17 M82 17 Q58 60 20 58"/></svg></div> : null}
-      {kind === "timeline" ? <div className="fed-timeline"><div><i/><i/><i/><i/></div><svg viewBox="0 0 100 70"><path d="M12 9 V62 M36 9 V62 M61 9 V62 M86 9 V62 M12 18 L36 28 L61 39 L86 52"/></svg><span style={{ left: "8%", top: "22%" }}>PLAN</span><span style={{ left: "31%", top: "36%" }}>PATCH</span><span style={{ left: "56%", top: "51%" }}>HANDOFF</span><span style={{ left: "80%", top: "68%" }}>FINAL</span></div> : null}
+    <div className={`evolution-system-model evolution-system-model--${kind}`}>
+      <h3>{model.title}</h3>
+      <ol>{model.nodes.map((node, index) => <li key={node}><span>{node}</span>{index < model.nodes.length - 1 && <ArrowRight size={18} aria-hidden="true"/>}</li>)}</ol>
+      <p>{model.caption}</p>
     </div>
   );
 }

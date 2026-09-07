@@ -1,4 +1,5 @@
 import { PREVIEW_REPORT_BYTES } from '@/features/agent/preview-data';
+import taskStory from '../../../showcase/task-story.v1.json';
 import {
   PAW_ROOM_FLOW_SHOWCASE_ID,
   pawRoomFlowShowcaseParticipants,
@@ -97,7 +98,7 @@ export function previewRoomSnapshot(
     generation: 0,
     dispatchId,
     authorActorRef: participantId,
-    kind: 'result',
+    kind: participantId === 'participant-facilitator' ? 'result' : 'work_result',
     visibility: 'room',
     content,
     idempotencyKey: postId,
@@ -304,37 +305,37 @@ export function previewRoomSnapshot(
     event(1, 'user_message', null, {
       messageId: 'room-user-1',
       rootId,
-      text: 'Pi 可以做成网关型 Agent 吗？就是本项目的输入法。如果像 Hermes 这样做可以吗？我希望以后手机或者聊天软件也能控制 Pi 和输入法这些。',
+      text: taskStory.request,
     }),
-    workActivity(2, 'participant-facilitator', '', 'tool_started', '加载项目取证方法，只读取用户直接说过的话、Git 与当时 Docs', {
+    workActivity(2, 'participant-facilitator', '', 'tool_started', '加载任务拆解方法，读取公开合成任务简报', {
       toolCallId: 'skill-project-forensics',
       toolName: 'skill_load',
-      arguments: { name: 'project-interview-forensics' },
-      expectedOutput: '按时间还原当时问题、选择、失败反证与后来重构，不用今天的答案倒填动机',
+      arguments: { name: 'implementation-planning' },
+      expectedOutput: '明确四条产品线的交付、接口、依赖和检查条件',
     }),
-    workActivity(3, 'participant-facilitator', '', 'tool_finished', 'project-interview-forensics 已加载，来源分类固定', {
+    workActivity(3, 'participant-facilitator', '', 'tool_finished', 'implementation-planning 已加载，来源分类固定', {
       toolCallId: 'skill-project-forensics',
       toolName: 'skill_load',
       isError: false,
-      arguments: { name: 'project-interview-forensics' },
-      result: { summary: 'USER-DIRECT、Git、Docs、Test、Runtime 与 Agent interpretation 分开；引用材料不算用户判断。' },
+      arguments: { name: 'implementation-planning' },
+      result: { summary: '公开合成任务只用于演示，不读取个人历史，不冒充真实 Runtime。' },
     }),
-    workActivity(4, 'participant-facilitator', '', 'tool_started', '读取已清洗的 Codex USER-DIRECT 索引', {
+    workActivity(4, 'participant-facilitator', '', 'tool_started', '读取 PAW 工作台合成任务简报', {
       toolCallId: 'read-user-direct-history',
       toolName: 'workspace_read',
-      arguments: { refs: ['2026-07-13 Pi gateway', '2026-07-16 Memory curation', '2026-08-29 multi-Agent reversal'], mode: 'read_only' },
+      arguments: { refs: ['showcase/task-story.v1.json'], mode: 'read_only' },
     }),
-    workActivity(5, 'participant-facilitator', '', 'tool_finished', '找到三段因果连续的用户原话，开始逐轮核对', {
+    workActivity(5, 'participant-facilitator', '', 'tool_finished', '找到四条产品线与共同交付要求，开始核对接口', {
       toolCallId: 'read-user-direct-history',
       toolName: 'workspace_read',
       isError: false,
       arguments: { mode: 'read_only' },
-      result: { summary: '已清洗出网关与输入、记忆治理、强规范多 Agent 反转三条 USER-DIRECT 证据；私有 Session 标识未进入公开 fixture。' },
+      result: { summary: '四条产品线是 Input、Memory、多 Agent 与 PAWOS；共同目标是可继续工作的个人工作台。' },
     }),
     event(6, 'room_post', 'participant-facilitator', {
       rootId,
       dispatchId: '',
-      post: questionPost('scope-q1', 6, '你最早问“Pi 可以做成网关型 Agent 吗”。如果 Pi 已经持有会话，Sidecar 还要不要再做一层权威会话状态？', [
+      post: questionPost('scope-q1', 6, '这次工作台方案中，Pi 已经持有会话，Sidecar 还要不要再做一层权威会话状态？', [
         { value: 'pi-runtime-input-parallel', label: 'Pi 管会话，Sidecar 与输入法平行', recommended: true },
         { value: 'sidecar-authority', label: 'Sidecar 再持有一套权威会话' },
       ]),
@@ -354,7 +355,7 @@ export function previewRoomSnapshot(
     event(9, 'room_post', 'participant-facilitator', {
       rootId,
       dispatchId: '',
-      post: questionPost('scope-q2', 9, '后来你说输入法的零散输入很乱。什么才算一段完整输入，哪些内容绝对不能直接进 Agent 上下文？', [
+      post: questionPost('scope-q2', 9, '输入这条线需要先确定：什么才算一段完整输入，哪些内容绝对不能直接进 Agent 上下文？', [
         { value: 'sealed-input', label: '按 App / 时间拼接，Backspace 修正，回车封口', recommended: true },
         { value: 'raw-keystrokes', label: '每个词和按键都直接写入 Memory' },
       ]),
@@ -394,7 +395,7 @@ export function previewRoomSnapshot(
     event(15, 'room_post', 'participant-facilitator', {
       rootId,
       dispatchId: '',
-      post: questionPost('scope-q4', 15, '再往后那套强规范多 Agent，为什么一开始要把交流方式和必交文件都规定死，后来又为什么跑不下去？', [
+      post: questionPost('scope-q4', 15, '这次四条产品线并行，需要怎样协调分工，才能避免交接流程阻塞实际任务？', [
         { value: 'light-room', label: '保留责任语义，删除第二套完成 Kernel', recommended: true },
         { value: 'more-gates', label: '继续增加硬门与必交文件' },
       ]),
@@ -403,27 +404,27 @@ export function previewRoomSnapshot(
       messageId: 'room-user-scope-4',
       rootId,
       text: 'light-room',
-      displayText: '最开始那套强规范多 Agent，会把 Agent 怎么交流、结束后必须上传哪些文件都设定好；但这样经常导致流程跑不下去。这个要结合 Git tree，看当时为什么选，后面又怎么改。',
+      displayText: '每条线有明确负责人、接口和交付即可。Pi 持有执行循环，Room 管分派与汇总，不加第二套完成 Kernel。',
       answerToPostId: 'scope-q4',
     }),
     event(17, 'room_post', 'participant-facilitator', {
       rootId,
       dispatchId: '',
-      post: notePost('scope-a4', 17, '🟡 第四段保留为重构主线：强 Kernel 的初衷是责任与审计，反证是 ghost completion、硬门阻塞和重复 owner；当前用 Pi Session + Light Room 收口。'),
+      post: notePost('scope-a4', 17, '第四项已对齐：Pi Session 执行，Light Room 协调；交付检查核对文件和内容，不只看完成消息。'),
     }),
     event(18, 'room_post', 'participant-facilitator', {
       rootId,
       dispatchId: '',
-      post: questionPost('scope-q5', 18, '现在回头梳理这几个月，应该按每天硬拆，还是把 Git、Docs 和 Codex 对话合成有因果关系的阶段？', [
-        { value: 'causal-stages', label: '按因果阶段合并，三类证据对齐', recommended: true },
-        { value: 'daily-cards', label: '每天一张卡，不管有没有新判断' },
+      post: questionPost('scope-q5', 18, '明天继续工作时，应该找回哪些上下文，才能知道今天接受了什么决定？', [
+        { value: 'causal-stages', label: '按任务关联交付、决定和来源', recommended: true },
+        { value: 'daily-cards', label: '把整天所有输入都注入上下文' },
       ]),
     }),
     event(19, 'user_message', null, {
       messageId: 'room-user-scope-5',
       rootId,
       text: 'causal-stages',
-      displayText: '可能好几天的工作才有一次真正有价值的变化。按阶段合并，但 Git、Docs 和 Codex 对话要能按日期回去核对，重点看技术选型、失败和重大重构。',
+      displayText: '按任务保留已接受决定和交付来源。失败候选也要记录原因，下次不用重新讨论已经验证过的取舍。',
       answerToPostId: 'scope-q5',
     }),
     event(20, 'room_post', 'participant-facilitator', {
@@ -555,13 +556,13 @@ export function previewRoomSnapshot(
       rootId,
       dispatchId: 'dispatch-review',
       messageId: 'room-assistant-review',
-      delta: '发现 1 个 P0：PAWOS WorkPatch 写成“桌面负责同步 Session / Room 状态”，等于在 OS 内重建第二套 Runtime，与立项决定冲突。',
+      delta: '发现 1 个 P0：' + taskStory.incident,
     }),
     workActivity(62, 'participant-review', 'dispatch-review', 'tool_finished', '首轮复核返回：P0 = 1，禁止最终提交', {
       toolCallId: 'review-project-kickoff',
       toolName: 'read',
       isError: true,
-      result: { summary: 'PAWOS ownership boundary failed; revise projection language and rerun.' },
+      result: { summary: taskStory.diagnosis },
     }),
     event(63, 'room_post', 'participant-review', {
       rootId,
@@ -570,22 +571,22 @@ export function previewRoomSnapshot(
         'room-post-review-returned',
         'participant-review',
         'dispatch-review',
-        'Review Returned：把 PAWOS 改回 Input / Memory / Session / Room owner 的 Control 与 Observability projection；桌面只操作窗口，不复制状态机。其他三条产品线与四次行星通信通过。',
+        '修复提议（尚待重放）：' + taskStory.repair + ' 其他三条产品线和四次行星通信已保留。',
         63,
       ),
     }),
-    workActivity(64, 'participant-facilitator', '', 'tool_finished', 'Facilitator 已按 Reviewer 修正 PAWOS owner 边界，没有改写其他 WorkPatch', {
+    workActivity(64, 'participant-facilitator', '', 'tool_finished', 'Facilitator 记录下一步修复：保留文件，将登记失败写成待办', {
       toolCallId: 'fix-pawos-owner',
       toolName: 'edit',
       isError: false,
-      arguments: { file: 'ARCHITECTURE.md', section: 'PAWOS projection boundary' },
-      result: { summary: '桌面只投影 owner reducer；Session / Room / Memory / Tool 机械事实仍由 Runtime 提供。' },
+      arguments: { file: 'pawos-projection-plan.md', section: 'artifact preservation' },
+      result: { summary: taskStory.repair },
     }),
-    workActivity(65, 'participant-review', 'dispatch-review', 'tool_finished', '复跑立项检查：4/4 产品线、4/4 行星通信、4/4 真实 App 路由通过', {
+    workActivity(65, 'participant-review', 'dispatch-review', 'tool_finished', '检查方案交接：四线内容齐备；产物回滚待 Trace 验证', {
       toolCallId: 'review-project-kickoff-rerun',
       toolName: 'read',
       isError: false,
-      result: { summary: 'P0 = 0; OPEN-GAP 仍可见; synthetic data label present.' },
+      result: { summary: 'OPEN-GAP: artifact rollback requires replay; synthetic data label present.' },
     }),
     event(66, 'room_post', 'participant-review', {
       rootId,
@@ -594,7 +595,7 @@ export function previewRoomSnapshot(
         'room-post-review',
         'participant-review',
         'dispatch-review',
-        '独立复核回执：PAW 立项产品线 4/4，行星通信 4/4，真实 App 路由 4/4，Skill / Tool / Memory / Docs owner 清晰，P0 1 → 0；允许 Facilitator 提交公开合成 Demo。',
+        '方案复核回执：四条产品线内容齐备，接口已对齐。产物回滚缺口仍开放；修复提议交给 Trace 重放与候选比较，暂不宣称问题已解决。',
         66,
         [roomPostBlock('room-review-report', 'file', 'file', 'PAW 立项独立复核报告', {
           mediaId: 'media_pawkickoffreview01',
@@ -618,11 +619,11 @@ export function previewRoomSnapshot(
     event(68, 'turn_completed', 'participant-review', {
       rootId,
       dispatchId: 'dispatch-review',
-      summary: 'Reviewer 独立复核完成 · P0 1 → 0 · passed',
+      summary: '方案复核完成 · 文件回滚缺口保持开放 · 待重放',
     }),
     event(69, 'turn_completed', null, {
       rootId,
-      summary: 'Facilitator 已汇总立项追问、4/4 WorkPatch、行星通信、Docs 与 Reviewer 回执 · PAW 立项 Demo 完成',
+      summary: 'PAW 立项合成任务：4/4 方案已汇总；文件回滚缺口进入 Trace 修复与候选比较，后续章节继续同一任务。',
     }),
   ];
 
@@ -720,7 +721,7 @@ export function previewRoomSnapshot(
       },
       roomKind: 'collaboration',
       avatar: 'briefcase',
-      description: '五轮 USER-DIRECT 核对后，输入、Memory、多 Agent 与 PAWOS 四线并行，通过有来源的交接交换合同，写入 Docs 后独立复核',
+      description: '公开合成任务对齐后，输入、Memory、多 Agent 与 PAWOS 四线并行；交换接口、汇总文档，再检查交付缺口',
       routingPolicy: 'sequential',
       moderatorParticipantId: 'participant-facilitator',
       activeTopicId: 'topic-showcase',
@@ -803,7 +804,7 @@ function showcaseWorkItem({
     revision: throughSequence,
     resultSummary: completed
       ? reviewer
-        ? '独立复核通过：4/4 产品线、4/4 行星通信、4/4 真实 App 路由，P0 1 → 0。'
+        ? '四线方案复核完成；产物回滚缺口待 Trace 重放与候选比较。'
         : '产品 WorkPatch 已提交；跨线整合与 Docs 由 Facilitator、Reviewer 负责。'
       : active
         ? reviewer ? '独立测试批次进行中。' : '实施中；尚未形成测试结论。'
@@ -815,7 +816,7 @@ function showcaseWorkItem({
         operabilityVerdict: 'passed',
         requirementVerdict: 'satisfied',
         evidenceRefs,
-        reason: '公开合成演示完成四线合同、行星通信、真实前端与数据边界复核；首轮 P0 已修订并复跑通过。',
+        reason: '公开合成演示完成四线方案交接；产物回滚问题作为未完成项进入下一章验证。',
         reviewerParticipantId: ownerId,
         reviewedAtMs: now + completedSequence * 1_000,
       },

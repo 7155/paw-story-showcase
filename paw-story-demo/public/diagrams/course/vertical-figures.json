@@ -1,0 +1,663 @@
+{
+  "schemaVersion": "paw.course.vertical-figures.v1",
+  "snapshotDate": "2026-09-05",
+  "boundaries": {
+    "newModelCalls": 0,
+    "providerBillAvailable": false,
+    "scope": "retained validation receipts; no production or generalization claim",
+    "ragCostScope": "full-four-lane-run-plus-frozen-judge",
+    "ragStandard": "r6 candidate-aware; not blind or held-out",
+    "memoryScope": "new Pi pair; five synthetic fixtures; aggregate gates only"
+  },
+  "enterpriseops": {
+    "stages": [
+      {
+        "stage": "sol_baseline",
+        "runId": "enterpriseops-csm-sol-max-preloaded-current-runtime-validation-20260904-r8",
+        "model": "gpt-5.6-sol",
+        "workflowProfile": "state-contract-preloaded-v3",
+        "taskSuccessCount": 3,
+        "taskCount": 3,
+        "verifierPassCount": 31,
+        "verifierCount": 31,
+        "toolCalls": 51,
+        "failedToolCalls": 0,
+        "latencyMs": 583475.2999999999,
+        "costUsd": "1.711214"
+      },
+      {
+        "stage": "luna_model_only",
+        "runId": "enterpriseops-csm-luna-preloaded-model-only-validation-20260904-r5",
+        "model": "gpt-5.6-luna",
+        "workflowProfile": "state-contract-preloaded-v3",
+        "taskSuccessCount": 2,
+        "taskCount": 3,
+        "verifierPassCount": 30,
+        "verifierCount": 31,
+        "toolCalls": 59,
+        "failedToolCalls": 0,
+        "latencyMs": 678614.268,
+        "costUsd": "0.09453296"
+      },
+      {
+        "stage": "luna_prompt_adapted",
+        "runId": "enterpriseops-csm-luna-explicit-enum-prompt-validation-20260904-r7",
+        "model": "gpt-5.6-luna",
+        "workflowProfile": "luna-explicit-enum-preloaded-v6",
+        "taskSuccessCount": 3,
+        "taskCount": 3,
+        "verifierPassCount": 31,
+        "verifierCount": 31,
+        "toolCalls": 55,
+        "failedToolCalls": 0,
+        "latencyMs": 574319.984,
+        "costUsd": "0.07291692"
+      }
+    ],
+    "cases": {
+      "modelOnly": [
+        {
+          "taskId": "task_20251205_153330_906_a8eea1c0_8c7a6205",
+          "taskSucceeded": true,
+          "terminalEvent": "turn_completed",
+          "toolCalls": 13,
+          "failedToolCalls": 0,
+          "latencyMs": 137442.165,
+          "verifier": {
+            "passed": 11,
+            "total": 11,
+            "failedVerifierIndexes": []
+          }
+        },
+        {
+          "taskId": "task_20260101_122222_300_ad5a67e3_3757206c",
+          "taskSucceeded": true,
+          "terminalEvent": "turn_completed",
+          "toolCalls": 14,
+          "failedToolCalls": 0,
+          "latencyMs": 154625.012,
+          "verifier": {
+            "passed": 5,
+            "total": 5,
+            "failedVerifierIndexes": []
+          }
+        },
+        {
+          "taskId": "task_20260102_161510_799_ad5a67e3_7221f3c8",
+          "taskSucceeded": false,
+          "terminalEvent": "turn_completed",
+          "toolCalls": 32,
+          "failedToolCalls": 0,
+          "latencyMs": 386547.091,
+          "verifier": {
+            "passed": 14,
+            "total": 15,
+            "failedVerifierIndexes": [
+              15
+            ]
+          }
+        }
+      ],
+      "promptAdapted": [
+        {
+          "taskId": "task_20251205_153330_906_a8eea1c0_8c7a6205",
+          "taskSucceeded": true,
+          "terminalEvent": "turn_completed",
+          "toolCalls": 12,
+          "failedToolCalls": 0,
+          "latencyMs": 114610.172,
+          "verifier": {
+            "passed": 11,
+            "total": 11,
+            "failedVerifierIndexes": []
+          }
+        },
+        {
+          "taskId": "task_20260101_122222_300_ad5a67e3_3757206c",
+          "taskSucceeded": true,
+          "terminalEvent": "turn_completed",
+          "toolCalls": 13,
+          "failedToolCalls": 0,
+          "latencyMs": 125086.742,
+          "verifier": {
+            "passed": 5,
+            "total": 5,
+            "failedVerifierIndexes": []
+          }
+        },
+        {
+          "taskId": "task_20260102_161510_799_ad5a67e3_7221f3c8",
+          "taskSucceeded": true,
+          "terminalEvent": "turn_completed",
+          "toolCalls": 30,
+          "failedToolCalls": 0,
+          "latencyMs": 334623.07,
+          "verifier": {
+            "passed": 15,
+            "total": 15,
+            "failedVerifierIndexes": []
+          }
+        }
+      ]
+    }
+  },
+  "cloudops": {
+    "stages": [
+      {
+        "stage": "sol_baseline",
+        "runId": "cloudops-sol-max-alert-first-candidate-20260904-r7",
+        "model": "gpt-5.6-sol",
+        "workflowProfile": "alert-first-v5",
+        "AnswerCoverage": 1.0,
+        "CA": 1.0,
+        "FA": 0.8333333333333334,
+        "JRA": 0.8333333333333334,
+        "Top3JRA": 1.0,
+        "toolCalls": 99,
+        "failedToolCalls": 1,
+        "latencyMs": 1036278,
+        "costUsd": "4.568166"
+      },
+      {
+        "stage": "luna_model_only",
+        "runId": "cloudops-luna-max-alert-first-model-only-20260904-r1",
+        "model": "gpt-5.6-luna",
+        "workflowProfile": "alert-first-v5",
+        "AnswerCoverage": 1.0,
+        "CA": 0.9166666666666666,
+        "FA": 0.8333333333333334,
+        "JRA": 0.75,
+        "Top3JRA": 0.9166666666666666,
+        "toolCalls": 177,
+        "failedToolCalls": 6,
+        "latencyMs": 1705856,
+        "costUsd": "0.33593112"
+      },
+      {
+        "stage": "luna_prompt_adapted",
+        "runId": "cloudops-luna-max-owner-mechanism-prompt-20260904-r5",
+        "model": "gpt-5.6-luna",
+        "workflowProfile": "luna-owner-mechanism-gate-v8",
+        "AnswerCoverage": 1.0,
+        "CA": 1.0,
+        "FA": 0.9166666666666666,
+        "JRA": 0.9166666666666666,
+        "Top3JRA": 1.0,
+        "toolCalls": 130,
+        "failedToolCalls": 0,
+        "latencyMs": 1492913,
+        "costUsd": "0.27613024"
+      }
+    ],
+    "cases": {
+      "modelOnly": [
+        {
+          "taskId": "boutique/runtime/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "boutique/scheduling/1",
+          "taskSucceeded": false,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 2,
+            "total": 4,
+            "failedVerifierNames": [
+              "CA",
+              "JRA"
+            ]
+          }
+        },
+        {
+          "taskId": "boutique/admission/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "boutique/infrastructure/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "boutique/codedefect/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "boutique/performance/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "trainticket/runtime/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "trainticket/startup/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "trainticket/service/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "trainticket/service/2",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "trainticket/performance/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 2,
+            "total": 4,
+            "failedVerifierNames": [
+              "FA",
+              "JRA"
+            ]
+          }
+        },
+        {
+          "taskId": "trainticket/performance/2",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 2,
+            "total": 4,
+            "failedVerifierNames": [
+              "FA",
+              "JRA"
+            ]
+          }
+        }
+      ],
+      "promptAdapted": [
+        {
+          "taskId": "boutique/runtime/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "boutique/scheduling/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "boutique/admission/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "boutique/infrastructure/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "boutique/codedefect/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "boutique/performance/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "trainticket/runtime/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "trainticket/startup/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "trainticket/service/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "trainticket/service/2",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "trainticket/performance/1",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 4,
+            "total": 4,
+            "failedVerifierNames": []
+          }
+        },
+        {
+          "taskId": "trainticket/performance/2",
+          "taskSucceeded": true,
+          "terminalEvent": "scored",
+          "verifier": {
+            "passed": 2,
+            "total": 4,
+            "failedVerifierNames": [
+              "FA",
+              "JRA"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "rag": {
+    "retrieval": {
+      "runId": "enterprise-rag-validation-20260831-v1",
+      "metrics": {
+        "lexicalFloor": {
+          "mrr": 0.6041666666666666,
+          "ndcgAt10": 0.6128006234377468,
+          "recallAt10": 0.671875
+        },
+        "strongNaiveDense": {
+          "mrr": 0.6770833333333334,
+          "ndcgAt10": 0.6705101783930602,
+          "recallAt10": 0.7135416666666666
+        },
+        "winner": {
+          "mrr": 0.8671875,
+          "ndcgAt10": 0.8872028251913067,
+          "recallAt10": 0.9553571428571429
+        }
+      },
+      "sample": {
+        "validationQueryCount": 16,
+        "candidateCount": 14,
+        "unit": "frozen validation retrieval queries"
+      }
+    },
+    "stages": [
+      {
+        "stage": "sol_baseline",
+        "runId": "enterprise-rag-sol-max-frozen-v19-20260904-r4",
+        "exactCitationFactsCovered": 7,
+        "citationFactCount": 9,
+        "agentSuccessRate": 0.75,
+        "costUsd": 2.170603,
+        "decision": "reject"
+      },
+      {
+        "stage": "luna_model_only",
+        "runId": "enterprise-rag-luna-max-model-only-v19-20260904-r4",
+        "exactCitationFactsCovered": 8,
+        "citationFactCount": 9,
+        "agentSuccessRate": 0.75,
+        "costUsd": 0.10594896,
+        "decision": "reject"
+      },
+      {
+        "stage": "luna_prompt_v4",
+        "runId": "enterprise-rag-luna-max-coverage-balanced-v4-20260904-r4",
+        "exactCitationFactsCovered": 9,
+        "citationFactCount": 9,
+        "agentSuccessRate": 1.0,
+        "costUsd": 0.1029376,
+        "decision": "keep"
+      }
+    ],
+    "rescore": {
+      "runId": "enterprise-rag-answer-evidence-luna-max-coverage-balanced-v4-r4-attention-r6-exact-offline-rescore-20260905",
+      "providerCalls": 0,
+      "judgeCalls": 0,
+      "beforeFacts": 4,
+      "afterFacts": 9,
+      "factCount": 9
+    }
+  },
+  "memory": {
+    "runId": "memory-pi-current-pair-20260905-r3",
+    "stages": [
+      {
+        "stage": "Sol",
+        "model": "gpt-5.6-sol",
+        "costUsd": "0.163425",
+        "totalTokens": 14450,
+        "requestCount": 2,
+        "failedRequestCount": 0,
+        "qualityVerdict": "pass",
+        "metrics": {
+          "curation": {
+            "sourceCount": 5,
+            "modelDecisionCount": 5,
+            "ok": true,
+            "currentAtomCount": 6,
+            "governedCurrentAtomCount": 6,
+            "legalLineageCurrentAtomCount": 6
+          },
+          "retrieval": {
+            "caseCount": 5,
+            "durableCaseCount": 4,
+            "passed": true,
+            "projectionFresh": true
+          },
+          "recovery": {
+            "rollbackPassed": true,
+            "rollbackRestoredBaseline": true,
+            "replayAttempted": true,
+            "replayPassed": true,
+            "replayReusedModelRequests": true
+          }
+        }
+      },
+      {
+        "stage": "Luna",
+        "model": "gpt-5.6-luna",
+        "costUsd": "0.0071846",
+        "totalTokens": 15078,
+        "requestCount": 2,
+        "failedRequestCount": 0,
+        "qualityVerdict": "pass",
+        "metrics": {
+          "curation": {
+            "sourceCount": 5,
+            "modelDecisionCount": 5,
+            "ok": true,
+            "currentAtomCount": 6,
+            "governedCurrentAtomCount": 6,
+            "legalLineageCurrentAtomCount": 6
+          },
+          "retrieval": {
+            "caseCount": 5,
+            "durableCaseCount": 4,
+            "passed": true,
+            "projectionFresh": true
+          },
+          "recovery": {
+            "rollbackPassed": true,
+            "rollbackRestoredBaseline": true,
+            "replayAttempted": true,
+            "replayPassed": true,
+            "replayReusedModelRequests": true
+          }
+        }
+      }
+    ],
+    "historicalCompression": {
+      "runId": "memory-maintenance-cost-optimization:memory-maintenance-sol-max-compact-json-candidate-20260904-r2",
+      "baselineContextProfile": "full-json-v1",
+      "candidateContextProfile": "compact-json-v1",
+      "qualityGatePassed": true,
+      "identityGatePassed": true,
+      "costGatePassed": false,
+      "decision": "reject",
+      "usage": {
+        "cachedInputTokens": {
+          "after": 0,
+          "before": 0,
+          "delta": 0,
+          "nonIncreasing": true,
+          "strictlyDecreased": false
+        },
+        "outputTokens": {
+          "after": 2274,
+          "before": 2207,
+          "delta": 67,
+          "nonIncreasing": false,
+          "strictlyDecreased": false
+        },
+        "uncachedInputTokens": {
+          "after": 39241,
+          "before": 39799,
+          "delta": -558,
+          "nonIncreasing": true,
+          "strictlyDecreased": true
+        }
+      },
+      "costAuthority": "same-provider-model-usage-categories"
+    }
+  },
+  "sources": [
+    {
+      "path": "eval/interview-metrics/agent-experiments.v1.json",
+      "sha256": "72b7d6c0909433d8c3b852cb896c91da7a4a4d1344f03c09a88c0e86ce5cb255"
+    },
+    {
+      "path": "eval/interview-metrics/runs/enterpriseops-csm-sol-to-luna-prompt-adaptation-20260904.r1.json",
+      "sha256": "74a0e8d4d2303789f444094a5f0989d14881649b1dc3344d19ece6021195c55f"
+    },
+    {
+      "path": "eval/interview-metrics/runs/cloudops-sol-to-luna-owner-mechanism-prompt-20260904.r1.json",
+      "sha256": "f66897b5275ff7b9642e773be2eacff86bb5a311a67ffa59ca0a5a95f4948139"
+    },
+    {
+      "path": "eval/interview-metrics/runs/memory-pi-current-pair-20260905.r3.json",
+      "sha256": "2a45930a342a26c9aa9e123736766cca37156bb45b49beec84146252b35a9ea8"
+    },
+    {
+      "path": "eval/interview-metrics/runs/enterprise-rag-answer-evidence-luna-max-coverage-balanced-v4-r4-attention-r6-exact-offline-rescore-20260905.v1.json",
+      "sha256": "f1f9c643d0fc17a5c8738b6e68faad65c107b919c2b4a4f15f496e19481ce0a1"
+    },
+    {
+      "path": "eval/interview-metrics/runs/memory-maintenance-sol-max-json-compaction-cost-optimization-20260904.r2.json",
+      "sha256": "1ebb9b909b1beb9ec492cb9a0989f1862b387e973c3cf7b21fe8d1b8119de544"
+    },
+    {
+      "path": "eval/interview-metrics/runs/enterprise-rag-validation-20260831.v1.json",
+      "sha256": "07a04f8ca797e2310d55edac643140840f41651a9afa63db492b9aa41969e338"
+    },
+    {
+      "path": "eval/interview-metrics/runs/enterpriseops-csm-luna-preloaded-model-only-validation-20260904.r5.v1.json",
+      "sha256": "0a9ff609d9c0515d73ecf8d91aaf93ba69a7f65abe8422cd289b310d00601222"
+    },
+    {
+      "path": "eval/interview-metrics/runs/enterpriseops-csm-luna-explicit-enum-prompt-validation-20260904.r7.v1.json",
+      "sha256": "637aa4c7b63b78cd24572d91490f0e5832a27a3917ee42b76abea664e322c18e"
+    },
+    {
+      "path": "eval/interview-metrics/runs/cloudops-luna-max-alert-first-model-only-case-projection-20260904.r1.json",
+      "sha256": "d04cb7aa7cdf72311b25293a338258744fb29e0e71419233ab5fc1524b962c33"
+    },
+    {
+      "path": "eval/interview-metrics/runs/cloudops-luna-max-owner-mechanism-prompt-case-projection-20260904.r5.json",
+      "sha256": "78e2cb19e4e2ddd6c120c868ddaf175768baab7a269df2465742617f75e2dc6e"
+    }
+  ]
+}

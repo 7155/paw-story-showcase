@@ -1,0 +1,8 @@
+%% Keep is scoped to the verified environment; it does not imply installation.
+flowchart TD
+    T[失败 Trace] -->|事件与原始要求| C[诊断与候选]
+    C -->|有范围的修改| R[同题重放]
+    R -->|原问题修复后| H[回归或保留样本]
+    H -->|质量与退步检查| V{Keep / Reject}
+    V -->|在验证范围内保留| K[后续验证或采用]
+    V -->|拒绝候选并记录原因| B[继续采用原基线]

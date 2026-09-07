@@ -6,19 +6,18 @@ import { Button, EmptyState, Skeleton } from '@/components/primitives';
 import type { WorkDocumentDetailV1 } from '@/contracts/work-documents';
 import type { AgentSubagentRunV1 } from '@/contracts/generated/agent-subagent-run.v1';
 import { roleItems, sessionItems, sessionPermissionLabel } from '@/features/agent/types';
-import { subagentRuns } from '@/features/agent/status/subagent-data';
+import { isSubagentRun, subagentRuns } from '@/features/agent/status/subagent-data';
 import { arrayRecords, asRecord, formatTime, publicErrorText, StatusBadge, stringValue } from '@/features/overview/management-ui';
 import { usePlanningDashboard } from '@/features/planning/api';
 import { RoomStatusPanel } from '@/features/rooms/RoomStatusPanel';
 import type { RoomSummary } from '@/features/rooms/room-types';
 import { useRoomLiveStore } from '@/features/rooms/state/live-store';
 import { useRoomLiveSession } from '@/features/rooms/runtime/use-room-live-session';
-import { usePageVisibility } from '@/platform/use-page-visibility';
 import { openPawOsRoute, usePawOsDesktop } from './surface-context';
 import { routePath } from './model/app-registry';
 import type { PawOsWindowTarget } from './model/desktop';
 import { roomPlanetObserverWindowRequest } from '@/paw-os/apps/room-satellite-auto-open';
-import { PawRoomFocusOverview } from '@/paw-os/apps/PawRoomFocusOverview';
+import { PawRoomLiveFocusOverview } from '@/paw-os/apps/PawRoomLiveFocusOverview';
 import { PawRoomGovernance } from '@/paw-os/apps/PawRoomWorkspace';
 import { PawRoomConversation } from '@/paw-os/apps/PawRoomConversation';
 import { useAgentLiveStore } from '@/features/agent/state/live-store';
@@ -26,7 +25,9 @@ import { SmoothDisclosureReveal } from '@/features/agent/timeline/SmoothDisclosu
 import { toggleDisclosurePreservingAnchor } from '@/features/agent/timeline/disclosure-anchor';
 import { buildRoomFocusProjection, roomFocusCelestialName, roomFocusStateLabel, type RoomFocusState } from '@/paw-os/apps/room-focus-projection';
 import { RoomActivityGlyph } from '@/paw-os/apps/room-tool-glyph';
+import { usePageVisibility } from '@/platform/use-page-visibility';
 import './paw-os-satellite.css';
+import { SatelliteModelBadge } from './SatelliteModelBadge';
 
 export function PawOsSatelliteHost({ target }: { target: PawOsWindowTarget }) {
   if (target.kind === 'work-document') return <WorkDocumentSatellite documentId={target.id} />;
@@ -377,7 +378,7 @@ function RoomPanelSatellite({ target }: { target: Extract<PawOsWindowTarget, { k
       {!roomQuery.isPending && !roomQuery.error && !room ? <SatelliteMissing actionLabel="回到 Room" copy="这个 Room 已不在当前 Room 清单中，可能已归档或删除。" icon={Network} route="rooms" title="找不到这个 Room" /> : null}
       {room ? (
         <div className="paw-os-satellite__room-panel-body">
-          {target.panel === 'focus' && focus ? <PawRoomFocusOverview focus={focus} onOpenParticipant={openParticipant} /> : null}
+          {target.panel === 'focus' && focus ? <PawRoomLiveFocusOverview roomId={target.id} focus={focus} onOpenParticipant={openParticipant} /> : null}
           {target.panel === 'progress' ? <RoomStatusPanel room={room} roomId={target.id} projection={projection} open /> : null}
           {target.panel === 'governance' ? <PawRoomGovernance personas={personas} room={room} onError={setError} onRefresh={refresh} onRoomUpdated={() => { void roomQuery.refetch(); }} /> : null}
         </div>
@@ -422,6 +423,7 @@ function RoomParticipantSatellite({ target }: { target: Extract<PawOsWindowTarge
   const loading = !room && !loadError && (roomQuery.isPending || liveState === 'recovering');
   return (
     <section className="paw-os-satellite paw-os-satellite--participant-chat" data-presentation="planet-observer">
+      <SatelliteModelBadge sessionId={participant?.sessionId || target.sessionId} />
       {loading ? <div className="paw-os-satellite__loading" role="status"><Skeleton /><Skeleton /><Skeleton /></div> : null}
       {loadError ? <SatelliteLoadError error={loadError} icon={MessageSquare} onRetry={retry} title="行星窗口没有打开" /> : null}
       {liveState === 'failed' && (room || projection) ? (
@@ -627,7 +629,7 @@ function SubagentSatellite({ target }: { target: Extract<PawOsWindowTarget, { ki
     retry: false,
   });
   const runs = useMemo(() => subagentRuns(runsQuery.data), [runsQuery.data]);
-  const run = useMemo(() => runs.find((candidate) => candidate.id === target.id), [runs, target.id]);
+  const listRun = useMemo(() => runs.find((candidate) => candidate.id === target.id), [runs, target.id]);
   const consoleQuery = useQuery({
     queryKey: ['agent', 'subagent-satellite', target.sessionId, target.id],
     queryFn: ({ signal }) => transport.request({
@@ -636,11 +638,22 @@ function SubagentSatellite({ target }: { target: Extract<PawOsWindowTarget, { ki
       query: { sessionId: target.sessionId },
       signal,
     }),
-    enabled: Boolean(run),
-    refetchInterval: run?.state === 'running' || run?.state === 'queued' ? 1_000 : 5_000,
+    enabled: Boolean(listRun),
+    refetchInterval: (query) => {
+      const projected = subagentRunProjection(listRun, query.state.data);
+      return projected && subagentRunIsActive(projected.state) ? 1_000 : 5_000;
+    },
     retry: false,
   });
-  const entries = useMemo(() => subagentTimeline(consoleQuery.data), [consoleQuery.data]);
+  const run = useMemo(() => {
+    const consoleRun = subagentConsoleRun(consoleQuery.data);
+    if (!listRun) return consoleRun;
+    return subagentRunProjection(listRun, consoleQuery.data);
+  }, [consoleQuery.data, listRun]);
+  const entries = useMemo(
+    () => subagentTimeline(consoleQuery.data, run?.state),
+    [consoleQuery.data, run?.state],
+  );
   const timelineItems = useMemo(() => subagentTimelineItems(entries), [entries]);
   useEffect(() => {
     const timeline = timelineRef.current;
@@ -649,6 +662,7 @@ function SubagentSatellite({ target }: { target: Extract<PawOsWindowTarget, { ki
   const error = runsQuery.error || consoleQuery.error;
   return (
     <section className="paw-os-satellite paw-os-satellite--participant-chat paw-os-satellite--subagent-chat">
+      <SatelliteModelBadge sessionId={run?.childSessionId} />
       {runsQuery.isPending || (run && !error && consoleQuery.isPending) ? <div className="paw-os-satellite__loading" role="status"><Skeleton /><Skeleton /><Skeleton /></div> : null}
       {error ? <SatelliteLoadError error={error} icon={MessageSquare} onRetry={() => { void runsQuery.refetch(); void consoleQuery.refetch(); }} title="子 Agent 窗口没有打开" /> : null}
       {!runsQuery.isPending && !runsQuery.error && !run ? <SatelliteMissing copy="这个子 Agent 已不在当前 Session 的运行图中。" icon={MessageSquare} route="agent" title="找不到这个子 Agent" /> : null}
@@ -699,6 +713,62 @@ function SubagentSatellite({ target }: { target: Extract<PawOsWindowTarget, { ki
       ) : null}
     </section>
   );
+}
+const SUBAGENT_TERMINAL_STATES = ['completed', 'failed', 'aborted', 'timed_out'] as const;
+type SubagentTerminalState = typeof SUBAGENT_TERMINAL_STATES[number];
+
+function subagentRunIsTerminal(state: string): state is SubagentTerminalState {
+  return SUBAGENT_TERMINAL_STATES.includes(state as SubagentTerminalState);
+}
+
+function subagentRunIsActive(state: AgentSubagentRunV1['state']): boolean {
+  return state === 'queued' || state === 'running';
+}
+
+function subagentConsoleRun(value: unknown): AgentSubagentRunV1 | undefined {
+  const candidate = asRecord(asRecord(value).run);
+  return isSubagentRun(candidate) ? candidate : undefined;
+}
+
+function subagentRunFreshness(run: AgentSubagentRunV1): number {
+  return Math.max(run.updatedAtMs, run.completedAtMs ?? 0);
+}
+
+function mergeSubagentRunData(primary: AgentSubagentRunV1, fallback: AgentSubagentRunV1): AgentSubagentRunV1 {
+  if (primary.state !== fallback.state || !subagentRunIsTerminal(primary.state)) return primary;
+  return {
+    ...primary,
+    result: Object.keys(primary.result).length ? primary.result : fallback.result,
+    error: primary.error || fallback.error,
+    completedAtMs: primary.completedAtMs ?? fallback.completedAtMs,
+    resultContextScheduledAtMs: primary.resultContextScheduledAtMs ?? fallback.resultContextScheduledAtMs,
+    ...(primary.structuredOutput !== undefined
+      ? { structuredOutput: primary.structuredOutput }
+      : fallback.structuredOutput !== undefined
+        ? { structuredOutput: fallback.structuredOutput }
+        : {}),
+  };
+}
+
+function subagentRunProjection(
+  listRun: AgentSubagentRunV1 | undefined,
+  consoleSnapshot: unknown,
+): AgentSubagentRunV1 | undefined {
+  const consoleRun = subagentConsoleRun(consoleSnapshot);
+  if (!listRun) return consoleRun;
+  if (!consoleRun) return listRun;
+
+  const listTerminal = subagentRunIsTerminal(listRun.state);
+  const consoleTerminal = subagentRunIsTerminal(consoleRun.state);
+  if (listTerminal && !consoleTerminal) return listRun;
+  if (!listTerminal && consoleTerminal) return mergeSubagentRunData(consoleRun, listRun);
+  if (!listTerminal && !consoleTerminal) {
+    if (listRun.state === 'running' && consoleRun.state === 'queued') return listRun;
+    return mergeSubagentRunData(consoleRun, listRun);
+  }
+  const preferred = subagentRunFreshness(consoleRun) >= subagentRunFreshness(listRun) ? consoleRun : listRun;
+  const fallback = preferred === consoleRun ? listRun : consoleRun;
+  return mergeSubagentRunData(preferred, fallback);
 }
 
 function subagentRunFailed(run: AgentSubagentRunV1): boolean {
@@ -760,7 +830,7 @@ function subagentTimelineItems(entries: SubagentTimelineEntry[]): SubagentTimeli
     const previous = items.at(-1);
     if (entry.kind === 'activity' && previous?.kind === 'activity-group') {
       previous.entries.push(entry);
-      previous.active = previous.active || subagentEntryActive(entry);
+      previous.active = subagentEntryActive(entry);
     } else if (entry.kind === 'activity') {
       items.push({ id: `activity-group:${entry.id}`, kind: 'activity-group', active: subagentEntryActive(entry), entries: [entry] });
     } else {
@@ -771,10 +841,10 @@ function subagentTimelineItems(entries: SubagentTimelineEntry[]): SubagentTimeli
 }
 
 function subagentEntryActive(entry: SubagentTimelineEntry): boolean {
-  return ['queued', 'running', 'waiting', 'pending', 'streaming', 'claimed'].includes(entry.status);
+  return ['queued', 'running', 'waiting', 'pending', 'streaming', 'claimed'].includes(entry.status.toLowerCase());
 }
 
-function subagentTimeline(value: unknown): SubagentTimelineEntry[] {
+function subagentTimeline(value: unknown, terminalState?: AgentSubagentRunV1['state']): SubagentTimelineEntry[] {
   const snapshot = asRecord(value);
   const conversation = asRecord(snapshot.conversation);
   const messages = arrayRecords(conversation.items).map((item, index): SubagentTimelineEntry => ({
@@ -800,7 +870,11 @@ function subagentTimeline(value: unknown): SubagentTimelineEntry[] {
       direction: 'out',
       kind: 'activity',
       eventType,
-      status: subagentEventStatus(eventType, payload),
+      status: subagentEventStatus(
+        eventType,
+        payload,
+        stringValue(item.status, stringValue(item.state)),
+      ),
       text: toolError && !summary.includes(toolError) ? `${summary}：${toolError}` : summary,
       time: Number(item.createdAtMs) || 0,
     };
@@ -815,8 +889,22 @@ function subagentTimeline(value: unknown): SubagentTimelineEntry[] {
     text: stringValue(item.message) || stringValue(item.title) || '子 Agent 发来了一条公开进度',
     time: Number(item.createdAtMs) || 0,
   }));
-  return [...messages, ...activity, ...inbox]
+  const entries = [...messages, ...activity, ...inbox]
     .sort((left, right) => left.time - right.time);
+  return subagentTimelineSettled(entries, terminalState);
+}
+
+function subagentTimelineSettled(
+  entries: SubagentTimelineEntry[],
+  terminalState?: AgentSubagentRunV1['state'],
+): SubagentTimelineEntry[] {
+  if (!terminalState || !subagentRunIsTerminal(terminalState)) return entries;
+  const settledStatus = terminalState === 'failed' || terminalState === 'timed_out'
+    ? 'failed'
+    : terminalState === 'aborted'
+      ? 'aborted'
+      : 'completed';
+  return entries.map((entry) => subagentEntryActive(entry) ? { ...entry, status: settledStatus } : entry);
 }
 
 function satelliteMessageText(message: Record<string, unknown>): string {
@@ -831,13 +919,18 @@ function satelliteMessageText(message: Record<string, unknown>): string {
   return stringValue(message.text) || stringValue(message.content) || stringValue(nested.text) || stringValue(nested.content) || blocks;
 }
 
-function subagentEventStatus(eventType: string, payload: Record<string, unknown>): string {
-  const explicit = stringValue(payload.status, stringValue(payload.state));
+function subagentEventStatus(eventType: string, payload: Record<string, unknown>, recordStatus = ''): string {
+  const explicit = recordStatus || stringValue(payload.status, stringValue(payload.state));
   if (explicit) return explicit;
-  if (['failed', 'timed_out', 'tool_failed'].includes(eventType)) return 'failed';
-  if (['aborted', 'cancelled', 'stopped'].includes(eventType)) return 'aborted';
-  if (['completed', 'tool_completed', 'tool_result', 'structured_output'].includes(eventType)) return 'completed';
-  return 'running';
+  const normalizedEventType = eventType.trim().toLowerCase();
+  if (normalizedEventType === 'turn_completed') return payload.aborted === true ? 'aborted' : 'completed';
+  if (normalizedEventType === 'turn_failed') return 'failed';
+  if (normalizedEventType === 'tool_finished') return payload.isError === true ? 'failed' : 'completed';
+  if (['failed', 'timed_out', 'tool_failed'].includes(normalizedEventType)) return 'failed';
+  if (['aborted', 'cancelled', 'stopped'].includes(normalizedEventType)) return 'aborted';
+  if (['completed', 'tool_completed', 'tool_result', 'structured_output'].includes(normalizedEventType)) return 'completed';
+  if (['reasoning_summary', 'tool_started', 'tool_progress', 'started'].includes(normalizedEventType)) return 'running';
+  return 'unknown';
 }
 
 function SatelliteRunState({ eventType, status }: { eventType: string; status: string }) {
@@ -845,25 +938,47 @@ function SatelliteRunState({ eventType, status }: { eventType: string; status: s
   const active = ['queued', 'running', 'streaming', 'waiting', 'pending', 'claimed'].includes(normalized);
   const failed = ['failed', 'timed_out', 'orphaned'].includes(normalized);
   const stopped = ['aborted', 'cancelled', 'stopped'].includes(normalized);
-  const thinking = eventType.includes('reasoning') || eventType.includes('thinking');
-  const tool = eventType === 'tool' || eventType.startsWith('tool_');
-  if (!active && !failed && !stopped && !tool) return null;
+  const event = eventType.trim().toLowerCase();
+  const thinking = event.includes('reasoning') || event.includes('thinking');
+  const activeThinking = active && thinking;
+  const tool = event === 'tool' || event.startsWith('tool_');
+  const terminal = normalized === 'completed' && (
+    thinking
+    || tool
+    || ['completed', 'structured_output', 'tool_completed', 'tool_result', 'turn_completed'].includes(event)
+  );
+  if (!active && !failed && !stopped && !terminal) return null;
   const Icon = failed
     ? CircleAlert
     : stopped
       ? CircleStop
-      : thinking
+      : activeThinking
         ? BrainCircuit
         : active
           ? LoaderCircle
           : CheckCircle2;
-  const label = failed ? '执行失败' : stopped ? '已停止' : thinking ? '正在思考' : active ? '执行中' : '已完成';
-  return <i aria-label={label} className="paw-satellite-run-state" data-active={active || undefined} data-kind={thinking ? 'thinking' : tool ? 'tool' : 'run'} data-state={normalized || 'completed'} role="img"><Icon aria-hidden="true" className={active && !thinking ? 'ui-spin' : undefined} size={12} /></i>;
+  const label = failed ? '执行失败' : stopped ? '已停止' : activeThinking ? '正在思考' : active ? '执行中' : '已完成';
+  return <i aria-label={label} className="paw-satellite-run-state" data-active={active || undefined} data-kind={activeThinking ? 'thinking' : tool ? 'tool' : 'run'} data-state={normalized || 'completed'} role="img"><Icon aria-hidden="true" className={active && !activeThinking ? 'ui-spin' : undefined} size={12} /></i>;
 }
 
 function subagentActivityLabel(eventType: string, payload: Record<string, unknown>): string {
   const tool = stringValue(payload.displayName, stringValue(payload.toolName, stringValue(payload.toolId, '工具')));
-  return ({ tool_started: `开始调用 ${tool}`, tool_completed: `${tool} 已返回`, tool_failed: `${tool} 调用失败`, completed: '已完成并返回结果', failed: '运行失败', aborted: '运行已停止', timed_out: '运行超时', started: '开始执行' } as Record<string, string>)[eventType] || '运行状态已更新';
+  const normalizedEventType = eventType.trim().toLowerCase();
+  if (normalizedEventType === 'tool_finished' && payload.isError === true) return `${tool} 调用失败`;
+  return ({
+    reasoning_summary: '思考摘要已更新',
+    tool_started: `开始调用 ${tool}`,
+    tool_progress: `${tool} 执行中`,
+    tool_completed: `${tool} 已返回`,
+    tool_finished: `${tool} 已完成`,
+    turn_completed: '运行已完成',
+    turn_failed: '运行失败',
+    completed: '已完成并返回结果',
+    failed: '运行失败',
+    aborted: '运行已停止',
+    timed_out: '运行超时',
+    started: '开始执行',
+  } as Record<string, string>)[normalizedEventType] || '运行状态已更新';
 }
 
 function useRoomDetail(roomId: string) {

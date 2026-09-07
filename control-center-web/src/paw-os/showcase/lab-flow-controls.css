@@ -1,0 +1,9 @@
+.lab-flow-controls { padding: 16px 22px; border-block: 1px solid color-mix(in srgb,currentColor 12%,transparent); background: color-mix(in srgb,currentColor 2%,transparent); }
+.lab-flow-controls nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-bottom: 14px; }
+.lab-flow-controls nav button { appearance: none; padding: 6px 0; color: inherit; background: transparent; border: 0; border-bottom: 2px solid transparent; cursor: pointer; font-family: inherit; font-weight: 500; font-size: 13px; line-height: 1.5; }
+.lab-flow-controls nav button[aria-current=step] { border-color: currentColor; font-weight: 700; }
+.lab-flow-controls nav button:disabled { opacity: .4; cursor: default; }
+.lab-flow-controls__actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.lab-flow-controls>p { margin: 10px 0 0; font-size: 12px; line-height: 1.7; opacity: .8; }
+.lab-flow-controls>p>span { display: block; font-size: 10px; margin-top: 3px; }
+@media(max-width:600px) { .lab-flow-controls { padding: 12px 14px; }.lab-flow-controls nav { gap: 6px 14px; }.lab-flow-controls nav button { font-size: 12px; } }

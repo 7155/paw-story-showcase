@@ -1,4 +1,5 @@
 import type { ControlPathId } from '@/platform/routes';
+import taskStory from '../../../showcase/task-story.v1.json';
 import type { ControlRequest } from '@/platform/transport';
 import type { MockRouteHandler } from '@/test/mock-transport';
 
@@ -18,6 +19,14 @@ type PreviewHistoryItem = {
   text: string;
 };
 
+export const previewMemoryInputSources: readonly PreviewHistoryItem[] = [
+  { id: 10001, text: '面向用户的解释先给结论，再补充必要原因。' },
+  { id: 10002, text: '除最新内容外，其他内容也应保留；网页只需更新，不必每次重写全部内容。' },
+  { id: 10003, text: '测试、合成回放和真实运行状态必须分别陈述。' },
+  { id: 10004, text: '演示应使用真实前端组件，不能用静态示意替代操作。' },
+  { id: 10005, text: '减少重复说明，让操作和结果保持清楚。' },
+].map((item, index) => ({ ...item, textPreview: item.text, minutesAgo: 190 + index * 10, source: 'rime_commit' as const, app: 'Public Memory Source', project: 'personal-agent-workbench' }));
+
 const previewHistoryItems: readonly PreviewHistoryItem[] = [
   {
     id: 201,
@@ -34,8 +43,8 @@ const previewHistoryItems: readonly PreviewHistoryItem[] = [
     source: 'voice',
     app: 'PAW Agent',
     project: 'personal-agent-workbench',
-    textPreview: '一天输入很多，不代表每条都应该成为长期记忆。',
-    text: '一天可能有上千次输入，但碎片和一次性内容不应该直接成为长期记忆；先整理，再按问题召回。',
+    textPreview: '一天输入很多，先记住 PAW 工作台这条已接受的决定。',
+    text: taskStory.memory,
   },
   {
     id: 203,
@@ -73,6 +82,7 @@ const previewHistoryItems: readonly PreviewHistoryItem[] = [
     textPreview: '给用户的回答先说结果，再补必要证据。',
     text: '给用户的回答先说结果，再补必要证据；测试、合成回放和真实运行状态必须分别陈述。',
   },
+  ...previewMemoryInputSources,
 ] as const;
 
 type PreviewRoutes = Partial<Record<ControlPathId, MockRouteHandler>>;

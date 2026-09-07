@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>PAW Lab App Preview</title>
+</head>
+<body>
+  <script>
+    // Static counterpart of PAW's isolated HTML preview for offline Lab Apps.
+    // Source stays in the fragment and never reaches a server. The App host
+    // embeds this document in an opaque sandbox, separate from Control Center.
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        if (window.parent === window || window.origin !== 'null') throw new Error('请从 Lab 的隔离预览中打开 App。');
+        const encoded = location.hash.slice(1).replace(/-/g, '+').replace(/_/g, '/');
+        if (!encoded || encoded.length > 8000000) throw new Error('App 预览内容缺失或过大。');
+        const binary = atob(encoded + '='.repeat((4 - encoded.length % 4) % 4));
+        const source = new TextDecoder().decode(Uint8Array.from(binary, character => character.charCodeAt(0)));
+        const policy = '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\'; style-src \'unsafe-inline\'; img-src data: blob:; connect-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">';
+        document.open(); document.write('<!doctype html>' + policy + source); document.close();
+      } catch (error) { document.body.textContent = String(error.message || error); }
+    }, { once: true });
+  </script>
+</body>
+</html>

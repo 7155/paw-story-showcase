@@ -1,0 +1,15 @@
+flowchart TB
+  f["Facilitator<br/>roomRoot = root-7"]
+  b["begin<br/>session → pending root / dispatch"]
+  s["Pi Session<br/>返回 sessionTurn = turn-9"]
+  o["事件先到<br/>按 session + turn 暂存"]
+  a["accept<br/>pending root 匹配才绑定"]
+  p["公共协作事件<br/>带 root / dispatch 身份"]
+  x["不匹配的 ACK<br/>返回空元组，不抢占新派发"]
+  f -->|"显式派发"| b
+  b -->|"请求执行"| s
+  s -->|"先到事件"| o
+  s -->|"接受 ACK"| a
+  o -->|"匹配后释放"| a
+  a -->|"附加协作身份"| p
+  a -->|"root 不匹配"| x

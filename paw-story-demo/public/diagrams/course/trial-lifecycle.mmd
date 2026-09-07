@@ -1,0 +1,14 @@
+flowchart TB
+  a["admit<br/>请求 ID + 配置指纹"]
+  q["queued<br/>已持久接受"]
+  r["running<br/>claim 后才执行 adapter"]
+  d["completed / failed<br/>实际执行与清理收口"]
+  c["cancelling → cancelled<br/>停止请求 / abort / 清理"]
+  i["interrupted<br/>旧 owner 停止后的中断记录"]
+  x["409 request_id_conflict<br/>同 ID 却换了配置"]
+  a -->|"新身份"| q
+  q -->|"事务领取"| r
+  r -->|"正常返回或失败"| d
+  r -->|"请求停止"| c
+  q -->|"替换 Application"| i
+  a -->|"指纹不同"| x

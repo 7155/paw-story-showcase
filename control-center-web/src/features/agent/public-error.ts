@@ -4,6 +4,13 @@ const unavailableModelPattern = /(?:model\s+["']?[^"']+["']?\s+is\s+not\s+suppor
 const providerRequestFailurePattern = /(?:error\s+from\s+provider|upstream\s+request\s+failed|provider[_\s-](?:request|response|error)|模型服务.*(?:失败|异常))/i;
 const networkInterruptionPattern = /(?:网络中断|fetch failed|websocket\s+(?:error|failure|closed)|network\s+(?:error|failure)|connection\s+(?:reset|closed|refused)|econn(?:reset|refused)|socket hang up|broken pipe|remote end closed)/i;
 const nativeRouteMismatchPattern = /(?:route[_\s-]policy[_\s-]rejected|unexpected\s+(?:request\s+)?body\s+field|body\s+field\s+is\s+not\s+allowlisted|unknown\s+pathid)/i;
+const memoryBootstrapBudgetPattern = /(?:memory\s+(?:bootstrap|curation\s+packet).*(?:budget|context\s+window|max_chars|token\s+limit|input\s+limit|input\s+too\s+large|too\s+long|exceed)|记忆(?:召回|上下文|整理).*(?:超限|超上限|预算|上下文过大|输入过大))/i;
+const modelQuotaPattern = /(?:usage\s+limit\s+has\s+been\s+reached|quota(?:\s+|[_-])(?:exceeded|exhausted|depleted)|rate\s*limit(?:ed)?|too\s+many\s+requests|请求过于频繁|额度(?:已用尽|不足|超限)|配额(?:已用尽|不足|超限)|\b429\b)/i;
+const memoryBootstrapFailureCodePattern = /^memory_bootstrap_(?:budget_exceeded|failed)$/u;
+const legacyRoomParticipantBusyPattern = /^(?:.+ is currently busy|Room participants are currently busy: .+)$/u;
+export const ROOM_PARTICIPANT_BUSY_TEXT = '目标伙伴正在处理另一条请求；草稿已保留，待当前请求结束后可再次发送。';
+export const MEMORY_BOOTSTRAP_SKIPPED_TEXT = '记忆召回本轮已跳过，消息仍可继续；下次会重新尝试。';
+export const MODEL_QUOTA_EXHAUSTED_TEXT = '模型服务额度暂时用尽，请稍后重试或切换已配置模型。';
 export const SESSION_WORKSPACE_MISSING_TEXT = (
   '这个 Session 的工作目录已不存在。请选择新的工作目录后继续，或返回桌面新建工作。'
 );
@@ -18,7 +25,8 @@ export type AgentCommandReceiptState =
 
 export type AgentCommandReceiptRecoveryState =
   | 'in_flight'
-  | 'unresolved';
+  | 'unresolved'
+  | 'new_command_required';
 
 export interface AgentCommandReceiptFailure {
   code:
@@ -59,6 +67,7 @@ export function agentCommandReceiptFailure(
   const recoveryState = (
     rawRecoveryState === 'in_flight'
     || rawRecoveryState === 'unresolved'
+    || rawRecoveryState === 'new_command_required'
   )
     ? rawRecoveryState
     : undefined;
@@ -125,7 +134,22 @@ export function publicAgentErrorText(
   value: unknown,
   fallback = '本轮没有完成，请重试或切换模型。',
 ): string {
+  const payload = errorPayload(value);
+  const errorCode = stringValue(payload?.errorCode);
+  const message = (value instanceof Error ? value.message : String(value ?? '')).trim();
+  if (memoryBootstrapFailureCodePattern.test(errorCode) || memoryBootstrapBudgetPattern.test(message)) {
+    return MEMORY_BOOTSTRAP_SKIPPED_TEXT;
+  }
+  if (modelQuotaPattern.test(message)) {
+    return MODEL_QUOTA_EXHAUSTED_TEXT;
+  }
   const receiptFailure = agentCommandReceiptFailure(value);
+  if (
+    receiptFailure?.causeCode === 'ROOM_PARTICIPANT_BUSY'
+    || legacyRoomParticipantBusyPattern.test(message)
+  ) {
+    return ROOM_PARTICIPANT_BUSY_TEXT;
+  }
   if (receiptFailure?.code === 'AGENT_COMMAND_PENDING') {
     if (receiptFailure.recoveryState === 'unresolved') {
       return (
@@ -139,12 +163,14 @@ export function publicAgentErrorText(
     );
   }
   if (receiptFailure?.code === 'AGENT_COMMAND_CONFLICT') {
-    return '发送标识与原请求不一致，请刷新对话后重新发送。';
+    if (receiptFailure.recoveryState === 'new_command_required') {
+      return '这次发送内容已经变化，输入已保留；请直接重新发送一次。';
+    }
+    return '这条消息没有发送；输入已保留，请直接重新发送一次。';
   }
   if (isAgentWorkspaceMissingError(value)) {
     return SESSION_WORKSPACE_MISSING_TEXT;
   }
-  const message = (value instanceof Error ? value.message : String(value ?? '')).trim();
   if (unavailableModelPattern.test(message)) {
     return '当前模型不可用，请切换模型后重试。';
   }
@@ -169,8 +195,17 @@ export function isAgentNetworkInterruption(value: unknown): boolean {
   return networkInterruptionPattern.test(message);
 }
 
+/** A provider quota failure is distinct from a local memory-size failure. */
+export function isModelQuotaError(value: unknown): boolean {
+  const payload = errorPayload(value);
+  const code = stringValue(payload?.errorCode);
+  const message = (value instanceof Error ? value.message : String(value ?? '')).trim();
+  return modelQuotaPattern.test(code) || modelQuotaPattern.test(message);
+}
+
 function errorPayload(value: unknown): Record<string, unknown> | undefined {
-  return record(record(value)?.payload);
+  const outer = record(value);
+  return record(outer?.payload) ?? outer;
 }
 
 function transportResponseStatus(value: unknown): number | undefined {

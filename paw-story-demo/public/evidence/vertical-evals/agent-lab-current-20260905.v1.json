@@ -1,0 +1,749 @@
+{
+  "schemaVersion": "paw.story.agent-lab-current.v1",
+  "sourceDocument": "agent-experiments.v1.json",
+  "sourceSha256": "2b166a11dd90baaf1b309ec29443a7682e934e7de4c59b5233593f0b7e0e136a",
+  "sourceHashEncoding": "UTF-8 JSON; sorted keys; compact separators; ensure_ascii=false",
+  "sourceGeneratedAt": "2026-09-05",
+  "projection": "Explicit public metadata and aggregate metrics only; no task, answer, Gold or transcript bodies. Receipt filenames and content hashes preserve provenance without host paths.",
+  "multiAgentMatchedBenefitMeasured": false,
+  "experiments": [
+    {
+      "key": "enterpriseops",
+      "id": "enterpriseops-csm.luna-prompt-adaptation-r7.v1",
+      "title": "EnterpriseOps CSM · Sol→Luna→通用 Prompt 适配路径",
+      "businessProblem": "在不牺牲客户支持任务终态质量的前提下，把已验证的 Sol/max Agent 降到更低价 Luna/max，并明确区分模型切换与 Prompt 修复的因果阶段。",
+      "status": "kept",
+      "dataset": {
+        "id": "enterpriseops-csm-suite-v2-post-heldout-validation",
+        "split": "validation",
+        "unit": "end-to-end customer-support tasks with 31 Host-private verifiers",
+        "manifestSha256": "d5ef3eb648678fd6abd92879b1a3c946ba335da32f2e26c775792fad8e038fec",
+        "caseCount": 3,
+        "heldOutConsumed": false
+      },
+      "factors": [
+        {
+          "name": "model",
+          "before": "gpt-5.6-sol / max",
+          "after": "gpt-5.6-luna / max",
+          "reason": "第一阶段只换模型，真实结果 2/3、30/31，被质量门禁 Reject。"
+        },
+        {
+          "name": "prompt",
+          "before": "state-contract-preloaded-v3 prompt a16bb73f",
+          "after": "luna-explicit-enum-preloaded-v6 prompt d35237c1",
+          "reason": "第二阶段冻结 Luna 和其他控制，只加入通用角色/地区/tenure、已选 Tool authority 与 exact enum precedence；不含 case ID、答案或 Gold。"
+        }
+      ],
+      "frozenControls": [
+        {
+          "name": "task_tool_dataset_runner",
+          "value": "3 tasks；31 verifiers；manifest d5ef3eb6；Tool catalog 349a40e3；runner 51de12fd",
+          "reason": "三阶段不换题、不换 scorer、不换 Tool 或 runner。"
+        },
+        {
+          "name": "runtime_binary",
+          "value": "runtimeVersion pi-0.84.2-9c3f93c8b1c4-raghost-252438cdad；manifest/entrypoint/extension/node/tool-profile hashes 相同",
+          "reason": "Runtime binary 与 Tool bytes 相同；Sol/Luna identitySha 因模型字段变化，两个 Luna 阶段 identitySha 相同。"
+        },
+        {
+          "name": "cost_authority",
+          "value": "runtime_cost_reconciled；pricing source b8ed197e；Provider bill unavailable",
+          "reason": "成本由 Runtime DB 的逐请求 usage/reportedCost 与内容寻址价格身份交叉验证。"
+        }
+      ],
+      "hardGates": [
+        "3/3 task success",
+        "31/31 Host-private verifier",
+        "zero failed Tool calls",
+        "all temporary databases cleaned"
+      ],
+      "baseline": {
+        "runId": "enterpriseops-csm-sol-max-preloaded-current-runtime-validation-20260904-r8",
+        "metrics": {
+          "allDatabasesCleaned": 1,
+          "apiCostUsd": 1.711214,
+          "databasesCleaned": 3,
+          "failedToolCalls": 0,
+          "taskCount": 3,
+          "taskSuccessCount": 3,
+          "taskSuccessRate": 1.0,
+          "toolCalls": 51,
+          "totalTokens": 1388540,
+          "verifierCount": 31,
+          "verifierPassCount": 31,
+          "verifierPassRate": 1.0
+        }
+      },
+      "candidate": {
+        "runId": "enterpriseops-csm-luna-explicit-enum-prompt-validation-20260904-r7",
+        "metrics": {
+          "allDatabasesCleaned": 1,
+          "apiCostUsd": 0.07291692,
+          "databasesCleaned": 3,
+          "failedToolCalls": 0,
+          "taskCount": 3,
+          "taskSuccessCount": 3,
+          "taskSuccessRate": 1.0,
+          "toolCalls": 55,
+          "totalTokens": 1185986,
+          "verifierCount": 31,
+          "verifierPassCount": 31,
+          "verifierPassRate": 1.0
+        }
+      },
+      "stages": [
+        {
+          "stage": "sol_baseline",
+          "runId": "enterpriseops-csm-sol-max-preloaded-current-runtime-validation-20260904-r8",
+          "decision": "baseline",
+          "metrics": {
+            "failedToolCalls": 0,
+            "taskSuccessCount": 3,
+            "toolCalls": 51,
+            "verifierPassCount": 31
+          },
+          "costUsd": 1.711214
+        },
+        {
+          "stage": "luna_model_only",
+          "runId": "enterpriseops-csm-luna-preloaded-model-only-validation-20260904-r5",
+          "decision": "reject",
+          "metrics": {
+            "failedToolCalls": 0,
+            "taskSuccessCount": 2,
+            "toolCalls": 59,
+            "verifierPassCount": 30
+          },
+          "costUsd": 0.09453296
+        },
+        {
+          "stage": "luna_prompt_adapted",
+          "runId": "enterpriseops-csm-luna-explicit-enum-prompt-validation-20260904-r7",
+          "decision": "keep",
+          "metrics": {
+            "failedToolCalls": 0,
+            "taskSuccessCount": 3,
+            "toolCalls": 55,
+            "verifierPassCount": 31
+          },
+          "costUsd": 0.07291692
+        }
+      ],
+      "decision": "keep",
+      "costAuthority": "runtime_cost_reconciled",
+      "costDecreasePercent": 95.73887777916731,
+      "providerBillAvailable": false,
+      "promptAdaptationNeeded": true,
+      "validationBoundary": {},
+      "openGaps": [
+        "每阶段仅单轮 source-local Validation，没有重复运行置信区间",
+        "Provider bill unavailable；exact Runtime 对账成本不等于真实扣款",
+        "未做新 Held-out、安装态或前台验收"
+      ],
+      "evidence": [
+        {
+          "file": "agent-lab-cost-enterpriseops-luna-max-explicit-enum-prompt-20260904.r7.v1.json",
+          "sha256": "ec53f50d0a7a9a7f318c89952e37f6ce49bf4f4ebc34eb734fce490855d0524f"
+        },
+        {
+          "file": "agent-lab-cost-enterpriseops-luna-max-preloaded-model-only-20260904.r5.v1.json",
+          "sha256": "fa885c7367bf2c44dbc2914c498b95c7b83aa378be8644f50aeb50a8c0f52aef"
+        },
+        {
+          "file": "agent-lab-cost-enterpriseops-sol-max-preloaded-current-runtime-20260904.r8.v1.json",
+          "sha256": "e26e47541229ee4d0e64a6a829db899b6c21902eca840b3672ed469e62ef11d3"
+        },
+        {
+          "file": "enterpriseops-csm-luna-explicit-enum-prompt-validation-20260904.r7.v1.json",
+          "sha256": "637aa4c7b63b78cd24572d91490f0e5832a27a3917ee42b76abea664e322c18e"
+        },
+        {
+          "file": "enterpriseops-csm-luna-preloaded-model-only-validation-20260904.r5.v1.json",
+          "sha256": "0a9ff609d9c0515d73ecf8d91aaf93ba69a7f65abe8422cd289b310d00601222"
+        },
+        {
+          "file": "enterpriseops-csm-sol-max-preloaded-current-runtime-validation-20260904.r8.v1.json",
+          "sha256": "5c52f9c3295a9504946ed6b5fbc499e26c709f4fdb1150c999040eb0f26b2f5c"
+        },
+        {
+          "file": "enterpriseops-csm-sol-to-luna-prompt-adaptation-20260904.r1.json",
+          "sha256": "74a0e8d4d2303789f444094a5f0989d14881649b1dc3344d19ece6021195c55f"
+        }
+      ]
+    },
+    {
+      "key": "rag",
+      "id": "enterprise-rag.luna-prompt-v4-standard-r6.v1",
+      "title": "Enterprise RAG · Sol→Luna model-only→Luna Prompt-v4 under Standard r6",
+      "businessProblem": "在逐事实证据硬门不退化的前提下，把高成本 Sol 企业问答迁移到更低价 Luna，并保留模型替换失败与通用 Prompt 修复的独立因果阶段。",
+      "status": "kept",
+      "dataset": {
+        "id": "enterprise-rag-answer-evidence-validation-attention-r6",
+        "split": "validation",
+        "unit": "2 answerable + 2 abstention cases; 9 required facts; public artifacts omit question, Gold, quote and answer bodies",
+        "manifestSha256": "6a4f6e35dbc0987a346649a19a48de5938f1b06e9c60e9be7dd2d4a2f6466c3e",
+        "caseCount": 4,
+        "heldOutConsumed": false
+      },
+      "factors": [
+        {
+          "name": "model",
+          "before": "openai-codex/gpt-5.6-sol / max",
+          "after": "openai-codex/gpt-5.6-luna / max",
+          "reason": "先单独运行 model-only 阶段并保留 8/9 Reject，证明低价模型本身尚未通过门禁。"
+        },
+        {
+          "name": "prompt",
+          "before": "frozen-v19 generic answer/evidence Prompt",
+          "after": "coverage-balanced-evidence-gate-v4",
+          "reason": "第二阶段冻结 Luna 与其余控制，只增加通用 atomic-gap、轮转补检索和 claim-to-citation 完整性规则；不含 case、问题、答案、Gold、qrels 或 quote。"
+        }
+      ],
+      "frozenControls": [
+        {
+          "name": "runtime_tool_dataset_scorer",
+          "value": "same corpus/chunk manifest, four-case Validation, Tool contracts, runner and exact citation scorer",
+          "reason": "三阶段的质量差异不来自换题、缩分母或修改 Runtime/Tool。"
+        },
+        {
+          "name": "r6_standard",
+          "value": "candidateAware=true; candidateBlind=false; Heldout=false; unbiased=false",
+          "reason": "r6 是运行后 Standard 校准，三阶段统一重评分但不能支持无偏 Promotion 或模型能力提升。"
+        },
+        {
+          "name": "cost_scope",
+          "value": "full four-lane run plus frozen Judge; authority=runtime_cost_reconciled; Provider bill unavailable",
+          "reason": "成本来自逐请求 Runtime 对账与 hash-bound 费率，不能冒充实际扣款；离线重评分本身调用为 0。"
+        }
+      ],
+      "hardGates": [
+        "9/9 exact citation facts",
+        "2/2 answerable citation cases supported",
+        "2/2 answerable answers accepted by frozen Judge",
+        "2/2 abstentions correct",
+        "100% output protocol and Tool success"
+      ],
+      "baseline": {
+        "runId": "enterprise-rag-sol-max-frozen-v19-20260904-r4",
+        "metrics": {
+          "agentSuccessRate": 0.75,
+          "answerJudgeCorrectnessRate": 0.5,
+          "answerableCitationSupportRate": 0.5,
+          "apiCostUsd": 2.170603,
+          "citationFactCount": 9,
+          "citationHardGatePassed": 0,
+          "exactCitationFactCoverage": 0.7777777777777778,
+          "exactCitationFactsCovered": 7,
+          "infoNotFoundAbstentionRecall": 1.0,
+          "outputProtocolRate": 1.0,
+          "toolSuccessRate": 1.0,
+          "totalTokens": 892697
+        }
+      },
+      "candidate": {
+        "runId": "enterprise-rag-luna-max-coverage-balanced-v4-20260904-r4",
+        "metrics": {
+          "agentSuccessRate": 1.0,
+          "answerJudgeCorrectnessRate": 1.0,
+          "answerableCitationSupportRate": 1.0,
+          "apiCostUsd": 0.1029376,
+          "citationFactCount": 9,
+          "citationHardGatePassed": 1,
+          "exactCitationFactCoverage": 1.0,
+          "exactCitationFactsCovered": 9,
+          "infoNotFoundAbstentionRecall": 1.0,
+          "outputProtocolRate": 1.0,
+          "toolSuccessRate": 1.0,
+          "totalTokens": 763923
+        }
+      },
+      "stages": [
+        {
+          "stage": "sol_baseline",
+          "runId": "enterprise-rag-sol-max-frozen-v19-20260904-r4",
+          "decision": "reject",
+          "metrics": {
+            "agentSuccessRate": 0.75,
+            "answerJudgeCorrectnessRate": 0.5,
+            "citationFactCount": 9,
+            "exactCitationFactsCovered": 7
+          },
+          "costUsd": 2.170603
+        },
+        {
+          "stage": "luna_model_only",
+          "runId": "enterprise-rag-luna-max-model-only-v19-20260904-r4",
+          "decision": "reject",
+          "metrics": {
+            "agentSuccessRate": 0.75,
+            "answerJudgeCorrectnessRate": 1.0,
+            "citationFactCount": 9,
+            "exactCitationFactsCovered": 8
+          },
+          "costUsd": 0.10594896
+        },
+        {
+          "stage": "luna_prompt_v4",
+          "runId": "enterprise-rag-luna-max-coverage-balanced-v4-20260904-r4",
+          "decision": "keep",
+          "metrics": {
+            "agentSuccessRate": 1.0,
+            "answerJudgeCorrectnessRate": 1.0,
+            "citationFactCount": 9,
+            "exactCitationFactsCovered": 9
+          },
+          "costUsd": 0.1029376
+        }
+      ],
+      "decision": "keep",
+      "costAuthority": "runtime_cost_reconciled",
+      "costDecreasePercent": 95.25764960243765,
+      "providerBillAvailable": false,
+      "promptAdaptationNeeded": true,
+      "validationBoundary": {
+        "candidateAware": true,
+        "candidateBlind": false,
+        "heldOutOpened": false,
+        "unbiasedPromotionClaimAllowed": false,
+        "standardRevisionIsModelCapabilityImprovement": false,
+        "latencyIsKeepGate": false,
+        "offlineRescoreProviderCalls": 0,
+        "offlineRescoreJudgeCalls": 0,
+        "offlineRescoreCandidateRuns": 0
+      },
+      "openGaps": [
+        "candidate-blind or untouched Held-out evaluation is still required for unbiased Promotion",
+        "Provider bill, installation, foreground and production generalization are unverified",
+        "latency is diagnostic only and was not remeasured by offline r6 rescoring",
+        "r6 Standard correction must not be attributed to model capability"
+      ],
+      "evidence": [
+        {
+          "file": "enterprise-rag-answer-evidence-standard.validation-candidate-aware-attention-r6.json",
+          "sha256": "f424ac5343c67880ede77cee241428f83d50aa562ba0905dceac5b3d5fdb01e8"
+        },
+        {
+          "file": "agent-lab-cost-enterprise-rag-luna-max-coverage-balanced-v4-20260904.r4.v1.json",
+          "sha256": "f1665186295a1958f335162997f986f027d56a9542708e49bd44e396438b472e"
+        },
+        {
+          "file": "agent-lab-cost-enterprise-rag-luna-max-model-only-v19-20260904.r4.v1.json",
+          "sha256": "950efa276b713af8219d7501f49720fcca2dfc3afb9b283e762eab084fd77f9a"
+        },
+        {
+          "file": "agent-lab-cost-enterprise-rag-sol-max-frozen-v19-20260904.r4.v1.json",
+          "sha256": "efb49554a3d5840ea824f9bbbb70edeffce0a8f9a55205fdc0c78e8b2dc2b0ae"
+        },
+        {
+          "file": "enterprise-rag-answer-evidence-luna-max-coverage-balanced-v4-r4-attention-r6-exact-offline-rescore-20260905.v1.json",
+          "sha256": "f1f9c643d0fc17a5c8738b6e68faad65c107b919c2b4a4f15f496e19481ce0a1"
+        },
+        {
+          "file": "enterprise-rag-answer-evidence-luna-max-model-only-v19-r4-attention-r6-exact-offline-rescore-20260905.v1.json",
+          "sha256": "7f358101d6231d631f6328e9dff48ca8c147c88255426b0a26e3004301c413f3"
+        },
+        {
+          "file": "enterprise-rag-answer-evidence-sol-max-frozen-v19-r4-attention-r6-exact-offline-rescore-20260905.v1.json",
+          "sha256": "1ef90fc42ffa05fc0f8550a49165965b2871169aadde951e12b22defd9191ae9"
+        },
+        {
+          "file": "enterprise-rag-answer-evidence-standard-candidate-aware-attention-r6-calibration-20260905.v1.json",
+          "sha256": "e3665f3ac3c59e8c25ace3a09f1515f4574c27f2d4096ac259e692c792c72df9"
+        }
+      ]
+    },
+    {
+      "key": "cloudops",
+      "id": "cloudops.luna-owner-mechanism-prompt-r5.v1",
+      "title": "CloudOps · Sol→Luna→Owner/Mechanism Prompt 路径",
+      "businessProblem": "把 CloudOps 诊断从 Sol/max 降到低价 Luna/max，同时保持全部最终诊断正确、提高故障对象/根因排序，并消除 Tool failure。",
+      "status": "kept",
+      "dataset": {
+        "id": "cloudops-smoke-v1",
+        "split": "validation",
+        "unit": "12 frozen incident-diagnosis cases in three sequential batches",
+        "manifestSha256": "31939ae6ba38924fd63195fb28c289401674da89e81423fe7dd8217b753fdaec",
+        "caseCount": 12,
+        "heldOutConsumed": false
+      },
+      "factors": [
+        {
+          "name": "model",
+          "before": "openai-codex / gpt-5.6-sol / max",
+          "after": "openai-codex / gpt-5.6-luna / max",
+          "reason": "第一阶段只换模型，CA/JRA/Top3JRA 与 Tool reliability 回退，因此 Reject。"
+        },
+        {
+          "name": "prompt",
+          "before": "alert-first-v5",
+          "after": "luna-owner-mechanism-gate-v8",
+          "reason": "第二阶段冻结 Luna 与其他控制，只补 exact-family evidence、owner-before-mechanism 和 unresolved-discriminator 通用规则；不含 case ID、答案、预测根因或 Gold。"
+        }
+      ],
+      "frozenControls": [
+        {
+          "name": "dataset_scorer_batch_context",
+          "value": "12-case suite 31939ae6；scorer 99126a25；3×4 batch d7a7aba0；standard-v1 context",
+          "reason": "三阶段使用相同分母、Host scorer、batch 与上下文投影。"
+        },
+        {
+          "name": "runtime_binary_and_tools",
+          "value": "Runtime pi-0.84.2-9c3f93c8b1c4-raghost-252438cdad；manifest/entrypoint/extension/node/tool-profile hashes 相同",
+          "reason": "Sol/Luna identitySha 因模型字段变化；两个 Luna 阶段的 identitySha 相同。"
+        },
+        {
+          "name": "cost_authority",
+          "value": "runtime_cost_reconciled；shared pricing source b8ed197e；Provider bill unavailable",
+          "reason": "逐请求 Runtime DB usage、reportedCost 与内容寻址费率交叉验证；trialAggregate 只作原始报告诊断。"
+        }
+      ],
+      "hardGates": [
+        "12/12 answer coverage",
+        "CA = 1",
+        "FA/JRA/Top3JRA non-regression",
+        "zero failed Tool calls",
+        "quality gate passed",
+        "exact Runtime cost receipt available"
+      ],
+      "baseline": {
+        "runId": "cloudops-sol-max-alert-first-candidate-20260904-r7",
+        "metrics": {
+          "answerCoverage": 1.0,
+          "apiCostUsd": 4.568166,
+          "ca": 1.0,
+          "fa": 0.8333333333333334,
+          "failedToolCalls": 1,
+          "formalScoreProduced": 1,
+          "jra": 0.8333333333333334,
+          "toolCalls": 99,
+          "top3Jra": 1.0,
+          "totalTokens": 4662170
+        }
+      },
+      "candidate": {
+        "runId": "cloudops-luna-max-owner-mechanism-prompt-20260904-r5",
+        "metrics": {
+          "answerCoverage": 1.0,
+          "apiCostUsd": 0.27613024,
+          "ca": 1.0,
+          "fa": 0.9166666666666666,
+          "failedToolCalls": 0,
+          "formalScoreProduced": 1,
+          "jra": 0.9166666666666666,
+          "toolCalls": 130,
+          "top3Jra": 1.0,
+          "totalTokens": 5721003
+        }
+      },
+      "stages": [
+        {
+          "stage": "sol_baseline",
+          "runId": "cloudops-sol-max-alert-first-candidate-20260904-r7",
+          "decision": "baseline",
+          "metrics": {
+            "ca": 1.0,
+            "fa": 0.8333333333333334,
+            "failedToolCalls": 1,
+            "jra": 0.8333333333333334,
+            "toolCalls": 99,
+            "top3Jra": 1.0
+          },
+          "costUsd": 4.568166
+        },
+        {
+          "stage": "luna_model_only",
+          "runId": "cloudops-luna-max-alert-first-model-only-20260904-r1",
+          "decision": "reject",
+          "metrics": {
+            "ca": 0.9166666666666666,
+            "fa": 0.8333333333333334,
+            "failedToolCalls": 6,
+            "jra": 0.75,
+            "toolCalls": 177,
+            "top3Jra": 0.9166666666666666
+          },
+          "costUsd": 0.33593112
+        },
+        {
+          "stage": "luna_prompt_adapted",
+          "runId": "cloudops-luna-max-owner-mechanism-prompt-20260904-r5",
+          "decision": "keep",
+          "metrics": {
+            "ca": 1.0,
+            "fa": 0.9166666666666666,
+            "failedToolCalls": 0,
+            "jra": 0.9166666666666666,
+            "toolCalls": 130,
+            "top3Jra": 1.0
+          },
+          "costUsd": 0.27613024
+        }
+      ],
+      "decision": "keep",
+      "costAuthority": "runtime_cost_reconciled",
+      "costDecreasePercent": 93.9553369995749,
+      "providerBillAvailable": false,
+      "promptAdaptationNeeded": true,
+      "validationBoundary": {},
+      "openGaps": [
+        "每阶段仅一轮 source-local Validation，没有重复运行置信区间",
+        "Provider bill unavailable；exact Runtime reconciliation 不等于真实扣款",
+        "Held-out、安装态、前台和生产泛化均未验证",
+        "耗时比 Sol 慢，只作 diagnostic，不写成改善"
+      ],
+      "evidence": [
+        {
+          "file": "agent-lab-cost-cloudops-luna-max-alert-first-model-only-20260904.r1.v1.json",
+          "sha256": "d1ae9fa179142d428e6f046184f2867cc2e081e8eabc38edce13b9a6c4032db6"
+        },
+        {
+          "file": "agent-lab-cost-cloudops-luna-max-owner-mechanism-prompt-20260904.r5.v1.json",
+          "sha256": "80d9184d12fc1ac8d637d2bdd64d786564277f18233e0ff0db52ce0861953825"
+        },
+        {
+          "file": "agent-lab-cost-cloudops-sol-max-alert-first-20260904.r7.v1.json",
+          "sha256": "10bc77f3607ba0c45e963f026267e6d63662b0c9b1b7970d96a791b30d5f9d90"
+        },
+        {
+          "file": "agent-lab-optimal-path-cloudops-luna-prompt-20260904.v1.json",
+          "sha256": "28fce9a67d61e927ff406bd33d14db156b87f3394d41830ba1c70768f0ace4ea"
+        },
+        {
+          "file": "cloudops-luna-max-alert-first-model-only-case-projection-20260904.r1.json",
+          "sha256": "d04cb7aa7cdf72311b25293a338258744fb29e0e71419233ab5fc1524b962c33"
+        },
+        {
+          "file": "cloudops-luna-max-owner-mechanism-prompt-case-projection-20260904.r5.json",
+          "sha256": "78e2cb19e4e2ddd6c120c868ddaf175768baab7a269df2465742617f75e2dc6e"
+        },
+        {
+          "file": "cloudops-sol-max-alert-first-case-projection-20260904.r7.json",
+          "sha256": "c151530a340c860240336f2d354175c2d727fa7feeb0a64f1932de6093563ce0"
+        },
+        {
+          "file": "cloudops-sol-to-luna-owner-mechanism-prompt-20260904.r1.json",
+          "sha256": "f66897b5275ff7b9642e773be2eacff86bb5a311a67ffa59ca0a5a95f4948139"
+        }
+      ]
+    },
+    {
+      "id": "memory.maintenance-pi-model-only-20260905-r3.v1",
+      "title": "Memory Maintenance · Pi current-runtime synthetic validation · Sol → Luna",
+      "businessProblem": "Verify that the current Pi Memory Trial path completes the same synthetic lifecycle with a lower-cost model under frozen controls.",
+      "status": "kept",
+      "dataset": {
+        "id": "memory-pi-synthetic-fixture-20260905-r3",
+        "split": "synthetic_validation",
+        "caseCount": 5,
+        "unit": "4 durable synthetic cases + 1 non-memory control",
+        "manifestSha256": "c0cfdaf2429d6e1ac82847ed9efc8dc04fc33611082e8d03e4de7fbb77282fff",
+        "heldOutConsumed": false
+      },
+      "factors": [
+        {
+          "name": "model",
+          "before": "openai-codex / gpt-5.6-sol / max",
+          "after": "openai-codex / gpt-5.6-luna / max",
+          "reason": "The business fixture, full-json-v1 context, standard-v1 Prompt, Pi transport, embedding and lifecycle implementation stay fixed."
+        }
+      ],
+      "frozenControls": [
+        {
+          "name": "business_fixture",
+          "value": "5 public synthetic cases (4 durable + 1 non-memory); Trial canonical SHA-256 c0cfdaf2429d6e1ac82847ed9efc8dc04fc33611082e8d03e4de7fbb77282fff",
+          "reason": "Both runs use the same business fixture; this is not personal production memory or Held-out."
+        },
+        {
+          "name": "context_and_prompt",
+          "value": "full-json-v1 context; standard-v1 Prompt",
+          "reason": "Frozen within this Pi pair. The old CLI pair used concise-json-v1 and is a separate experiment."
+        },
+        {
+          "name": "runtime_and_workflow",
+          "value": "openai-codex; Pi Session transport; max; local-hashing embeddings; identical five source code hashes in retained receipt",
+          "reason": "Only the model changes; curation, retrieval, rollback and replay use the same source-controlled pipeline."
+        },
+        {
+          "name": "cost_authority",
+          "value": "runtime_cost_reconciled_estimate; 4 requests (2 per model), 0 failures; per-request transcript costs and Runtime DB usage matched",
+          "reason": "Exact retained usage and frozen catalog rates are reconciled; no Provider bill was supplied."
+        }
+      ],
+      "openGaps": [
+        "One Pi Trial per model, using five public synthetic fixtures; no repeated-run confidence interval.",
+        "No production personal memory, Held-out, installed frontend acceptance or multi-Agent benefit was evaluated.",
+        "This standard-v1 Pi validation is separate from the retained concise-json-v1 CLI pair; it does not reproduce or replace that experiment.",
+        "Cost is a Runtime-reconciled estimate using the frozen Pi catalog, not a Provider bill; elapsed time is diagnostic.",
+        "Public Trial results expose aggregate gates and counts, not per-case answer bodies or per-case durable/abstention pass counts."
+      ],
+      "key": "memory",
+      "baseline": {
+        "runId": "memory-pi-current-pair-20260905-r3-baseline",
+        "metrics": {
+          "curationCases": 5,
+          "modelDecisionCount": 5,
+          "curationOk": 1,
+          "currentAtomCount": 6,
+          "governedCurrentAtomCount": 6,
+          "legalLineageCurrentAtomCount": 6,
+          "retrievalCases": 5,
+          "durableCaseCount": 4,
+          "retrievalPassed": 1,
+          "projectionFresh": 1,
+          "rollbackPassed": 1,
+          "rollbackRestoredBaseline": 1,
+          "replayAttempted": 1,
+          "replayPassed": 1,
+          "replayReusedModelRequests": 1,
+          "requestCount": 2,
+          "failedRequestCount": 0,
+          "uncachedInputTokens": 10803,
+          "cachedInputTokens": 0,
+          "outputTokens": 3647,
+          "totalTokens": 14450,
+          "apiCostUsd": 0.163425,
+          "costReceiptAvailable": 1,
+          "providerBillAvailable": 0,
+          "trialElapsedMs": 165559
+        }
+      },
+      "candidate": {
+        "runId": "memory-pi-current-pair-20260905-r3-candidate",
+        "metrics": {
+          "curationCases": 5,
+          "modelDecisionCount": 5,
+          "curationOk": 1,
+          "currentAtomCount": 6,
+          "governedCurrentAtomCount": 6,
+          "legalLineageCurrentAtomCount": 6,
+          "retrievalCases": 5,
+          "durableCaseCount": 4,
+          "retrievalPassed": 1,
+          "projectionFresh": 1,
+          "rollbackPassed": 1,
+          "rollbackRestoredBaseline": 1,
+          "replayAttempted": 1,
+          "replayPassed": 1,
+          "replayReusedModelRequests": 1,
+          "requestCount": 2,
+          "failedRequestCount": 0,
+          "uncachedInputTokens": 10909,
+          "cachedInputTokens": 0,
+          "outputTokens": 4169,
+          "totalTokens": 15078,
+          "apiCostUsd": 0.0071846,
+          "costReceiptAvailable": 1,
+          "providerBillAvailable": 0,
+          "trialElapsedMs": 82277
+        }
+      },
+      "decision": "keep",
+      "costAuthority": "runtime_cost_reconciled_estimate",
+      "costDecreasePercent": 95.60373259905155,
+      "promptAdaptationNeeded": false,
+      "validationBoundary": {
+        "syntheticFixture": true,
+        "currentRuntimeValidation": true,
+        "heldOutOpened": false,
+        "personalMemoryQualityMeasured": false,
+        "installedAcceptanceEvaluated": false,
+        "productionMutationPerformed": false,
+        "oldCliPairReproduced": false,
+        "latencyIsKeepGate": false
+      },
+      "hardGates": [
+        "Curation returns five model decisions and a passing aggregate result",
+        "Retrieval passes over five fixture cases, including four durable cases",
+        "Six current atoms have governance and legal lineage; retrieval projection is fresh",
+        "Rollback restores the baseline; replay passes and reuses model requests",
+        "Both Pi Trials complete; four actual requests, zero failures",
+        "Synthetic fixture only; production mutation and Held-out are not evaluated"
+      ],
+      "stages": [
+        {
+          "stage": "sol_baseline",
+          "runId": "memory-pi-current-pair-20260905-r3-baseline",
+          "decision": "baseline",
+          "costUsd": 0.163425,
+          "metrics": {
+            "curationCases": 5,
+            "modelDecisionCount": 5,
+            "curationOk": 1,
+            "currentAtomCount": 6,
+            "governedCurrentAtomCount": 6,
+            "legalLineageCurrentAtomCount": 6,
+            "retrievalCases": 5,
+            "durableCaseCount": 4,
+            "retrievalPassed": 1,
+            "projectionFresh": 1,
+            "rollbackPassed": 1,
+            "rollbackRestoredBaseline": 1,
+            "replayAttempted": 1,
+            "replayPassed": 1,
+            "replayReusedModelRequests": 1,
+            "requestCount": 2,
+            "failedRequestCount": 0,
+            "uncachedInputTokens": 10803,
+            "cachedInputTokens": 0,
+            "outputTokens": 3647,
+            "totalTokens": 14450,
+            "apiCostUsd": 0.163425,
+            "costReceiptAvailable": 1,
+            "providerBillAvailable": 0,
+            "trialElapsedMs": 165559
+          }
+        },
+        {
+          "stage": "luna_model_only",
+          "runId": "memory-pi-current-pair-20260905-r3-candidate",
+          "decision": "keep",
+          "costUsd": 0.0071846,
+          "metrics": {
+            "curationCases": 5,
+            "modelDecisionCount": 5,
+            "curationOk": 1,
+            "currentAtomCount": 6,
+            "governedCurrentAtomCount": 6,
+            "legalLineageCurrentAtomCount": 6,
+            "retrievalCases": 5,
+            "durableCaseCount": 4,
+            "retrievalPassed": 1,
+            "projectionFresh": 1,
+            "rollbackPassed": 1,
+            "rollbackRestoredBaseline": 1,
+            "replayAttempted": 1,
+            "replayPassed": 1,
+            "replayReusedModelRequests": 1,
+            "requestCount": 2,
+            "failedRequestCount": 0,
+            "uncachedInputTokens": 10909,
+            "cachedInputTokens": 0,
+            "outputTokens": 4169,
+            "totalTokens": 15078,
+            "apiCostUsd": 0.0071846,
+            "costReceiptAvailable": 1,
+            "providerBillAvailable": 0,
+            "trialElapsedMs": 82277
+          }
+        }
+      ],
+      "evidence": [
+        {
+          "file": "memory-pi-current-pair-20260905.r3.json",
+          "sha256": "2a45930a342a26c9aa9e123736766cca37156bb45b49beec84146252b35a9ea8"
+        }
+      ],
+      "sourceExperimentSha256": "fa0f232e40dcdb86aaf5e5579efcc934cf693fc838a130074292dbbd1d5c41db"
+    }
+  ],
+  "incrementalUpdates": [
+    {
+      "date": "2026-09-05",
+      "key": "memory",
+      "sourceId": "memory.maintenance-pi-model-only-20260905-r3.v1",
+      "sourceExperimentSha256": "fa0f232e40dcdb86aaf5e5579efcc934cf693fc838a130074292dbbd1d5c41db",
+      "note": "Current Pi synthetic pair replaces the displayed old CLI pair; original sourceSha256 applies to unchanged projections."
+    }
+  ]
+}

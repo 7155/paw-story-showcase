@@ -110,6 +110,7 @@ export function AgentComposer({
   draft,
   attachments,
   session,
+  sessionMetadataKnown = Boolean(session),
   persona,
   catalog,
   commands: piCommands,
@@ -141,6 +142,7 @@ export function AgentComposer({
   thinkingPickerRequest = 0,
   permissionPickerRequest = 0,
   toolPickerRequest = 0,
+  toolPickerQuery = '',
   helpRequest = 0,
   imageSupport = 'unknown',
   showJumpLatest = false,
@@ -155,6 +157,7 @@ export function AgentComposer({
   draft: string;
   attachments: ComposerAttachment[];
   session?: SessionSummary;
+  sessionMetadataKnown?: boolean;
   persona?: AgentPersonaV1;
   catalog?: ModelCatalog;
   commands: AgentCommand[];
@@ -186,6 +189,7 @@ export function AgentComposer({
   thinkingPickerRequest?: number;
   permissionPickerRequest?: number;
   toolPickerRequest?: number;
+  toolPickerQuery?: string;
   helpRequest?: number;
   imageSupport?: 'supported' | 'unsupported' | 'unknown';
   showJumpLatest?: boolean;
@@ -556,13 +560,14 @@ export function AgentComposer({
             />
             {minimal ? null : (
               <>
-                <PermissionPicker session={session} persona={persona} tools={tools} disabled={busy || sending} requestOpen={permissionPickerRequest} onChange={onPermissionChange} onWorkspaceRootsChange={onWorkspaceRootsChange} />
+                <PermissionPicker session={session} metadataKnown={sessionMetadataKnown} persona={persona} tools={tools} disabled={busy || sending} requestOpen={permissionPickerRequest} onChange={onPermissionChange} onWorkspaceRootsChange={onWorkspaceRootsChange} />
                 <ToolPicker
                   adjustmentDisabled={busy || sending}
                   capabilityCatalog={capabilityCatalog}
                   capabilityPolicyPending={capabilityPolicyPending}
                   disabled={!session}
                   requestOpen={toolPickerRequest}
+                  requestQuery={toolPickerQuery}
                   session={session}
                   status={toolCatalogStatus}
                   tools={tools}

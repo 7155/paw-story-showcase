@@ -1,0 +1,27 @@
+.native-demo { padding: 0; }
+.native-demo-bar { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 16px 24px; font-size: 14px; color: #586375; }
+.native-demo-bar a { display: inline-flex; align-items: center; gap: 8px; color: #5143ae; min-height: 32px; white-space: nowrap; }
+.native-demo-frame { position: relative; height: max(680px,78svh); background: #f4f5f8; }
+.native-demo-frame>p { position: absolute; inset: 0; display: grid; place-items: center; color: #586375; font-size: 16px; }
+.native-demo-frame iframe { width: 100%; height: 100%; border: 0; position: relative; opacity: 0; }
+.native-demo-frame[data-loaded] iframe { opacity: 1; }
+.native-demo-boundary { padding: 14px 24px; font-size: 12px; color: #586375; margin: 0; }
+.hands-on-hint { display: flex; align-items: center; gap: 12px; color: #5143ae; min-width: 0; padding-block: 12px; }
+.hands-on-hint>svg { flex-shrink: 0; }
+.hands-on-hint strong { font-size: 12px; line-height: 1.5; font-weight: 600; }
+.hands-on-hint p { font-size: 15px; color: #202532; line-height: 1.6; margin: 3px 0 0; }
+.native-demo-bar { align-items: center; gap: 16px; }
+.native-demo-bar>.hands-on-hint { flex: 1; padding: 0; }
+.native-demo-reset { background: transparent; border: 0; color: #586375; cursor: pointer; font-size: 13px; min-height: 40px; white-space: nowrap; }
+.native-demo-reset:focus-visible { outline: 2px solid #5143ae; outline-offset: 4px; }
+@media(max-width:760px) { .native-demo-bar { flex-wrap: wrap; padding: 16px; } .native-demo-bar>.hands-on-hint { flex-basis: 100%; } }
+
+.detail-live-native { max-width: 1360px; margin: 24px auto; border: 1px solid #d8dce5; border-radius: 10px; overflow: hidden; background: #fff; }
+.detail-reading { max-width: 1360px; margin: 24px auto; }
+.detail-reading>summary { padding: 24px 0; border-block: 1px solid #d8dce5; font-size: 16px; color: #5143ae; cursor: pointer; }
+@media(max-width:760px) { .detail-live-native,.detail-reading { margin-inline: 12px; } }
+
+.hands-on-path { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0 0 5px; padding: 0; font-size: 12px; color: #757b86; }
+.hands-on-path li+li::before { content: '›'; margin-right: 6px; color: #a0a5af; }
+.hands-on-path [data-state="current"] { color: #5143ae; font-weight: 700; }
+.hands-on-path [data-state="done"] { color: #38745c; }

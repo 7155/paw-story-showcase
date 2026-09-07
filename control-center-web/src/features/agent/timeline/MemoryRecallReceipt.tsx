@@ -19,8 +19,10 @@ export type MemoryRecallReceiptView = {
   traceId: string;
   turnId: string;
   nodeId: string;
-  count: number;
-  durationMs: number;
+  count?: number;
+  durationMs?: number;
+  status: 'included' | 'empty' | 'failed' | 'disabled' | 'reused' | 'unavailable';
+  trigger: string;
   sourceTitles: string[];
   entities: EvidenceEchoEntity[];
 };
@@ -33,17 +35,18 @@ export function MemoryRecallReceipt({ receipt }: { receipt: MemoryRecallReceiptV
       summary={(
         <>
           <BrainCircuit aria-hidden="true" size={14} />
-          <strong>记忆召回 · {receipt.count} 条 · {receipt.durationMs} ms</strong>
+          <strong>{memoryReceiptLabel(receipt)}</strong>
           <span aria-hidden="true">›</span>
         </>
       )}
     >
       <div className="agent-memory-recall-receipt__body">
+        <p>{memoryReceiptExplanation(receipt)}</p>
         {receipt.sourceTitles.length ? (
           <ul aria-label="记忆召回来源标题">
             {receipt.sourceTitles.map((title) => <li key={title}>{title}</li>)}
           </ul>
-        ) : <p>这次召回没有附带可公开的来源标题。</p>}
+        ) : null}
         <div className="agent-memory-recall-receipt__actions">
           {receipt.entities.map((entity) => (
             <button
@@ -64,11 +67,11 @@ export function MemoryRecallReceipt({ receipt }: { receipt: MemoryRecallReceiptV
             查看上下文轨迹 <ExternalLink aria-hidden="true" size={12} />
           </button>
           <button
-            aria-label="打开记忆召回设置"
-            onClick={() => openPawOsRoute(desktop, '/memory?view=preferences')}
+            aria-label="打开本对话记忆开关"
+            onClick={() => openPawOsRoute(desktop, `/agent?session=${encodeURIComponent(receipt.sessionId)}&tools=memory&toolsRequest=${Date.now()}`)}
             type="button"
           >
-            召回设置 <Settings2 aria-hidden="true" size={12} />
+            本对话记忆开关 <Settings2 aria-hidden="true" size={12} />
           </button>
         </div>
       </div>
@@ -80,18 +83,29 @@ export function memoryRecallReceiptFromTrace(
   trace: AgentContextTraceV1,
 ): MemoryRecallReceiptView | undefined {
   const node = trace.nodes.find((candidate) => (
-    candidate.stage === 'memory_recall' && candidate.disposition === 'included'
+    candidate.stage === 'memory_recall'
   ));
   if (!node) return undefined;
   const count = finiteInteger(node.metadata.hitCount);
-  if (!count || count < 1) return undefined;
+  const recordedStatus = text(node.metadata.recallStatus);
+  const status: MemoryRecallReceiptView['status'] = (
+    ['included', 'empty', 'failed', 'disabled', 'reused', 'unavailable'].includes(recordedStatus)
+      ? recordedStatus as MemoryRecallReceiptView['status']
+      : node.disposition === 'failed' ? 'failed'
+        : node.disposition === 'included' ? count === 0 ? 'empty' : 'included'
+          : 'unavailable'
+  );
+  const duration = finiteInteger(node.durationMs);
   return {
     sessionId: trace.sessionId,
     traceId: trace.traceId,
     turnId: trace.turnId,
     nodeId: node.nodeId,
-    count,
-    durationMs: Math.max(0, finiteInteger(node.durationMs) ?? 0),
+    count: count !== undefined && count >= 0 ? count : undefined,
+    // Historical traces used 0 when no recall timing was measured.
+    durationMs: duration !== undefined && duration > 0 ? duration : undefined,
+    status,
+    trigger: text(node.metadata.recallTrigger),
     sourceTitles: commaSeparated(node.metadata.sourceTitles, 12),
     entities: evidenceEchoNodeEntities(node, { sessionId: trace.sessionId })
       .filter((entity) => entity.appId === 'memory' || entity.appId === 'knowledge'),
@@ -165,29 +179,69 @@ async function loadMemoryRecallReceipts(
   const summaries = array(record(response).items)
     .map(record)
     .filter((item) => turnIds.has(text(item.turnId)) && Boolean(text(item.traceId)));
-  const latestByTurn = new Map<string, Record<string, unknown>>();
+  const tracesByTurn = new Map<string, Record<string, unknown>[]>();
   for (const summary of summaries) {
     const turnId = text(summary.turnId);
-    if (!latestByTurn.has(turnId)) latestByTurn.set(turnId, summary);
+    const entries = tracesByTurn.get(turnId) ?? [];
+    entries.push(summary);
+    tracesByTurn.set(turnId, entries);
   }
-  const pairs = await Promise.all([...latestByTurn.entries()].map(async ([turnId, summary]) => {
-    const traceId = text(summary.traceId);
-    const settled = text(summary.status) !== 'building';
-    if (settled && settledCache.has(traceId)) return [turnId, settledCache.get(traceId)] as const;
-    try {
-      const trace = await transport.request<AgentContextTraceV1>({
-        pathId: 'agent.session.contextTrace.get',
-        params: { sessionId, traceId },
-        signal,
-      });
-      const receipt = memoryRecallReceiptFromTrace(trace);
-      if (settled) settledCache.set(traceId, receipt);
-      return [turnId, receipt] as const;
-    } catch {
-      return [turnId, undefined] as const;
+  const pairs = await Promise.all([...tracesByTurn.entries()].map(async ([turnId, entries]) => {
+    let best: MemoryRecallReceiptView | undefined;
+    for (const summary of entries) {
+      if (signal.aborted) break;
+      const traceId = text(summary.traceId);
+      const settled = text(summary.status) !== 'building';
+      let receipt = settled ? settledCache.get(traceId) : undefined;
+      if (!settled || !settledCache.has(traceId)) {
+        try {
+          const trace = await transport.request<AgentContextTraceV1>({
+            pathId: 'agent.session.contextTrace.get',
+            params: { sessionId, traceId },
+            signal,
+          });
+          receipt = memoryRecallReceiptFromTrace(trace);
+          if (settled) settledCache.set(traceId, receipt);
+        } catch {
+          continue;
+        }
+      }
+      if (receipt && (!best || receiptPriority(receipt) > receiptPriority(best))) best = receipt;
+      // A later steer shares the turn but does not replace its actual recall.
+      // Stop at the newest real outcome instead of loading every old trace.
+      if (best && receiptPriority(best) === 3) break;
     }
+    return [turnId, best] as const;
   }));
   return Object.fromEntries(pairs.filter((pair): pair is readonly [string, MemoryRecallReceiptView] => Boolean(pair[1])));
+}
+
+function receiptPriority(receipt: MemoryRecallReceiptView): number {
+  return receipt.status === 'unavailable' ? 1 : receipt.status === 'reused' ? 2 : 3;
+}
+
+function memoryReceiptLabel(receipt: MemoryRecallReceiptView): string {
+  const kind = receipt.trigger === 'compaction' ? '压缩后记忆' : '本轮记忆';
+  const outcome = receipt.status === 'included'
+    ? receipt.count === undefined ? '已载入' : `${receipt.count} 条`
+    : {
+      empty: '未找到相关记忆', failed: '本轮未能召回', disabled: '已关闭',
+      reused: '复用已载入记忆', unavailable: '本轮未装载',
+    }[receipt.status];
+  const timing = receipt.durationMs !== undefined && ['included', 'empty'].includes(receipt.status)
+    ? ` · ${receipt.durationMs} ms` : '';
+  return `${kind} · ${outcome}${timing}`;
+}
+
+function memoryReceiptExplanation(receipt: MemoryRecallReceiptView): string {
+  return {
+    included: '这些记忆已加入本轮上下文。可打开来源核对；旧记录没有命中数时不推算数量。',
+    empty: '这次自动检索没有找到可加入的相关记忆，当前对话可以继续。',
+    failed: '本轮未能载入记忆，当前消息仍可继续。详情可在上下文轨迹中查看。',
+    disabled: '该轮未启用记忆召回。这是当时的执行记录；当前开关可在本对话的记忆设置中查看。',
+    reused: '该轮复用了对话先前已载入的记忆，没有再次检索。这是当时的执行记录，不代表当前开关状态。',
+    unavailable: '这条投递记录没有附带新的记忆包，不能据此判断没有相关记忆。',
+  }[receipt.status];
 }
 
 function receiptMapsEqual(

@@ -108,18 +108,31 @@ export function roomPartnerSessionWindowRequest(
 }
 
 /**
- * UR-184 协同模式合同：只有用户显式进入协同模式时，Room 名册中的每个
- * active Partner 才以行星 Session 窗展开。Runtime 当前是否执行只负责窗口
- * 的流光和状态，不能决定一颗仍在名册中的行星是否可见。请求保持后台，
- * 主 Room 仍是返回面；稳定 participant target 让 WindowLayer 唤起现有窗口
- * 而非复制。
+ * Opening collaboration mode restores the latest public round, including
+ * partners that submitted before the view mounted. Other concurrent roots
+ * contribute their admitted partners while running. Window visibility is a
+ * reading choice, not a claim that those Sessions are still executing.
+ * Membership alone cannot invent an observer; these background requests
+ * preserve the main composer and stable participant keys.
  */
 export function roomCollaborationPlanetRequests(
   room: RoomSummary,
+  projection?: RoomProjectionState,
 ): PawOsWindowRequest[] {
-  if (room.status !== 'active') return [];
+  if (room.status !== 'active' || !projection) return [];
+  const publicTurns = selectPublicRoomTurnOrder(projection);
+  const latestTurnId = publicTurns.at(-1);
+  const participantIds = new Set<string>();
+  for (const turnId of publicTurns) {
+    const turn = projection.turnsById[turnId];
+    if (!turn || (turnId !== latestTurnId && turn.status !== 'running')) continue;
+    for (const id of turn.participantIds) participantIds.add(id);
+    for (const lane of selectRoomTurnExecution(projection, turnId).lanes) {
+      if (lane.participantId) participantIds.add(lane.participantId);
+    }
+  }
   return room.participants
-    .filter((participant) => participant.status === 'active')
+    .filter((participant) => participant.status === 'active' && participantIds.has(participant.id))
     .sort((left, right) => left.ordinal - right.ordinal || left.id.localeCompare(right.id))
     .map((participant) => roomPlanetObserverWindowRequest(participant, room.id, true));
 }

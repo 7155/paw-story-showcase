@@ -1,9 +1,28 @@
 # PAW Story Showcase
 
-PAW Story Showcase is a public, runnable snapshot of the real PAWOS web
-frontend. It exists so a website, reviewer, or web model can open every product
-surface with contract-shaped synthetic data without access to a private PAW
-Runtime or personal data.
+PAW Story Showcase explains how a shared task moves through multi-Agent
+collaboration, evaluation, verified improvement, and continued work.
+
+Start with [`paw-story-demo`](paw-story-demo/README.md) for the interactive
+story, system diagrams, technical choices, and scoped experiment results.
+The companion `control-center-web` contains the real PAWOS frontend components
+with contract-shaped synthetic data, without private Runtime or personal data.
+
+The embedded frontend was refreshed from the PAW working tree on 2026-09-07,
+including the stellar desktop, current Agent and Room views, Memory topic
+pages, and Lab project/Knowledge workspaces. The exact captured source and
+public adaptations are recorded in
+[`manifest/frontend-source-snapshot.v1.json`](manifest/frontend-source-snapshot.v1.json).
+
+Use `/` for the guided native workbench (`/?view=full` is a compatible alias).
+Each stage hosts the real PAW frontend: Room, Trace, Agent Lab, Memory,
+Input Studio and Context Debug. A visible demo cursor automatically clicks highlighted controls;
+a step advances only after the expected UI result appears. Detail pages also
+lead with native workspaces, with technical explanations folded below.
+Use `/lab` for the dedicated EnterpriseOps, RAG, CloudOps and Memory Lab page. The latter opens
+four current PAW project workspaces. Each starts before data import, supports
+local rule evaluation and exports a runnable offline App; fixed historical
+Agent receipts remain in a separate evidence disclosure.
 
 ## What is real
 
@@ -13,7 +32,7 @@ Runtime or personal data.
 - [`manifest/source-files.sha256`](manifest/source-files.sha256) records the
   exact bytes of this public snapshot and is checked for deterministic drift.
 - The same Preview transport seam used by PAWOS supplies the showcase state.
-- The App audit opens all eleven registered Apps and checks that each exposes a
+- The App audit opens the registered Apps and checks that each exposes a
   visible, interactive surface.
 
 ## What is simulated
@@ -29,6 +48,44 @@ Runtime or personal data.
 The running UI always reports `演示数据`. Browser and Terminal remain useful
 interactive demonstrations, but they must never be described as a live
 Electron guest or a real shell in this repository.
+
+## Deploy the complete site
+
+Clone this repository as a whole. No adjacent PAW checkout, API key, database,
+or Sites account is required for this public demo. Production serves the story
+and embedded PAWOS from the same origin, including `/pawos/`.
+
+With Node.js 22.13+ and Corepack available, run from the repository root:
+
+```bash
+git clone https://github.com/7155/paw-story-showcase.git
+cd paw-story-showcase
+npm run setup
+npm run build
+npm start
+```
+
+Open `http://localhost:3000`. The server listens on `0.0.0.0`; set `PORT` to
+change its port. On hosting platforms select this repository root, use
+`npm run setup && npm run build` as the build command and `npm start` as the
+start command. Dependencies use the two committed lockfiles.
+If Corepack is absent, install it with `npm install --global corepack@0.34.0`.
+
+A Docker configuration is also included:
+
+```bash
+docker build -t paw-showcase .
+docker run --rm -p 3000:3000 paw-showcase
+```
+
+This is a Node server deployment, not a bare static-folder upload. Use your
+usual HTTPS reverse proxy on your own server. The optional Sites configuration
+is retained for that platform's separate workflow.
+
+The demo cursor clicks highlighted native controls automatically, waits for
+results, and continues. Each page supports pause/resume; hidden pages do not
+play. Browser download restrictions may require directly clicking the App
+export button. All operations use public preview data.
 
 ## Run locally
 

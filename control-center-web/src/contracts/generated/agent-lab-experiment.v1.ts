@@ -25,6 +25,8 @@ export interface AgentLabExperimentV1 {
     | 'other';
   status: 'kept' | 'rejected' | 'diagnostic' | 'open_gap';
   claimStatus: 'headline' | 'supporting' | 'diagnostic' | 'blocked';
+  projectionState?: 'current' | 'history';
+  supersededBy?: string;
   effectStatus?: 'improved' | 'neutral' | 'regressed' | 'not_run' | 'unverified';
   candidateType?: 'single_factor' | 'compound_repair' | 'baseline' | 'unknown';
   businessProblem: Text;
@@ -135,6 +137,7 @@ export interface AgentLabExperimentV1 {
   baseline: RunSummary;
   candidate: RunSummary;
   comparison: Comparison;
+  optimizationEvidence?: OptimizationEvidence;
   star: Star;
   claim: Claim;
   /**
@@ -442,6 +445,85 @@ export interface MetricDelta {
   before: number;
   after: number;
   delta: number;
+}
+export interface OptimizationEvidence {
+  status: 'available' | 'partial' | 'unavailable';
+  provenance: 'existing_run_artifacts';
+  patch: {
+    status: 'available' | 'unavailable';
+    kind: 'frozen_configuration';
+    artifactPath: string;
+    beforeRef: string;
+    afterRef: string;
+    unifiedDiff: string;
+    reason: Text;
+  };
+  baselineTrace: {
+    runId: string;
+    status: 'bound' | 'unavailable';
+    /**
+     * @maxItems 32
+     */
+    traceIds: string[];
+    reason: Text;
+  };
+  /**
+   * @maxItems 64
+   */
+  caseComparisons: {
+    caseId: string;
+    before: ScoredCaseSummary;
+    after: ScoredCaseSummary;
+  }[];
+  validationBoundary: {
+    candidateAware: boolean;
+    candidateBlind: boolean;
+    heldOutOpened: boolean;
+    unbiasedPromotionClaimAllowed: boolean;
+    costAuthority: 'runtime_cost_reconciled' | 'unavailable';
+  };
+  /**
+   * @maxItems 16
+   */
+  gaps:
+    | []
+    | [Text]
+    | [Text, Text]
+    | [Text, Text, Text]
+    | [Text, Text, Text, Text]
+    | [Text, Text, Text, Text, Text]
+    | [Text, Text, Text, Text, Text, Text]
+    | [Text, Text, Text, Text, Text, Text, Text]
+    | [Text, Text, Text, Text, Text, Text, Text, Text]
+    | [Text, Text, Text, Text, Text, Text, Text, Text, Text]
+    | [Text, Text, Text, Text, Text, Text, Text, Text, Text, Text]
+    | [Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text]
+    | [Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text]
+    | [Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text]
+    | [Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text]
+    | [Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text, Text]
+    | [
+        Text,
+        Text,
+        Text,
+        Text,
+        Text,
+        Text,
+        Text,
+        Text,
+        Text,
+        Text,
+        Text,
+        Text,
+        Text,
+        Text,
+        Text,
+        Text,
+      ];
+}
+export interface ScoredCaseSummary {
+  status: 'passed' | 'failed';
+  metrics: Metrics;
 }
 export interface Star {
   situation: Text;

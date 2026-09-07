@@ -1,3 +1,4 @@
+import { PawHandsOnGuide } from './showcase/PawHandsOnGuide';
 import { useEffect, useMemo } from 'react';
 import { usePawOsAppearance } from '@/design/paw-os-themes';
 import { pawAppForPath } from './runtime/app-registry';
@@ -15,6 +16,8 @@ import './styles/paw-os-motion.css';
 import './styles/paw-os-webmodel-v1.css';
 import './styles/paw-os-shell-migrated-v1.css';
 import './styles/paw-os-controls.css';
+import './styles/paw-os-stellar.css';
+import './styles/paw-os-stellar-dark.css';
 import './styles/paw-os-showcase.css';
 
 export function PawOsApp() {
@@ -25,6 +28,7 @@ export function PawOsApp() {
   const memoryFlowShowcase = useMemo(() => isPawMemoryFlowShowcase(), []);
   const traceFlowShowcase = useMemo(() => isPawTraceFlowShowcase(), []);
   const showcaseId = useMemo(() => currentShowcaseId(), []);
+  const handsOnId = useMemo(() => { const params = new URLSearchParams(window.location.search); return params.get('controlTransport') === 'mock' ? params.get('handsOn') || (showcaseId.startsWith('hands-on-') ? showcaseId.slice(9) : '') : ''; }, [showcaseId]);
   const contextShowcase = showcaseId.startsWith('context-');
   const persistenceKey = showcaseId
     ? `pawos.desktop.showcase.${showcaseId}.v1`
@@ -40,10 +44,12 @@ export function PawOsApp() {
         className="paw-desktop-root"
         data-context-showcase={contextShowcase || undefined}
         data-paw-theme={theme}
+        data-paw-visual="stellar"
         data-room-flow-showcase={roomFlowShowcase || undefined}
         data-testid="paw-os-product-root"
       >
         <PawDesktop />
+        {handsOnId ? <PawHandsOnGuide guideId={handsOnId}/> : null}
         {memoryFlowShowcase ? <PawMemoryFlowShowcaseDirector /> : null}
         {roomFlowShowcase ? <PawRoomFlowShowcaseDirector /> : null}
         {traceFlowShowcase ? <PawTraceFlowShowcaseDirector /> : null}

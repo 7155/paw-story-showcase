@@ -57,22 +57,26 @@ export function useOnScreen<T extends HTMLElement>() {
   return { ref, onScreen };
 }
 
-export function useTimedLoop(durations: readonly number[], manualGateSteps: readonly number[] = [], enabled = true) {
+export function useTimedLoop(durations: readonly number[], manualGateSteps: readonly number[] = [], enabled = true, repeat = true, initiallyPlaying = true) {
   const [step, setStep] = useState(0);
-  const [playing, setPlaying] = useState(true);
+  const [playing, setPlaying] = useState(initiallyPlaying);
 
   useEffect(() => {
     if (!playing || !enabled) return;
     const timer = window.setTimeout(
-      () => setStep((value) => {
-        const next = (value + 1) % durations.length;
+      () => {
+        if (!repeat && step >= durations.length - 1) {
+          setPlaying(false);
+          return;
+        }
+        const next = (step + 1) % durations.length;
         if (manualGateSteps.includes(next)) setPlaying(false);
-        return next;
-      }),
+        setStep(next);
+      },
       durations[step] ?? 700,
     );
     return () => window.clearTimeout(timer);
-  }, [durations, manualGateSteps, playing, step, enabled]);
+  }, [durations, manualGateSteps, playing, step, enabled, repeat]);
 
   return {
     step,

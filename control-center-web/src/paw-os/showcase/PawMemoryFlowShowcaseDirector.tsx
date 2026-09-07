@@ -133,8 +133,8 @@ export function PawMemoryFlowShowcaseDirector() {
         target: {
           kind: 'session' as const,
           id: 'session-memory',
-          title: '今天聊聊',
-          subtitle: '自然对话中的时间线与来源回执',
+          title: '继续 PAW 工作台方案',
+          subtitle: '交付、修复决定与来源回执',
         },
       } : {}),
       title: stage.label,
@@ -261,14 +261,21 @@ export function PawMemoryFlowShowcaseDirector() {
     });
   }, [api, clearTimers, instanceId, openStage, post, stageId]);
 
+  const commandHandlerRef = useRef(applyCommand);
+  const postRef = useRef(post);
+  useEffect(() => {
+    commandHandlerRef.current = applyCommand;
+    postRef.current = post;
+  }, [applyCommand, post]);
+
   useEffect(() => {
     const onMessage = (event: MessageEvent<unknown>) => {
       if (event.source !== window.parent || event.origin !== parentOriginRef.current) return;
       if (!isPawMemoryShowcaseCommand(event.data)) return;
-      applyCommand(event.data);
+      commandHandlerRef.current(event.data);
     };
     window.addEventListener('message', onMessage);
-    const ready = () => post({
+    const ready = () => postRef.current({
       type: 'ready',
       phase: 'idle',
       capabilities: { stage: true, seek: true, playback: true, cursor: true, stream: true },
@@ -281,7 +288,7 @@ export function PawMemoryFlowShowcaseDirector() {
       window.removeEventListener('message', onMessage);
       clearTimers();
     };
-  }, [applyCommand, clearTimers, openStage, post]);
+  }, [clearTimers, openStage]);
 
   useEffect(() => {
     void runStageAction(stageId);

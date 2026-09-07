@@ -31,6 +31,7 @@ import {
   publicErrorText,
   stringValue,
 } from '@/features/overview/management-ui';
+import { isModelQuotaError } from '@/features/agent/public-error';
 import type { JsonValue } from '@/platform/transport';
 import { useMemoryCurationQueries } from './api';
 import { knowledgeMutationPathIds, useKnowledgeMutationBoundary } from './knowledge-workbench-api';
@@ -90,6 +91,8 @@ export function MemoryCurationWorkbench({
   const pending = queries.status.isPending || (Boolean(queries.runId) && queries.run.isPending);
   const jobPayload = asRecord(queries.job.data);
   const jobState = stringValue(jobPayload.state, queries.jobState);
+  const catalogJob = jobPayload.catalogOnly === true
+    || (queries.trigger.isPending && queries.trigger.variables?.catalogOnly === true);
   const jobActive = jobState === 'queued' || jobState === 'running' || queries.trigger.isPending;
   const jobExpired = jobState === 'expired';
   const jobFailed = jobState === 'failed' || jobExpired || Boolean(queries.trigger.error ?? queries.job.error);
@@ -129,9 +132,15 @@ export function MemoryCurationWorkbench({
             : '从上次位置继续推进；按日期和应用核对来源，再审核本轮形成的记忆草案。'}</span>
         </div>
         <div className="memory-curation__actions">
+          <Button
+            disabled={jobActive || !automaticOrganizationEnabled || asRecord(statusPayload.catalogConsolidation).enabled === false}
+            onClick={() => void startCatalogConsolidation()}
+            size="small"
+          >整理已有主题</Button>
           <Button leadingIcon={<Sparkles size={15} />} onClick={handoffToAgent} size="small" variant="quiet">补充整理要求</Button>
         </div>
       </div>
+      <p>已有主题可单独整理：合并同一对象、同一问题的重复主题，保留记忆、来源和回滚记录。</p>
 
       <QueryState error={error} isPending={pending} onRetry={refresh}>
         <ManagementSection
@@ -187,9 +196,9 @@ export function MemoryCurationWorkbench({
                     : publicErrorText(queries.trigger.error ?? queries.job.error ?? jobPayload.error, '整理任务没有完成；进度已经保留，可以重试。'))}
                 </InlineNotice>
               ) : jobState === 'completed' ? (
-                <InlineNotice title="本轮处理完成" tone="success">状态正在刷新；{automaticOrganizationAutoApply ? '通过治理校验的结果会自动应用。' : '如果产生了草案，请在下方逐项审核。'}</InlineNotice>
+                <InlineNotice title={catalogJob ? '已有主题整理完成' : '本轮处理完成'} tone="success">状态正在刷新；{automaticOrganizationAutoApply ? '通过治理校验的结果会自动应用。' : '如果产生了草案，请在下方逐项审核。'}</InlineNotice>
               ) : jobActive ? (
-                <InlineNotice title="正在读取并整理本轮来源" tone="info">你可以留在此页，完成后会自动刷新；正式记忆不会被直接改写。</InlineNotice>
+                <InlineNotice title={catalogJob ? '正在核对已有主题' : '正在读取并整理本轮来源'} tone="info">{catalogJob ? '正在检查主题和当前成员；不会推进新来源整理进度。' : '你可以留在此页，完成后会自动刷新；原始来源会保留。'}</InlineNotice>
               ) : null}
 
               {failedOwnerScope && !jobActive ? (
@@ -414,6 +423,18 @@ export function MemoryCurationWorkbench({
     }
   }
 
+  async function startCatalogConsolidation() {
+    setStartError('');
+    try {
+      await queries.trigger.mutateAsync({
+        catalogOnly: true,
+        instruction: '核对已有主题目录，合并同一稳定对象与同一问题轴的重复主题；保留当前记忆成员、来源、旧引用及回滚回执。',
+      });
+    } catch (cause) {
+      setStartError(publicErrorText(cause, '未能启动已有主题整理；可以重试。'));
+    }
+  }
+
   function handoffToAgent() {
     const prompt = automaticOrganizationAutoApply
       ? '请帮我稳妥地增量整理当前记忆：按 Evidence、Atom-first 与计划校验推进，通过治理校验后自动应用并保留回滚回执，保留原始来源，不要展示内部执行记录。完成后告诉我本批处理结果。'
@@ -537,6 +558,8 @@ function vectorProjectionLabel(fingerprint: string, coverage: number): string {
 }
 
 function modelRunErrorLabel(value: string): string {
+  if (isModelQuotaError(value)) return '模型服务额度暂时用尽；本轮没有改动记忆，稍后可继续整理。';
+  if (/memory\s+curation\s+packet.*(?:input\s+limit|too\s+long|exceed)/i.test(value)) return '本轮输入上下文过大；冻结输入已保留，下一轮会从保留位置继续。';
   if (/prompt-acceptance proof/i.test(value)) return '上一次续跑缺少精确接收回执，模型没有被重复调用';
   if (/active turn/i.test(value)) return '上一次模型会话仍有活动轮次';
   if (/timeout/i.test(value)) return '上一次模型请求超时';
@@ -545,6 +568,8 @@ function modelRunErrorLabel(value: string): string {
 }
 
 function ownerRunErrorLabel(value: string): string {
+  if (isModelQuotaError(value)) return '模型服务额度暂时用尽，本轮未改动记忆；稍后可以继续整理。';
+  if (/memory\s+curation\s+packet.*(?:input\s+limit|too\s+long|exceed)/i.test(value)) return '本轮输入上下文过大，系统已保留进度，下一轮会从保留位置继续。';
   if (/prompt-acceptance proof/i.test(value)) return '上次续跑缺少精确接收回执，系统拒绝重复调用模型。';
   if (/active turn/i.test(value)) return '等待已有活动轮次结束后再续跑。';
   if (/fetch failed|request failed/i.test(value)) return '模型请求未完成，系统会稍后重试。';

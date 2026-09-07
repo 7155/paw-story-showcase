@@ -1,6 +1,5 @@
-import { Check, Eye, FolderOpen, LoaderCircle, MessageSquare, Plus, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { Eye, FolderOpen, LoaderCircle, MessageSquare, Plus, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import * as Checkbox from '@radix-ui/react-checkbox';
 import * as RadioGroup from '@radix-ui/react-radio-group';
 import {
   Button,
@@ -18,6 +17,8 @@ export interface NewSessionInput {
   title: string;
   workspaceRoots: string[];
   executionMode: 'read_only' | 'per_action' | 'workspace_managed' | 'full_trust';
+  toolProfileVersion?: 'control-center-v1' | 'control-center-full-access-v1' | 'subagent-readonly-v1' | 'control-center-auto-approve-v1';
+  workspaceScopeConfirmed?: boolean;
   dangerousModeConfirmed?: boolean;
 }
 
@@ -39,7 +40,6 @@ export function NewSessionDialog({
   const [title, setTitle] = useState('');
   const [workspaceRoots, setWorkspaceRoots] = useState<string[]>([]);
   const [executionMode, setExecutionMode] = useState<NewSessionInput['executionMode']>('per_action');
-  const [dangerousModeConfirmed, setDangerousModeConfirmed] = useState(false);
   const [picking, setPicking] = useState(false);
   const [creating, setCreating] = useState(false);
   const projectOptions = useMemo(() => uniquePaths(projects), [projects]);
@@ -50,7 +50,6 @@ export function NewSessionDialog({
     setTitle('');
     setWorkspaceRoots(initial);
     setExecutionMode('per_action');
-    setDangerousModeConfirmed(false);
   }, [defaultRoots, open]);
 
   async function pickRoots(): Promise<void> {
@@ -72,7 +71,15 @@ export function NewSessionDialog({
         title: title.trim() || '新对话',
         workspaceRoots,
         executionMode,
-        ...(executionMode === 'full_trust' ? { dangerousModeConfirmed } : {}),
+        toolProfileVersion: executionMode === 'read_only'
+          ? 'subagent-readonly-v1'
+          : executionMode === 'workspace_managed'
+            ? 'control-center-v1'
+            : executionMode === 'full_trust'
+              ? 'control-center-auto-approve-v1'
+              : 'control-center-full-access-v1',
+        ...(executionMode === 'workspace_managed' ? { workspaceScopeConfirmed: true } : {}),
+        ...(executionMode === 'full_trust' ? { dangerousModeConfirmed: true } : {}),
       });
       if (created) onOpenChange(false);
     } finally {
@@ -97,23 +104,20 @@ export function NewSessionDialog({
             onChange={(event) => setTitle(event.target.value)}
           />
         </Field>
-        <section className="agent-new-task-dialog__projects" aria-label="关联工作目录">
-          <header><strong>关联工作目录</strong><small>可选</small></header>
+        <section className="agent-new-task-dialog__projects" aria-label="起始项目（可选）">
+          <header><strong>起始项目</strong><small>可选，仅用于上下文</small></header>
           <RadioGroup.Root
-            aria-label="对话的工作目录"
+            aria-label="对话的起始项目"
             value={primaryRoot || NO_WORKSPACE}
             onValueChange={(value) => {
               const roots = value === NO_WORKSPACE ? [] : [value];
               setWorkspaceRoots(roots);
-              if (!roots.length && (executionMode === 'workspace_managed' || executionMode === 'full_trust')) {
-                setExecutionMode('per_action');
-                setDangerousModeConfirmed(false);
-              }
+              if (!roots.length && executionMode === 'workspace_managed') setExecutionMode('per_action');
             }}
           >
             <RadioGroup.Item value={NO_WORKSPACE}>
               <MessageSquare size={16} />
-              <span><strong>直接聊天</strong><small>不读取项目；之后需要时仍可关联目录</small></span>
+              <span><strong>不预选项目</strong><small>仍授予整个系统权限，之后可继续提供项目上下文</small></span>
             </RadioGroup.Item>
             {projectOptions.map((path) => (
               <RadioGroup.Item key={path} value={path} title={path}>
@@ -129,52 +133,41 @@ export function NewSessionDialog({
             </div>
           ) : null}
           <Button variant="quiet" leadingIcon={picking ? <LoaderCircle className="ui-spin" size={15} /> : <FolderOpen size={15} />} onClick={() => void pickRoots()} disabled={picking || creating}>
-            {primaryRoot ? '换一个目录' : '选择工作目录'}
+            {primaryRoot ? '换一个项目' : '选择起始项目'}
           </Button>
         </section>
         <section className="agent-new-task-dialog__permissions" aria-label="新对话权限">
-          <header><strong>执行权限</strong><small>全自动需要工作目录与明确确认</small></header>
+          <header><strong>执行权限</strong><small>从只读、逐项确认、项目托管或全自动中选择</small></header>
           <RadioGroup.Root
             aria-label="新对话的执行权限"
             value={executionMode}
             onValueChange={(value) => {
-              setExecutionMode(value as NewSessionInput['executionMode']);
-              setDangerousModeConfirmed(false);
+              const nextMode = value as NewSessionInput['executionMode'];
+              setExecutionMode(nextMode);
             }}
           >
-            <RadioGroup.Item value="per_action">
-              <ShieldCheck size={16} />
-              <span><strong>逐项确认</strong><small>读取可直接进行；写入与命令按风险请求确认</small></span>
-            </RadioGroup.Item>
             <RadioGroup.Item value="read_only">
               <Eye size={16} />
-              <span><strong>只读</strong><small>适合检查、理解和规划，不允许修改工作区</small></span>
+              <span><strong>只读</strong><small>只允许查看、搜索、分析，以及隔离无网络的只读验证命令；写入与应用动作阻止</small></span>
+            </RadioGroup.Item>
+            <RadioGroup.Item value="per_action">
+              <ShieldCheck size={16} />
+              <span><strong>全权限</strong><small>整个系统与所有 Tool 可用；有影响的操作逐项请求确认</small></span>
             </RadioGroup.Item>
             <RadioGroup.Item value="workspace_managed" disabled={!primaryRoot}>
               <FolderOpen size={16} />
-              <span><strong>工作区托管</strong><small>{primaryRoot ? '仅在上方明确选择的目录内工作' : '先选择工作目录后可用'}</small></span>
+              <span><strong>工作区托管</strong><small>{primaryRoot ? '批准所选项目范围；范围内自动执行，越界继续请求确认' : '先选择起始项目后可用'}</small></span>
             </RadioGroup.Item>
-            <RadioGroup.Item value="full_trust" disabled={!primaryRoot}>
+            <RadioGroup.Item value="full_trust">
               <TriangleAlert size={16} />
-              <span><strong>全自动</strong><small>{primaryRoot ? '由独立审批 Agent 自动判定待审批操作' : '先选择工作目录后可用'}</small></span>
+              <span><strong>全自动</strong><small>整个系统与所有 Tool 可用；每个动作自动批准，仍受操作系统边界约束</small></span>
             </RadioGroup.Item>
           </RadioGroup.Root>
-          {executionMode === 'full_trust' ? (
-            <label className="agent-dangerous-permission-dialog__check">
-              <Checkbox.Root
-                checked={dangerousModeConfirmed}
-                onCheckedChange={(checked) => setDangerousModeConfirmed(checked === true)}
-              >
-                <Checkbox.Indicator><Check size={14} /></Checkbox.Indicator>
-              </Checkbox.Root>
-              <span>我确认让此对话全自动执行，并由独立审批 Agent 判定待审批操作</span>
-            </label>
-          ) : null}
         </section>
         <DialogFooter>
           <Button variant="quiet" onClick={() => onOpenChange(false)} disabled={creating || picking}>取消</Button>
-          <Button onClick={() => void create()} disabled={creating || picking || (executionMode === 'full_trust' && !dangerousModeConfirmed)}>
-            {creating ? <><LoaderCircle className="ui-spin" size={15} />正在创建</> : '开始对话'}
+          <Button onClick={() => void create()} disabled={creating || picking}>
+            {creating ? <><LoaderCircle className="ui-spin" size={15} />正在创建</> : executionMode === 'full_trust' ? '启用全自动并开始' : '开始对话'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -186,7 +179,7 @@ const NO_WORKSPACE = '__no_workspace__';
 
 function uniquePaths(values: string[]): string[] {
   return values.map((value) => value.trim()).filter((value, index, all) => (
-    value.startsWith('/') && all.indexOf(value) === index
+    value.startsWith('/') && value !== '/' && all.indexOf(value) === index
   )).slice(0, 4);
 }
 

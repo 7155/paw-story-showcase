@@ -353,16 +353,23 @@ export function reduceAgentEvent(
       );
       break;
     }
-    case 'approval_required':
-      upsertApprovalActivity(next, event, payload, 'waiting');
-      next.status = 'waiting';
-      touchTurn(
-        next,
-        approvalActivityTurnId(next, payload, event.turnId),
-        'waiting',
-        event.createdAtMs,
-      );
+    case 'approval_required': {
+      const roomToolOwner = roomBoundApprovalToolOwner(next, payload);
+      upsertApprovalActivity(next, event, payload, roomToolOwner?.status ?? 'waiting');
+      if (roomToolOwner) {
+        next.status = 'working';
+        touchTurn(next, roomToolOwner.turnId, 'running', event.createdAtMs);
+      } else {
+        next.status = 'waiting';
+        touchTurn(
+          next,
+          approvalActivityTurnId(next, payload, event.turnId),
+          'waiting',
+          event.createdAtMs,
+        );
+      }
       break;
+    }
     case 'user_input_required': {
       const resolved = ['resolved', 'cancelled'].includes(text(payload.resolutionState));
       upsertActivity(next, event, payload, resolved ? 'completed' : 'waiting');
@@ -372,16 +379,31 @@ export function reduceAgentEvent(
       }
       break;
     }
-    case 'approval_resolved':
+    case 'approval_resolved': {
+      const roomToolOwner = roomBoundApprovalToolOwner(next, payload);
+      const resolutionState = text(payload.state);
+      const roomAuthorizationApplied = Boolean(
+        roomToolOwner
+        && payload.automatic === true
+        && text(payload.decisionMode) === 'policy'
+        && ['approved', 'applied', 'external_pending'].includes(resolutionState),
+      );
       upsertApprovalActivity(
         next,
         event,
         payload,
-        ['approved', 'applied', 'external_pending'].includes(text(payload.state))
-          ? 'completed'
+        roomAuthorizationApplied
+          ? roomToolOwner!.status
+          : ['approved', 'applied', 'external_pending'].includes(resolutionState)
+            ? 'completed'
           : 'failed',
       );
+      if (roomAuthorizationApplied) {
+        next.status = 'working';
+        touchTurn(next, roomToolOwner!.turnId, 'running', event.createdAtMs);
+      }
       break;
+    }
     case 'background_job_started':
     case 'background_job_progress':
     case 'background_job_completed':
@@ -415,6 +437,17 @@ export function reduceAgentEvent(
       next.status = 'idle';
       break;
     case 'turn_failed':
+      if (!event.turnId) {
+        appendDiagnostic(next, {
+          id: event.eventId,
+          streamKind: 'agent',
+          eventType: 'turn_failed',
+          summary: 'Ignored turn_failed without a turnId; no user turn was failed.',
+          sequence: event.sequence,
+          payload,
+        });
+        break;
+      }
       completeTurn(next, event.turnId, 'failed', event.createdAtMs, text(payload.error));
       next.status = 'failed';
       upsertActivity(next, event, payload, 'failed');
@@ -607,6 +640,18 @@ export function failOptimisticAgentMessage(
   const message = state.messagesById[messageId];
   if (!message) return state;
   const next = cloneState(state);
+  if (admissionState === 'pending' || admissionState === 'unresolved') {
+    next.messagesById[messageId] = {
+      ...message,
+      status: 'queued',
+      completedAtMs: null,
+      admissionState,
+    };
+    touchTurn(next, message.turnId, 'waiting', nowMs);
+    delete next.turnsById[message.turnId]?.failure;
+    next.status = 'busy';
+    return next;
+  }
   next.messagesById[messageId] = {
     ...message,
     status: 'failed',
@@ -709,10 +754,108 @@ function mergeBoundedRecentMessages(
   return merged;
 }
 
+function preserveConfirmedSnapshotActivities(
+  current: AgentProjectionState,
+  projection: AgentProjectionState,
+): AgentProjectionState {
+  const next = {
+    ...projection,
+    turnsById: { ...projection.turnsById },
+    turnOrder: [...projection.turnOrder],
+    activitiesById: { ...projection.activitiesById },
+    activityOrder: [...projection.activityOrder],
+  };
+  for (const activityId of current.activityOrder) {
+    const activity = current.activitiesById[activityId];
+    if (!activity || next.activitiesById[activityId]) continue;
+    next.activitiesById[activityId] = { ...activity };
+    next.activityOrder.push(activityId);
+    let turn = next.turnsById[activity.turnId];
+    if (!turn) {
+      const previousTurn = current.turnsById[activity.turnId];
+      if (!previousTurn) continue;
+      turn = {
+        ...previousTurn,
+        messageIds: previousTurn.messageIds.filter((messageId) => Boolean(next.messagesById[messageId])),
+        activityIds: [],
+      };
+      next.turnsById[activity.turnId] = turn;
+      next.turnOrder.push(activity.turnId);
+    }
+    if (!turn.activityIds.includes(activityId)) turn.activityIds.push(activityId);
+  }
+  return next;
+}
+
+/** Settle confirmed replay before restoring local prompt admissions. */
+function settleAgentSnapshotQuiescence(
+  next: AgentProjectionState,
+  snapshot: AgentSnapshot,
+  replayStatus = next.status,
+): void {
+  const authoritativeQuiescent = (snapshot.runtimeQuiescent === true || !snapshot.partial)
+    && Boolean(snapshot.status)
+    && ['idle', 'ready', 'stopped', 'active', 'failed', 'faulted'].includes(snapshot.status ?? '');
+  if (authoritativeQuiescent && snapshot.status) {
+    next.status = snapshot.status;
+    // `status` is the Runtime's authoritative process boundary. A bounded
+    // event journal can end after `message_completed` without retaining the
+    // matching `turn_completed`, or can retain an old Tool start after its
+    // final receipt rolled out of the window. Once the Session is quiescent,
+    // no restored turn may keep a spinner alive. Settle every such snapshot
+    // turn here, before local optimistic admissions are restored below.
+    for (const turnId of next.turnOrder) {
+      const turn = next.turnsById[turnId];
+      if (!turn) continue;
+      const hasPendingHumanApproval = turn.activityIds.some((activityId) => {
+        const activity = next.activitiesById[activityId];
+        return activity?.kind === 'approval_required'
+          && activity.status === 'waiting'
+          && approvalNeedsHumanDecision(activity.payload);
+      });
+      if (hasPendingHumanApproval) continue;
+      const hasLiveActivity = turn.activityIds.some((activityId) => {
+        const activity = next.activitiesById[activityId];
+        return activity?.status === 'running' || activity?.status === 'waiting';
+      });
+      if (!hasLiveActivity && !['queued', 'running', 'waiting'].includes(turn.status)) continue;
+      const hasAbortedTranscript = turn.messageIds.some(
+        (messageId) => next.messagesById[messageId]?.status === 'aborted',
+      );
+      completeTurn(
+        next,
+        turn.id,
+        snapshot.status === 'failed' || snapshot.status === 'faulted'
+          ? 'failed'
+          : replayStatus === 'aborting' || hasAbortedTranscript ? 'aborted' : 'completed',
+        turn.updatedAtMs,
+        '',
+        true,
+      );
+    }
+  }
+
+}
+
 export function applyAgentSnapshot(
   state: AgentProjectionState,
   snapshot: AgentSnapshot,
+  options: { preserveConfirmedActivities?: boolean } = {},
 ): AgentProjectionState {
+  const inFlightAdmissionClientIds = new Set(
+    Object.entries(state.optimisticByClientMessageId).flatMap(([
+      clientMessageId,
+      messageId,
+    ]) => {
+      const message = state.messagesById[messageId];
+      return message
+        && message.role === 'user'
+        && (message.status === 'queued' || message.status === 'streaming')
+        && !message.admissionState
+        ? [clientMessageId]
+        : [];
+    }),
+  );
   let next = createAgentProjection(state.sessionId);
   next.status = snapshot.status ?? state.status;
   next.telemetry = parseTelemetry(snapshot.telemetry) ?? state.telemetry;
@@ -735,6 +878,16 @@ export function applyAgentSnapshot(
 
   const serverClientIds = new Set<string>();
   const transcriptMessageIds = new Set<string>();
+  /* A bounded snapshot carries forward both prior transcript anchors and
+     message_completed rows seen only through SSE. Only ids present in this
+     response (plus already-normalized history turns) are transcript anchors;
+     otherwise the carried SSE row cannot be reconciled with Pi's later id. */
+  const currentTranscriptMessageIds = new Set(
+    snapshot.messages.flatMap((rawMessage) => {
+      const id = record(rawMessage).id;
+      return typeof id === 'string' && id ? [id] : [];
+    }),
+  );
   const snapshotMessages = snapshot.snapshotScope === 'recent' && snapshot.partial === true
     ? mergeBoundedRecentMessages(state, snapshot.messages)
     : snapshot.messages;
@@ -752,7 +905,10 @@ export function applyAgentSnapshot(
       continue;
     }
     upsertMessage(next, parsed.value);
-    transcriptMessageIds.add(parsed.value.id);
+    if (
+      currentTranscriptMessageIds.has(parsed.value.id)
+      || parsed.value.turnId.startsWith('history:')
+    ) transcriptMessageIds.add(parsed.value.id);
     if (parsed.value.clientMessageId) serverClientIds.add(parsed.value.clientMessageId);
   }
 
@@ -811,46 +967,14 @@ export function applyAgentSnapshot(
   // is open; only `busy`/`working`/`waiting` mean a turn is running. Treat an
   // active-but-quiescent snapshot as terminal so reopening an old conversation
   // cannot turn its last completed answer into a multi-day "thinking" turn.
-  const replayStatus = next.status;
-  const authoritativeQuiescent = (snapshot.runtimeQuiescent === true || !snapshot.partial)
-    && Boolean(snapshot.status)
-    && ['idle', 'ready', 'stopped', 'active'].includes(snapshot.status ?? '');
-  if (authoritativeQuiescent && snapshot.status) {
-    next.status = snapshot.status;
-    // `status` is the Runtime's authoritative process boundary. A bounded
-    // event journal can end after `message_completed` without retaining the
-    // matching `turn_completed`, or can retain an old Tool start after its
-    // final receipt rolled out of the window. Once the Session is quiescent,
-    // no restored turn may keep a spinner alive. Settle every such snapshot
-    // turn here, before local optimistic admissions are restored below.
-    for (const turnId of next.turnOrder) {
-      const turn = next.turnsById[turnId];
-      if (!turn) continue;
-      const hasPendingHumanApproval = turn.activityIds.some((activityId) => {
-        const activity = next.activitiesById[activityId];
-        return activity?.kind === 'approval_required'
-          && activity.status === 'waiting'
-          && approvalNeedsHumanDecision(activity.payload);
-      });
-      if (hasPendingHumanApproval) continue;
-      const hasLiveActivity = turn.activityIds.some((activityId) => {
-        const activity = next.activitiesById[activityId];
-        return activity?.status === 'running' || activity?.status === 'waiting';
-      });
-      if (!hasLiveActivity && !['queued', 'running', 'waiting'].includes(turn.status)) continue;
-      const hasAbortedTranscript = turn.messageIds.some(
-        (messageId) => next.messagesById[messageId]?.status === 'aborted',
-      );
-      completeTurn(
-        next,
-        turn.id,
-        replayStatus === 'aborting' || hasAbortedTranscript ? 'aborted' : 'completed',
-        turn.updatedAtMs,
-        '',
-        true,
-      );
-    }
+  // Transcript attachment creates a provisional running turn. Resolve that
+  // placeholder before applying a failure boundary, so an old completed
+  // answer is not rewritten as failed when a later tool loses its terminal.
+  reconcileSnapshotTurnStatuses(next, false);
+  if (options.preserveConfirmedActivities) {
+    next = preserveConfirmedSnapshotActivities(state, next);
   }
+  settleAgentSnapshotQuiescence(next, snapshot, options.preserveConfirmedActivities ? state.status : next.status);
 
   for (const [clientMessageId, messageId] of Object.entries(
     state.optimisticByClientMessageId,
@@ -866,36 +990,40 @@ export function applyAgentSnapshot(
     const restoredTurn = next.turnsById[optimistic.turnId];
     if (previousTurn && restoredTurn) {
       const restoredAtMs = Math.max(restoredTurn.updatedAtMs, previousTurn.updatedAtMs);
-      if (
-        authoritativeQuiescent
-        && ['queued', 'running', 'waiting'].includes(previousTurn.status)
-      ) {
-        // A full quiescent snapshot is the Runtime boundary: if it contains
-        // neither this local admission nor a live turn, retaining `queued`
-        // would resurrect the composer spinner forever. Keep the user's text
-        // visible and retryable, but settle the unmatched admission honestly.
-        next.messagesById[messageId] = {
-          ...optimistic,
-          status: 'failed',
-          completedAtMs: restoredAtMs,
-        };
-        completeTurn(
-          next,
-          optimistic.turnId,
-          'failed',
-          restoredAtMs,
-          '未收到助手回复。',
-          true,
-        );
-      } else {
-        next.turnsById[optimistic.turnId] = {
-          ...restoredTurn,
-          status: previousTurn.status,
-          updatedAtMs: restoredAtMs,
-          failure: previousTurn.failure,
-        };
-      }
+      // Session creation publishes the window before its first prompt has
+      // necessarily reached Pi. An idle snapshot can therefore be older than
+      // this in-flight local admission. Only the request result or an exact
+      // durable clientMessageId may settle it; snapshot status alone cannot.
+      next.turnsById[optimistic.turnId] = {
+        ...restoredTurn,
+        status: previousTurn.status,
+        updatedAtMs: restoredAtMs,
+        failure: previousTurn.failure,
+      };
     }
+  }
+  const hasUnsettledAdmission = Object.values(next.optimisticByClientMessageId).some((messageId) => {
+    const status = next.messagesById[messageId]?.status;
+    return status === 'queued' || status === 'streaming';
+  }) || next.messageOrder.some((messageId) => {
+    const message = next.messagesById[messageId];
+    if (
+      !message
+      || message.role !== 'user'
+      || !message.clientMessageId
+      || !inFlightAdmissionClientIds.has(message.clientMessageId)
+    ) return false;
+    const turn = next.turnsById[message.turnId];
+    return Boolean(turn) && !turn.messageIds.some(
+      (turnMessageId) => next.messagesById[turnMessageId]?.role === 'assistant',
+    );
+  });
+  // A snapshot may observe Pi's durable user anchor before it observes the
+  // matching Runtime transition away from idle. That anchor proves admission,
+  // not completion. Preserve the in-flight turn until an assistant/terminal
+  // event or the request path reports a real failure.
+  if (hasUnsettledAdmission) {
+    next.status = 'busy';
   }
   reconcileSnapshotTurnStatuses(next);
   next.lastSequence = Math.max(0, snapshot.lastSequence);
@@ -907,15 +1035,15 @@ export function applyAgentSnapshot(
 }
 
 /**
- * Pi's durable transcript does not persist the product clientMessageId. A
- * post-admission snapshot can therefore contain the accepted user message
- * while the local optimistic copy still looks unrelated. Restoring that copy
- * creates a second queued turn after the real turn has completed, which makes
- * the UI revive its running indicator and misroute the next prompt as Steer.
+ * Current Pi transcripts project the durable turn binding and exact
+ * clientMessageId. Legacy transcripts can lack that binding, so a refresh may
+ * still contain the accepted user message while the local optimistic copy
+ * looks unrelated. Restoring both creates a second queued turn after the real
+ * turn completes and misroutes the next prompt as Steer.
  *
- * Match only an otherwise-unsettled local user message to one exact, nearby
- * durable user message. Failed/pending/ambiguous admissions remain local and
- * auditable; text alone without the narrow timestamp bound is never enough.
+ * The fallback is legacy-only: match one otherwise-unsettled local user
+ * message to one exact, nearby durable user message. Failed, pending, or
+ * ambiguous admissions remain local; unbounded text-only matching is forbidden.
  */
 function reconcileSnapshotOptimisticMessages(
   previous: AgentProjectionState,
@@ -937,20 +1065,29 @@ function reconcileSnapshotOptimisticMessages(
     ) continue;
     const fingerprint = replayFingerprint(optimistic);
     if (!fingerprint) continue;
-    const candidate = [...transcriptMessageIds]
+    const candidates = [...transcriptMessageIds]
       .filter((messageId) => !claimedTranscriptIds.has(messageId))
       .map((messageId) => snapshot.messagesById[messageId])
       .filter((message): message is AgentMessageProjection => (
         Boolean(message)
         && message.role === 'user'
         && replayFingerprint(message) === fingerprint
+        // A transcript row older than the local admission can only belong to
+        // an earlier repeated prompt. The accepted current row is created by
+        // the local Runtime after the optimistic admission timestamp.
+        && message.createdAtMs >= optimistic.createdAtMs
         && Math.abs(message.createdAtMs - optimistic.createdAtMs) <= 60_000
       ))
       .sort((left, right) => (
         Math.abs(left.createdAtMs - optimistic.createdAtMs)
         - Math.abs(right.createdAtMs - optimistic.createdAtMs)
-      ))[0];
-    if (!candidate) continue;
+      ));
+    // A repeated user prompt can produce several indistinguishable legacy
+    // transcript rows inside this narrow time window. Guessing would settle
+    // the newest optimistic admission against an older turn. Only a unique
+    // legacy candidate is safe; current transcripts use clientMessageId.
+    if (candidates.length !== 1) continue;
+    const candidate = candidates[0];
     claimedTranscriptIds.add(candidate.id);
     serverClientIds.add(clientMessageId);
     snapshot.messagesById[candidate.id] = {
@@ -1030,6 +1167,18 @@ function reconcileTranscriptReplayMessages(
     const exactCandidate = nearbyCandidates(
       transcriptByFingerprint.get(fingerprint) ?? [],
     )[0]?.message;
+    // Pi's live final message retains the Provider request start, while its
+    // durable transcript is timestamped when appended. A long stream can
+    // exceed the short replay window. The Runtime's final-message alias and
+    // one matching completed transcript within that exact turn are stronger
+    // identity evidence; do not extend time-based matching for other turns.
+    const finalAlias = replay.role === 'assistant' && (
+      replay.id === `${replay.turnId}:assistant`
+      || replay.id.startsWith(`${replay.turnId}:assistant:segment:`)
+    );
+    const sameTurnFinals = finalAlias ? (transcriptByFingerprint.get(fingerprint) ?? [])
+      .filter((message) => message.turnId === replay.turnId && message.status === 'completed' && !claimedTranscriptIds.has(message.id)) : [];
+    const sameTurnFinal = sameTurnFinals.length === 1 ? sameTurnFinals[0] : undefined;
     /* The accepted upload and Pi's persisted inline image can be imported as
        two managed-media receipts with different ids. The event-proven
        clientMessageId, exact visible text, equal attachment count, one nearby
@@ -1048,7 +1197,7 @@ function reconcileTranscriptReplayMessages(
     const mediaShapeCandidate = mediaShapeCandidates.length === 1
       ? mediaShapeCandidates[0]?.message
       : undefined;
-    const candidate = exactCandidate ?? mediaShapeCandidate;
+    const candidate = exactCandidate ?? sameTurnFinal ?? mediaShapeCandidate;
     if (!candidate) continue;
 
     claimedTranscriptIds.add(candidate.id);
@@ -1221,6 +1370,9 @@ function replayMediaShapeFingerprint(message: AgentMessageProjection): string {
 
 function replayVisibleText(message: AgentMessageProjection): string {
   return message.blocks
+    // Frozen file previews may be enriched between SSE and transcript reads.
+    // Their source text is an attachment, not part of the spoken answer.
+    .filter((block) => message.role !== 'assistant' || block.type === 'text')
     .map((block) => text(record(block.data).text))
     .filter(Boolean)
     .join('\n')
@@ -1900,6 +2052,21 @@ function upsertApprovalActivity(
   }
 }
 
+function roomBoundApprovalToolOwner(
+  state: AgentProjectionState,
+  payload: Record<string, unknown>,
+): AgentActivityProjection | undefined {
+  const owner = state.activitiesById[text(payload.toolCallId)];
+  if (!owner?.kind.startsWith('tool_')) return undefined;
+  const causal = record(payload.causalMetadata ?? owner.payload.causalMetadata);
+  return causal.roomBound === true
+    && Boolean(text(causal.roomId))
+    && Boolean(text(causal.rootId))
+    && Boolean(text(causal.dispatchId))
+    ? owner
+    : undefined;
+}
+
 function approvalActivityTurnId(
   state: AgentProjectionState,
   payload: Record<string, unknown>,
@@ -2225,7 +2392,10 @@ function attachMessageToTurn(state: AgentProjectionState, message: UiAgentMessag
   turn.updatedAtMs = Math.max(turn.updatedAtMs, message.completedAtMs ?? message.createdAtMs);
 }
 
-function reconcileSnapshotTurnStatuses(state: AgentProjectionState): void {
+function reconcileSnapshotTurnStatuses(
+  state: AgentProjectionState,
+  admissionsRestored = true,
+): void {
   const lastTurnId = state.turnOrder[state.turnOrder.length - 1] ?? '';
   const runtimeStatus = turnStatusFromRuntime(state.status);
   for (const turnId of state.turnOrder) {
@@ -2234,11 +2404,27 @@ function reconcileSnapshotTurnStatuses(state: AgentProjectionState): void {
     const messages = turn.messageIds
       .map((messageId) => state.messagesById[messageId])
       .filter((message): message is UiAgentMessage => Boolean(message));
-    const statuses = new Set(messages.map((message) => message.status));
+    // A failed Provider attempt remains in the transcript after Pi retries.
+    // The latest assistant message determines the attempt outcome; retaining
+    // the earlier error must not turn a later successful answer into failure.
+    const latestAssistant = messages.filter((message) => message.role === 'assistant').at(-1);
+    const statuses = new Set(messages
+      .filter((message) => message.role !== 'assistant' || message === latestAssistant)
+      .map((message) => message.status));
     if (statuses.has('failed')) turn.status = 'failed';
     else if (statuses.has('streaming')) turn.status = 'running';
-    else if (statuses.has('queued')) turn.status = 'queued';
+    else if (statuses.has('queued')) {
+      turn.status = messages.some((message) => (
+        message.admissionState === 'pending'
+        || message.admissionState === 'unresolved'
+      )) ? 'waiting' : 'queued';
+    }
     else if (statuses.has('aborted')) turn.status = 'aborted';
+    else if (turn.activityIds.some((id) => state.activitiesById[id]?.status === 'waiting')) turn.status = 'waiting';
+    else if (turn.activityIds.some((id) => state.activitiesById[id]?.status === 'running')) turn.status = 'running';
+    else if (runtimeStatus === 'failed'
+      && turn.activityIds.some((id) => state.activitiesById[id]?.status === 'failed')
+      && !messages.some((message) => message.role === 'assistant' && message.status === 'completed')) turn.status = 'failed';
     else turn.status = 'completed';
 
     const hasUserMessage = messages.some((message) => message.role === 'user');
@@ -2249,7 +2435,8 @@ function reconcileSnapshotTurnStatuses(state: AgentProjectionState): void {
     });
     const activeTail = turnId === lastTurnId && runtimeStatus !== 'completed';
     if (
-      turn.status === 'completed'
+      admissionsRestored
+      && turn.status === 'completed'
       && hasUserMessage
       && !hasAssistantMessage
       && !hasTerminalActivity

@@ -321,6 +321,52 @@
   font-variant-numeric: tabular-nums;
 }
 
+.paw-desktop-root .paw-session-workspace__snapshot-label {
+  align-items: center;
+  background: color-mix(in srgb, var(--paw-success) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--paw-success) 20%, transparent);
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--paw-success) 78%, var(--paw-ink));
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 650;
+  gap: 6px;
+  padding: 5px 9px;
+}
+
+.paw-desktop-root .paw-session-workspace__composer[data-read-only='true'] {
+  background: linear-gradient(transparent, var(--paw-panel-strong) 24%);
+}
+
+.paw-desktop-root .paw-session-workspace__snapshot-notice {
+  align-items: center;
+  background: color-mix(in srgb, var(--paw-panel) 90%, var(--paw-success) 10%);
+  border: 1px solid color-mix(in srgb, var(--paw-success) 18%, var(--paw-line));
+  border-radius: 14px;
+  color: var(--paw-ink);
+  display: flex;
+  gap: 10px;
+  margin: 0 auto;
+  max-width: 760px;
+  padding: 11px 14px;
+  width: 100%;
+}
+
+.paw-desktop-root .paw-session-workspace__snapshot-notice > svg {
+  color: var(--paw-success);
+  flex: none;
+}
+
+.paw-desktop-root .paw-session-workspace__snapshot-notice > span {
+  display: grid;
+  gap: 2px;
+}
+
+.paw-desktop-root .paw-session-workspace__snapshot-notice small {
+  color: var(--paw-muted);
+  font-size: 12px;
+}
+
 .paw-desktop-root .paw-session-workspace__runtime > span > i {
   background: var(--paw-chat-ok);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--paw-chat-ok) 12%, transparent);
@@ -701,13 +747,22 @@
     0 0 0 4px color-mix(in srgb, var(--paw-chat-accent) 9%, transparent);
 }
 
-.paw-desktop-root :is(.paw-session-workspace__composer, .paw-room-workspace__composer) .agent-composer textarea {
-  min-height: 64px;
-  padding: 13px 15px 41px;
+.paw-desktop-root :is(.paw-session-workspace__composer, .paw-room-workspace__composer) .agent-composer.paw-unified-composer textarea {
+  min-height: 40px;
+  max-height: 120px;
+  padding: 13px 15px 3px;
   color: var(--paw-chat-text);
   caret-color: var(--paw-chat-accent);
   font-size: 16px;
   line-height: 24px;
+}
+
+/* Keep the controls outside the textarea's scrollport. Bottom padding only
+   reserves space at the end of a draft; earlier lines in a long draft can
+   still scroll underneath an absolutely positioned toolbar. */
+.paw-desktop-root :is(.paw-session-workspace__composer, .paw-room-workspace__composer) .agent-composer__toolbar {
+  position: static;
+  margin: 0 6px 4px;
 }
 
 /* Send is the composer's one primary action: a filled accent circle
@@ -891,6 +946,12 @@
 .paw-desktop-root .paw-session-workspace__trace .an-trace {
   color: var(--paw-chat-text);
   background: #fff;
+}
+
+/* The trace has independent scroll panes; reserve the measured composer
+   height for all of them so evidence and the turn rail remain reachable. */
+.paw-desktop-root .paw-session-workspace__trace {
+  padding-bottom: calc(var(--workspace-composer-clearance) + var(--workspace-composer-gap));
 }
 
 .paw-desktop-root .paw-session-workspace__trace .an-trace-main {
@@ -1207,7 +1268,7 @@
 }
 
 .paw-agent-trace-v1__evidence {
-  max-height: min(58vh, 620px);
+  max-height: min(58cqh, 620px);
   margin: 5px 3px 10px 72px;
   overflow: auto;
   overscroll-behavior: contain;
@@ -1321,7 +1382,7 @@
 }
 
 .paw-agent-trace-v1__payload-body > pre {
-  max-height: min(38vh, 420px);
+  max-height: min(38cqh, 420px);
   margin: 0 0 8px;
   overflow: auto;
   overscroll-behavior: contain;
@@ -1610,10 +1671,6 @@
 
   .paw-desktop-root .paw-session-workspace__composer {
     padding: 7px 9px 9px;
-  }
-
-  .paw-desktop-root :is(.paw-session-workspace__composer, .paw-room-workspace__composer) .agent-composer textarea {
-    min-height: 54px;
   }
 
   .paw-agent-trace-v1__event > summary {

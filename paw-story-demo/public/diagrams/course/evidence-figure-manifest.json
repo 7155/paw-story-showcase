@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "paw.course.figure-manifest.v1",
+  "dataSha256": "d4ffd307046760f5fa1ab5e0c641ba8f33474f6eb098788d54684e95acc583fe",
+  "figures": [
+    {
+      "id": "enterpriseops-stages",
+      "title": "EnterpriseOps：先恢复业务正确，再比较成本",
+      "summary": "只换模型阶段 30/31，适配后 31/31；最终估算 $0.07291692。",
+      "width": 1200,
+      "height": 860,
+      "sha256": "12d9c4db95afa0622a29075c5fdea598c06ed6ac6b40f6c1389cb9e554aa29c0"
+    },
+    {
+      "id": "enterpriseops-verifiers",
+      "title": "EnterpriseOps：具体少过了哪一条？",
+      "summary": "第 3 题第 15 条由失败变通过；公开记录不包含该条 SQL 的正文。",
+      "width": 1200,
+      "height": 860,
+      "sha256": "74f2f9b645dd18d591219943633cbf298b5ee877c4756c86fec4875b1dbc5da6"
+    },
+    {
+      "id": "cloudops-cases",
+      "title": "CloudOps：改进发生在哪些故障上？",
+      "summary": "调度归属与一个性能案例恢复通过，另一个性能案例仍失败。",
+      "width": 1200,
+      "height": 860,
+      "sha256": "a4bce047eaea8fba86ce55ec5da6379f47772134feb812381ec943fa2dda4342"
+    },
+    {
+      "id": "rag-comparisons",
+      "title": "Enterprise RAG：两种比较，必须分开读",
+      "summary": "三阶段 7/9→8/9→9/9 与同输出重评分 4/9→9/9 是不同实验轴。",
+      "width": 1200,
+      "height": 860,
+      "sha256": "347e02fbc8589d3b18b304db9b4398ce03be5066ff332f70d350cc3bda5e2384"
+    },
+    {
+      "id": "memory-tradeoffs",
+      "title": "Memory：成本降低，token 数却增加",
+      "summary": "同一合成验证中总 token 增加 628，而定价估算下降。",
+      "width": 1200,
+      "height": 860,
+      "sha256": "4e88b10d24d97fa3d5d435fe981960df7666980b43b39a1e0f97110783303feb"
+    },
+    {
+      "id": "memory-rejected-compression",
+      "title": "Memory：这个看似合理的压缩候选被拒绝了",
+      "summary": "压缩后输入减少、输出增加，不满足预先声明的用量门。",
+      "width": 1200,
+      "height": 860,
+      "sha256": "a027961cce7ae4fa25869ddad49b8e82f6c77ad96b57bb4c508684fca13b6792"
+    },
+    {
+      "id": "rag-retrieval",
+      "title": "RAG 检索：排序提升不等于答案已经正确",
+      "summary": "词面、强向量、混合重排三对照的 nDCG、Recall 与 MRR；不是回答准确率。",
+      "width": 1200,
+      "height": 860,
+      "sha256": "c4d90822bbceafe7489062dbedbcf7973521f9779996414d64212eebbf87920a"
+    }
+  ]
+}

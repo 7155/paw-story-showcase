@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Activity,
   ArrowRight,
   Check,
   CircleAlert,
@@ -9,17 +8,17 @@ import {
   FileCheck2,
   GitCompareArrows,
   LockKeyhole,
-  Search,
   ShieldCheck,
   SquareArrowOutUpRight,
   TerminalSquare,
   X,
   type LucideIcon,
 } from "lucide-react";
-import { useState, type KeyboardEvent } from "react";
+import { useState } from "react";
 import { DetailShell } from "../shared";
+import { currentLabExperiments, currentLabExperiment, currentLabEvidenceHref, labBenefitBoundary, type CurrentLabExperiment, type LabKey } from "../../lab-evidence";
 
-type RunId = "rag" | "cloudops" | "enterpriseops" | "memory";
+type RunId = LabKey;
 
 type RunEvent = {
   id: string;
@@ -33,14 +32,12 @@ type RunEvent = {
 type LabRun = {
   id: RunId;
   label: string;
-  shortLabel: string;
   status: string;
   statusTone: "passed" | "blocked" | "candidate";
   title: string;
   summary: string;
   metric: string;
   metricLabel: string;
-  Icon: LucideIcon;
   metrics: readonly [string, string, string][];
   events: readonly RunEvent[];
   evidenceHref: string;
@@ -52,14 +49,12 @@ const labRuns: readonly LabRun[] = [
   {
     id: "rag",
     label: "Enterprise RAG",
-    shortLabel: "知识检索",
     status: "VALIDATION · HELD-OUT NOT CONSUMED",
     statusTone: "candidate",
     title: "先冻结语料和问题，再允许 Agent 改检索链。",
     summary: "5,101 篇企业文档、29,846 个 chunk、16 个 Validation query。14 个候选共享同一语料、split 与 qrels，选出 hybrid + Qwen3 reranker；随后 v16 和 Luna Max v20 都用逐事实 source/chunk/quote 合同检查最终答案，四条 answer-only lane 仍全部 Reject。",
     metric: "+44.78%",
     metricLabel: "nDCG@10 相对 lexical floor",
-    Icon: Search,
     metrics: [
       ["nDCG@10", "0.6128 → 0.8872", "+44.78% relative"],
       ["MRR", "0.6042 → 0.8672", "+43.53% relative"],
@@ -83,14 +78,12 @@ const labRuns: readonly LabRun[] = [
   {
     id: "cloudops",
     label: "CloudOps",
-    shortLabel: "故障定位",
     status: "BASELINE INCUMBENT · V1 FAILED · V2–V4 REJECTED · LUNA MAX REJECTED",
     statusTone: "blocked",
     title: "先保住 Baseline，再让模型候选拿到可比较的结果。",
     summary: "同一组 12 个冻结故障 case 先建立 Sol baseline，再连续保留 v1–v4。搜索、usage 投影与长 Tool ID 三个 OS 合同缺陷被修复；随后只替换模型为 Luna Max，跑了 3 个真实 Session transcript，共 278 次 Tool、14 次失败。第三批超时，abort 也超时；没有正式 Host CA/JRA 分数，因此拒绝候选，不做质量或成本比较。",
     metric: "CA 1.00",
     metricLabel: "保留的 Sol Baseline · Luna Reject",
-    Icon: Activity,
     metrics: [
       ["Baseline", "CA 1.0000", "JRA 0.8333"],
       ["Luna Max", "278 Tool", "14 failed"],
@@ -115,14 +108,12 @@ const labRuns: readonly LabRun[] = [
   {
     id: "enterpriseops",
     label: "EnterpriseOps CSM",
-    shortLabel: "业务工作流",
     status: "VALIDATION WON · HELD-OUT REJECTED · CHEAPER MODEL REJECTED",
     statusTone: "blocked",
     title: "更快、更省的模型，也必须先过质量门禁。",
     summary: "先修复 Runner / Tool / 权限合同，让业务 Tool 真正执行；suite-v2 的 state-contract 将 Validation 从 2/3、28/31 提到 3/3、31/31，但 one-shot Held-out 仅 1/8、54/65，Promotion 被拒绝。随后在同一当前源码、Runtime provenance、Prompt、Tool、Workflow 与 thinking=max 下只替换模型：Luna 成本估算降低 77.64%、耗时降低 16.45%，但质量回退到 2/3、30/31，因此继续保留 Sol。",
     metric: "1 / 8",
     metricLabel: "one-shot Held-out task · Promotion rejected",
-    Icon: FileCheck2,
     metrics: [
       ["Harness repair", "3 / 31 → 26 / 31", "+74.19 percentage points"],
       ["Validation task", "2 / 3 → 3 / 3", "state-contract winner"],
@@ -158,14 +149,12 @@ const labRuns: readonly LabRun[] = [
   {
     id: "memory",
     label: "Memory Maintenance",
-    shortLabel: "长期记忆整理",
     status: "REAL FAILURE · SHADOW V5 KEPT · PRODUCTION CLOSED",
     statusTone: "candidate",
     title: "把一次 13.9 分钟后的失败，拆成可定位、可复验的维护链。",
     summary: "真实月度整理 Run 在 834.945 秒后因未闭合 JSONL 记录失败。Luna Max 随后只在隔离 shadow fixture 上推进 v1→v5：前三个候选分别暴露 replay、布尔门禁与 Null embedding 缺陷；v5 才通过 5/5 整理决策、4/4 durable recall、1/1 临时任务拒记、rollback 与精确 baseline replay。生产记忆始终未打开。",
     metric: "834.945s",
     metricLabel: "真实失败被发现前的总耗时",
-    Icon: Database,
     metrics: [
       ["Real maintenance", "Failed", "truncated JSONL"],
       ["V5 curation", "5 / 5", "4 keep · 1 reject"],
@@ -194,8 +183,8 @@ const stateIcon = {
   unknown: CircleAlert,
 } satisfies Record<RunEvent["state"], LucideIcon>;
 
-export function SandboxLabDetail() {
-  const [activeId, setActiveId] = useState<RunId>("rag");
+export function SandboxLabDetail({ initialScenario = "enterpriseops" }: { initialScenario?: LabKey }) {
+  const [activeId, setActiveId] = useState<RunId>(initialScenario);
   const activeRun = labRuns.find((run) => run.id === activeId) ?? labRuns[0];
   const [eventByRun, setEventByRun] = useState<Record<RunId, string>>({
     rag: "rag-freeze",
@@ -205,31 +194,11 @@ export function SandboxLabDetail() {
   });
   const selectedEvent = activeRun.events.find((event) => event.id === eventByRun[activeRun.id]) ?? activeRun.events[0];
 
-  const selectRun = (id: RunId) => {
-    setActiveId(id);
-    window.requestAnimationFrame(() => document.getElementById(`vertical-lab-tab-${id}`)?.focus());
-  };
-
-  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-    const target = event.key === "ArrowRight"
-      ? (index + 1) % labRuns.length
-      : event.key === "ArrowLeft"
-        ? (index - 1 + labRuns.length) % labRuns.length
-        : event.key === "Home"
-          ? 0
-          : event.key === "End"
-            ? labRuns.length - 1
-            : null;
-    if (target === null) return;
-    event.preventDefault();
-    selectRun(labRuns[target]?.id ?? "rag");
-  };
-
   return (
     <DetailShell
       index="02 · 评测与自我优化 · 垂直沙盒"
       pageClassName="detail-page--vertical-lab"
-      title="从真实执行证据，走到可授权修复，再用新 Trace / Eval 验证。"
+      title="从真实执行证据，走到候选改进，再用新 Trace / Eval 验证。"
       sub="同一个 PAW 基座承载四个可核验项目：企业知识检索、CloudOps 故障定位、EnterpriseOps 业务工作流与长期记忆整理。Trace Agent 不再冒充第五个业务场景，而是作为每个项目共享的只读 Reviewer。"
     >
       <section className="vertical-lab-intro" aria-labelledby="vertical-lab-intro-title">
@@ -244,7 +213,7 @@ export function SandboxLabDetail() {
           <li><ArrowRight size={14}/><span>证据收口</span><small>Trace · Eval · Sandbox</small></li>
         </ol>
         <aside><LockKeyhole size={18}/><span><strong>RAG Held-out 未消费；EnterpriseOps one-shot Held-out 已拒绝</strong><small>失败候选不会删除或重跑成好结果；CloudOps、EnterpriseOps 与 Memory 的 source-local candidate 都未安装，前台验收另算。</small></span></aside>
-        <nav aria-label="公开脱敏评测回执">
+        <details className="current-lab-history"><summary>历史回执索引 · 2026-09-01–03</summary><nav aria-label="公开脱敏评测回执">
           <a href="/evidence/vertical-evals/enterprise-rag-validation-20260831.v1.json" target="_blank">RAG receipt<SquareArrowOutUpRight size={11}/></a>
           <a href="/evidence/vertical-evals/enterprise-rag-answer-v16-reject-20260901.v1.json" target="_blank">Answer v16 Reject<SquareArrowOutUpRight size={11}/></a>
           <a href="/evidence/vertical-evals/enterprise-rag-answer-luna-max-validation-20260902.v1.json" target="_blank">Luna Max v20 Reject<SquareArrowOutUpRight size={11}/></a>
@@ -259,33 +228,27 @@ export function SandboxLabDetail() {
           <a href="/evidence/vertical-evals/trace-agent-skill-envelope-validation-20260901.v1.json" target="_blank">Trace Skill receipt<SquareArrowOutUpRight size={11}/></a>
           <a href="/evidence/vertical-evals/trace-defect-inventory-20260901.v1.json" target="_blank">Defect inventory<SquareArrowOutUpRight size={11}/></a>
           <a href="/evidence/vertical-evals/manifest.v1.json" target="_blank">Hash manifest<SquareArrowOutUpRight size={11}/></a>
-        </nav>
+        </nav></details>
       </section>
 
+      <section className="vertical-lab-workbench current-lab" aria-label="四场景当前实验">
+        <header><div><GitCompareArrows size={19}/><span><h2>先守住质量，再比较 API 估算成本。</h2><small>同一事实源 · 当前候选 · 单轮 Validation</small></span></div></header>
+        <div className="vertical-lab-tabs" role="group" aria-label="选择当前实验">
+          {currentLabExperiments.map(experiment => <button key={experiment.key} type="button" aria-pressed={activeId === experiment.key} onClick={() => setActiveId(experiment.key)}>
+            <span><strong>{experiment.label}</strong><small>{experiment.scope}</small></span><b>−{experiment.saving}</b>
+          </button>)}
+        </div>
+        <CurrentExperimentPanel experiment={currentLabExperiment(activeId)}/>
+      </section>
+
+      <details className="current-lab-history">
+        <summary>历史实验与失败记录 · 保留原判决，按各自数据和运行版本阅读</summary>
       <section className="vertical-lab-workbench" aria-labelledby="vertical-lab-workbench-title">
         <header>
-          <div><Database size={19}/><span><h2 id="vertical-lab-workbench-title">选择一条真实运行，沿证据链检查。</h2><small>点击标签与时间线事件；所有公开文字均来自脱敏 receipt，不展示模型私有推理。</small></span></div>
-          <b>Baseline = incumbent · VALIDATION LEDGER · 2026-09-02</b>
+          <div><Database size={19}/><span><h2 id="vertical-lab-workbench-title">{activeRun.label} · 历史证据</h2><small>场景沿用上方选择；点击时间线事件查看原始判决。</small></span></div>
+          <b>HISTORICAL VALIDATION LEDGER · 2026-09-01–03</b>
         </header>
-        <div className="vertical-lab-tabs" role="tablist" aria-label="选择垂直 Agent 运行">
-          {labRuns.map((run, index) => (
-            <button
-              aria-controls="vertical-lab-panel"
-              aria-selected={activeRun.id === run.id}
-              id={`vertical-lab-tab-${run.id}`}
-              key={run.id}
-              onClick={() => setActiveId(run.id)}
-              onKeyDown={(event) => handleTabKeyDown(event, index)}
-              role="tab"
-              tabIndex={activeRun.id === run.id ? 0 : -1}
-              type="button"
-            >
-              <run.Icon size={17}/><span><strong>{run.label}</strong><small>{run.shortLabel}</small></span><b>{run.metric}</b>
-            </button>
-          ))}
-        </div>
-
-        <div aria-labelledby={`vertical-lab-tab-${activeRun.id}`} className="vertical-lab-panel" data-run={activeRun.id} id="vertical-lab-panel" key={activeRun.id} role="tabpanel">
+        <div aria-labelledby="vertical-lab-workbench-title" className="vertical-lab-panel" data-run={activeRun.id} id="vertical-lab-panel" key={activeRun.id}>
           <header>
             <span data-tone={activeRun.statusTone}>{activeRun.status}</span>
             <div><h3>{activeRun.title}</h3><p>{activeRun.summary}</p></div>
@@ -332,20 +295,54 @@ export function SandboxLabDetail() {
           <footer><CircleAlert size={16}/><span><strong>不能越过的结论边界</strong><p>{activeRun.boundary}</p></span></footer>
         </div>
       </section>
+      </details>
 
       <section className="vertical-lab-loop" aria-labelledby="vertical-lab-loop-title">
         <header><div><GitCompareArrows size={19}/><span><h2 id="vertical-lab-loop-title">“Agent 自己变好”被拆成五个不同权力。</h2><small>诊断权不等于写权限；写入成功也不等于修复已验证。</small></span></div></header>
         <ol>
           <li><b>01</b><strong>冻结失败</strong><p>Session、Tool、Trace、Eval 与环境 hash 成为不可改的 source evidence。</p></li>
           <li><b>02</b><strong>只读诊断</strong><p>Trace Agent 区分 observation、hypothesis 与 conclusion，只生成 candidate repair。</p></li>
-          <li><b>03</b><strong>用户授权</strong><p>用户选定 finding、owner 与 workspace roots，才创建独立 full-trust repair Session。</p></li>
-          <li><b>04</b><strong>沙盒应用</strong><p>普通 Agent 产生 diff、test evidence 与 change receipt；approval Agent 独立仲裁。</p></li>
-          <li><b>05</b><strong>同 Case 复检</strong><p>新 Trace / Eval 与 SandboxRun 通过后才可标 verified；输入不等价则禁止写提升。</p></li>
+          <li><b>03</b><strong>单次执行授权</strong><p>当前 Room 的任务分派确定执行范围；Agent 在该范围内默认全权限执行，不增加逐 Tool 批准或第二个批准 Agent。</p></li>
+          <li><b>04</b><strong>Runtime 执行</strong><p>Pi Session 执行候选，保留 Tool 结果、diff 与运行回执；Room 负责分派、协作和结果汇总。</p></li>
+          <li><b>05</b><strong>独立规则验证</strong><p>按冻结规则和同题回执检查质量、恢复与成本，再作 Keep / Reject；验证不会成为额外执行批准。</p></li>
         </ol>
-        <aside><ShieldCheck size={18}/><span><strong>PAW 的基座价值</strong><p>垂直应用不是换一套聊天 UI，而是复用同一组 Session、Tool authority、Trace、Eval、Sandbox、审批、恢复和回滚合同。</p></span></aside>
+        <aside><ShieldCheck size={18}/><span><strong>PAW 的基座价值</strong><p>垂直应用复用同一组 Session、Tool authority、Trace、Eval、Sandbox、恢复和回滚合同；规则验证与执行授权分别负责。</p></span></aside>
       </section>
     </DetailShell>
   );
+}
+
+export function CurrentExperimentPanel({ experiment: e }: { experiment: CurrentLabExperiment }) {
+  return <article className="current-lab-panel" aria-label={`${e.label} 当前实验`}>
+    <header><span>{e.scope} · {e.decision.toUpperCase()}</span><h3>{e.promptAdaptationNeeded ? "让低成本候选通过质量门禁。" : "仅换模型，保持记忆生命周期。"}</h3><p>{e.change}</p></header>
+    <dl className="vertical-lab-metrics">
+      <div><dt>冻结分母</dt><dd>{e.dataset.caseCount} 个案例</dd><small>{e.dataset.unit}</small></div>
+      <div><dt>候选质量</dt><dd>{e.qualityAfter}</dd><small>先检查硬门禁，再比较成本</small></div>
+      <div><dt>API 估算成本</dt><dd>{e.costBefore} → {e.costAfter}</dd><small>降低 {e.saving} · {e.costLabel}</small></div>
+    </dl>
+    <section className="vertical-lab-run-snapshot" aria-label={`${e.label} 当前阶段对照`}>
+      <header><h4>{e.promptAdaptationNeeded ? "先只换模型，再用通用 Prompt 修复。" : "只换模型已通过，无需追加 Prompt 候选。"}</h4></header>
+      <div role="table" aria-label={`${e.label} 阶段质量与成本`}>
+        <div role="row" data-head="true"><strong role="columnheader">阶段</strong><span role="columnheader">改动</span><span role="columnheader">质量</span><span role="columnheader">可靠性 / 门禁</span><span role="columnheader">API 估算成本</span><code role="columnheader">决策</code></div>
+        {e.stages.map(stage => <div role="row" key={stage.runId} data-state={stage.decision === "reject" ? "failed" : "passed"}>
+          <strong role="cell">{stage.label}</strong><span role="cell" data-label="改动">{stage.change}</span><span role="cell" data-label="质量">{stage.quality}</span><span role="cell" data-label="可靠性 / 门禁">{stage.reliability}</span><span role="cell" data-label="API 估算成本">{stage.cost}</span><code role="cell" data-label="决策">{stage.decision.toUpperCase()}</code>
+        </div>)}
+      </div>
+    </section>
+    <details className="current-lab-method"><summary>改了什么，哪些条件保持一致？</summary>
+      <p>{e.businessProblem}</p>
+      <ul>{e.factors.map(factor => <li key={factor.name}><strong>{factor.name}：{factor.before} → {factor.after}</strong><p>{factor.reason}</p></li>)}</ul>
+      <h4>冻结条件</h4><ul>{e.frozenControls.map(control => <li key={control.name}><strong>{control.name}</strong><p>{control.value} · {control.reason}</p></li>)}</ul>
+      <h4>质量判据</h4><ul>{e.hardGates.map(gate => <li key={gate}>{gate}</li>)}</ul>
+    </details>
+    <aside className="current-lab-boundary"><p>{labBenefitBoundary}</p>
+      {e.key === "rag" && <p>r6 是 candidate-aware Validation：非盲测、非 Held-out，不能作无偏推广；标准修订不代表模型能力提升。历史评审条件按回执记录，不宣称固定了评审模型，也不代表新 runner 已重跑。</p>}
+      {e.key === "cloudops" && <p>model-only 阶段的 outer projection failure 保留在来源回执；后续按独立 case projection 评分，不能把外层错误藏起来。</p>}
+      <p>耗时只作诊断，不计入 Keep；未验证安装态、生产效果或跨任务泛化。</p>
+      <details><summary>尚未验证的范围</summary><ul>{e.openGaps.map(gap => <li key={gap}>{gap}</li>)}</ul></details>
+    </aside>
+    <footer><a href={currentLabEvidenceHref} target="_blank" rel="noreferrer">查看公开快照与回执哈希 <SquareArrowOutUpRight size={13}/></a><code>{e.id}</code></footer>
+  </article>;
 }
 
 function SnapshotColumns() {

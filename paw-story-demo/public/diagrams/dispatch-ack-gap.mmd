@@ -1,0 +1,13 @@
+sequenceDiagram
+    autonumber
+    participant R as Room coordination
+    participant P as Pi Session
+    participant S as Dispatch receipt store
+    R->>P: Dispatch identified task
+    P-->>R: Accepted, execution starts
+    R--xS: Crash before ACK is persisted
+    Note over R,S: Coordination state is unknown
+    Note over P: Execution may still be alive
+    R->>P: Recover binding and reconcile execution state
+    P-->>R: Actual execution state and result
+    Note over R,P: Unknown is not stopped; Pi remains execution owner

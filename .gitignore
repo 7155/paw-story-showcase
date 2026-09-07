@@ -10,3 +10,15 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
+# Machine-local review material and generated artifacts
+*.zip
+*.tsbuildinfo
+.playwright-cli/
+.impeccable/
+.sites-runtime/
+.wrangler/
+/docs/
+/AGENTS.md
+/paw-story-demo/*.md
+!/paw-story-demo/README.md

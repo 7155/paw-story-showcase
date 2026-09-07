@@ -6,24 +6,25 @@ function snapshotText(sessionId: string): string {
 }
 
 describe('Memory recall showcase conversation', () => {
-  it('starts with one ordinary greeting while recall stays implicit', () => {
+  it('continues the shared task with one recalled delivery turn', () => {
     const text = snapshotText('session-memory-greeting');
 
-    expect(text).toContain('嗨，今天怎么样？');
-    expect(text).toContain('你今天其实推进了不少');
-    expect(text).not.toContain('还行，就是今天有点累');
-    expect(text).not.toContain('我今天主要做了什么？');
+    expect(previewAgentSnapshot('session-memory-greeting').messages).toHaveLength(2);
+    expect(text).toContain('继续昨天的 PAW 工作台方案，先告诉我交付到了哪里。');
+    expect(text).toContain('四条产品线的方案已经汇总');
+    expect(text).toContain('pawos-projection-plan.md');
+    expect(text).not.toContain('为什么保留候选 B，没有选择候选 A？');
   });
 
-  it('adds the next chat turn and naturally uses remembered preferences', () => {
+  it('adds a follow-up turn about the accepted and rejected candidates', () => {
     const text = snapshotText('session-memory');
 
-    expect(text).toContain('嗨，今天怎么样？');
-    expect(text).toContain('还行，就是今天有点累。');
-    expect(text).toContain('你最近反复在意的不是“功能堆得多”');
-    expect(text).toContain('几个 Agent 之间最难的交接跑通了');
-    expect(text).toContain('真实、有用');
-    expect(text).not.toContain('行星之间真的能沟通');
+    expect(previewAgentSnapshot('session-memory').messages).toHaveLength(4);
+    expect(text).toContain('继续昨天的 PAW 工作台方案，先告诉我交付到了哪里。');
+    expect(text).toContain('为什么保留候选 B，没有选择候选 A？');
+    expect(text).toContain('候选 A');
+    expect(text).toContain('候选 B');
+    expect(text).toContain('恢复');
     expect(text).not.toContain('我最近反复强调的偏好有哪些？');
   });
 });

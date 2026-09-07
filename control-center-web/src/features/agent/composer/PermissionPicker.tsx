@@ -5,7 +5,6 @@ import {
   ShieldCheck,
   TriangleAlert,
 } from 'lucide-react';
-import * as Checkbox from '@radix-ui/react-checkbox';
 import * as RadioGroup from '@radix-ui/react-radio-group';
 import { useEffect, useState } from 'react';
 
@@ -31,11 +30,13 @@ import type {
 import {
   PERMISSION_PRESETS,
   permissionPreset,
+  unrestrictedWorkspaceRoots,
 } from './permission-policy';
 import { toolAvailableForPolicy } from './tool-policy';
 
 export function PermissionPicker({
   session,
+  metadataKnown = Boolean(session),
   persona,
   tools,
   disabled,
@@ -44,6 +45,7 @@ export function PermissionPicker({
   onWorkspaceRootsChange,
 }: {
   session?: SessionSummary;
+  metadataKnown?: boolean;
   persona?: AgentPersonaV1;
   tools: ToolManifest[];
   disabled: boolean;
@@ -53,43 +55,41 @@ export function PermissionPicker({
 }) {
   const [open, setOpen] = useState(false);
   const [dangerousOpen, setDangerousOpen] = useState(false);
-  const [dangerousAcknowledged, setDangerousAcknowledged] = useState(false);
   const profile = session?.toolProfileVersion ?? 'control-center-v1';
   const current = permissionPreset(session?.executionMode, profile);
-  const sessionMode = session?.mode ?? 'assistant';
-  const workspaceRoots = session?.workspaceRoots ?? [];
-  // Session ownership and the runtime policy decide whether a user
-  // conversation can enter coordinator mode. Persona is optional metadata and
-  // must never grant or withhold execution permissions.
+  // Session ownership decides whether a user conversation can enter the
+  // coordinator profiles. Persona is optional metadata and never grants or
+  // withholds execution permissions.
   const canCoordinate = Boolean(session && !session.roomParticipant);
+  const scopedWorkspaceRoots = (session?.workspaceRoots ?? []).filter((root) => root !== '/');
 
   useEffect(() => {
-    if (requestOpen > 0 && session && !disabled) setOpen(true);
-  }, [disabled, requestOpen, session]);
+    if (requestOpen > 0 && session && metadataKnown && !disabled) setOpen(true);
+  }, [disabled, metadataKnown, requestOpen, session]);
 
   useEffect(() => {
-    if (!disabled) return;
+    if (!disabled && metadataKnown) return;
     setOpen(false);
     setDangerousOpen(false);
-  }, [disabled]);
+  }, [disabled, metadataKnown]);
 
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            aria-label={`对话权限：${current.label}`}
+            aria-label={metadataKnown ? `对话权限：${current.label}` : '对话权限：尚未同步'}
             className="agent-composer__picker"
-            data-permission={current.id}
+            data-permission={metadataKnown ? current.id : 'unknown'}
             size="small"
-            title={disabled
+            title={!metadataKnown ? '会话权限信息尚未返回，载入后可调整。消息仍可编辑。' : disabled
               ? '请先结束或停止当前任务，再调整运行权限。'
               : `对话权限：${current.label}`}
             variant="quiet"
-            disabled={!session || disabled}
-            leadingIcon={<PermissionMark mode={current.executionMode} size={16} />}
+            disabled={!session || !metadataKnown || disabled}
+            leadingIcon={metadataKnown ? <PermissionMark mode={current.executionMode} size={16} /> : <LockKeyhole size={16} />}
           >
-            <span className="agent-composer__picker-text">{current.label}</span>
+            <span className="agent-composer__picker-text">{metadataKnown ? current.label : '权限待同步'}</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent align="start" className="agent-picker-popover">
@@ -104,19 +104,23 @@ export function PermissionPicker({
             onValueChange={(presetId) => {
               const preset = PERMISSION_PRESETS.find((item) => item.id === presetId);
               if (!preset) return;
-              if (preset.id === 'dangerous') {
+              if (preset.id === 'full-auto') {
                 setOpen(false);
-                setDangerousAcknowledged(false);
                 setDangerousOpen(true);
                 return;
               }
-              const mode = preset.executionMode === 'workspace_managed'
-                ? 'coordinator'
-                : sessionMode;
+              if (preset.executionMode === 'workspace_managed' && !scopedWorkspaceRoots.length) {
+                setOpen(false);
+                onWorkspaceRootsChange();
+                return;
+              }
               onChange({
-                mode,
+                mode: preset.mode,
                 toolProfileVersion: preset.toolProfileVersion,
                 executionMode: preset.executionMode,
+                workspaceRoots: preset.executionMode === 'per_action'
+                  ? unrestrictedWorkspaceRoots(...scopedWorkspaceRoots)
+                  : scopedWorkspaceRoots,
                 workspaceScopeConfirmed: preset.executionMode === 'workspace_managed',
               });
               setOpen(false);
@@ -124,21 +128,20 @@ export function PermissionPicker({
           >
             {PERMISSION_PRESETS.map((preset) => {
               const selected = current.id === preset.id;
-              const requiresCoordinator = preset.executionMode === 'workspace_managed'
-                || preset.executionMode === 'full_trust';
-              const available = !requiresCoordinator || canCoordinate;
-              const effectiveMode = requiresCoordinator ? 'coordinator' : sessionMode;
+              const available = canCoordinate && (
+                preset.executionMode !== 'workspace_managed' || scopedWorkspaceRoots.length > 0
+              );
               const toolCount = tools.filter(
                 (tool) => toolAvailableForPolicy(
                   tool,
-                  effectiveMode,
+                  'coordinator',
                   preset.toolProfileVersion,
                 ),
               ).length;
               return (
                 <RadioGroup.Item
                   className="agent-picker-popover__option"
-                  data-danger={preset.id === 'dangerous' || undefined}
+                  data-danger={preset.id === 'full-auto' || undefined}
                   value={preset.id}
                   key={preset.id}
                   disabled={disabled || !available}
@@ -149,7 +152,9 @@ export function PermissionPicker({
                     <small>
                       {available
                         ? `${preset.description} · ${toolCount} 个工具`
-                        : '当前会话未开放协调权限'}
+                        : preset.executionMode === 'workspace_managed' && canCoordinate
+                          ? '先选择授权目录后可用'
+                          : '当前会话未开放协调权限'}
                     </small>
                   </span>
                   {selected ? <Check size={15} /> : null}
@@ -162,35 +167,32 @@ export function PermissionPicker({
               <FolderOpen size={16} />
               <span>
                 <strong>授权工作区</strong>
-                <small title={workspaceRoots.join('\n')}>
-                  {workspaceRoots.length > 0
-                    ? `${workspaceRoots.length} 个目录 · ${workspaceRoots.map(shortPath).join('、')}`
-                    : '尚未授权目录，工作区工具无法运行'}
+                <small title={scopedWorkspaceRoots.join('\n')}>
+                  {scopedWorkspaceRoots.length
+                    ? `${scopedWorkspaceRoots.length} 个目录 · ${scopedWorkspaceRoots.map(shortPath).join('、')}`
+                    : '尚未授权目录，工作区托管不可用'}
                 </small>
               </span>
-              <Button
-                size="small"
-                variant="quiet"
-                disabled={disabled}
-                onClick={onWorkspaceRootsChange}
-              >
-                {workspaceRoots.length > 0 ? '更改目录' : '选择目录'}
+              <Button size="small" variant="quiet" disabled={disabled} onClick={onWorkspaceRootsChange}>
+                {scopedWorkspaceRoots.length ? '更改目录' : '选择目录'}
               </Button>
             </section>
           ) : null}
+          {!PERMISSION_PRESETS.some((preset) => preset.id === current.id) ? (
+            <p className="agent-picker-popover__note">
+              当前 Session 使用旧版权限策略；选择上方任一模式后会切换到对应的新合同。
+            </p>
+          ) : null}
           {session?.toolAllowlistMode === 'explicit' ? (
             <p className="agent-picker-popover__note">
-              当前会话还受 {session.allowedTools?.length ?? 0} 项自定义工具上限约束；选择预设后恢复该预设的完整工具范围。
+              当前会话还受 {session.allowedTools?.length ?? 0} 项自定义工具上限约束；选择新预设后恢复完整工具范围。
             </p>
           ) : null}
         </PopoverContent>
       </Popover>
       <Dialog
         open={dangerousOpen}
-        onOpenChange={(nextOpen) => {
-          setDangerousOpen(nextOpen);
-          if (!nextOpen) setDangerousAcknowledged(false);
-        }}
+        onOpenChange={setDangerousOpen}
       >
         <DialogContent className="agent-dangerous-permission-dialog">
           <DialogHeader>
@@ -199,45 +201,36 @@ export function PermissionPicker({
             </span>
             <DialogTitle>启用全自动模式？</DialogTitle>
             <DialogDescription>
-              读取等无需审批的操作会直接进行；所有原本需要审批的操作都由独立审批 Agent（Luna Max）自动判定。
+              当前 Session 将拥有整个系统与所有 Tool，并自动批准后续动作。
             </DialogDescription>
           </DialogHeader>
           <div className="agent-dangerous-permission-dialog__limits">
             <p>
               <ShieldCheck size={16} />
-              <span><strong>审批上下文相互隔离</strong> Luna Max 只读取用户请求、当前任务与结构化审批历史，不读取当前 Agent 的输出或推理</span>
-            </p>
-            <p>
-              <ShieldCheck size={16} />
-              <span><strong>模型不能扩大权限</strong> 工作区边界、取消栅栏、哈希复验与审计回执始终有效；删库、灾难性破坏和敏感数据外传仍由代码阻止</span>
+              <span><strong>全磁盘与全 Tool</strong> Agent 可访问整个系统与所有 Tool，不受项目目录限制。</span>
             </p>
             <p>
               <TriangleAlert size={16} />
-              <span><strong>不会再等待你逐项确认</strong> Luna Max 拒绝或不可用时原操作不执行，Agent 会尝试更安全的替代方案</span>
+              <span><strong>自动批准每个动作</strong> 不再等待 Tool、路径或审批确认；请只对可信任务启用。</span>
+            </p>
+            <p>
+              <ShieldCheck size={16} />
+              <span><strong>仍有 OS 边界</strong> macOS 权限、系统安全策略和底层不可用资源仍可能拒绝操作。</span>
             </p>
           </div>
-          <label className="agent-dangerous-permission-dialog__check">
-            <Checkbox.Root
-              checked={dangerousAcknowledged}
-              onCheckedChange={(checked) => setDangerousAcknowledged(checked === true)}
-            >
-              <Checkbox.Indicator><Check size={14} /></Checkbox.Indicator>
-            </Checkbox.Root>
-            <span>我确认让此对话全自动执行，并由独立审批 Agent（Luna Max）判定所有待审批操作</span>
-          </label>
           <DialogFooter>
             <Button variant="quiet" onClick={() => setDangerousOpen(false)}>
               取消
             </Button>
             <Button
               variant="danger"
-              disabled={!dangerousAcknowledged}
               leadingIcon={<TriangleAlert size={15} />}
               onClick={() => {
                 onChange({
                   mode: 'coordinator',
-                  toolProfileVersion: 'control-center-v1',
+                  toolProfileVersion: 'control-center-auto-approve-v1',
                   executionMode: 'full_trust',
+                  workspaceRoots: unrestrictedWorkspaceRoots(...(session?.workspaceRoots ?? [])),
                   dangerousModeConfirmed: true,
                 });
                 setDangerousOpen(false);
@@ -254,5 +247,5 @@ export function PermissionPicker({
 
 function shortPath(path: string): string {
   const parts = path.split('/').filter(Boolean);
-  return parts.at(-1) || path;
+  return parts.at(-1) ?? path;
 }

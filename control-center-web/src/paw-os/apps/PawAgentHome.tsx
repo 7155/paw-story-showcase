@@ -9,12 +9,10 @@
  *   与「继续工作」在同一屏内完成；继续工作列表只在自身内部滚动，页脚是钉在
  *   底部的状态条。
  * - UR-002/040：单一 Agent 入口，Session / Room 在 Composer 底栏选择；
- *   PF-CM-003：所选工作类型的真实后果（谁来做、哪些伙伴加入、过程在哪里看得见）
- *   就写在 Composer 下方；Session 一句指向 PawSessionWorkspace 里真实存在的
- *   「Agent 轨迹 / 上下文装配」，不描述任何这里没有的界面。「记有来源的装配
- *   节点能直接打开那条证据」对应 PawContextTrace 已落地的双向证据链：只有
- *   metadata 里带具体实体标识的节点才可点击，这句因此不构成过度承诺。
- * - UR-046：两档全系统权限（全权限逐项确认 / 全自动），全自动明确提示自动批准与 OS 边界。
+ *   PF-CM-003：Room 真实伙伴在 Composer 下方展示；高级过程说明在工作区按需展开。
+ *   UR-253：首页与 Session 共用 ModelPicker；推理直接可见，模型搜索按需展开。
+ * - UR-046：四档 Session 权限（只读 / 全权限逐项确认 / 工作区托管 /
+ *   全自动），全自动明确提示自动批准与 OS 边界。
  * - UR-011/025 与 PF-CM-018/021：页脚只投影真实目录状态（读取中 / 失败可重试 /
  *   模型数量），不虚构“Runtime 已连接”这类前端无法证明的声明。
  *
@@ -23,7 +21,6 @@
 
 import {
   ArrowUp,
-  Check,
   ChevronDown,
   CircleAlert,
   LoaderCircle,
@@ -31,20 +28,35 @@ import {
   Plus,
   Users,
 } from 'lucide-react';
-import { useEffect, useId, useMemo, useRef, useState, type ClipboardEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react';
 import { useControlTransport } from '@/app/control-transport';
+import {
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuLabel,
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSeparator,
+  MenuTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/primitives';
 import {
   useAgentPreferencesRead,
   type AgentExecutionMode,
 } from '@/features/agent/composer/agent-preferences-store';
-import { unrestrictedWorkspaceRoots } from '@/features/agent/composer/permission-policy';
+import {
+  PERMISSION_PRESETS as SESSION_PERMISSION_PRESETS,
+  unrestrictedWorkspaceRoots,
+} from '@/features/agent/composer/permission-policy';
 import {
   supportedPiThinkingLevels,
   type PiModelOption,
 } from '@/features/agent/model-catalog-options';
 import {
   PermissionMark,
-  ProviderMark,
   WorkspaceMark,
 } from '@/features/agent/marks/ConversationMarks';
 import type { AgentPersonaV1 } from '@/contracts/generated/agent-persona.v1';
@@ -58,6 +70,7 @@ import {
 } from '@/contracts/attachment-policy';
 import {
   defaultRoomPermissionPolicy,
+  effectiveRoomPermissionPolicy,
   roomPermissionPolicyNeedsDangerousConfirmation,
   roomPermissionPolicyNeedsWorkspaceConfirmation,
   type RoomPermissionPolicy,
@@ -69,10 +82,17 @@ import {
 } from '@/features/rooms/room-presentation';
 import { roomPlanetName } from '@/features/rooms/room-participant-identity';
 import { useAgentLiveStore } from '@/features/agent/state/live-store';
+import {
+  isAgentCommandPending,
+  isAmbiguousAgentPromptFailure,
+  isUnresolvedAgentCommandPending,
+  publicAgentErrorText,
+} from '@/features/agent/public-error';
 import { useRoomLiveStore } from '@/features/rooms/state/live-store';
 import { clipboardFilesFromEvent } from '@/features/agent/composer/AgentComposer';
 import type { PickedFile } from '@/platform/transport';
 import { pawBrowserHost } from './paw-browser-host';
+import { ModelPicker } from '@/features/agent/composer/ModelPicker';
 import { PawAppIcon } from '../shell/PawAppIcon';
 
 type WorkMode = 'session' | 'room';
@@ -81,32 +101,13 @@ type Selection =
   | { kind: 'session'; id: string; draft?: string }
   | { kind: 'room'; id: string; draft?: string; error?: string };
 
-type OptionsPanel = 'project' | 'model' | 'permission' | null;
+type OptionsPanel = 'project' | 'permission' | null;
 
 type HomePendingAttachment = {
   id: string;
   file: File;
 };
 
-const PERMISSION_PRESETS: ReadonlyArray<{
-  executionMode: AgentExecutionMode;
-  toolProfileVersion: 'control-center-full-access-v1' | 'control-center-auto-approve-v1';
-  label: string;
-  description: string;
-}> = [
-  {
-    executionMode: 'per_action',
-    toolProfileVersion: 'control-center-full-access-v1',
-    label: '全权限',
-    description: '整个系统与所有 Tool 可用；有影响的操作逐项请求确认',
-  },
-  {
-    executionMode: 'full_trust',
-    toolProfileVersion: 'control-center-auto-approve-v1',
-    label: '全自动',
-    description: '整个系统与所有 Tool 可用；每个动作自动批准，仍受操作系统边界约束',
-  },
-];
 const PROMPT_STARTERS: ReadonlyArray<{ label: string; prompt: string }> = [
   { label: '梳理现状', prompt: '梳理这个项目的当前状态：正在进行什么、被什么卡住、下一步最值得做什么。' },
   { label: '审查改动', prompt: '审查最近的改动，指出风险、遗漏和需要跟进的问题。' },
@@ -149,7 +150,7 @@ export function PawAgentHome({
   const [mode, setMode] = useState<WorkMode>('session');
   const [prompt, setPrompt] = useState(initialDraft ?? '');
   const [workspaceRoot, setWorkspaceRoot] = useState('');
-  const [executionMode, setExecutionMode] = useState<AgentExecutionMode>(selectableExecutionMode(preferences.executionMode));
+  const [executionMode, setExecutionMode] = useState<AgentExecutionMode>(preferences.executionMode);
   const [modelReference, setModelReference] = useState(preferences.modelReference || defaultModel);
   const [thinking, setThinking] = useState(preferences.thinking);
   const [roomParticipantOverride, setRoomParticipantOverride] = useState<number | null>(null);
@@ -161,13 +162,8 @@ export function PawAgentHome({
   const [error, setError] = useState('');
   const [pendingAttachments, setPendingAttachments] = useState<HomePendingAttachment[]>([]);
   const [pendingClipboardPaste, setPendingClipboardPaste] = useState(false);
-  const composerRef = useRef<HTMLDivElement>(null);
   const promptRef = useRef<HTMLTextAreaElement>(null);
-  const chipRefs = useRef<Record<Exclude<OptionsPanel, null>, HTMLButtonElement | null>>({
-    permission: null,
-    model: null,
-    project: null,
-  });
+  const modeRefs = useRef<Record<WorkMode, HTMLButtonElement | null>>({ session: null, room: null });
   const preferenceHydratedRef = useRef(false);
   const preferenceEditedRef = useRef({ executionMode: false, modelReference: false, thinking: false });
   const modeBriefId = useId();
@@ -180,7 +176,7 @@ export function PawAgentHome({
   useEffect(() => {
     if (preferenceRead.isPending || preferenceRead.readError || preferenceHydratedRef.current) return;
     preferenceHydratedRef.current = true;
-    if (!preferenceEditedRef.current.executionMode) setExecutionMode(selectableExecutionMode(preferences.executionMode));
+    if (!preferenceEditedRef.current.executionMode) setExecutionMode(preferences.executionMode);
     if (!preferenceEditedRef.current.modelReference) setModelReference(preferences.modelReference || defaultModel);
     if (!preferenceEditedRef.current.thinking) setThinking(preferences.thinking);
   }, [defaultModel, preferenceRead.isPending, preferenceRead.readError, preferences.executionMode, preferences.modelReference, preferences.thinking]);
@@ -190,6 +186,10 @@ export function PawAgentHome({
 
   const selectedModel = models.find((item) => item.reference === modelReference);
   const thinkingLevels = supportedPiThinkingLevels(selectedModel, { includeOff: true });
+  useEffect(() => {
+    if (!selectedModel || !thinkingLevels.length || thinkingLevels.includes(thinking)) return;
+    setThinking(thinkingLevels.includes('medium') ? 'medium' : thinkingLevels.includes('off') ? 'off' : thinkingLevels[0]!);
+  }, [selectedModel, thinking, thinkingLevels.join(',')]);
   const availableRoomPersonas = personas
     .filter((persona) => persona.selectableModes.includes('coordinator'))
     .slice(0, 8);
@@ -200,19 +200,20 @@ export function PawAgentHome({
   );
   const roomPersonas = availableRoomPersonas.slice(0, roomParticipantCount);
   const roomReady = roomPersonas.length >= 2;
-  const modelGroups = useMemo(() => {
-    const groups = new Map<string, PiModelOption[]>();
-    for (const model of models) groups.set(model.provider, [...(groups.get(model.provider) ?? []), model]);
-    return [...groups.entries()];
-  }, [models]);
-  const sessionPermission = PERMISSION_PRESETS.find((item) => item.executionMode === executionMode) ?? PERMISSION_PRESETS[0]!;
+  const sessionPermission = SESSION_PERMISSION_PRESETS.find(
+    (item) => item.executionMode === executionMode,
+  ) ?? SESSION_PERMISSION_PRESETS.find((item) => item.id === 'full-access')!;
   const roomPermission = roomPermissionLayerPresentation(
     roomPermissionPolicy,
     'room',
     'collaboration',
   );
+  const effectiveRoomPermissions = effectiveRoomPermissionPolicy(roomPermissionPolicy);
+  const uniformRoomPermissions = Object.values(effectiveRoomPermissions).every(
+    (value) => value === effectiveRoomPermissions.room,
+  );
   const permissionLabel = mode === 'room'
-    ? `${roomPermission.effectiveLabel} · 分层`
+    ? `${uniformRoomPermissions ? roomPermission.effectiveLabel : '自定义'} · 分层`
     : sessionPermission.label;
   const permissionMode = mode === 'room'
     ? roomPermissionPolicy.room.executionMode
@@ -226,23 +227,18 @@ export function PawAgentHome({
     .sort((left, right) => right.item.updatedAtMs - left.item.updatedAtMs)
     .slice(0, 4), [rooms, sessions]);
 
-  useEffect(() => {
-    if (!optionsPanel) return;
-    const closeOutside = (event: PointerEvent) => {
-      if (event.target instanceof Node && !composerRef.current?.contains(event.target)) setOptionsPanel(null);
-    };
-    const closeWithEscape = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      setOptionsPanel(null);
-      chipRefs.current[optionsPanel]?.focus();
-    };
-    document.addEventListener('pointerdown', closeOutside);
-    document.addEventListener('keydown', closeWithEscape);
-    return () => {
-      document.removeEventListener('pointerdown', closeOutside);
-      document.removeEventListener('keydown', closeWithEscape);
-    };
-  }, [optionsPanel]);
+  function moveModeFocus(event: KeyboardEvent<HTMLButtonElement>): void {
+    const next = event.key === 'Home' ? 'session'
+      : event.key === 'End' ? 'room'
+        : ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)
+          ? mode === 'session' ? 'room' : 'session'
+          : undefined;
+    if (!next) return;
+    event.preventDefault();
+    setMode(next);
+    setOptionsPanel(null);
+    modeRefs.current[next]?.focus();
+  }
 
   async function pickWorkspace(): Promise<void> {
     if (!transport.pickFiles && !electronHost?.pickWorkspaceDirectory) {
@@ -337,17 +333,22 @@ export function PawAgentHome({
       setError('当前没有足够的 Room 伙伴。');
       return;
     }
+    if (mode === 'session' && executionMode === 'workspace_managed' && !workspaceRoot) {
+      setError('工作区托管需要先选择一个项目。');
+      return;
+    }
     setSubmitting(true);
     setError('');
-    const toolProfileVersion = executionMode === 'full_trust'
-      ? 'control-center-auto-approve-v1'
-      : 'control-center-full-access-v1';
-    const workspaceRoots = unrestrictedWorkspaceRoots(workspaceRoot);
+    const toolProfileVersion = sessionPermission.toolProfileVersion;
+    const systemWorkspaceRoots = unrestrictedWorkspaceRoots(workspaceRoot);
+    const sessionWorkspaceRoots = executionMode === 'per_action' || executionMode === 'full_trust'
+      ? systemWorkspaceRoots
+      : workspaceRoot ? [workspaceRoot] : [];
     const roomWorkspaceRoots = (
       roomPermissionPolicy.room.executionMode === 'per_action'
       || roomPermissionPolicy.room.executionMode === 'full_trust'
     )
-      ? workspaceRoots
+      ? systemWorkspaceRoots
       : workspaceRoot ? [workspaceRoot] : [];
     try {
       if (mode === 'session') {
@@ -355,10 +356,13 @@ export function PawAgentHome({
           pathId: 'agent.sessions.create',
           body: {
             title: workTitle(message),
-            mode: 'coordinator',
+            mode: sessionPermission.mode,
             executionMode,
             toolProfileVersion,
-            workspaceRoots,
+            workspaceRoots: sessionWorkspaceRoots,
+            ...(executionMode === 'workspace_managed'
+              ? { workspaceScopeConfirmation: 'APPROVE_WORKSPACE_SCOPE' }
+              : {}),
             ...(executionMode === 'full_trust'
               ? { dangerousModeConfirmation: 'ENABLE_FULL_TRUST' }
               : {}),
@@ -368,46 +372,75 @@ export function PawAgentHome({
         const sessionId = text(rawSession.id);
         if (!sessionId) throw new Error('服务端没有返回可验证的 Session。');
         const clientMessageId = clientId('session');
-        const createdSession = createdSessionSummary(rawSession, message, workspaceRoot, executionMode);
-        const importedAttachments = await importPendingAttachments({ sessionId });
-        const attachmentIds = importedAttachments.map((attachment) => attachment.id);
-        clearPendingAttachments();
-        // Tutti 入场顺序：先让 Session 与首条用户消息可见，配置与回执后台补齐。
+        const createdSession = createdSessionSummary(
+          rawSession,
+          message,
+          sessionWorkspaceRoots,
+          executionMode,
+          toolProfileVersion,
+        );
+        const attachmentImport = importPendingAttachments({ sessionId });
+        const pendingAttachmentIds = [
+          ...pendingAttachments.map((attachment) => attachment.id),
+          ...(pendingClipboardPaste ? ['pending-clipboard-image'] : []),
+        ];
+        // Session existence is enough to make the user's intent visible. File
+        // import continues under that owner; local attachment identities keep
+        // the optimistic row truthful until the durable message replaces it
+        // with managed media receipts.
         useAgentLiveStore.getState().appendOptimistic(sessionId, {
           clientMessageId,
           text: message,
-          attachments: attachmentIds,
+          attachments: pendingAttachmentIds,
           nowMs: Date.now(),
         });
         onCreated({ kind: 'session', id: sessionId }, createdSession);
+        clearPendingAttachments();
         void (async () => {
-          try {
-            const configuration = [] as Promise<unknown>[];
-            const explicitModelSelection = preferenceEditedRef.current.modelReference
-              || Boolean(preferences.modelReference && preferences.modelReference !== 'inherit');
-            if (selectedModel && explicitModelSelection) {
+          const configuration = [] as Promise<unknown>[];
+          const explicitModelSelection = preferenceEditedRef.current.modelReference
+            || Boolean(preferences.modelReference && preferences.modelReference !== 'inherit');
+          if (selectedModel && explicitModelSelection) {
+            configuration.push(transport.request({
+              pathId: 'agent.session.model.select',
+              params: { sessionId },
+              body: { provider: selectedModel.provider, modelId: selectedModel.id },
+            }));
+            if (thinkingLevels.includes(thinking)) {
               configuration.push(transport.request({
-                pathId: 'agent.session.model.select',
+                pathId: 'agent.session.thinking.select',
                 params: { sessionId },
-                body: { provider: selectedModel.provider, modelId: selectedModel.id },
+                body: { level: thinking },
               }));
-              if (thinkingLevels.includes(thinking)) {
-                configuration.push(transport.request({
-                  pathId: 'agent.session.thinking.select',
-                  params: { sessionId },
-                  body: { level: thinking },
-                }));
-              }
             }
-            void Promise.allSettled(configuration);
-            await transport.request({
+          }
+          void Promise.allSettled(configuration);
+          let importedAttachments: PickedFile[];
+          try {
+            importedAttachments = await attachmentImport;
+          } catch (attachmentError) {
+            failHomeAttachmentImportBeforeAdmission(
+              sessionId,
+              clientMessageId,
+              attachmentError,
+            );
+            return;
+          }
+          const attachmentIds = importedAttachments.map((attachment) => attachment.id);
+          replaceHomeOptimisticAttachmentIds(sessionId, clientMessageId, attachmentIds);
+          try {
+            const response = await transport.request<Record<string, unknown>>({
               pathId: 'agent.session.prompt',
               params: { sessionId },
               body: { message, attachments: attachmentIds, clientMessageId },
             });
+            if (isCancelledPromptAdmission(response)) {
+              useAgentLiveStore.getState().discardOptimistic(sessionId, clientMessageId);
+              return;
+            }
             useAgentLiveStore.getState().acknowledgeOptimistic(sessionId, clientMessageId, Date.now());
           } catch (requestError) {
-            useAgentLiveStore.getState().failOptimistic(sessionId, clientMessageId, errorText(requestError), Date.now());
+            settleHomePromptAdmissionFailure(sessionId, clientMessageId, requestError);
           }
         })();
       } else {
@@ -476,26 +509,30 @@ export function PawAgentHome({
     }
   }
 
-  const greeting = timeGreeting();
+  const permissionTrigger = (
+    <button
+      aria-label={`权限 · ${permissionLabel}`}
+      className="an-chip"
+      disabled={submitting}
+      title={`权限 · ${permissionLabel}`}
+      type="button"
+    >
+      <PermissionMark mode={permissionMode} size={14} />
+      <span className="an-chip-text">{permissionLabel}</span>
+      <ChevronDown className="caret" size={13} />
+    </button>
+  );
 
   return (
     <div className="paw-agent-next an-home-root">
       <div className="an-home">
-        <svg className="an-home-geo" aria-hidden="true">
-          <defs>
-            <pattern id="an-reg" width="220" height="220" patternUnits="userSpaceOnUse">
-              <path d="M110 96v28M96 110h28" stroke="var(--an-ink)" strokeOpacity=".05" strokeWidth="1.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#an-reg)" />
-          <circle cx="86%" cy="18%" r="180" fill="none" stroke="var(--an-violet)" strokeOpacity=".08" strokeWidth="1.5" />
-          <circle className="an-geo-orbit" cx="86%" cy="18%" r="120" fill="none" stroke="var(--an-cobalt)" strokeOpacity=".07" strokeWidth="1.5" strokeDasharray="2 7" />
-        </svg>
         <div className="an-home-wrap">
-          <div className="an-home-greet">{greeting}</div>
-          <h1 className="an-home-title">交给 Agent <em>一件事</em>。</h1>
+          <header className="an-home-intro">
+            <span aria-hidden="true" className="an-home-orbit"><span /></span>
+            <h1 className="an-home-title">今天想完成什么？</h1>
+          </header>
 
-          <div className="an-composer" ref={composerRef}>
+          <div className="an-composer">
             {pendingAttachments.length || pendingClipboardPaste ? (
               <div aria-label="待发送附件" className="agent-composer__attachments" role="list">
                 {pendingAttachments.map(({ id, file }) => {
@@ -544,7 +581,7 @@ export function PawAgentHome({
                   void startWork();
                 }
               }}
-              placeholder="描述目标、上下文和验收方式…（Enter 发送，Shift+Enter 换行）"
+              placeholder="交给 Agent 一件事…"
               value={prompt}
             />
             <div className="an-composer-foot">
@@ -552,8 +589,12 @@ export function PawAgentHome({
                 <button
                   aria-checked={mode === 'session'}
                   aria-label="Session"
-                  onClick={() => setMode('session')}
+                  disabled={submitting}
+                  onClick={() => { setMode('session'); setOptionsPanel(null); }}
+                  onKeyDown={moveModeFocus}
+                  ref={(node) => { modeRefs.current.session = node; }}
                   role="radio"
+                  tabIndex={mode === 'session' ? 0 : -1}
                   title="Session"
                   type="button"
                 >
@@ -563,8 +604,12 @@ export function PawAgentHome({
                 <button
                   aria-checked={mode === 'room'}
                   aria-label="Room"
-                  onClick={() => setMode('room')}
+                  disabled={submitting}
+                  onClick={() => { setMode('room'); setOptionsPanel(null); }}
+                  onKeyDown={moveModeFocus}
+                  ref={(node) => { modeRefs.current.room = node; }}
                   role="radio"
+                  tabIndex={mode === 'room' ? 0 : -1}
                   title="Room"
                   type="button"
                 >
@@ -574,167 +619,102 @@ export function PawAgentHome({
               </span>
 
               <span className="an-anchor">
-                <button
-                  aria-expanded={optionsPanel === 'permission'}
-                  aria-label={`权限 · ${permissionLabel}`}
-                  className="an-chip"
-                  onClick={() => setOptionsPanel(optionsPanel === 'permission' ? null : 'permission')}
-                  ref={(node) => { chipRefs.current.permission = node; }}
-                  title={`权限 · ${permissionLabel}`}
-                  type="button"
-                >
-                  <PermissionMark mode={permissionMode} size={14} />
-                  <span className="an-chip-text">{permissionLabel}</span>
-                  <ChevronDown className="caret" size={13} />
-                </button>
-                {optionsPanel === 'permission' ? (
-                  <div className="an-menu" role={mode === 'session' ? 'menu' : undefined}>
-                    <div className="an-menu-title">
-                      {mode === 'room' ? 'Room 三层权限' : '权限模式'}
-                    </div>
-                    {mode === 'room' ? (
+                {mode === 'room' ? (
+                  <Popover open={optionsPanel === 'permission'} onOpenChange={(open) => setOptionsPanel(open ? 'permission' : null)}>
+                    <PopoverTrigger asChild>{permissionTrigger}</PopoverTrigger>
+                    <PopoverContent align="start" aria-label="Room 三层权限" className="paw-agent-next an-home-menu an-home-menu--policy" side="bottom">
+                      <h2 className="an-home-menu__title">Room 三层权限</h2>
                       <RoomPermissionPolicyEditor
                         compact
                         onChange={setRoomPermissionPolicy}
                         policy={roomPermissionPolicy}
                         roomKind="collaboration"
                       />
-                    ) : PERMISSION_PRESETS.map((item) => (
-                      <button
-                        aria-checked={item.executionMode === executionMode}
-                        className="an-menu-item"
-                        key={item.executionMode}
-                        onClick={() => {
-                          preferenceEditedRef.current.executionMode = true;
-                          setExecutionMode(item.executionMode);
-                          setOptionsPanel(null);
-                        }}
-                        role="menuitemradio"
-                        type="button"
-                      >
-                        <span style={{ minWidth: 0 }}>
-                          <span className="mi-tt">{item.executionMode === executionMode ? <Check size={12} style={{ marginRight: 6, verticalAlign: -1 }} /> : null}{item.label}</span>
-                          <span className="mi-sub">{item.description}</span>
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <Menu modal={false} open={optionsPanel === 'permission'} onOpenChange={(open) => setOptionsPanel(open ? 'permission' : null)}>
+                    <MenuTrigger asChild>{permissionTrigger}</MenuTrigger>
+                    <MenuContent align="start" aria-label="权限模式" className="paw-agent-next an-home-menu" side="bottom">
+                      <MenuLabel className="an-home-menu__title">权限模式</MenuLabel>
+                      <MenuRadioGroup value={executionMode}>
+                        {SESSION_PERMISSION_PRESETS.map((item) => (
+                          <MenuRadioItem
+                            className="an-home-menu__item"
+                            key={item.executionMode}
+                            onSelect={() => {
+                              preferenceEditedRef.current.executionMode = true;
+                              setExecutionMode(item.executionMode);
+                            }}
+                            value={item.executionMode}
+                          >
+                            <span>
+                              <strong>{item.label}</strong>
+                              <small>{item.description}</small>
+                            </span>
+                          </MenuRadioItem>
+                        ))}
+                      </MenuRadioGroup>
+                    </MenuContent>
+                  </Menu>
+                )}
+              </span>
+
+              <span className="an-anchor an-model-anchor">
+                <ModelPicker
+                  className="an-chip an-model-chip"
+                  options={{ models, modelReference, thinking }}
+                  disabled={submitting || !models.length}
+                  pending={catalogLoading}
+                  requestOpen={0}
+                  onOpen={() => setOptionsPanel(null)}
+                  onChange={(provider, modelId, level) => {
+                    preferenceEditedRef.current.modelReference = true;
+                    preferenceEditedRef.current.thinking = true;
+                    setModelReference(`${provider}/${modelId}`);
+                    setThinking(level);
+                  }}
+                />
               </span>
 
               <span className="an-anchor">
-                <button
-                  aria-expanded={optionsPanel === 'model'}
-                  aria-label={`模型与推理 · ${selectedModel?.name ?? '自动模型'} · ${thinkingLabel(thinking)}`}
-                  className="an-chip"
-                  onClick={() => setOptionsPanel(optionsPanel === 'model' ? null : 'model')}
-                  ref={(node) => { chipRefs.current.model = node; }}
-                  title={`模型与推理 · ${selectedModel?.name ?? '自动模型'} · ${thinkingLabel(thinking)}`}
-                  type="button"
-                >
-                  <ProviderMark providerId={selectedModel?.provider} size={14} />
-                  <span className="an-chip-text">{selectedModel?.name ?? '自动模型'}</span>
-                  <span className="an-chip-detail"> · {thinkingLabel(thinking)}</span>
-                  <ChevronDown className="caret" size={13} />
-                </button>
-                {optionsPanel === 'model' ? (
-                  <div aria-label="选择模型与推理强度" className="an-menu" role="menu">
-                    <div aria-label="模型" role="group">
-                      <div className="an-menu-title">模型</div>
-                      {modelGroups.map(([provider, group]) => (
-                        <div key={provider}>
-                          <div className="an-menu-group">{provider}</div>
-                          {group.map((model) => (
-                            <button
-                              aria-checked={model.reference === modelReference}
-                              className="an-menu-item"
-                              key={model.reference}
-                              onClick={() => {
-                                preferenceEditedRef.current.modelReference = true;
-                                setModelReference(model.reference);
-                                setOptionsPanel(null);
-                              }}
-                              role="menuitemradio"
-                              type="button"
-                            >
-                              <span style={{ minWidth: 0 }}>
-                                <span className="mi-tt">{model.reference === modelReference ? <Check size={12} style={{ marginRight: 6, verticalAlign: -1 }} /> : null}{model.name}</span>
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                    {selectedModel && thinkingLevels.length > 0 ? (
-                      <>
-                        <div className="an-menu-sep" />
-                        <div aria-label="推理强度" role="group">
-                          <div className="an-menu-title">推理强度</div>
-                          {thinkingLevels.map((level) => (
-                            <button
-                              aria-checked={level === thinking}
-                              className="an-menu-item"
-                              key={level}
-                              onClick={() => {
-                                preferenceEditedRef.current.thinking = true;
-                                setThinking(level);
-                                setOptionsPanel(null);
-                              }}
-                              role="menuitemradio"
-                              type="button"
-                            >
-                              <span className="mi-tt">{level === thinking ? <Check size={12} style={{ marginRight: 6, verticalAlign: -1 }} /> : null}{thinkingLabel(level)}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    ) : null}
-                  </div>
-                ) : null}
-              </span>
-
-              <span className="an-anchor">
-                <button
-                  aria-expanded={optionsPanel === 'project'}
+                <Menu modal={false} open={optionsPanel === 'project'} onOpenChange={(open) => setOptionsPanel(open ? 'project' : null)}>
+                <MenuTrigger asChild><button
                   aria-label={workspaceRoot ? `起始项目 · ${projectName([workspaceRoot])}` : '起始项目（可选）'}
                   className="an-chip"
-                  onClick={() => setOptionsPanel(optionsPanel === 'project' ? null : 'project')}
-                  ref={(node) => { chipRefs.current.project = node; }}
+                  disabled={submitting}
                   title={workspaceRoot || '起始项目（可选）'}
                   type="button"
                 >
                   <WorkspaceMark bound={Boolean(workspaceRoot)} size={14} />
                   <span className="an-chip-text">{workspaceRoot ? projectName([workspaceRoot]) : '起始项目（可选）'}</span>
                   <ChevronDown className="caret" size={13} />
-                </button>
-                {optionsPanel === 'project' ? (
-                  <div className="an-menu" role="menu">
-                    <div className="an-menu-title">起始项目（可选）</div>
+                </button></MenuTrigger>
+                  <MenuContent align="end" aria-label="起始项目（可选）" className="paw-agent-next an-home-menu" side="bottom">
+                    <MenuLabel className="an-home-menu__title">起始项目（可选）</MenuLabel>
+                    <MenuRadioGroup value={workspaceRoot} onValueChange={setWorkspaceRoot}>
                     {projectRoots.map((root) => (
-                      <button
-                        aria-checked={root === workspaceRoot}
-                        className="an-menu-item"
+                      <MenuRadioItem
+                        className="an-home-menu__item"
                         key={root}
-                        onClick={() => { setWorkspaceRoot(root); setOptionsPanel(null); }}
-                        role="menuitemradio"
-                        type="button"
+                        value={root}
                       >
-                        <span style={{ minWidth: 0 }}>
-                          <span className="mi-tt">{root === workspaceRoot ? <Check size={12} style={{ marginRight: 6, verticalAlign: -1 }} /> : null}{projectName([root])}</span>
-                          <span className="mi-sub" style={{ fontFamily: 'var(--an-mono)' }}>{root}</span>
+                        <span>
+                          <strong>{projectName([root])}</strong>
+                          <small className="an-home-menu__path" title={root}>{root}</small>
                         </span>
-                      </button>
+                      </MenuRadioItem>
                     ))}
+                    </MenuRadioGroup>
+                    {!projectRoots.length ? <p className="an-home-menu__empty">选择一个项目，让 Agent 从它的目录开始工作。</p> : null}
                     {transport.pickFiles || electronHost?.pickWorkspaceDirectory ? (
                       <>
-                        <div className="an-menu-sep" />
-                        <button className="an-menu-item" onClick={() => void pickWorkspace()} type="button">
-                          <span className="mi-tt">浏览其他目录…</span>
-                        </button>
+                        <MenuSeparator />
+                        <MenuItem className="an-home-menu__item" onSelect={() => void pickWorkspace()}>浏览其他目录…</MenuItem>
                       </>
                     ) : null}
-                  </div>
-                ) : null}
+                  </MenuContent>
+                </Menu>
               </span>
 
               <button
@@ -768,7 +748,7 @@ export function PawAgentHome({
           ) : null}
           {mode === 'session' ? (
             <p className="an-mode-brief" id={modeBriefId}>
-              一位 Agent 在同一条时间线里完成这件事；随时可中止或追问。过程可切到 Agent 轨迹，看每一轮装配了哪些上下文——记有来源的装配节点，能直接打开那条记忆、知识或文件。
+              随时补充想法，也可以暂停。
             </p>
           ) : availableRoomPersonas.length > 0 ? (
             <div className="an-mode-brief an-room-plan" id={modeBriefId}>
@@ -805,14 +785,21 @@ export function PawAgentHome({
               <span>当前没有可用的 Room 伙伴，暂时无法开始。</span>
             </div>
           )}
+          {mode === 'room' ? (
+            <p aria-label="Room 执行权限" className="an-mode-brief" role="status">
+              {uniformRoomPermissions && effectiveRoomPermissions.room === 'full_trust'
+                ? 'Room、伙伴和 Tool Agent 均为全权限，开始后无需逐项批准。可在权限中分别调整。'
+                : `Room ${roomPermission.effectiveLabel} · 伙伴 ${roomPermissionLayerPresentation(roomPermissionPolicy, 'partner', 'collaboration').effectiveLabel} · Tool Agent ${roomPermissionLayerPresentation(roomPermissionPolicy, 'toolAgent', 'collaboration').effectiveLabel}。按所选分层权限执行。`}
+            </p>
+          ) : null}
           {preferenceRead.readError ? (
             <p className="an-home-error" role="alert">
-              <CircleAlert size={14} />{preferenceRead.readError}
+              <CircleAlert size={14} /><span>{preferenceRead.readError}</span>
               <button onClick={preferenceRead.reload} type="button">重新读取</button>
             </p>
           ) : null}
           {error ? (
-            <p className="an-home-error" role="alert"><CircleAlert size={14} />{error}</p>
+            <p className="an-home-error" role="alert"><CircleAlert size={14} /><span>{error}</span></p>
           ) : null}
 
           {recents.length ? (
@@ -823,14 +810,14 @@ export function PawAgentHome({
               <div className="an-recent-list">
                 {recents.map((entry) => entry.kind === 'session' ? (
                   <button className="an-recent-card" key={`session:${entry.item.id}`} onClick={() => onOpenSession(entry.item.id)} type="button">
-                    <span className="rc-top"><span className={`an-dot ${entry.item.status === 'archived' ? '' : 'is-ok'}`} /><span className="rc-title">{entry.item.title}</span></span>
+                    <span className="rc-top"><PawAppIcon appId="agent" size={16} /><span className="rc-title">{entry.item.title}</span></span>
                     {entry.item.lastMessagePreview ? <span className="rc-preview">{entry.item.lastMessagePreview}</span> : null}
                     <span className="rc-meta">{projectName(entry.item.workspaceRoots)} · {relativeTime(entry.item.updatedAtMs)}</span>
                   </button>
                 ) : (
                   <button className="an-recent-card is-room" key={`room:${entry.item.id}`} onClick={() => onOpenRoom(entry.item.id)} type="button">
-                    <span className="rc-top"><span className={`an-dot ${entry.item.status === 'active' ? 'is-run' : ''}`} /><span className="rc-title">{entry.item.title}</span></span>
-                    {entry.item.description ? <span className="rc-preview">{entry.item.description}</span> : null}
+                    <span className="rc-top"><PawAppIcon appId="room" size={16} /><span className="rc-title">{entry.item.title}</span></span>
+                    {entry.item.description && entry.item.description !== entry.item.title ? <span className="rc-preview">{entry.item.description}</span> : null}
                     <span className="rc-meta"><Users size={11} style={{ verticalAlign: -1 }} /> {entry.item.participants?.length ?? 0} 位伙伴 · {relativeTime(entry.item.updatedAtMs)}</span>
                   </button>
                 ))}
@@ -850,8 +837,7 @@ export function PawAgentHome({
                   {onReloadCatalog ? <button onClick={onReloadCatalog} type="button">重新读取目录</button> : null}
                 </span>
               ) : null}
-              {models.length ? <span><span className="an-dot is-ok" />{models.length} 个可用模型</span> : null}
-              {defaultModel ? <span>默认模型 {defaultModel.split('/').pop()}</span> : null}
+              <span className="an-home-shortcuts"><kbd>↵</kbd> 发送<span>·</span><kbd>⇧ ↵</kbd> 换行</span>
             </div>
           ) : null}
         </div>
@@ -878,16 +864,12 @@ function workTitle(message: string): string {
 function clientId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
-function selectableExecutionMode(mode: AgentExecutionMode): AgentExecutionMode {
-  return mode === 'full_trust' ? 'full_trust' : 'per_action';
-}
-
-
 function createdSessionSummary(
   raw: Record<string, unknown>,
   firstMessage: string,
-  workspaceRoot: string,
+  fallbackWorkspaceRoots: string[],
   executionMode: AgentExecutionMode,
+  toolProfileVersion: string,
 ): SessionSummary {
   return {
     id: text(raw.id),
@@ -899,10 +881,11 @@ function createdSessionSummary(
     roleBookRevisionId: text(raw.roleBookRevisionId),
     updatedAtMs: typeof raw.updatedAtMs === 'number' ? raw.updatedAtMs : Date.now(),
     workspaceRoots: Array.isArray(raw.workspaceRoots)
-      ? unrestrictedWorkspaceRoots(...(raw.workspaceRoots as string[]))
-      : unrestrictedWorkspaceRoots(workspaceRoot),
+      ? raw.workspaceRoots.filter((value): value is string => typeof value === 'string')
+      : fallbackWorkspaceRoots,
     lastMessagePreview: firstMessage,
     executionMode,
+    toolProfileVersion: text(raw.toolProfileVersion) || toolProfileVersion,
   } as SessionSummary;
 }
 function createdRoomSummary(
@@ -956,26 +939,9 @@ function relativeTime(atMs: number): string {
   const days = Math.round(hours / 24);
   return `${days} 天前`;
 }
-function timeGreeting(): string {
-  const now = new Date();
-  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-  const hour = now.getHours();
-  const phase = hour < 5 ? '夜深了' : hour < 9 ? '早上好' : hour < 12 ? '上午好' : hour < 14 ? '中午好' : hour < 18 ? '下午好' : '晚上好';
-  const hh = String(hour).padStart(2, '0');
-  const mm = String(now.getMinutes()).padStart(2, '0');
-  return `${weekdays[now.getDay()]} · ${hh}:${mm} · ${phase}`;
-}
 /** 与 startWork 的 Room 创建 payload 保持同一映射：0=协调，1=审阅，其余=专家。 */
 function collaborationRoleLabel(index: number): string {
   return index === 0 ? '协调' : index === 1 ? '审阅' : '专家';
-}
-function thinkingLabel(level: string): string {
-  if (!level || level === 'off') return '关闭';
-  if (level === 'low') return '低';
-  if (level === 'medium') return '中';
-  if (level === 'high') return '高';
-  if (level === 'max') return 'Max';
-  return level;
 }
 function suggestedRoomParticipantCount(prompt: string, available: number): number {
   if (available <= 0) return 0;
@@ -986,8 +952,106 @@ function suggestedRoomParticipantCount(prompt: string, available: number): numbe
   if (normalized.length >= 240) suggested = 6;
   return Math.min(8, available, suggested);
 }
+
+function settleHomePromptAdmissionFailure(
+  sessionId: string,
+  clientMessageId: string,
+  reason: unknown,
+): void {
+  const store = useAgentLiveStore.getState();
+  if (isAgentCommandPending(reason)) {
+    store.failOptimistic(
+      sessionId,
+      clientMessageId,
+      publicAgentErrorText(reason),
+      Date.now(),
+      isUnresolvedAgentCommandPending(reason) ? 'unresolved' : 'pending',
+    );
+    return;
+  }
+  if (isAmbiguousAgentPromptFailure(reason)) {
+    store.failOptimistic(
+      sessionId,
+      clientMessageId,
+      '暂时无法确认是否已接收。系统不会自动重试；手动重试会核对同一条消息。',
+      Date.now(),
+      'ambiguous',
+    );
+    return;
+  }
+  // Validation and provider rejections are definitive.
+  // Keep the original optimistic row as one failed turn so the Session's
+  // existing retry control can replay its exact text and client lineage.
+  failHomePromptBeforeAdmission(sessionId, clientMessageId, reason);
+}
+
+function failHomePromptBeforeAdmission(
+  sessionId: string,
+  clientMessageId: string,
+  reason: unknown,
+): void {
+  useAgentLiveStore.getState().failOptimistic(
+    sessionId,
+    clientMessageId,
+    publicAgentErrorText(reason, errorText(reason)),
+    Date.now(),
+  );
+}
+
+function failHomeAttachmentImportBeforeAdmission(
+  sessionId: string,
+  clientMessageId: string,
+  reason: unknown,
+): void {
+  const detail = publicAgentErrorText(reason, errorText(reason));
+  useAgentLiveStore.getState().failOptimistic(
+    sessionId,
+    clientMessageId,
+    `附件未能导入，这条消息没有发送。请重新上传附件后发送。${detail ? ` 详情：${detail}` : ''}`,
+    Date.now(),
+  );
+}
+
+function replaceHomeOptimisticAttachmentIds(
+  sessionId: string,
+  clientMessageId: string,
+  attachmentIds: string[],
+): void {
+  useAgentLiveStore.setState((state) => {
+    const current = state.projections[sessionId];
+    const messageId = current?.optimisticByClientMessageId[clientMessageId];
+    const message = messageId ? current?.messagesById[messageId] : undefined;
+    if (!current || !messageId || !message) return state;
+    return {
+      projections: {
+        ...state.projections,
+        [sessionId]: {
+          ...current,
+          messagesById: {
+            ...current.messagesById,
+            [messageId]: { ...message, attachments: [...attachmentIds] },
+          },
+        },
+      },
+    };
+  });
+}
+
+/** Stop won the admission race. This is a successful transport response but
+ *  explicitly proves that no prompt was admitted, so the local row must not
+ *  remain queued or become accepted. */
+function isCancelledPromptAdmission(value: unknown): boolean {
+  const response = record(value);
+  return response.accepted === false
+    && response.cancelled === true
+    && response.admissionCancelled === true;
+}
+
 function errorText(reason: unknown): string {
-  if (reason instanceof Error && reason.message) return reason.message;
-  if (typeof reason === 'string' && reason) return reason;
-  return '操作没有完成，请重试。';
+  const raw = reason instanceof Error && reason.message
+    ? reason.message
+    : typeof reason === 'string' && reason
+      ? reason
+      : '操作没有完成，请重试。';
+  return publicAgentErrorText(reason, raw);
 }
