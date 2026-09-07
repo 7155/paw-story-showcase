@@ -1,0 +1,434 @@
+[
+  {
+    "requestId": "c6404a63-0856-4ff7-8b2c-5fc1e9a80e92",
+    "actionId": "sources",
+    "input": {
+      "question": "How can I copy and paste a regular page to another Wix Editor site?"
+    },
+    "state": "completed",
+    "result": {
+      "text": "[a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09] Wix Editor: Copying and Pasting Elements and Pages to Another Site\ns Ctrl+Shift+V (Cmd+Shift+V on a Mac) to apply the color and text themes on the target site.   When pasting elements that contain media files, choose to either:\n\nDon't Upload: Paste without uploading the files to the Media Manager of the target site. Upload: Paste and upload the files to the Media Manager of the target site.  You cannot copy the following elements:\nThird-party apps Code in Velo by Wix Headers and footers Wix business solution apps (e.g. Wix Stores, Wix Bookings, Wix Restaurants etc). Datasets and collections Code on elements and pages  Wix Pro GalleryCopying and pasting a page to another siteCopy and paste pages as needed between your sites, as long as both are in the Wix Editor. When pasting a page on the target site, you can choose whether to apply the site's colors and fonts or keep the original design. Note:You can only copy regular pages. You cannot copy:\nAnchors, links, folders, lightboxes or router pages Pages from third-party and Wix business solution apps (e.g. Wix Stores, Wix Bookings, Wix Restaurants etc).To copy and paste a page:\nClick Menus & Pages  on the left side of the Editor. Right-click the relevant page and click Copy. Open the Editor of the\nhttps://support.wix.com/en/article/wix-editor-copying-and-pasting-elements-and-pages-to-another-site\n\n[a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09] Wix Editor: Copying and Pasting Elements and Pages to Another Site\nWix Editor: Copying and Pasting Elements and Pages to Another Site\nIf you're building multiple sites using the Wix Editor that require similar elements, pages or themes, you can copy and paste content between them. This allows you to keep the design you like over several sites, without needing to add and design everything again from scratch.In this article, learn more about:\nCopying and pasting an element to another site Copying and pasting a page to another site FAQs (Frequently Asked Questions)Copying and pasting an element to another siteIf you add or customize an element that you like, you can copy and paste it to another site in your Wix account. Paste single elements, or multi-select elements to quickly build content.To copy and paste an element:\nOpen the Editor that contains the relevant elements. Click the element you want to copy, or multi-select several elements. Right-click and select Copy, or press Ctrl+C (Cmd+C on a Mac). Open the Editor and page you want to paste the elements to. Paste the elements by doing one of the following:\nhttps://support.wix.com/en/article/wix-editor-copying-and-pasting-elements-and-pages-to-another-site\n\n[afb50e74f0a750ebe789474c0e9cbcf6c70163e8e79c30814405024b54afaa9c] Wix Editor: Working with Elements\nyour elements more accurately. Learn how to reposition elements with the Editor toolbarCopying and pasting elementsCopy and paste single or multiple elements to quickly build your content. You can copy elements from one page / section, and paste them on another to keep your site's design consistent. To copy and paste a single element:\nRight-click on the relevant element in your Editor. Click Copy. Navigate to the new page or section in your site.  Right-click in the desired location.  Click Paste.To copy and paste multiple elements:\nClick and drag your mouse over the relevant elements in the Editor. Click Group Elements. Right-click on the group and click Copy. Navigate to the new page or section in your site.  Right-click in the desired location. Click Paste.You should know:\nYou can also use the keyboard shortcuts Ctrl+C to copy an element, and Ctrl+V to paste an element (Cmd+C and Cmd+V on a Mac). You can copy and paste elements onto a different site in your account. If you have trouble selecting all elements, begin by clicking one element, then proceed to click the mouse and drag it. Resizing your elementsUse the element stretch handles to make your elements as big or as small\nhttps://support.wix.com/en/article/wix-editor-working-with-elements\n\n[689192b42afe23d3b986d4da6cec1b0021eb230bdcc798c7e73f16a98f6be216] Wix Editor: Managing Your Site Pages\nClick Done. Duplicate the pageDuplicate site pages to save time and maintain consistency across your site.\nClick Duplicate.  Choose from the following options:\n\nDuplicate Page: Create a duplicate of the page.  Make This Page Dynamic: Reuse this layout to create multiple site pages with content from a CMS (Content Management System) collection.   Copy and paste the page to another Wix Editor siteCopy and paste pages as needed between your sites, as long as both are in the Wix Editor.\nClick Copy. Open the editor of the site you want to paste to. Paste the page by doing one of the following:\nhttps://support.wix.com/en/article/wix-editor-managing-your-sites-pages\n\n[6608d2c815d0205d2720266d859b6d4e4d9c5145f5da3b1d901108c07c23d783] Wix Apps: Adding the Wix FAQ App Across Multiple Pages\nWix Apps: Adding the Wix FAQ App Across Multiple Pages\nOnce you add the Wix FAQ app for the first time, you can go back and add it again to multiple pages on your site. You can either copy and paste your existing FAQ app to another page, or add the app again from the Wix App Market. In this article, learn more about:\nCopy and pasting the app Adding the app again from the Wix App MarketCopy and pasting the appAdd the Wix FAQ app to any page on your site with right-click copy and paste. Note:Any settings attached to the original app are also copied over.To copy and paste the app:\nSelect the FAQ app in your editor.  Choose one of the following options to copy the app:\n\nRight-click the app and select Copy.  Press Ctrl + C on your keyboard (Cmd + C on Mac).    Go to the page you want to add the app. Choose one of the following options to paste the app:\nhttps://support.wix.com/en/article/wix-apps-adding-the-wix-faq-app-across-multiple-pages\n\n[4caf64495d252cdd4d75cc6aa0629a71a1cfa69ba3934cf219b9725e4b615d0c] Editor X: Copy-Pasting Elements and Sections\nEditor X: Copy-Pasting Elements and Sections\nReuse your creations in different pages of your site or other Editor X sites you're working on. You can copy and paste entire sections that you've designed or individual elements. Copying a section or an element also copies all of its data, layout and design. Copying an Element or Section\nSelect the element or section that you want to copy.  Right-click it and select Copy. Go to the page where you want to paste the element or section (either on this site or another Editor X site in your account).  Right-click in the relevant location of the page and select Paste.Important Information About Copy and PasteThe following elements cannot be copied and pasted in Editor X:\nThird-party apps from the App Market Header and footer Business solution apps (e.g. Wix Stores, Wix Bookings, etc.) Pro gallery Datasets and collections Code on elements and pages\nhttps://support.wix.com/en/article/editor-x-copy-pasting-elements-and-sections\n\n[da2dea4c3119a1a60712c89c0a28e6364574434e36bf8a40621a5f4af08da9a8] Wix Editor: Getting a New Template for Your Site\n. To choose a new template:\nSign in to your Wix account. Go to the Templates Page. Select the category you want to open the drop-down menu.  Select the relevant sub-category. Hover over your chosen template. Click Edit to open the template in the Editor.You should know:\nYou can also select a blank template to build your site from scratch. Make sure to save your site if you want to come back to it later.Building your site contentAfter you create a new site, add elements to build content for visitors. You can choose new elements from the Add Elements panel, or copy and paste elements from another site for a quicker, easier experience.Did you know?You can also copy and paste pages between your sites.To copy and paste elements between sites:\nOpen your previous site's Editor. Click the element you want to copy, or multi-select several elements. Right-click and select Copy, or press Ctrl+C (Cmd+C on a Mac). Open the relevant page in your new site's Editor. Paste the elements by doing one of the following:\nhttps://support.wix.com/en/article/wix-editor-getting-a-new-template-for-your-site\n\n[b3617c96acc32ea5835b4ac7d1b00ebd4ddd2c13078a2cf628398f7b7bbdda7f] Apps Made by Wix: Adding and Setting Up the Wix Monetize with AdSense App\nunit you created. \nClick the Wix Monetize with AdSense app in your editor.  Click Settings.  Click Duplicate Ad. Copy and paste the existing unitThis is a great option if you want to add the unit twice on the same page or to a different page on your site. When you copy the unit, you are copying the exact dimensions of the original unit. \nClick the Wix Monetize with AdSense app in your editor.  Right-click the app (ad unit) you want to copy. Click Copy. Go to the location in your editor where you want to paste the app.  Click Paste. Add the app again from the Wix App Market. You can go to the Wix App Market to add the app again on another page of your site. \nGo to the Wix App Market in your editor. Search for the Wix Monetize with AdSense app in the search bar.  Click Add Again. Click OK.Create a separate ad unitBy creating separate ad units, you can see which ad is generating the most money. Follow the steps in Step 3 above to create another ad unit. Tip:Once AdSense is up and running, you can go to the \"Reports\" tab in your dashboard to track your revenue.\nhttps://support.wix.com/en/article/apps-made-by-wix-adding-and-setting-up-the-wix-monetize-with-adsense-app\n\n[7bdb1ccb96110534832aabd4bb506453f35cc3be573a93be1697f5996db6d66e] Wix Editor: Using The Right-Click Menu\nWix Editor: Using The Right-Click Menu\nThe right-click menu is a great way to control your elements and their settings. There are a variety of actions you can perform, such as duplicating the design, and arranging the element's position on your page.Right-click any element in the editor to open the right-click menu. Mac users should press control and click the mouse button. In this article, learn more about some of right-click menu features:\nCopy and pasting elements across your site Setting elements to show on all pages Copying the design of an element Arranging your element's positionCopying and pasting elementsUse the menu to copy and paste elements to different areas on your site. This a great way to re-use elements without needing to manually add them again from the Add Elements panel.To copy and paste an element:\nRight-click the relevant element. Select Copy from the menu. Right-click another area on your site. Click Paste.Did you know?You can group elements together to copy and paste multiple elements at once. Setting elements to show on all pagesElements added to your site's header and footer automatically show on all pages on your site.However, you can set elements on\nhttps://support.wix.com/en/article/wix-editor-using-the-right-click-menu\n\n[e4719fe230e58bb8353ebcada1bdef0e7fdb3e8c6f2c73acaa4b85ab98194a1b] Wix Restaurants: Displaying Your Menus on Multiple Site Pages\neditor. Click the Menu page. Click your menu on the page. Click Choose Menus. Click +Add Menu Page to create a new page for your menu.   Edit the new menu page:\n\nClick your menu on the page. Click Choose Menus. Select Only specific menus Select the checkboxes next to the menus you want to display on this page. Click Pages  on the left side of the editor to rename the new menu page.  Adding your menu to an existing site pageYou can copy and paste your menu to any page on your site. This can really boost your menu's discoverability and inspire potential customers. For example, you can promote your seasonal specials on the home page. Note:The page's SEO settings will continue to reflect those of a regular site page, not adjusting to a menu page as they would when following the steps in the section above (Creating a standalone page for your menu).Wix EditorStudio Editor\nCopy your menu element:\n\nGo to your editor. Click Pages & Menu  on the left side of the editor. Click Menu. Right-click your menu. Select Copy.  Go to the relevant page. (Optional) Add a new section on your page. Right-click anywhere on your page. Select Paste.   Edit the look of your menu in the relevant page:\nhttps://support.wix.com/en/article/wix-restaurants-separating-a-menu-on-the-wix-menus-app-new\n\n[80da0581ed6c217bb9ea1eff5c05618d326c91e72027aa84171ffdc72724dc3b] Editor X: Copying the Design of One Element to Another\nEditor X: Copying the Design of One Element to Another\nBuild your site more efficiently by copying the design attributes from one element to another, rather than redefining them one by one.Choose to copy the element's design from just one breakpoint, or the element's design on each of the breakpoints.To copy the design of one element to another:Right-click the element you want to copy in the Editor.Hover over Copy Element Design.Click an option:From this breakpoint: Copy the design of the element and paste it to another element. For example, you can copy the design of a black button, and apply it to any button on any breakpoint or page, to make the button black. Any design changes you make to an element will cascade down to smaller breakpoints as it usually does.From all breakpoints: Copy the design of the element as it appears on each breakpoint. For example, on the desktop breakpoint, you might have a black button, and copying the design will make another button black. However, the same button might be green on the mobile breakpoint, so the button you are changing will turn green rather than black on mobile. Click the element you want to copy the design to.Tip: Hold down Shift\nhttps://support.wix.com/en/article/editor-x-copying-the-design-of-one-element-to-another\n\n[a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09] Wix Editor: Copying and Pasting Elements and Pages to Another Site\nck anywhere on the screen and select Paste & Apply Site Theme to apply the color and text themes on the target site.   (In the Pages panel) Rename the new page:\n\nEnter the new page name. Click Done  Tip:You can also use keyboard shortcuts to paste the new page on the target site:\nPaste: Ctrl+V or Cmd+V on a Mac. Paste while applying the site's theme: Ctrl+Shift+V or Cmd+Shift+V on a Mac.FAQsBelow are the most frequently asked questions about copying and pasting between sites in the Wix Editor. Click a question below to learn more.Do both sites have to be in the same Wix account?You can copy pages between Wix Editor sites, even if they're in 2 different Wix accounts.The target Editor can be in a different Wix account, but must be open in the same browser as the Editor you are copying from. You can copy the element, sign into a different account, and then paste the element.Can I copy an elements design? Yes, you can copy the design of an element and use it on other similar elements on your site.What happens to elements that are linked somewhere?If any elements on the page have a link to a page, anchor or lightbox, it is replaced with a link to the home page of the target site.What\nhttps://support.wix.com/en/article/wix-editor-copying-and-pasting-elements-and-pages-to-another-site\n\n[b54fcc3f9518e850f59e6eb131b94cab4596c2e113953f9add9eab86d6ef5495] Wix Apps: Adding and Setting Up the PDF Viewer App\nck the Design  icon. FAQsCan I display other file types?No, the app only allows for PDF files to be added to your site. Can I display more than one PDF?Yes, you can copy and paste the widget on the same page or to other pages on your site and upload another file. How do I change the existing PDF file and replace it with a new file?You can change or remove the file that is displayed in the app by following the steps below:.\nClick the app in your editor. Click Upload PDF. Click Change or click Remove.Where can I see all my uploaded files?You can view all your uploaded files in your Media Manager. Can I restrict access to certain PDFs?You cannot do this directly from the PDF Viewer app, however, you can password protect certain pages on your site, which restricts viewing to only those that know the password.\nhttps://support.wix.com/en/article/wix-apps-adding-and-setting-up-the-pdf-viewer-app\n\n[a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09] Wix Editor: Copying and Pasting Elements and Pages to Another Site\naurants etc).To copy and paste a page:\nClick Menus & Pages  on the left side of the Editor. Right-click the relevant page and click Copy. Open the Editor of the site you want to paste to. Paste the page by doing one of the following:\n\nRight-click anywhere on the screen and select Paste. Right-click anywhere on the screen and select Paste & Apply Site Theme to apply the color and text themes on the target site.   (In the Pages panel) Rename the new page:\nhttps://support.wix.com/en/article/wix-editor-copying-and-pasting-elements-and-pages-to-another-site\n\n[9cdcd1e2ff3c571e388080660f975ceaccaf4e6161e5626450d4780fd026cd9f] Wix Stores: Importing Reviews into Wix Reviews\ns displayed and navigate to the image.\nTip: This can be on another site where you sell products, such as Amazon, or on your Wix site where you collected reviews using another review platform. Right click on the image. Click Copy image address.\n Paste the image URL in the relevant row and column in the template file. Repeat steps 2 - 4 for each image you want to add.How many reviews can I import?You can import up to 500 reviews. If you try to upload a file with more than 500 reviews, only the first 500 will be uploaded.Can I import a product file with non-Latin characters?Yes, but product files with data containing non-Latin characters (e.g. data written in Japanese, Hindi, Arabic) may not upload correctly. To fix this, save the file according to these instructions:\nUpload your CSV file to Google Sheets. Learn how Click File, then select Download. Select Comma-separated values. \nNote: Do not open the file.\nhttps://support.wix.com/en/article/wix-stores-importing-reviews-into-wix-reviews\n\n[689192b42afe23d3b986d4da6cec1b0021eb230bdcc798c7e73f16a98f6be216] Wix Editor: Managing Your Site Pages\nn your sites, as long as both are in the Wix Editor.\nClick Copy. Open the editor of the site you want to paste to. Paste the page by doing one of the following:\n\nRight-click anywhere on the screen and select Paste. Right-click anywhere on the screen and select Paste & Apply Site Theme to apply the color and text themes of the target site.   Set the page as the site homepageClick Set as Homepage to make this your site's homepage. If you want to delete your current homepage, you must first set another page as the homepage. Then, you can delete the page that was used as your homepage. Hide the page from the menuClick Hide   to hide a page to keep it accessible for future use without displaying it in the site's navigation.Tip: To unhide, click the More Actions  icon next to the hidden page and select Show .Set the page as a subpageClick Subpage to nest this page under another page. This creates a subpage (drop-down) menu on your site. Visitors can see the subpages when they hover over the main page on the menu.\nTip:You can easily turn the subpage back into a main page at any time. Click the More Actions icon  next to the su\nhttps://support.wix.com/en/article/wix-editor-managing-your-sites-pages",
+      "sources": [
+        {
+          "originalSourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+          "sourceAliases": [],
+          "sourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+          "title": "Wix Editor: Copying and Pasting Elements and Pages to Another Site",
+          "uri": "https://support.wix.com/en/article/wix-editor-copying-and-pasting-elements-and-pages-to-another-site",
+          "chunkId": "dc15ca56e434569f8d50328b8698a0cd",
+          "text": "s Ctrl+Shift+V (Cmd+Shift+V on a Mac) to apply the color and text themes on the target site.   When pasting elements that contain media files, choose to either:\n\nDon't Upload: Paste without uploading the files to the Media Manager of the target site. Upload: Paste and upload the files to the Media Manager of the target site.  You cannot copy the following elements:\nThird-party apps Code in Velo by Wix Headers and footers Wix business solution apps (e.g. Wix Stores, Wix Bookings, Wix Restaurants etc). Datasets and collections Code on elements and pages  Wix Pro GalleryCopying and pasting a page to another siteCopy and paste pages as needed between your sites, as long as both are in the Wix Editor. When pasting a page on the target site, you can choose whether to apply the site's colors and fonts or keep the original design. Note:You can only copy regular pages. You cannot copy:\nAnchors, links, folders, lightboxes or router pages Pages from third-party and Wix business solution apps (e.g. Wix Stores, Wix Bookings, Wix Restaurants etc).To copy and paste a page:\nClick Menus & Pages  on the left side of the Editor. Right-click the relevant page and click Copy. Open the Editor of the",
+          "score": 1.0
+        },
+        {
+          "originalSourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+          "sourceAliases": [],
+          "sourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+          "title": "Wix Editor: Copying and Pasting Elements and Pages to Another Site",
+          "uri": "https://support.wix.com/en/article/wix-editor-copying-and-pasting-elements-and-pages-to-another-site",
+          "chunkId": "015c06d4e6bf5feab211c7f0ed87094a",
+          "text": "Wix Editor: Copying and Pasting Elements and Pages to Another Site\nIf you're building multiple sites using the Wix Editor that require similar elements, pages or themes, you can copy and paste content between them. This allows you to keep the design you like over several sites, without needing to add and design everything again from scratch.In this article, learn more about:\nCopying and pasting an element to another site Copying and pasting a page to another site FAQs (Frequently Asked Questions)Copying and pasting an element to another siteIf you add or customize an element that you like, you can copy and paste it to another site in your Wix account. Paste single elements, or multi-select elements to quickly build content.To copy and paste an element:\nOpen the Editor that contains the relevant elements. Click the element you want to copy, or multi-select several elements. Right-click and select Copy, or press Ctrl+C (Cmd+C on a Mac). Open the Editor and page you want to paste the elements to. Paste the elements by doing one of the following:",
+          "score": 0.973093
+        },
+        {
+          "originalSourceId": "afb50e74f0a750ebe789474c0e9cbcf6c70163e8e79c30814405024b54afaa9c",
+          "sourceAliases": [],
+          "sourceId": "afb50e74f0a750ebe789474c0e9cbcf6c70163e8e79c30814405024b54afaa9c",
+          "title": "Wix Editor: Working with Elements",
+          "uri": "https://support.wix.com/en/article/wix-editor-working-with-elements",
+          "chunkId": "8c99aeb703445587b039559ff97c1f00",
+          "text": "your elements more accurately. Learn how to reposition elements with the Editor toolbarCopying and pasting elementsCopy and paste single or multiple elements to quickly build your content. You can copy elements from one page / section, and paste them on another to keep your site's design consistent. To copy and paste a single element:\nRight-click on the relevant element in your Editor. Click Copy. Navigate to the new page or section in your site.  Right-click in the desired location.  Click Paste.To copy and paste multiple elements:\nClick and drag your mouse over the relevant elements in the Editor. Click Group Elements. Right-click on the group and click Copy. Navigate to the new page or section in your site.  Right-click in the desired location. Click Paste.You should know:\nYou can also use the keyboard shortcuts Ctrl+C to copy an element, and Ctrl+V to paste an element (Cmd+C and Cmd+V on a Mac). You can copy and paste elements onto a different site in your account. If you have trouble selecting all elements, begin by clicking one element, then proceed to click the mouse and drag it. Resizing your elementsUse the element stretch handles to make your elements as big or as small",
+          "score": 0.889486
+        },
+        {
+          "originalSourceId": "689192b42afe23d3b986d4da6cec1b0021eb230bdcc798c7e73f16a98f6be216",
+          "sourceAliases": [],
+          "sourceId": "689192b42afe23d3b986d4da6cec1b0021eb230bdcc798c7e73f16a98f6be216",
+          "title": "Wix Editor: Managing Your Site Pages",
+          "uri": "https://support.wix.com/en/article/wix-editor-managing-your-sites-pages",
+          "chunkId": "0c9cd5efd30e5b099e42fb300fb7e913",
+          "text": "Click Done. Duplicate the pageDuplicate site pages to save time and maintain consistency across your site.\nClick Duplicate.  Choose from the following options:\n\nDuplicate Page: Create a duplicate of the page.  Make This Page Dynamic: Reuse this layout to create multiple site pages with content from a CMS (Content Management System) collection.   Copy and paste the page to another Wix Editor siteCopy and paste pages as needed between your sites, as long as both are in the Wix Editor.\nClick Copy. Open the editor of the site you want to paste to. Paste the page by doing one of the following:",
+          "score": 0.834583
+        },
+        {
+          "originalSourceId": "6608d2c815d0205d2720266d859b6d4e4d9c5145f5da3b1d901108c07c23d783",
+          "sourceAliases": [],
+          "sourceId": "6608d2c815d0205d2720266d859b6d4e4d9c5145f5da3b1d901108c07c23d783",
+          "title": "Wix Apps: Adding the Wix FAQ App Across Multiple Pages",
+          "uri": "https://support.wix.com/en/article/wix-apps-adding-the-wix-faq-app-across-multiple-pages",
+          "chunkId": "5b70a40d73cf5d92a35195c9f1a498a2",
+          "text": "Wix Apps: Adding the Wix FAQ App Across Multiple Pages\nOnce you add the Wix FAQ app for the first time, you can go back and add it again to multiple pages on your site. You can either copy and paste your existing FAQ app to another page, or add the app again from the Wix App Market. In this article, learn more about:\nCopy and pasting the app Adding the app again from the Wix App MarketCopy and pasting the appAdd the Wix FAQ app to any page on your site with right-click copy and paste. Note:Any settings attached to the original app are also copied over.To copy and paste the app:\nSelect the FAQ app in your editor.  Choose one of the following options to copy the app:\n\nRight-click the app and select Copy.  Press Ctrl + C on your keyboard (Cmd + C on Mac).    Go to the page you want to add the app. Choose one of the following options to paste the app:",
+          "score": 0.796744
+        },
+        {
+          "originalSourceId": "4caf64495d252cdd4d75cc6aa0629a71a1cfa69ba3934cf219b9725e4b615d0c",
+          "sourceAliases": [],
+          "sourceId": "4caf64495d252cdd4d75cc6aa0629a71a1cfa69ba3934cf219b9725e4b615d0c",
+          "title": "Editor X: Copy-Pasting Elements and Sections",
+          "uri": "https://support.wix.com/en/article/editor-x-copy-pasting-elements-and-sections",
+          "chunkId": "d84011b6a22c5d1498cdc8b13beea595",
+          "text": "Editor X: Copy-Pasting Elements and Sections\nReuse your creations in different pages of your site or other Editor X sites you're working on. You can copy and paste entire sections that you've designed or individual elements. Copying a section or an element also copies all of its data, layout and design. Copying an Element or Section\nSelect the element or section that you want to copy.  Right-click it and select Copy. Go to the page where you want to paste the element or section (either on this site or another Editor X site in your account).  Right-click in the relevant location of the page and select Paste.Important Information About Copy and PasteThe following elements cannot be copied and pasted in Editor X:\nThird-party apps from the App Market Header and footer Business solution apps (e.g. Wix Stores, Wix Bookings, etc.) Pro gallery Datasets and collections Code on elements and pages",
+          "score": 0.743266
+        },
+        {
+          "originalSourceId": "da2dea4c3119a1a60712c89c0a28e6364574434e36bf8a40621a5f4af08da9a8",
+          "sourceAliases": [],
+          "sourceId": "da2dea4c3119a1a60712c89c0a28e6364574434e36bf8a40621a5f4af08da9a8",
+          "title": "Wix Editor: Getting a New Template for Your Site",
+          "uri": "https://support.wix.com/en/article/wix-editor-getting-a-new-template-for-your-site",
+          "chunkId": "41d924b454d7593f9d6bb513f71ee85d",
+          "text": ". To choose a new template:\nSign in to your Wix account. Go to the Templates Page. Select the category you want to open the drop-down menu.  Select the relevant sub-category. Hover over your chosen template. Click Edit to open the template in the Editor.You should know:\nYou can also select a blank template to build your site from scratch. Make sure to save your site if you want to come back to it later.Building your site contentAfter you create a new site, add elements to build content for visitors. You can choose new elements from the Add Elements panel, or copy and paste elements from another site for a quicker, easier experience.Did you know?You can also copy and paste pages between your sites.To copy and paste elements between sites:\nOpen your previous site's Editor. Click the element you want to copy, or multi-select several elements. Right-click and select Copy, or press Ctrl+C (Cmd+C on a Mac). Open the relevant page in your new site's Editor. Paste the elements by doing one of the following:",
+          "score": 0.731599
+        },
+        {
+          "originalSourceId": "b3617c96acc32ea5835b4ac7d1b00ebd4ddd2c13078a2cf628398f7b7bbdda7f",
+          "sourceAliases": [],
+          "sourceId": "b3617c96acc32ea5835b4ac7d1b00ebd4ddd2c13078a2cf628398f7b7bbdda7f",
+          "title": "Apps Made by Wix: Adding and Setting Up the Wix Monetize with AdSense App",
+          "uri": "https://support.wix.com/en/article/apps-made-by-wix-adding-and-setting-up-the-wix-monetize-with-adsense-app",
+          "chunkId": "91cba0af50145cb5b5890432faac9b86",
+          "text": "unit you created. \nClick the Wix Monetize with AdSense app in your editor.  Click Settings.  Click Duplicate Ad. Copy and paste the existing unitThis is a great option if you want to add the unit twice on the same page or to a different page on your site. When you copy the unit, you are copying the exact dimensions of the original unit. \nClick the Wix Monetize with AdSense app in your editor.  Right-click the app (ad unit) you want to copy. Click Copy. Go to the location in your editor where you want to paste the app.  Click Paste. Add the app again from the Wix App Market. You can go to the Wix App Market to add the app again on another page of your site. \nGo to the Wix App Market in your editor. Search for the Wix Monetize with AdSense app in the search bar.  Click Add Again. Click OK.Create a separate ad unitBy creating separate ad units, you can see which ad is generating the most money. Follow the steps in Step 3 above to create another ad unit. Tip:Once AdSense is up and running, you can go to the \"Reports\" tab in your dashboard to track your revenue.",
+          "score": 0.729321
+        },
+        {
+          "originalSourceId": "7bdb1ccb96110534832aabd4bb506453f35cc3be573a93be1697f5996db6d66e",
+          "sourceAliases": [],
+          "sourceId": "7bdb1ccb96110534832aabd4bb506453f35cc3be573a93be1697f5996db6d66e",
+          "title": "Wix Editor: Using The Right-Click Menu",
+          "uri": "https://support.wix.com/en/article/wix-editor-using-the-right-click-menu",
+          "chunkId": "6ea3b236c77b579c9e8b072cae6c193f",
+          "text": "Wix Editor: Using The Right-Click Menu\nThe right-click menu is a great way to control your elements and their settings. There are a variety of actions you can perform, such as duplicating the design, and arranging the element's position on your page.Right-click any element in the editor to open the right-click menu. Mac users should press control and click the mouse button. In this article, learn more about some of right-click menu features:\nCopy and pasting elements across your site Setting elements to show on all pages Copying the design of an element Arranging your element's positionCopying and pasting elementsUse the menu to copy and paste elements to different areas on your site. This a great way to re-use elements without needing to manually add them again from the Add Elements panel.To copy and paste an element:\nRight-click the relevant element. Select Copy from the menu. Right-click another area on your site. Click Paste.Did you know?You can group elements together to copy and paste multiple elements at once. Setting elements to show on all pagesElements added to your site's header and footer automatically show on all pages on your site.However, you can set elements on",
+          "score": 0.660133
+        },
+        {
+          "originalSourceId": "e4719fe230e58bb8353ebcada1bdef0e7fdb3e8c6f2c73acaa4b85ab98194a1b",
+          "sourceAliases": [],
+          "sourceId": "e4719fe230e58bb8353ebcada1bdef0e7fdb3e8c6f2c73acaa4b85ab98194a1b",
+          "title": "Wix Restaurants: Displaying Your Menus on Multiple Site Pages",
+          "uri": "https://support.wix.com/en/article/wix-restaurants-separating-a-menu-on-the-wix-menus-app-new",
+          "chunkId": "809654ed007a5e04bc94e31d5f5068b3",
+          "text": "editor. Click the Menu page. Click your menu on the page. Click Choose Menus. Click +Add Menu Page to create a new page for your menu.   Edit the new menu page:\n\nClick your menu on the page. Click Choose Menus. Select Only specific menus Select the checkboxes next to the menus you want to display on this page. Click Pages  on the left side of the editor to rename the new menu page.  Adding your menu to an existing site pageYou can copy and paste your menu to any page on your site. This can really boost your menu's discoverability and inspire potential customers. For example, you can promote your seasonal specials on the home page. Note:The page's SEO settings will continue to reflect those of a regular site page, not adjusting to a menu page as they would when following the steps in the section above (Creating a standalone page for your menu).Wix EditorStudio Editor\nCopy your menu element:\n\nGo to your editor. Click Pages & Menu  on the left side of the editor. Click Menu. Right-click your menu. Select Copy.  Go to the relevant page. (Optional) Add a new section on your page. Right-click anywhere on your page. Select Paste.   Edit the look of your menu in the relevant page:",
+          "score": 0.643995
+        },
+        {
+          "originalSourceId": "80da0581ed6c217bb9ea1eff5c05618d326c91e72027aa84171ffdc72724dc3b",
+          "sourceAliases": [],
+          "sourceId": "80da0581ed6c217bb9ea1eff5c05618d326c91e72027aa84171ffdc72724dc3b",
+          "title": "Editor X: Copying the Design of One Element to Another",
+          "uri": "https://support.wix.com/en/article/editor-x-copying-the-design-of-one-element-to-another",
+          "chunkId": "e59d339ad3055d6aa559e5c54cce0c6c",
+          "text": "Editor X: Copying the Design of One Element to Another\nBuild your site more efficiently by copying the design attributes from one element to another, rather than redefining them one by one.Choose to copy the element's design from just one breakpoint, or the element's design on each of the breakpoints.To copy the design of one element to another:Right-click the element you want to copy in the Editor.Hover over Copy Element Design.Click an option:From this breakpoint: Copy the design of the element and paste it to another element. For example, you can copy the design of a black button, and apply it to any button on any breakpoint or page, to make the button black. Any design changes you make to an element will cascade down to smaller breakpoints as it usually does.From all breakpoints: Copy the design of the element as it appears on each breakpoint. For example, on the desktop breakpoint, you might have a black button, and copying the design will make another button black. However, the same button might be green on the mobile breakpoint, so the button you are changing will turn green rather than black on mobile. Click the element you want to copy the design to.Tip: Hold down Shift",
+          "score": 0.641184
+        },
+        {
+          "originalSourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+          "sourceAliases": [],
+          "sourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+          "title": "Wix Editor: Copying and Pasting Elements and Pages to Another Site",
+          "uri": "https://support.wix.com/en/article/wix-editor-copying-and-pasting-elements-and-pages-to-another-site",
+          "chunkId": "0ebfd007624d505184e2eac6a17de546",
+          "text": "ck anywhere on the screen and select Paste & Apply Site Theme to apply the color and text themes on the target site.   (In the Pages panel) Rename the new page:\n\nEnter the new page name. Click Done  Tip:You can also use keyboard shortcuts to paste the new page on the target site:\nPaste: Ctrl+V or Cmd+V on a Mac. Paste while applying the site's theme: Ctrl+Shift+V or Cmd+Shift+V on a Mac.FAQsBelow are the most frequently asked questions about copying and pasting between sites in the Wix Editor. Click a question below to learn more.Do both sites have to be in the same Wix account?You can copy pages between Wix Editor sites, even if they're in 2 different Wix accounts.The target Editor can be in a different Wix account, but must be open in the same browser as the Editor you are copying from. You can copy the element, sign into a different account, and then paste the element.Can I copy an elements design? Yes, you can copy the design of an element and use it on other similar elements on your site.What happens to elements that are linked somewhere?If any elements on the page have a link to a page, anchor or lightbox, it is replaced with a link to the home page of the target site.What",
+          "score": 0.634475
+        },
+        {
+          "originalSourceId": "b54fcc3f9518e850f59e6eb131b94cab4596c2e113953f9add9eab86d6ef5495",
+          "sourceAliases": [],
+          "sourceId": "b54fcc3f9518e850f59e6eb131b94cab4596c2e113953f9add9eab86d6ef5495",
+          "title": "Wix Apps: Adding and Setting Up the PDF Viewer App",
+          "uri": "https://support.wix.com/en/article/wix-apps-adding-and-setting-up-the-pdf-viewer-app",
+          "chunkId": "6c619ce1090651d889ee7e6fbbde09c9",
+          "text": "ck the Design  icon. FAQsCan I display other file types?No, the app only allows for PDF files to be added to your site. Can I display more than one PDF?Yes, you can copy and paste the widget on the same page or to other pages on your site and upload another file. How do I change the existing PDF file and replace it with a new file?You can change or remove the file that is displayed in the app by following the steps below:.\nClick the app in your editor. Click Upload PDF. Click Change or click Remove.Where can I see all my uploaded files?You can view all your uploaded files in your Media Manager. Can I restrict access to certain PDFs?You cannot do this directly from the PDF Viewer app, however, you can password protect certain pages on your site, which restricts viewing to only those that know the password.",
+          "score": 0.629192
+        },
+        {
+          "originalSourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+          "sourceAliases": [],
+          "sourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+          "title": "Wix Editor: Copying and Pasting Elements and Pages to Another Site",
+          "uri": "https://support.wix.com/en/article/wix-editor-copying-and-pasting-elements-and-pages-to-another-site",
+          "chunkId": "c0ad98ea8f1157db8a2bbe40b7a2b1b2",
+          "text": "aurants etc).To copy and paste a page:\nClick Menus & Pages  on the left side of the Editor. Right-click the relevant page and click Copy. Open the Editor of the site you want to paste to. Paste the page by doing one of the following:\n\nRight-click anywhere on the screen and select Paste. Right-click anywhere on the screen and select Paste & Apply Site Theme to apply the color and text themes on the target site.   (In the Pages panel) Rename the new page:",
+          "score": 0.606292
+        },
+        {
+          "originalSourceId": "9cdcd1e2ff3c571e388080660f975ceaccaf4e6161e5626450d4780fd026cd9f",
+          "sourceAliases": [],
+          "sourceId": "9cdcd1e2ff3c571e388080660f975ceaccaf4e6161e5626450d4780fd026cd9f",
+          "title": "Wix Stores: Importing Reviews into Wix Reviews",
+          "uri": "https://support.wix.com/en/article/wix-stores-importing-reviews-into-wix-reviews",
+          "chunkId": "4b6118a0bc865a3fbd3694609dc4c8ec",
+          "text": "s displayed and navigate to the image.\nTip: This can be on another site where you sell products, such as Amazon, or on your Wix site where you collected reviews using another review platform. Right click on the image. Click Copy image address.\n Paste the image URL in the relevant row and column in the template file. Repeat steps 2 - 4 for each image you want to add.How many reviews can I import?You can import up to 500 reviews. If you try to upload a file with more than 500 reviews, only the first 500 will be uploaded.Can I import a product file with non-Latin characters?Yes, but product files with data containing non-Latin characters (e.g. data written in Japanese, Hindi, Arabic) may not upload correctly. To fix this, save the file according to these instructions:\nUpload your CSV file to Google Sheets. Learn how Click File, then select Download. Select Comma-separated values. \nNote: Do not open the file.",
+          "score": 0.575889
+        },
+        {
+          "originalSourceId": "689192b42afe23d3b986d4da6cec1b0021eb230bdcc798c7e73f16a98f6be216",
+          "sourceAliases": [],
+          "sourceId": "689192b42afe23d3b986d4da6cec1b0021eb230bdcc798c7e73f16a98f6be216",
+          "title": "Wix Editor: Managing Your Site Pages",
+          "uri": "https://support.wix.com/en/article/wix-editor-managing-your-sites-pages",
+          "chunkId": "974295d5924354f1ab3f6b12a6349c72",
+          "text": "n your sites, as long as both are in the Wix Editor.\nClick Copy. Open the editor of the site you want to paste to. Paste the page by doing one of the following:\n\nRight-click anywhere on the screen and select Paste. Right-click anywhere on the screen and select Paste & Apply Site Theme to apply the color and text themes of the target site.   Set the page as the site homepageClick Set as Homepage to make this your site's homepage. If you want to delete your current homepage, you must first set another page as the homepage. Then, you can delete the page that was used as your homepage. Hide the page from the menuClick Hide   to hide a page to keep it accessible for future use without displaying it in the site's navigation.Tip: To unhide, click the More Actions  icon next to the hidden page and select Show .Set the page as a subpageClick Subpage to nest this page under another page. This creates a subpage (drop-down) menu on your site. Visitors can see the subpages when they hover over the main page on the menu.\nTip:You can easily turn the subpage back into a main page at any time. Click the More Actions icon  next to the su",
+          "score": 0.572961
+        }
+      ],
+      "knowledge": {
+        "query": "How can I copy and paste a regular page to another Wix Editor site?",
+        "retrievalHits": [
+          {
+            "originalSourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+            "sourceAliases": [],
+            "sourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+            "title": "Wix Editor: Copying and Pasting Elements and Pages to Another Site",
+            "uri": "https://support.wix.com/en/article/wix-editor-copying-and-pasting-elements-and-pages-to-another-site",
+            "chunkId": "dc15ca56e434569f8d50328b8698a0cd",
+            "preview": "s Ctrl+Shift+V (Cmd+Shift+V on a Mac) to apply the color and text themes on the target site.   When pasting elements that contain media files, choose to either:\n\nDon't Upload: Past",
+            "score": 1.0,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+            "sourceAliases": [],
+            "sourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+            "title": "Wix Editor: Copying and Pasting Elements and Pages to Another Site",
+            "uri": "https://support.wix.com/en/article/wix-editor-copying-and-pasting-elements-and-pages-to-another-site",
+            "chunkId": "015c06d4e6bf5feab211c7f0ed87094a",
+            "preview": "Wix Editor: Copying and Pasting Elements and Pages to Another Site\nIf you're building multiple sites using the Wix Editor that require similar elements, pages or themes, you can co",
+            "score": 0.973093,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "afb50e74f0a750ebe789474c0e9cbcf6c70163e8e79c30814405024b54afaa9c",
+            "sourceAliases": [],
+            "sourceId": "afb50e74f0a750ebe789474c0e9cbcf6c70163e8e79c30814405024b54afaa9c",
+            "title": "Wix Editor: Working with Elements",
+            "uri": "https://support.wix.com/en/article/wix-editor-working-with-elements",
+            "chunkId": "8c99aeb703445587b039559ff97c1f00",
+            "preview": "your elements more accurately. Learn how to reposition elements with the Editor toolbarCopying and pasting elementsCopy and paste single or multiple elements to quickly build your ",
+            "score": 0.889486,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "689192b42afe23d3b986d4da6cec1b0021eb230bdcc798c7e73f16a98f6be216",
+            "sourceAliases": [],
+            "sourceId": "689192b42afe23d3b986d4da6cec1b0021eb230bdcc798c7e73f16a98f6be216",
+            "title": "Wix Editor: Managing Your Site Pages",
+            "uri": "https://support.wix.com/en/article/wix-editor-managing-your-sites-pages",
+            "chunkId": "0c9cd5efd30e5b099e42fb300fb7e913",
+            "preview": "Click Done. Duplicate the pageDuplicate site pages to save time and maintain consistency across your site.\nClick Duplicate.  Choose from the following options:\n\nDuplicate Page: Cre",
+            "score": 0.834583,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "6608d2c815d0205d2720266d859b6d4e4d9c5145f5da3b1d901108c07c23d783",
+            "sourceAliases": [],
+            "sourceId": "6608d2c815d0205d2720266d859b6d4e4d9c5145f5da3b1d901108c07c23d783",
+            "title": "Wix Apps: Adding the Wix FAQ App Across Multiple Pages",
+            "uri": "https://support.wix.com/en/article/wix-apps-adding-the-wix-faq-app-across-multiple-pages",
+            "chunkId": "5b70a40d73cf5d92a35195c9f1a498a2",
+            "preview": "Wix Apps: Adding the Wix FAQ App Across Multiple Pages\nOnce you add the Wix FAQ app for the first time, you can go back and add it again to multiple pages on your site. You can eit",
+            "score": 0.796744,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "4caf64495d252cdd4d75cc6aa0629a71a1cfa69ba3934cf219b9725e4b615d0c",
+            "sourceAliases": [],
+            "sourceId": "4caf64495d252cdd4d75cc6aa0629a71a1cfa69ba3934cf219b9725e4b615d0c",
+            "title": "Editor X: Copy-Pasting Elements and Sections",
+            "uri": "https://support.wix.com/en/article/editor-x-copy-pasting-elements-and-sections",
+            "chunkId": "d84011b6a22c5d1498cdc8b13beea595",
+            "preview": "Editor X: Copy-Pasting Elements and Sections\nReuse your creations in different pages of your site or other Editor X sites you're working on. You can copy and paste entire sections ",
+            "score": 0.743266,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "da2dea4c3119a1a60712c89c0a28e6364574434e36bf8a40621a5f4af08da9a8",
+            "sourceAliases": [],
+            "sourceId": "da2dea4c3119a1a60712c89c0a28e6364574434e36bf8a40621a5f4af08da9a8",
+            "title": "Wix Editor: Getting a New Template for Your Site",
+            "uri": "https://support.wix.com/en/article/wix-editor-getting-a-new-template-for-your-site",
+            "chunkId": "41d924b454d7593f9d6bb513f71ee85d",
+            "preview": ". To choose a new template:\nSign in to your Wix account. Go to the Templates Page. Select the category you want to open the drop-down menu.  Select the relevant sub-category. Hover",
+            "score": 0.731599,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "b3617c96acc32ea5835b4ac7d1b00ebd4ddd2c13078a2cf628398f7b7bbdda7f",
+            "sourceAliases": [],
+            "sourceId": "b3617c96acc32ea5835b4ac7d1b00ebd4ddd2c13078a2cf628398f7b7bbdda7f",
+            "title": "Apps Made by Wix: Adding and Setting Up the Wix Monetize with AdSense App",
+            "uri": "https://support.wix.com/en/article/apps-made-by-wix-adding-and-setting-up-the-wix-monetize-with-adsense-app",
+            "chunkId": "91cba0af50145cb5b5890432faac9b86",
+            "preview": "unit you created. \nClick the Wix Monetize with AdSense app in your editor.  Click Settings.  Click Duplicate Ad. Copy and paste the existing unitThis is a great option if you want ",
+            "score": 0.729321,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "7bdb1ccb96110534832aabd4bb506453f35cc3be573a93be1697f5996db6d66e",
+            "sourceAliases": [],
+            "sourceId": "7bdb1ccb96110534832aabd4bb506453f35cc3be573a93be1697f5996db6d66e",
+            "title": "Wix Editor: Using The Right-Click Menu",
+            "uri": "https://support.wix.com/en/article/wix-editor-using-the-right-click-menu",
+            "chunkId": "6ea3b236c77b579c9e8b072cae6c193f",
+            "preview": "Wix Editor: Using The Right-Click Menu\nThe right-click menu is a great way to control your elements and their settings. There are a variety of actions you can perform, such as dupl",
+            "score": 0.660133,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "e4719fe230e58bb8353ebcada1bdef0e7fdb3e8c6f2c73acaa4b85ab98194a1b",
+            "sourceAliases": [],
+            "sourceId": "e4719fe230e58bb8353ebcada1bdef0e7fdb3e8c6f2c73acaa4b85ab98194a1b",
+            "title": "Wix Restaurants: Displaying Your Menus on Multiple Site Pages",
+            "uri": "https://support.wix.com/en/article/wix-restaurants-separating-a-menu-on-the-wix-menus-app-new",
+            "chunkId": "809654ed007a5e04bc94e31d5f5068b3",
+            "preview": "editor. Click the Menu page. Click your menu on the page. Click Choose Menus. Click +Add Menu Page to create a new page for your menu.   Edit the new menu page:\n\nClick your menu on",
+            "score": 0.643995,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "80da0581ed6c217bb9ea1eff5c05618d326c91e72027aa84171ffdc72724dc3b",
+            "sourceAliases": [],
+            "sourceId": "80da0581ed6c217bb9ea1eff5c05618d326c91e72027aa84171ffdc72724dc3b",
+            "title": "Editor X: Copying the Design of One Element to Another",
+            "uri": "https://support.wix.com/en/article/editor-x-copying-the-design-of-one-element-to-another",
+            "chunkId": "e59d339ad3055d6aa559e5c54cce0c6c",
+            "preview": "Editor X: Copying the Design of One Element to Another\nBuild your site more efficiently by copying the design attributes from one element to another, rather than redefining them on",
+            "score": 0.641184,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+            "sourceAliases": [],
+            "sourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+            "title": "Wix Editor: Copying and Pasting Elements and Pages to Another Site",
+            "uri": "https://support.wix.com/en/article/wix-editor-copying-and-pasting-elements-and-pages-to-another-site",
+            "chunkId": "0ebfd007624d505184e2eac6a17de546",
+            "preview": "ck anywhere on the screen and select Paste & Apply Site Theme to apply the color and text themes on the target site.   (In the Pages panel) Rename the new page:\n\nEnter the new page",
+            "score": 0.634475,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "b54fcc3f9518e850f59e6eb131b94cab4596c2e113953f9add9eab86d6ef5495",
+            "sourceAliases": [],
+            "sourceId": "b54fcc3f9518e850f59e6eb131b94cab4596c2e113953f9add9eab86d6ef5495",
+            "title": "Wix Apps: Adding and Setting Up the PDF Viewer App",
+            "uri": "https://support.wix.com/en/article/wix-apps-adding-and-setting-up-the-pdf-viewer-app",
+            "chunkId": "6c619ce1090651d889ee7e6fbbde09c9",
+            "preview": "ck the Design  icon. FAQsCan I display other file types?No, the app only allows for PDF files to be added to your site. Can I display more than one PDF?Yes, you can copy and paste ",
+            "score": 0.629192,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+            "sourceAliases": [],
+            "sourceId": "a58c7cf097e081353986990a4ed90f8045245be5295358d7e81a7475f1204e09",
+            "title": "Wix Editor: Copying and Pasting Elements and Pages to Another Site",
+            "uri": "https://support.wix.com/en/article/wix-editor-copying-and-pasting-elements-and-pages-to-another-site",
+            "chunkId": "c0ad98ea8f1157db8a2bbe40b7a2b1b2",
+            "preview": "aurants etc).To copy and paste a page:\nClick Menus & Pages  on the left side of the Editor. Right-click the relevant page and click Copy. Open the Editor of the site you want to pa",
+            "score": 0.606292,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "9cdcd1e2ff3c571e388080660f975ceaccaf4e6161e5626450d4780fd026cd9f",
+            "sourceAliases": [],
+            "sourceId": "9cdcd1e2ff3c571e388080660f975ceaccaf4e6161e5626450d4780fd026cd9f",
+            "title": "Wix Stores: Importing Reviews into Wix Reviews",
+            "uri": "https://support.wix.com/en/article/wix-stores-importing-reviews-into-wix-reviews",
+            "chunkId": "4b6118a0bc865a3fbd3694609dc4c8ec",
+            "preview": "s displayed and navigate to the image.\nTip: This can be on another site where you sell products, such as Amazon, or on your Wix site where you collected reviews using another revie",
+            "score": 0.575889,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "689192b42afe23d3b986d4da6cec1b0021eb230bdcc798c7e73f16a98f6be216",
+            "sourceAliases": [],
+            "sourceId": "689192b42afe23d3b986d4da6cec1b0021eb230bdcc798c7e73f16a98f6be216",
+            "title": "Wix Editor: Managing Your Site Pages",
+            "uri": "https://support.wix.com/en/article/wix-editor-managing-your-sites-pages",
+            "chunkId": "974295d5924354f1ab3f6b12a6349c72",
+            "preview": "n your sites, as long as both are in the Wix Editor.\nClick Copy. Open the editor of the site you want to paste to. Paste the page by doing one of the following:\n\nRight-click anywhe",
+            "score": 0.572961,
+            "usedInContext": true
+          },
+          {
+            "originalSourceId": "db20439b27b5a0d47fcb239e2cb8ce85b787c339bddad2fad1766a8eac7d39b0",
+            "sourceAliases": [],
+            "sourceId": "db20439b27b5a0d47fcb239e2cb8ce85b787c339bddad2fad1766a8eac7d39b0",
+            "title": "Wix Contacts: Creating a Test Contact",
+            "uri": "https://support.wix.com/en/article/wix-contacts-creating-a-test-contact",
+            "chunkId": "1b22d393e2025abe898e8f4a24ee6b1c",
+            "preview": "rd. Click the More actions icon  at the top of the page and select Test site flows. Click Generate Test Contact. (Optional) Click to choose what you want to do:\n\nCopy Email: Copy t",
+            "score": 0.565397,
+            "usedInContext": false
+          },
+          {
+            "originalSourceId": "2b4f554395182c51310ec55933467dad38e6e418aae1742761d9900eedb53685",
+            "sourceAliases": [],
+            "sourceId": "2b4f554395182c51310ec55933467dad38e6e418aae1742761d9900eedb53685",
+            "title": "Wix Pro Gallery: Managing Your Gallery",
+            "uri": "https://support.wix.com/en/article/wix-pro-gallery-downloading-images-from-a-gallery",
+            "chunkId": "f09af218f50753929f165cdce711197e",
+            "preview": "to the same page, or copy and paste it onto a different page of your site. The gallery's content and settings are carried over onto the duplicate.To duplicate a gallery:\nClick your",
+            "score": 0.519337,
+            "usedInContext": false
+          },
+          {
+            "originalSourceId": "ac7ea2f29045617ba404fad5a864c4f0aeec78a3140448eb3e7b1e28dbe5b778",
+            "sourceAliases": [],
+            "sourceId": "ac7ea2f29045617ba404fad5a864c4f0aeec78a3140448eb3e7b1e28dbe5b778",
+            "title": "Online Programs: Managing Your Program Participants",
+            "uri": "https://support.wix.com/en/article/online-programs-managing-your-program-participants",
+            "chunkId": "0fd56214f9c350caa213246d981355fc",
+            "preview": "box next to the member(s) you want to invite to join your program. Tap Done.   Invite another way:\n\nTap Invite Another Way.  Choose from the following options:\n\nEmail Wix Contacts:",
+            "score": 0.51235,
+            "usedInContext": false
+          },
+          {
+            "originalSourceId": "af040b52cca0acc939a1e6672d94025c99304d2873ce2674a63ca79b0a1cd2ad",
+            "sourceAliases": [],
+            "sourceId": "af040b52cca0acc939a1e6672d94025c99304d2873ce2674a63ca79b0a1cd2ad",
+            "title": "Wix Media: Retrieving the URL of a File in the Media Manager",
+            "uri": "https://support.wix.com/en/article/wix-media-retrieving-the-url-of-a-file-in-the-media-manager",
+            "chunkId": "1fcb4b3802ab5cb0a65263f0004afddd",
+            "preview": "Wix Media: Retrieving the URL of a File in the Media Manager\nYou can retrieve the exact URL of any file type in the Media Manager, such as images, videos and music files. You can t",
+            "score": 0.50971,
+            "usedInContext": false
+          }
+        ],
+        "snapshotSha256": "58db170fc61dc063c1d5e228b3db708ce4621ca8c5b152493611c169c426a730",
+        "indexId": "lab-trial:cf368d2d1fbb426383cae79e60930760",
+        "profile": {
+          "mode": "lexical",
+          "topK": 20,
+          "threshold": 0,
+          "rerank": false,
+          "candidateDepth": 40,
+          "contextChars": 16000
+        },
+        "documentCount": 6221,
+        "retrievedChunks": 20,
+        "contextChars": 16000,
+        "modelCalls": 0
+      },
+      "usage": {
+        "calls": 0,
+        "source": "local_knowledge_retrieval"
+      },
+      "transport": "knowledge_snapshot"
+    },
+    "message": "",
+    "createdAtMs": 1788759027324,
+    "updatedAtMs": 1788759028230
+  },
+  {
+    "requestId": "c8a81765-57b1-4810-8202-3fb355f5b57b",
+    "actionId": "answer",
+    "input": {
+      "question": "How can I copy and paste a regular page to another Wix Editor site?"
+    },
+    "state": "failed",
+    "result": null,
+    "message": "请在运行环境中配置有效的 APP_API_BASE_URL（HTTPS API 地址）。",
+    "createdAtMs": 1788759055036,
+    "updatedAtMs": 1788759055319
+  }
+]

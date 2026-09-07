@@ -68,7 +68,8 @@ def is_private_local_path(path: Path) -> bool:
 def is_forbidden_generated_path(path: Path) -> bool:
     relative = path.relative_to(ROOT)
     return (
-        path.name in FORBIDDEN_NAMES
+        relative.as_posix().startswith("paw-story-demo/public/real-apps/")
+        or path.name in FORBIDDEN_NAMES
         or path.suffix.lower() in FORBIDDEN_SUFFIXES
         or any(part in FORBIDDEN_PARTS for part in relative.parts)
     )

@@ -5,7 +5,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "setup": "npm --prefix paw-story-demo ci --include=dev && corepack pnpm --dir control-center-web install --frozen-lockfile --prod=false",
+    "setup": "npm --prefix paw-story-demo ci --include=dev && corepack pnpm --dir control-center-web install --frozen-lockfile --prod=false && npm --prefix real-apps/geo ci --include=dev",
     "build": "npm --prefix paw-story-demo run build",
     "start": "npm --prefix paw-story-demo start",
     "check": "python3 scripts/check_public_showcase.py"

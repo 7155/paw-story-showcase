@@ -169,3 +169,7 @@ memory; an independently opened App uses browser storage when available.
 
 The automatic cursor is a normal arrow with a separate click indication.
 Pause/resume and explicit download controls remain available.
+
+## Original application gallery
+
+`/apps` now displays the existing Songguo support v11, Wix knowledge v4, EnterpriseRAG viewer and Geo v11 workbench frontends. Their saved results, source origins, licensing and public adapters are documented in [real-apps/README.md](real-apps/README.md). These historical views do not start model or Earth Engine requests. The four benchmark scenarios elsewhere in Lab remain distinct from these actual Apps.

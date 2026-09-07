@@ -1,0 +1,49 @@
+{
+  "adapter": {
+    "schemaVersion": "scoutpi.earth.adapter.v1",
+    "datasetId": "sentinel1-vv",
+    "title": "Sentinel-1 GRD VV Backscatter",
+    "provider": "Copernicus/ESA",
+    "collectionId": "COPERNICUS/S1_GRD",
+    "documentationUrl": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S1_GRD",
+    "roles": [
+      "flood_extent",
+      "surface_change",
+      "disaster_response"
+    ],
+    "startYear": 2014,
+    "scaleMeters": 10,
+    "cadence": "6-12 days",
+    "limitations": [
+      "Backscatter depends on geometry, orbit and surface roughness.",
+      "Thresholds require local validation."
+    ],
+    "analysis": {
+      "metric": "band_mean",
+      "bands": [
+        "VV"
+      ],
+      "outputName": "vv_backscatter",
+      "visualization": {
+        "min": -25,
+        "max": 5,
+        "palette": [
+          "000004",
+          "3b0f70",
+          "8c2981",
+          "de4968",
+          "fe9f6d",
+          "fcfdbf"
+        ]
+      }
+    }
+  },
+  "revision": 1,
+  "fingerprint": "c0e5f5ef99eac26da9f8acea6b49bb9ea1bfbb8bfaffdf30305bf75f11e5dfe6",
+  "registeredAt": "2026-09-07T09:23:49.570Z",
+  "source": "example",
+  "enabled": true,
+  "verification": {
+    "status": "not_run"
+  }
+}

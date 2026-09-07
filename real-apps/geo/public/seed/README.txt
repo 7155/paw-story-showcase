@@ -1,0 +1,1 @@
+These are historical completed demonstration records, copied with explicit packaging input. Opening the App does not rerun them. Local artifact paths are rebound on first import; measurement values and original job identities are retained. No Agent or trigger is started.

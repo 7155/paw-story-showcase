@@ -181,3 +181,7 @@ atom and input-detail projections share the same source rows. The four Apps
 use real browser-side operations, source search, work records and undo; they do
 not invoke a Provider or write to production services. Lab export packages and
 the `/apps` gallery share `showcase/vertical-app.ts` and the evaluated dataset.
+
+## Original Apps and historical data
+
+The `/apps` gallery uses [original frontends and recorded datasets](real-apps/README.md), rather than the authored sample business UIs. EnterpriseRAG data is actual benchmark input from a synthetic enterprise corpus. Other App entries retain original saved call/job outcomes, including incomplete states. This gallery does not change the synthetic-data boundary of the other PAWOS preview surfaces.

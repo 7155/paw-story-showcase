@@ -1,0 +1,12 @@
+{
+  "source": "paw-vertical-research/enterprise-rag-eval-lab/viewer",
+  "mode": "historical-read-only",
+  "dataset": "EnterpriseRAG-Bench synthetic enterprise corpus; actual experiment input",
+  "originalFrontendSha256": {
+    "index.html": "be1a728d6112b717765a92c4ac98c4790256c881fadf7432e1b7c1834ef8e146",
+    "app.js": "ffdc083e19249bd316fb0204ff3c06d22a05decf869421f9e29c9e8f5a13ebea",
+    "styles.css": "f95dd68d92e0a4ca75bda1f5dc76bce5aeb79b7de7e82d791f633bfd2f6a4d7c"
+  },
+  "documents": 5101,
+  "visibleQueries": 40
+}

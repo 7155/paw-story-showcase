@@ -1,0 +1,121 @@
+<html lang="zh-CN"><head><script src="../assistant-snapshot.js"></script><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wix 知识助手</title>
+<style>
+:root{color-scheme:light;--paper:#fff;--ink:#18332d;--muted:#526760;--line:#dce6e1;--accent:#126b55;--soft:#f2f7f4;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;color:var(--ink);background:var(--paper)}
+[hidden]{display:none!important}*{box-sizing:border-box}body{margin:0}button,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:wait;opacity:.55}button:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #35806c;outline-offset:3px}::selection{background:#c3e7d9;color:#123a2d}textarea{caret-color:var(--accent)}*{scrollbar-color:#afc8bb var(--paper);scrollbar-width:thin}button{transition:background-color .16s ease-out}header{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:24px 30px;border-bottom:1px solid var(--line)}h1{font-size:23px;line-height:1.3;letter-spacing:-.025em;margin:0;font-weight:650}header p{font-size:13px;line-height:1.6;color:var(--muted);margin:7px 0 0}header button,.quiet{border:1px solid var(--line);background:white;border-radius:8px;color:var(--ink);padding:10px 13px;white-space:nowrap}header button:hover,.quiet:hover{background:var(--soft)}main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,1fr);max-width:1180px;margin:auto;min-height:480px}.work{padding:28px 30px 40px;min-width:0}label{font-size:16px;font-weight:600;display:block;margin-bottom:12px}textarea{display:block;width:100%;min-height:128px;resize:vertical;border:1px solid #afc5ba;border-radius:12px;color:var(--ink);background:white;padding:15px;line-height:1.65;font-size:15px}textarea::placeholder{color:#64786f}.hint{font-size:12px;line-height:1.7;color:var(--muted);margin:10px 0 16px}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.primary{color:white;background:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:11px 17px;font-weight:600}.primary:hover{background:#0e5644}.status{min-height:21px;margin:15px 0 0;font-size:12px;color:var(--muted);line-height:1.6;font-variant-numeric:tabular-nums}.status.error{color:#9f362b}.answer-area{margin-top:30px;padding-top:24px;border-top:1px solid var(--line)}h2{font-size:17px;font-weight:630;margin:0 0 12px}.answer{font-size:14px;line-height:1.85;overflow-wrap:anywhere;max-width:72ch}.answer p{margin:0 0 13px;white-space:pre-wrap}.answer h3{font-size:15px;margin:22px 0 8px}.answer .list-line{padding-left:15px;position:relative}.answer .list-line:before{content:"";width:4px;height:4px;background:var(--accent);border-radius:50%;position:absolute;left:1px;top:11px}.answer strong{font-weight:650}.empty{font-size:14px;color:var(--muted);line-height:1.9;max-width:44ch;margin:0}.sources{background:var(--soft);border-left:1px solid var(--line);padding:29px 26px 40px;min-width:0}.sources-heading{display:flex;align-items:baseline;justify-content:space-between;gap:14px}.sources-heading span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}.source{padding:17px 0;border-bottom:1px solid #d4e1da}.source:first-child{padding-top:6px}.source summary{font-size:14px;font-weight:580;line-height:1.6;cursor:pointer}.source p{font-size:13px;line-height:1.85;margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}.source .address{font-size:11px;line-height:1.6;color:var(--muted);overflow-wrap:anywhere;user-select:all}.source small{display:block;font-size:11px;color:var(--muted);margin-top:9px}.question-used{font-size:12px;color:var(--muted);margin:0 0 14px;line-height:1.6;overflow-wrap:anywhere}.history{border-top:1px solid var(--line);padding:23px 30px;background:white}.history button{display:block;width:100%;text-align:left;background:white;color:var(--ink);border:0;border-bottom:1px solid var(--line);padding:13px 0;font-size:13px;line-height:1.6}.history button:hover{color:var(--accent)}footer{padding:18px 30px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);line-height:1.7}a{color:var(--accent);text-underline-offset:3px}.hidden{display:none!important}@media(max-width:680px){header{padding:22px;align-items:flex-start}header button{padding:8px 10px;font-size:12px}h1{font-size:21px}main{grid-template-columns:minmax(0,1fr)}.work{padding:24px 22px 30px}.sources{border-left:0;border-top:1px solid var(--line);padding:24px 22px}.history,footer{padding-left:22px;padding-right:22px}.answer-area{margin-top:25px}}@media(prefers-reduced-motion:reduce){button{transition:none}}
+</style></head><body data-knowledge="true">
+<header><div><h1>Wix 知识助手</h1><p>从帮助中心找到有出处的答案。</p></div><button id="history-toggle" type="button" aria-expanded="false">最近记录</button></header>
+<main><section class="work" aria-label="知识库问答"><form id="question-form"><label for="question">你遇到了什么问题？</label><textarea id="question" required maxlength="5000" placeholder="例如：How do I copy a page to another Wix site?"></textarea><p class="hint">资料为英文帮助中心快照。英文问题更适合当前的关键词检索。</p><div class="actions"><button id="answer-button" type="button" class="primary">生成回答</button><button id="search-button" type="button" class="quiet">先查来源</button></div><p id="status" class="status" role="status" aria-live="polite">先查来源不调用模型；生成回答使用当前应用的模型服务。</p><span id="elapsed" class="status hidden" aria-hidden="true"></span><p id="recovery" class="status hidden"></p></form>
+<section class="answer-area" aria-label="回答结果"><h2 id="answer-title">有依据，才有下一步</h2><p id="question-used" class="question-used hidden"></p><div id="answer" class="answer"><p class="empty">描述你要完成的操作。助手会查找相关文档，再给出步骤和依据；资料不足时会说明缺失的信息。</p></div></section></section>
+<aside class="sources" aria-label="检索来源"><div class="sources-heading"><h2>参考来源</h2><span id="source-count">尚未检索</span></div><p id="source-detail" class="hint"></p><div id="sources"><p class="empty">实际检索到的文档会出现在这里。展开每条来源，核对回答使用的原文。</p></div></aside></main>
+<section id="history-panel" class="history hidden" aria-label="最近调用"><h2>最近记录</h2><div id="history-list"><p class="empty">正在读取记录…</p></div></section>
+<footer>WixQA 帮助中心快照 · 2024-12-02 · 6,221 篇文档 / 17,734 个切片。当前为关键词检索，最多取 20 个切片，回答证据上限 16,000 字符。资料可能已更新，请结合当前产品核对操作。</footer>
+<script>
+(() => {
+ const $ = id => document.getElementById(id);
+ const question=$('question'), status=$('status'); let busy=false, sourcesKey='', started=0, clock=null, lastProgress={};
+ const knowledgeEnabled=document.body.dataset.knowledge==='true';
+ if(!knowledgeEnabled){$('search-button').hidden=true;document.querySelector('.sources').hidden=true;document.querySelector('main').style.gridTemplateColumns='minmax(0,1fr)'}
+ function showText(element,text){element.textContent=text}
+ function renderAnswer(text){
+   $('answer').replaceChildren();
+   for(const line of String(text||'').split('\n')){
+     if(!line.trim())continue;
+     const heading=/^#{1,4}\s+/.test(line),bullet=/^[-*]\s+/.test(line);
+     const row=document.createElement(heading?'h3':'p');if(bullet)row.className='list-line';
+     const value=line.replace(/^#{1,4}\s+/,'').replace(/^[-*]\s+/,'');
+     for(const [index,part] of value.split('**').entries()){const el=document.createElement(index%2?'strong':'span');el.textContent=part;row.append(el)}
+     $('answer').append(row);
+   }
+ }
+ function renderSources(items,knowledge={}){
+   const sources=Array.isArray(items)?items:[],key=JSON.stringify([sources,knowledge.retrievedChunks]);
+   if(key===sourcesKey)return;sourcesKey=key;$('sources').replaceChildren();
+   const groups=new Map();for(const source of sources){const k=source.sourceId;const group=groups.get(k);if(group)group.push(source);else groups.set(k,[source])}
+   showText($('source-count'),`${groups.size} 篇 · 采用 ${sources.length} 段`);
+   showText($('source-detail'),Number.isInteger(knowledge.retrievedChunks)?`召回 ${knowledge.retrievedChunks} 段，按上下文预算采用 ${sources.length} 段。下方是实际交给回答模型的原文。`:'下方为本次使用的原文。');
+   if(!sources.length){const p=document.createElement('p');p.className='empty';p.textContent='没有找到匹配的证据。请尝试更具体的产品或功能名称。';$('sources').append(p);return}
+   for(const group of groups.values()){
+     const source=group[0],detail=document.createElement('details');detail.className='source';
+     const title=document.createElement('summary');title.textContent=source.title||source.sourceId;
+     const excerpt=document.createElement('p');excerpt.textContent=group.map((item,index)=>group.length>1?`片段 ${index+1}\n${item.text||''}`:item.text||'').join('\n\n');
+     const address=document.createElement('div');address.className='address';address.textContent=source.uri||source.sourceId;
+     detail.append(title,excerpt,address);$('sources').append(detail);
+   }
+   const unused=(knowledge.retrievalHits||[]).filter(hit=>!hit.usedInContext);
+   if(unused.length){
+     const more=document.createElement('details');more.className='source';const summary=document.createElement('summary');summary.textContent=`另有 ${unused.length} 个召回片段未采用`;more.append(summary);
+     for(const hit of unused){const p=document.createElement('p');p.textContent=`${hit.title||hit.sourceId}\n${hit.preview||''}\n${hit.uri||''}`;more.append(p)}
+     $('sources').append(more);
+   }
+ }
+ const labels={queued:'请求已提交',retrieving:'正在查找相关资料',sources_ready:'已找到来源，可以展开核对',model_starting:'正在连接回答模型',model_wait:'正在等待模型响应',thinking:'模型正在思考',answering:'正在输出回答',completed:'已收到完成回执',failed:'本次未完成',cancelled:'调用已停止',interrupted:'调用中断，原请求已保留',unconfirmed:'完成状态尚未确认'};
+ function elapsed(){showText($('elapsed'),`已等待 ${Math.max(0,Math.floor((Date.now()-started)/1000))} 秒`)}
+ function stopActivity(){clearInterval(clock);clock=null;$('elapsed').classList.add('hidden');$('answer').setAttribute('aria-busy','false')}
+ function onProgress(progress){
+   if(!busy)return;lastProgress=progress||{};
+   const stage=lastProgress.stage;
+   if(stage&&labels[stage])showText(status,labels[stage]);
+   if(['retrieving','sources_ready','model_starting','model_wait','thinking','answering'].includes(stage)&&!clock){
+     status.classList.remove('error');$('recovery').classList.add('hidden');$('elapsed').classList.remove('hidden');elapsed();clock=setInterval(elapsed,1000);$('answer').setAttribute('aria-busy','true');
+   }
+   if(Array.isArray(lastProgress.sources))renderSources(lastProgress.sources,lastProgress.knowledge||{});
+   if(lastProgress.streamPartial){showText($('answer-title'),'正在等待完整结果');renderAnswer('实时输出不完整，将在收到完成回执后展示最终回答。')}
+   else if(typeof lastProgress.text==='string'&&lastProgress.text){showText($('answer-title'),'回答生成中 · 尚未完成');renderAnswer(lastProgress.text)}
+   if(['failed','cancelled','interrupted','unconfirmed'].includes(stage)){
+     stopActivity();status.classList.add('error');showText($('answer-title'),lastProgress.text?'已保留部分回答 · 尚未确认':'本次尚未完成');
+     showText($('recovery'),stage==='interrupted'?'请用应用窗口中的“恢复原调用”核对原请求；输入和来源已保留。':'输入与来源已保留。请先查看最近记录，核对本次结果。');$('recovery').classList.remove('hidden');
+   }
+ }
+ function renderResult(result,q,action){
+   showText($('question-used'),q);$('question-used').classList.remove('hidden');
+   showText($('answer-title'),action==='sources'?'来源已找到':'回答');
+   if(knowledgeEnabled)renderSources(result.sources,result.knowledge||{});
+   if(action==='sources')renderAnswer(result.sources?.length?'来源区展示本次找到的原文。展开核对内容，或点击“生成回答”整理答案。':'当前资料没有提供匹配的依据。请调整关键词后再试。');
+   else renderAnswer(result.text||'本次没有返回可用回答。');
+ }
+ async function run(action){
+   if(busy||!question.reportValidity())return;const q=question.value.trim();if(!q){question.focus();return}
+   busy=true;lastProgress={};sourcesKey='';started=Date.now();status.classList.remove('error');$('recovery').classList.add('hidden');
+   $('answer-button').disabled=true;$('search-button').disabled=true;$('history-toggle').disabled=true;question.readOnly=true;
+   showText($('question-used'),q);$('question-used').classList.remove('hidden');showText($('answer-title'),'正在处理本次问题');
+   renderAnswer('请求已提交。过程和结果会在这里更新。');$('answer').setAttribute('aria-busy','true');
+   if(knowledgeEnabled){$('sources').replaceChildren();showText($('source-count'),'等待检索');showText($('source-detail'),'来源返回后立即显示，可在生成回答时查看。')}
+   showText(status,'请求已提交，正在等待处理');$('elapsed').classList.remove('hidden');elapsed();clock=setInterval(elapsed,1000);
+   try{
+     const result=await window.pawApp.invoke(action,{question:q},{onProgress});renderResult(result,q,action);status.classList.remove('error');$('recovery').classList.add('hidden');
+     showText(status,action==='sources'?`检索完成 · ${result.knowledge?.contextChars||0} 字符原文 · 未调用模型`:'回答完成 · 请结合来源核对实际操作');
+   }catch(error){
+     status.classList.add('error');showText(status,error.message||'本次未完成。');
+     showText($('answer-title'),lastProgress.text?'部分回答 · 尚未确认':'本次尚未完成');
+     if(!lastProgress.text)renderAnswer('输入与已找到的来源仍然保留。');
+     const definite=['failed','cancelled','rejected'].includes(error.state);
+     showText($('recovery'),definite?'可以检查输入或运行配置，再手动提交。也可查看最近记录。':'请先查看最近记录或核对原请求，确认结果后再决定是否重新提交。');$('recovery').classList.remove('hidden');
+   }finally{
+     stopActivity();busy=false;$('answer-button').disabled=false;$('search-button').disabled=false;$('history-toggle').disabled=false;question.readOnly=false;
+   }
+ }
+ $('question-form').addEventListener('submit',e=>e.preventDefault());$('answer-button').addEventListener('click',()=>run('answer'));$('search-button').addEventListener('click',()=>run('sources'));
+ $('history-toggle').addEventListener('click',async()=>{
+   if(busy)return;const panel=$('history-panel');panel.classList.toggle('hidden');$('history-toggle').setAttribute('aria-expanded',String(!panel.classList.contains('hidden')));
+   if(panel.classList.contains('hidden'))return;
+   try{
+     const records=await window.pawApp.history();$('history-list').replaceChildren();const visible=(records||[]).slice(0,12);
+     if(!visible.length)showText($('history-list'),'还没有调用记录。');
+     for(const row of visible){
+       const button=document.createElement('button');button.type='button';button.textContent=`${row.input?.question||'应用调用'} · ${row.state==='completed'?'已完成':labels[row.state]||'尚未完成'}`;
+       button.addEventListener('click',()=>{
+         if(busy)return;question.value=row.input?.question||'';status.classList.remove('error');$('recovery').classList.add('hidden');
+         if(row.state==='completed'){renderResult(row.result||{},question.value,row.actionId);showText(status,'已恢复保存的结果，本次没有调用模型。')}
+         else{
+           if(knowledgeEnabled)renderSources(row.progress?.sources||[],row.progress?.knowledge||{});
+           showText($('question-used'),question.value);$('question-used').classList.remove('hidden');showText($('answer-title'),'原调用尚未完成');
+           renderAnswer(row.progress?.text||'尚无确认的回答。输入已恢复，请先核对原调用。');status.classList.add('error');showText(status,row.message||'本次没有重放调用。请先核对原请求。');
+         }
+       });$('history-list').append(button);
+     }
+   }catch(error){showText($('history-list'),error.message||'记录暂时不可读，请稍后重试。')}
+ });
+})();
+</script></body></html>
+
+<script src="../replay-guide.js"></script>

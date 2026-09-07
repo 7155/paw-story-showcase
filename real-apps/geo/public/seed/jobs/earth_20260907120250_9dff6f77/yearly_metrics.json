@@ -1,0 +1,42 @@
+{
+  "type": "FeatureCollection",
+  "columns": {},
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": null,
+      "id": "2_0",
+      "properties": {
+        "analysis_crs": "EPSG:4326",
+        "analysis_scale_meters": 10,
+        "dataset_id": "sentinel2-sr",
+        "ndvi": 0.34474720384639734,
+        "quality_schema_version": "scoutpi.annual-quality.v1",
+        "role": "vegetation",
+        "source_image_count": 62,
+        "total_pixel_count": 49729,
+        "valid_pixel_count": 49729,
+        "valid_pixel_fraction": 1,
+        "year": 2024
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": null,
+      "id": "2_1",
+      "properties": {
+        "analysis_crs": "EPSG:4326",
+        "analysis_scale_meters": 10,
+        "dataset_id": "sentinel2-sr",
+        "ndvi": 0.3847049619317028,
+        "quality_schema_version": "scoutpi.annual-quality.v1",
+        "role": "vegetation",
+        "source_image_count": 74,
+        "total_pixel_count": 49729,
+        "valid_pixel_count": 49729,
+        "valid_pixel_fraction": 1,
+        "year": 2025
+      }
+    }
+  ]
+}

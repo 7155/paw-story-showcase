@@ -1,0 +1,603 @@
+{
+  "schemaVersion": "scoutpi.earth.plan.v1",
+  "planId": "plan_16039587db4b_91668a",
+  "spec": {
+    "schemaVersion": "scoutpi.investigation.v1",
+    "investigationId": "enterprise-vegetation-monitoring-20260907",
+    "question": "对公开演示 AOI 比较 2024 与 2025 年 5–9 月的 Sentinel-2 NDVI，交付可核对的年度统计、地图及变化说明。",
+    "phenomenon": "vegetation_monitoring",
+    "region": {
+      "kind": "bbox",
+      "bbox": [
+        119.98,
+        30.25,
+        120,
+        30.27
+      ],
+      "name": "企业植被监测演示 AOI（公开坐标矩形）"
+    },
+    "period": {
+      "startYear": 2024,
+      "endYear": 2025,
+      "startMonth": 5,
+      "endMonth": 9
+    },
+    "hypotheses": [
+      {
+        "id": "seasonal-vegetation-change",
+        "statement": "固定 AOI 在相同月份窗口的年度平均 NDVI 可能发生变化。",
+        "observableRoles": [
+          "vegetation"
+        ],
+        "falsification": "质量掩膜后没有足够有效数据，或两年指标没有可辨别差异。"
+      }
+    ],
+    "confounders": [
+      "本区域是公开坐标矩形，不代表真实甲方的权属边界。",
+      "NDVI 是植被状态代理，不能单独证明生态恢复验收或变化原因。",
+      "季节窗口一致仍不能消除气象、影像数量与有效像元覆盖差异。"
+    ],
+    "claims": [],
+    "preferredOutputs": [
+      "yearly_csv",
+      "metrics_json",
+      "story"
+    ],
+    "constraints": {
+      "maxScaleMeters": 10,
+      "maxYears": 2,
+      "comparisonSeason": "May through September in each year",
+      "preferredAdapterIds": [
+        "sentinel2-sr"
+      ]
+    }
+  },
+  "datasets": [
+    {
+      "role": "vegetation",
+      "dataset": {
+        "schemaVersion": "scoutpi.earth.adapter.v1",
+        "datasetId": "sentinel2-sr",
+        "title": "Sentinel-2 Surface Reflectance Harmonized",
+        "provider": "Copernicus/ESA",
+        "collectionId": "COPERNICUS/S2_SR_HARMONIZED",
+        "documentationUrl": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED",
+        "roles": [
+          "vegetation",
+          "water",
+          "water_extent",
+          "built_surface",
+          "fire_recovery",
+          "land_change"
+        ],
+        "startYear": 2017,
+        "scaleMeters": 10,
+        "cadence": "5 days",
+        "limitations": [
+          "Optical observations require cloud and shadow control.",
+          "Cross-year comparisons should use the same season."
+        ],
+        "analysis": {
+          "metric": "normalized_difference_mean",
+          "bands": [
+            "B8",
+            "B4"
+          ],
+          "outputName": "ndvi",
+          "qualityMask": {
+            "mode": "all",
+            "rules": [
+              {
+                "band": "SCL",
+                "op": "neq",
+                "value": 3
+              },
+              {
+                "band": "SCL",
+                "op": "neq",
+                "value": 8
+              },
+              {
+                "band": "SCL",
+                "op": "neq",
+                "value": 9
+              },
+              {
+                "band": "SCL",
+                "op": "neq",
+                "value": 10
+              },
+              {
+                "band": "SCL",
+                "op": "neq",
+                "value": 11
+              }
+            ]
+          },
+          "visualization": {
+            "min": -0.2,
+            "max": 0.8,
+            "palette": [
+              "8c510a",
+              "f6e8c3",
+              "80cdc1",
+              "01665e"
+            ]
+          }
+        },
+        "analysisByRole": {
+          "vegetation": {
+            "metric": "normalized_difference_mean",
+            "bands": [
+              "B8",
+              "B4"
+            ],
+            "outputName": "ndvi",
+            "qualityMask": {
+              "mode": "all",
+              "rules": [
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 3
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 8
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 9
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 10
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 11
+                }
+              ]
+            },
+            "visualization": {
+              "min": -0.2,
+              "max": 0.8,
+              "palette": [
+                "8c510a",
+                "f6e8c3",
+                "80cdc1",
+                "01665e"
+              ]
+            }
+          },
+          "fire_recovery": {
+            "metric": "normalized_difference_mean",
+            "bands": [
+              "B8",
+              "B12"
+            ],
+            "outputName": "nbr",
+            "qualityMask": {
+              "mode": "all",
+              "rules": [
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 3
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 8
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 9
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 10
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 11
+                }
+              ]
+            },
+            "visualization": {
+              "min": -0.5,
+              "max": 0.8,
+              "palette": [
+                "a50026",
+                "fdae61",
+                "ffffbf",
+                "66bd63",
+                "006837"
+              ]
+            }
+          },
+          "water": {
+            "metric": "normalized_difference_mean",
+            "bands": [
+              "B3",
+              "B8"
+            ],
+            "outputName": "ndwi",
+            "qualityMask": {
+              "mode": "all",
+              "rules": [
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 3
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 8
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 9
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 10
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 11
+                }
+              ]
+            },
+            "visualization": {
+              "min": -0.5,
+              "max": 0.5,
+              "palette": [
+                "8c510a",
+                "f6e8c3",
+                "67a9cf",
+                "2166ac"
+              ]
+            }
+          },
+          "water_extent": {
+            "metric": "normalized_difference_mean",
+            "bands": [
+              "B3",
+              "B8"
+            ],
+            "outputName": "ndwi",
+            "qualityMask": {
+              "mode": "all",
+              "rules": [
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 3
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 8
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 9
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 10
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 11
+                }
+              ]
+            },
+            "visualization": {
+              "min": -0.5,
+              "max": 0.5,
+              "palette": [
+                "8c510a",
+                "f6e8c3",
+                "67a9cf",
+                "2166ac"
+              ]
+            }
+          },
+          "built_surface": {
+            "metric": "normalized_difference_mean",
+            "bands": [
+              "B11",
+              "B8"
+            ],
+            "outputName": "ndbi",
+            "qualityMask": {
+              "mode": "all",
+              "rules": [
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 3
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 8
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 9
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 10
+                },
+                {
+                  "band": "SCL",
+                  "op": "neq",
+                  "value": 11
+                }
+              ]
+            },
+            "visualization": {
+              "min": -0.5,
+              "max": 0.5,
+              "palette": [
+                "1a9850",
+                "fee08b",
+                "d73027"
+              ]
+            }
+          }
+        }
+      },
+      "reason": "Covers role vegetation, requested period where available, and provides 10 m nominal scale.",
+      "hypothesisIds": [
+        "seasonal-vegetation-change"
+      ],
+      "alternatives": [
+        "modis-ndvi"
+      ],
+      "adapterBinding": {
+        "datasetId": "sentinel2-sr",
+        "revision": 1,
+        "fingerprint": "bd2aa851d27f876156f693476c448252bb229f768d045a3e6060c9d0a9b692f3",
+        "verificationStatus": "passed"
+      }
+    }
+  ],
+  "dag": [
+    {
+      "nodeId": "vegetation_source",
+      "op": "source",
+      "dependsOn": [],
+      "params": {
+        "datasetId": "sentinel2-sr",
+        "collectionId": "COPERNICUS/S2_SR_HARMONIZED"
+      }
+    },
+    {
+      "nodeId": "vegetation_region",
+      "op": "filter_region",
+      "dependsOn": [
+        "vegetation_source"
+      ],
+      "params": {
+        "region": {
+          "kind": "bbox",
+          "bbox": [
+            119.98,
+            30.25,
+            120,
+            30.27
+          ],
+          "name": "企业植被监测演示 AOI（公开坐标矩形）"
+        }
+      }
+    },
+    {
+      "nodeId": "vegetation_time",
+      "op": "filter_time",
+      "dependsOn": [
+        "vegetation_region"
+      ],
+      "params": {
+        "period": {
+          "startYear": 2024,
+          "endYear": 2025,
+          "startMonth": 5,
+          "endMonth": 9
+        }
+      }
+    },
+    {
+      "nodeId": "vegetation_quality",
+      "op": "quality_mask",
+      "dependsOn": [
+        "vegetation_time"
+      ],
+      "params": {
+        "rules": [
+          {
+            "band": "SCL",
+            "op": "neq",
+            "value": 3
+          },
+          {
+            "band": "SCL",
+            "op": "neq",
+            "value": 8
+          },
+          {
+            "band": "SCL",
+            "op": "neq",
+            "value": 9
+          },
+          {
+            "band": "SCL",
+            "op": "neq",
+            "value": 10
+          },
+          {
+            "band": "SCL",
+            "op": "neq",
+            "value": 11
+          }
+        ]
+      }
+    },
+    {
+      "nodeId": "vegetation_annual",
+      "op": "annual_metric",
+      "dependsOn": [
+        "vegetation_quality"
+      ],
+      "params": {
+        "role": "vegetation",
+        "analysis": {
+          "metric": "normalized_difference_mean",
+          "bands": [
+            "B8",
+            "B4"
+          ],
+          "outputName": "ndvi",
+          "qualityMask": {
+            "mode": "all",
+            "rules": [
+              {
+                "band": "SCL",
+                "op": "neq",
+                "value": 3
+              },
+              {
+                "band": "SCL",
+                "op": "neq",
+                "value": 8
+              },
+              {
+                "band": "SCL",
+                "op": "neq",
+                "value": 9
+              },
+              {
+                "band": "SCL",
+                "op": "neq",
+                "value": 10
+              },
+              {
+                "band": "SCL",
+                "op": "neq",
+                "value": 11
+              }
+            ]
+          },
+          "visualization": {
+            "min": -0.2,
+            "max": 0.8,
+            "palette": [
+              "8c510a",
+              "f6e8c3",
+              "80cdc1",
+              "01665e"
+            ]
+          }
+        },
+        "scaleMeters": 10
+      }
+    },
+    {
+      "nodeId": "vegetation_compare",
+      "op": "compare",
+      "dependsOn": [
+        "vegetation_annual"
+      ],
+      "params": {
+        "baseline": 2024,
+        "target": 2025
+      }
+    },
+    {
+      "nodeId": "vegetation_trend",
+      "op": "trend",
+      "dependsOn": [
+        "vegetation_annual"
+      ],
+      "params": {
+        "method": "ols",
+        "uncertainty": true
+      }
+    },
+    {
+      "nodeId": "critic",
+      "op": "critic",
+      "dependsOn": [
+        "vegetation_compare",
+        "vegetation_trend"
+      ],
+      "params": {}
+    },
+    {
+      "nodeId": "export",
+      "op": "export",
+      "dependsOn": [
+        "critic"
+      ],
+      "params": {
+        "outputs": [
+          "yearly_csv",
+          "metrics_json",
+          "story"
+        ]
+      }
+    }
+  ],
+  "criticChecks": [
+    {
+      "checkId": "confounder_1",
+      "severity": "warning",
+      "message": "本区域是公开坐标矩形，不代表真实甲方的权属边界。",
+      "resolution": "Address this confounder in the analysis or final uncertainty section."
+    },
+    {
+      "checkId": "confounder_2",
+      "severity": "warning",
+      "message": "NDVI 是植被状态代理，不能单独证明生态恢复验收或变化原因。",
+      "resolution": "Address this confounder in the analysis or final uncertainty section."
+    },
+    {
+      "checkId": "confounder_3",
+      "severity": "warning",
+      "message": "季节窗口一致仍不能消除气象、影像数量与有效像元覆盖差异。",
+      "resolution": "Address this confounder in the analysis or final uncertainty section."
+    },
+    {
+      "checkId": "season_alignment",
+      "severity": "warning",
+      "message": "Use the same month window in every comparison year."
+    }
+  ],
+  "estimatedCost": {
+    "years": 2,
+    "datasetCount": 1,
+    "nominalPixels": 42527,
+    "requiresApproval": false
+  },
+  "createdAt": "2026-09-07T09:30:45.461Z"
+}

@@ -1,0 +1,18 @@
+{
+  "source": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907101551_87aacfd4/yearly_metrics.csv",
+  "rowCount": 2,
+  "columns": {
+    "ndvi": {
+      "count": 2,
+      "mean": 0.36472608288905006,
+      "min": 0.34474720384639734,
+      "max": 0.3847049619317028,
+      "stddev": 0.028254401703131073,
+      "trend": {
+        "slope_per_step": 0.03995775808530544,
+        "r_squared": 1
+      }
+    }
+  },
+  "warnings": []
+}

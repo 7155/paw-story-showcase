@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "scoutpi.earth.story.v1",
+  "investigationId": "enterprise-vegetation-monitoring-20260907",
+  "question": "对公开演示 AOI 比较 2024 与 2025 年 5–9 月的 Sentinel-2 NDVI，交付可核对的年度统计、地图及变化说明。",
+  "claims": [],
+  "findings": [
+    {
+      "hypothesisId": "seasonal-vegetation-change",
+      "status": "mixed",
+      "evidence": [
+        "公开演示 AOI 在相同的 5–9 月窗口中，年度 NDVI 均值从 2024 年的 0.3447 增至 2025 年的 0.3847，绝对变化 +0.0400。",
+        "补充质量实算后，两年 NDVI 数值与原统计一致；2024 / 2025 年分别有 62 / 74 景入选影像，最终合成有效覆盖率均为 100%。",
+        "指标来自完成的 Earth Engine 实算，变化 GeoTIFF 已通过本地导出作业保存。",
+        "这是植被光谱信号的年度差异；现有证据不足以把变化归因于绿化工程，或据此通过生态修复验收。"
+      ]
+    }
+  ],
+  "metrics": {
+    "ndvi_2024": {
+      "value": 0.34474720384639734,
+      "unit": "dimensionless",
+      "sourceJobId": "earth_20260907120250_9dff6f77"
+    },
+    "ndvi_2025": {
+      "value": 0.3847049619317028,
+      "unit": "dimensionless",
+      "sourceJobId": "earth_20260907120250_9dff6f77"
+    },
+    "source_image_count_2024": {
+      "value": 62,
+      "unit": "count",
+      "sourceJobId": "earth_20260907120250_9dff6f77"
+    },
+    "valid_pixel_count_2024": {
+      "value": 49729,
+      "unit": "count",
+      "sourceJobId": "earth_20260907120250_9dff6f77"
+    },
+    "total_pixel_count_2024": {
+      "value": 49729,
+      "unit": "count",
+      "sourceJobId": "earth_20260907120250_9dff6f77"
+    },
+    "valid_pixel_fraction_2024": {
+      "value": 1,
+      "unit": "fraction",
+      "sourceJobId": "earth_20260907120250_9dff6f77"
+    },
+    "source_image_count_2025": {
+      "value": 74,
+      "unit": "count",
+      "sourceJobId": "earth_20260907120250_9dff6f77"
+    },
+    "valid_pixel_count_2025": {
+      "value": 49729,
+      "unit": "count",
+      "sourceJobId": "earth_20260907120250_9dff6f77"
+    },
+    "total_pixel_count_2025": {
+      "value": 49729,
+      "unit": "count",
+      "sourceJobId": "earth_20260907120250_9dff6f77"
+    },
+    "valid_pixel_fraction_2025": {
+      "value": 1,
+      "unit": "fraction",
+      "sourceJobId": "earth_20260907120250_9dff6f77"
+    }
+  },
+  "layers": [
+    {
+      "role": "vegetation",
+      "kind": "change",
+      "baselineYear": 2024,
+      "targetYear": 2025,
+      "jobId": "earth_20260907102039_60a846f4",
+      "artifact": "vegetation_2024-2025-change.tif"
+    }
+  ],
+  "charts": [
+    {
+      "kind": "annual_ndvi",
+      "data": [
+        {
+          "analysis_crs": "EPSG:4326",
+          "analysis_scale_meters": 10,
+          "dataset_id": "sentinel2-sr",
+          "ndvi": 0.34474720384639734,
+          "quality_schema_version": "scoutpi.annual-quality.v1",
+          "role": "vegetation",
+          "source_image_count": 62,
+          "total_pixel_count": 49729,
+          "valid_pixel_count": 49729,
+          "valid_pixel_fraction": 1,
+          "year": 2024
+        },
+        {
+          "analysis_crs": "EPSG:4326",
+          "analysis_scale_meters": 10,
+          "dataset_id": "sentinel2-sr",
+          "ndvi": 0.3847049619317028,
+          "quality_schema_version": "scoutpi.annual-quality.v1",
+          "role": "vegetation",
+          "source_image_count": 74,
+          "total_pixel_count": 49729,
+          "valid_pixel_count": 49729,
+          "valid_pixel_fraction": 1,
+          "year": 2025
+        }
+      ],
+      "sourceJobId": "earth_20260907120250_9dff6f77"
+    }
+  ],
+  "uncertainties": [
+    "AOI 是公开坐标的演示矩形，不代表真实客户园区或地块权属。",
+    "2024 年入选 62 景，2025 年入选 74 景；影像数量是时间与区域筛选后的集合条目数。两年最终合成结果均覆盖 49,729 / 49,729 个 AOI 网格（100%），不表示每景无云，也不代表已完成空间精度或因果验证。",
+    "SCL 排除了云阴影、云、卷云与雪冰类别，但不能保证完全去除大气、阴影和混合像元影响。",
+    "两年的光谱差异还可能受降水、物候、土地利用、成像质量和合成方法影响；没有因果对照。",
+    "NDVI 均值及有效覆盖统计使用同一 EPSG:4326 投影、10 米名义尺度网格，禁止自动粗化；空间置信区间尚未估计。GeoTIFF 的经纬度坐标单位不应理解为米。"
+  ],
+  "provenance": {
+    "planId": "plan_16039587db4b_91668a",
+    "jobIds": [
+      "earth_20260907120250_9dff6f77",
+      "earth_20260907102039_60a846f4"
+    ],
+    "authorType": "agent",
+    "authoringMethod": "source-grounded local synthesis; no model-generated measurements",
+    "knowledgeIndexId": "lab-trial:2228083e9631487385885c5afecea666",
+    "qualitySchemaVersion": "scoutpi.annual-quality.v1"
+  }
+}

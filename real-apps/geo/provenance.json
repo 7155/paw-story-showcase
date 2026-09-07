@@ -1,0 +1,29 @@
+{
+  "source": "scoutpi-workbench/apps/web",
+  "resultSource": "Geo-Analysis-Workbench-20260907-v11/workspace-seed",
+  "mode": "historical-read-only",
+  "sourceFiles": {
+    "src/resultSummary.ts": "adb974399b496dda313e945276afdd65965c142a72c143dc14fa303158772c06",
+    "src/App.vue": "6fdb63356cc10d0d58955e37809d88d4a734b125408e5a0532ed2ed4ba8015de",
+    "src/main.ts": "bc6002f47ee3916a0a5adc26e126e14846679f7914bca55dbd195d4c89c66f3f",
+    "src/styles.css": "0168a272ba6193a6ec8227892c1a829521ef097819737ea080643831b64d0349",
+    "src/i18n.ts": "b024a08658ff8573f0922b1b17c3a0228af0f59532044b1eeab4f1bf7ee878f2",
+    "src/env.d.ts": "29a3aa0ab58921c2a504a885788233dd662605650e2e44b08e76625397d6ae95",
+    "src/api.ts": "8eb1cc24884bc59f11f87f928f940fd144d222bf5404574c29f7ee249105e09b",
+    "src/types.ts": "8cc146fb79f4d3250ae2f065a4dbc52f2194ee2198868e46eee193729c4c5ad8",
+    "src/mapRuntime.ts": "c6ef75c65cfb3f1208279675500a796ecc973bfa067e193c0cf2bcd78112b062",
+    "src/components/InvestigationResults.vue": "b570b8d9d7b149ee5d4fa15e8317c740854cab89e336a9cd6589504dff26a469",
+    "src/components/LocalExportDialog.vue": "ffeb9b1c83f6289a6463e0d5cdd5fc6901574cb62dabc22c1b3c7e70d1442849",
+    "src/components/PiSpatialContext.vue": "9f312165c05df1906c60ab592478387caf25e414c5178abba83e854c4ff3d850",
+    "src/components/EvaluationPanel.vue": "6a23c396eae5f8d05e84fe4ae08d9ff8d8c04d07e9d69c240cc45730b4011179",
+    "src/components/NewInvestigationDialog.vue": "3f1ff1fde6cab83275ffb3c5b5750b91269a4ca11645a6c44f2ce007f8eb4787",
+    "src/components/RuntimeRegistryDialog.vue": "4a21830ea2db7904865068a7924cc9356c231a5229a7f7a5624eb5e28633dcfc",
+    "src/components/AutomationPanel.vue": "cab9ed12d097b852cfb24ecaf8a72cb08a88c514ae8095b1e764882d3ac50196",
+    "src/components/RecipeDialog.vue": "3f9cf96657054758b83fcb4e9ed763a455fe13cfe85483bab2271a34fcad3ef4",
+    "src/components/PlanGraph.vue": "d589c9ee222e3cd540abadc713e664b12f0f0434379f3d3a85da75743bb6e694",
+    "src/components/RunLedger.vue": "05b9f310b7386d83ff11f4675e2c0e2762c8e8da032a46decaa4c672d743c517",
+    "src/components/MetricsPanel.vue": "886a95563244f5290b7a608a4276ca4824e944a91c66c4cac39dcd0f2d8b19cb",
+    "src/components/InvestigationMap.vue": "5d6fc0d88afa5931ce70a5cd25f3194e5541d39d3210433ed59cc7e14f98a783",
+    "src/components/EvidenceGraph.vue": "39de20bd34cceaa25ce833dd981870aa8dfcc3df83df5e0ecfcf728fe1a61b26"
+  }
+}

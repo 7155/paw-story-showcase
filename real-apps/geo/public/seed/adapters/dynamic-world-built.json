@@ -1,0 +1,48 @@
+{
+  "adapter": {
+    "schemaVersion": "scoutpi.earth.adapter.v1",
+    "datasetId": "dynamic-world-built",
+    "title": "Dynamic World Built Probability",
+    "provider": "Google/WRI",
+    "collectionId": "GOOGLE/DYNAMICWORLD/V1",
+    "documentationUrl": "https://developers.google.com/earth-engine/datasets/catalog/GOOGLE_DYNAMICWORLD_V1",
+    "roles": [
+      "built_surface",
+      "land_cover",
+      "cropland",
+      "flood_impact"
+    ],
+    "startYear": 2015,
+    "scaleMeters": 10,
+    "cadence": "near real time",
+    "limitations": [
+      "Class probabilities are model outputs, not field truth.",
+      "Area estimates need uncertainty checks."
+    ],
+    "analysis": {
+      "metric": "threshold_fraction",
+      "bands": [
+        "built"
+      ],
+      "outputName": "built_fraction",
+      "threshold": 0.5,
+      "comparison": "gte",
+      "visualization": {
+        "min": 0,
+        "max": 1,
+        "palette": [
+          "d9d9d9",
+          "d73027"
+        ]
+      }
+    }
+  },
+  "revision": 1,
+  "fingerprint": "9b70a8207e521efd42381296c411f39701aa1ce73df85b838aff35b7ea48b492",
+  "registeredAt": "2026-09-07T09:23:49.566Z",
+  "source": "example",
+  "enabled": true,
+  "verification": {
+    "status": "not_run"
+  }
+}

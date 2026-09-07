@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "scoutpi.evidence-review.v1",
+  "reviewId": "evidence-review:enterprise-vegetation-monitoring-20260907:d87fbd61bb05",
+  "investigationId": "enterprise-vegetation-monitoring-20260907",
+  "planId": "plan_16039587db4b_91668a",
+  "reviewedAt": "2026-09-07T12:18:46.660Z",
+  "status": "passed",
+  "summary": {
+    "blocking": 0,
+    "warnings": 0,
+    "info": 0,
+    "claims": 0,
+    "findings": 1,
+    "referencedJobs": 2,
+    "completedLiveJobs": 2,
+    "supportingSources": 0,
+    "contradictingSources": 0
+  },
+  "issues": [],
+  "provenance": {
+    "storySha256": "d87fbd61bb056f53c8db331689cb1f1091a26571c950fcd2f4110a24e789e5df",
+    "evidenceIds": [],
+    "jobIds": [
+      "earth_20260907102039_60a846f4",
+      "earth_20260907120250_9dff6f77"
+    ]
+  }
+}

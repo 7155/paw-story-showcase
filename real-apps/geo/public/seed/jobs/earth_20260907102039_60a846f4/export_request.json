@@ -1,0 +1,13 @@
+{
+  "role": "vegetation",
+  "kind": "change",
+  "baselineYear": 2024,
+  "targetYear": 2025,
+  "scaleMeters": 10,
+  "crs": "EPSG:4326",
+  "dtype": "float32",
+  "maxPixels": 25000000,
+  "confirmed": true,
+  "year": 2025,
+  "format": "geotiff"
+}

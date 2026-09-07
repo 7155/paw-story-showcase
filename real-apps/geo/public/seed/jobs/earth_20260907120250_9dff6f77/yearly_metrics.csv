@@ -1,0 +1,3 @@
+year,role,dataset_id,analysis_crs,analysis_scale_meters,ndvi,quality_schema_version,source_image_count,total_pixel_count,valid_pixel_count,valid_pixel_fraction
+2024,vegetation,sentinel2-sr,EPSG:4326,10,0.34474720384639734,scoutpi.annual-quality.v1,62,49729,49729,1
+2025,vegetation,sentinel2-sr,EPSG:4326,10,0.3847049619317028,scoutpi.annual-quality.v1,74,49729,49729,1

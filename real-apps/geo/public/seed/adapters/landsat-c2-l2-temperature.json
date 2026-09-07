@@ -1,0 +1,71 @@
+{
+  "adapter": {
+    "schemaVersion": "scoutpi.earth.adapter.v1",
+    "datasetId": "landsat-c2-l2-temperature",
+    "title": "Landsat 8 Collection 2 Level 2 Temperature",
+    "provider": "USGS/NASA",
+    "collectionId": "LANDSAT/LC08/C02/T1_L2",
+    "documentationUrl": "https://developers.google.com/earth-engine/datasets/catalog/LANDSAT_LC08_C02_T1_L2",
+    "roles": [
+      "surface_temperature"
+    ],
+    "startYear": 2013,
+    "scaleMeters": 30,
+    "cadence": "16 days",
+    "limitations": [
+      "Thermal observations are weather-sensitive.",
+      "Landsat 8 alone does not cover years before 2013."
+    ],
+    "analysis": {
+      "metric": "band_mean",
+      "bands": [
+        "ST_B10"
+      ],
+      "outputName": "surface_temperature_c",
+      "qualityMask": {
+        "mode": "all",
+        "rules": [
+          {
+            "band": "QA_PIXEL",
+            "op": "bit_clear",
+            "bit": 3
+          },
+          {
+            "band": "QA_PIXEL",
+            "op": "bit_clear",
+            "bit": 4
+          }
+        ]
+      },
+      "scaleFactor": 0.00341802,
+      "offset": -124.15,
+      "visualization": {
+        "min": 10,
+        "max": 45,
+        "palette": [
+          "313695",
+          "74add1",
+          "ffffbf",
+          "f46d43",
+          "a50026"
+        ]
+      }
+    },
+    "guardrails": [
+      {
+        "id": "attribution",
+        "severity": "warning",
+        "message": "Surface temperature alone does not establish a causal driver.",
+        "resolution": "Use climate background or a control region before causal language."
+      }
+    ]
+  },
+  "revision": 1,
+  "fingerprint": "fd81fcaffb337e8d9f82dfa57a8f9f5e9f02584d17bed64f342833d211bd831d",
+  "registeredAt": "2026-09-07T09:23:49.565Z",
+  "source": "example",
+  "enabled": true,
+  "verification": {
+    "status": "not_run"
+  }
+}

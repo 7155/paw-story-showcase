@@ -1,0 +1,28 @@
+{
+  "type": "FeatureCollection",
+  "columns": {},
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": null,
+      "id": "2_0",
+      "properties": {
+        "dataset_id": "sentinel2-sr",
+        "ndvi": 0.34474720384639734,
+        "role": "vegetation",
+        "year": 2024
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": null,
+      "id": "2_1",
+      "properties": {
+        "dataset_id": "sentinel2-sr",
+        "ndvi": 0.3847049619317028,
+        "role": "vegetation",
+        "year": 2025
+      }
+    }
+  ]
+}

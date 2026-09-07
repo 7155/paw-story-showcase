@@ -1,0 +1,39 @@
+{
+  "jobId": "earth_20260907102039_60a846f4",
+  "planId": "plan_16039587db4b_91668a",
+  "mode": "live",
+  "state": "completed",
+  "createdAt": "2026-09-07T10:20:39.215Z",
+  "updatedAt": "2026-09-07T10:20:59.771Z",
+  "taskIds": [],
+  "artifactDir": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907102039_60a846f4",
+  "result": {
+    "execution": "local_export",
+    "backend": "geedim",
+    "request": {
+      "role": "vegetation",
+      "kind": "change",
+      "baselineYear": 2024,
+      "targetYear": 2025,
+      "scaleMeters": 10,
+      "crs": "EPSG:4326",
+      "dtype": "float32",
+      "maxPixels": 25000000,
+      "confirmed": true,
+      "year": 2025,
+      "format": "geotiff"
+    },
+    "estimatedPixels": 42527,
+    "ok": true,
+    "artifact": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907102039_60a846f4/vegetation_2024-2025-change.tif",
+    "manifest": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907102039_60a846f4/local_export.json",
+    "bytes": 186687,
+    "sha256": "3a67a11d8a3f265718c903a20ecb58618bb7506122bb9b5854a14f078fb708f1",
+    "workflowCandidate": {
+      "workflowId": "auto-enterprise-vegetation-monitoring-20260907",
+      "revision": 3,
+      "fingerprint": "23dadb813ed27c172d2158cb5997d5afc40eb40c49bdb178cd70e2879c202d3e",
+      "path": "__SCOUTPI_WORKSPACE__/workflows/auto-enterprise-vegetation-monitoring-20260907.json"
+    }
+  }
+}

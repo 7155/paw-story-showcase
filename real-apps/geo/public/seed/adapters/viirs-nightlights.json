@@ -1,0 +1,67 @@
+{
+  "adapter": {
+    "schemaVersion": "scoutpi.earth.adapter.v1",
+    "datasetId": "viirs-nightlights",
+    "title": "VIIRS Monthly Nighttime Lights",
+    "provider": "NOAA",
+    "collectionId": "NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG",
+    "documentationUrl": "https://developers.google.com/earth-engine/datasets/catalog/NOAA_VIIRS_DNB_MONTHLY_V1_VCMSLCFG",
+    "roles": [
+      "human_activity",
+      "night_activity",
+      "urbanization"
+    ],
+    "startYear": 2012,
+    "scaleMeters": 500,
+    "cadence": "monthly",
+    "limitations": [
+      "Night lights are not GDP.",
+      "Outliers, background and temporary events require control."
+    ],
+    "analysis": {
+      "metric": "band_mean",
+      "bands": [
+        "avg_rad"
+      ],
+      "outputName": "night_light_mean",
+      "visualization": {
+        "min": 0,
+        "max": 50,
+        "palette": [
+          "081d58",
+          "225ea8",
+          "41b6c4",
+          "c7e9b4",
+          "ffffd9"
+        ]
+      }
+    },
+    "guardrails": [
+      {
+        "id": "proxy-boundary",
+        "severity": "blocking",
+        "message": "Nighttime lights cannot be reported as GDP or economic output.",
+        "resolution": "Describe it as an activity proxy and add independent evidence.",
+        "claimRule": {
+          "forbiddenTerms": [
+            "GDP",
+            "economic output"
+          ],
+          "requiredQualifiers": [
+            "proxy",
+            "activity indicator",
+            "nighttime light"
+          ]
+        }
+      }
+    ]
+  },
+  "revision": 1,
+  "fingerprint": "3a0df0e2fa3bb5d1f50b2a59efe7acb661a3f9754166b54f1992f818bb2a39a2",
+  "registeredAt": "2026-09-07T09:23:49.568Z",
+  "source": "example",
+  "enabled": true,
+  "verification": {
+    "status": "not_run"
+  }
+}

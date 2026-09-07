@@ -1,0 +1,10 @@
+{
+  "source": "standalone-run-v11",
+  "frontendSha256": "be61e2fe6771e103cb433e5fa41aed44fe0b42aa92bd947b1fd03419e6fd0ee1",
+  "mode": "historical-read-only",
+  "records": 1,
+  "changes": [
+    "read-only bridge",
+    "guided historical UI clicks"
+  ]
+}

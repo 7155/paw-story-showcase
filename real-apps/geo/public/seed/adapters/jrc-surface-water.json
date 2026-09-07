@@ -1,0 +1,48 @@
+{
+  "adapter": {
+    "schemaVersion": "scoutpi.earth.adapter.v1",
+    "datasetId": "jrc-surface-water",
+    "title": "JRC Global Surface Water Monthly History",
+    "provider": "EC JRC/Google",
+    "collectionId": "JRC/GSW1_4/MonthlyHistory",
+    "documentationUrl": "https://developers.google.com/earth-engine/datasets/catalog/JRC_GSW1_4_MonthlyHistory",
+    "roles": [
+      "water_extent",
+      "water_change",
+      "flood_extent"
+    ],
+    "startYear": 1984,
+    "endYear": 2021,
+    "scaleMeters": 30,
+    "cadence": "monthly",
+    "limitations": [
+      "Archive end year constrains recent-change analysis.",
+      "Cloud and sensor history affect observations."
+    ],
+    "analysis": {
+      "metric": "threshold_fraction",
+      "bands": [
+        "water"
+      ],
+      "outputName": "water_fraction",
+      "threshold": 2,
+      "comparison": "eq",
+      "visualization": {
+        "min": 0,
+        "max": 1,
+        "palette": [
+          "f7fbff",
+          "2171b5"
+        ]
+      }
+    }
+  },
+  "revision": 1,
+  "fingerprint": "149561bb10030b9752f65a91b640db0d80d9389eeee63817fdfa306b4198f79f",
+  "registeredAt": "2026-09-07T09:23:49.570Z",
+  "source": "example",
+  "enabled": true,
+  "verification": {
+    "status": "not_run"
+  }
+}

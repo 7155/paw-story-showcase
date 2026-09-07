@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>企业 RAG / 测评实验台</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="主导航">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div>
+            <div class="brand-name">PAW / LAB</div>
+            <div class="brand-subtitle">企业知识检索</div>
+          </div>
+        </div>
+        <div class="rail-label">查看</div>
+        <nav class="nav-list">
+          <button class="nav-item active" data-view="overview" type="button">
+            <span class="nav-glyph">01</span><span>总览</span>
+          </button>
+          <button class="nav-item" data-view="queries" type="button">
+            <span class="nav-glyph">02</span><span>问题集</span>
+          </button>
+          <button class="nav-item" data-view="corpus" type="button">
+            <span class="nav-glyph">03</span><span>语料库</span>
+          </button>
+          <button class="nav-item" data-view="results" type="button">
+            <span class="nav-glyph">04</span><span>实验结果</span>
+          </button>
+          <button class="nav-item" data-view="guardrails" type="button">
+            <span class="nav-glyph">05</span><span>评测门禁</span>
+          </button>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="status-dot"></div>
+          <div>
+            <div class="footer-status">本地 / 只读</div>
+            <div class="footer-caption">标签留在评分器边界内</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb"><span>PAW</span><span class="slash">/</span><span>垂直验证</span><span class="slash">/</span><strong>企业 RAG</strong></div>
+          <div class="topbar-actions">
+            <span class="topbar-date">冻结烟雾套件 V1</span>
+            <span class="lock-chip"><span class="lock-icon" aria-hidden="true"></span> 留出集已锁定</span>
+          </div>
+        </header>
+
+        <div id="app" class="page-wrap" aria-live="polite">
+          <div class="loading-state"><span class="loader"></span> 正在读取冻结清单…</div>
+        </div>
+      </main>
+    </div>
+    <script src="./snapshot-api.js"></script>
+    <script src="./app.js" defer></script>
+  <script src="/real-apps/replay-guide.js" defer></script></body>
+</html>

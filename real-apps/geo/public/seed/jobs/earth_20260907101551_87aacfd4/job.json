@@ -1,0 +1,35 @@
+{
+  "jobId": "earth_20260907101551_87aacfd4",
+  "planId": "plan_16039587db4b_91668a",
+  "mode": "live",
+  "state": "completed",
+  "createdAt": "2026-09-07T10:15:51.099Z",
+  "updatedAt": "2026-09-07T10:15:59.444Z",
+  "taskIds": [],
+  "artifactDir": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907101551_87aacfd4",
+  "result": {
+    "ok": true,
+    "mode": "live",
+    "execution": "inline",
+    "taskIds": [],
+    "metricsPath": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907101551_87aacfd4/yearly_metrics.json",
+    "csvPath": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907101551_87aacfd4/yearly_metrics.csv",
+    "impactAssessmentPath": null,
+    "impactAssessment": null,
+    "artifact": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907101551_87aacfd4/execution_manifest.json",
+    "request": {
+      "mode": "live",
+      "execution": "inline",
+      "outputs": [
+        "yearly_csv",
+        "metrics_json"
+      ]
+    },
+    "workflowCandidate": {
+      "workflowId": "auto-enterprise-vegetation-monitoring-20260907",
+      "revision": 2,
+      "fingerprint": "c23a1ab79cb7aa073288d9dc6940b6559ced221287410c4d7b49211a00a9915f",
+      "path": "__SCOUTPI_WORKSPACE__/workflows/auto-enterprise-vegetation-monitoring-20260907.json"
+    }
+  }
+}

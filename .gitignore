@@ -22,3 +22,5 @@ __pycache__/
 /AGENTS.md
 /paw-story-demo/*.md
 !/paw-story-demo/README.md
+
+/paw-story-demo/public/real-apps/

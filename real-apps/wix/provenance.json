@@ -1,0 +1,10 @@
+{
+  "source": "standalone-knowledge-v4",
+  "frontendSha256": "d759f61e4ff8e57d1b4068a12cbcd8f8433d6890d002a1a392a8346765a580bb",
+  "mode": "historical-read-only",
+  "records": 2,
+  "changes": [
+    "read-only bridge",
+    "guided historical UI clicks"
+  ]
+}

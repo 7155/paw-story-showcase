@@ -1,0 +1,3 @@
+year,role,dataset_id,ndvi
+2024,vegetation,sentinel2-sr,0.34474720384639734
+2025,vegetation,sentinel2-sr,0.3847049619317028

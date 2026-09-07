@@ -1,0 +1,140 @@
+{
+  "workflow": {
+    "schemaVersion": "scoutpi.earth.workflow.v1",
+    "workflowId": "auto-enterprise-vegetation-monitoring-20260907",
+    "name": "对公开演示 AOI 比较 2024 与 2025 年 5–9 月的 Sentinel-2 NDVI，交付可核对的年度统计、地图及变化说明。",
+    "description": "Automatically compiled candidate from verified job earth_20260907120250_9dff6f77.",
+    "specTemplate": {
+      "schemaVersion": "scoutpi.investigation.v1",
+      "investigationId": "enterprise-vegetation-monitoring-20260907",
+      "question": "对公开演示 AOI 比较 2024 与 2025 年 5–9 月的 Sentinel-2 NDVI，交付可核对的年度统计、地图及变化说明。",
+      "phenomenon": "vegetation_monitoring",
+      "region": {
+        "kind": "bbox",
+        "bbox": [
+          119.98,
+          30.25,
+          120,
+          30.27
+        ],
+        "name": "企业植被监测演示 AOI（公开坐标矩形）"
+      },
+      "period": {
+        "startYear": 2024,
+        "endYear": 2025,
+        "startMonth": 5,
+        "endMonth": 9
+      },
+      "hypotheses": [
+        {
+          "id": "seasonal-vegetation-change",
+          "statement": "固定 AOI 在相同月份窗口的年度平均 NDVI 可能发生变化。",
+          "observableRoles": [
+            "vegetation"
+          ],
+          "falsification": "质量掩膜后没有足够有效数据，或两年指标没有可辨别差异。"
+        }
+      ],
+      "confounders": [
+        "本区域是公开坐标矩形，不代表真实甲方的权属边界。",
+        "NDVI 是植被状态代理，不能单独证明生态恢复验收或变化原因。",
+        "季节窗口一致仍不能消除气象、影像数量与有效像元覆盖差异。"
+      ],
+      "claims": [],
+      "preferredOutputs": [
+        "yearly_csv",
+        "metrics_json",
+        "story"
+      ],
+      "constraints": {
+        "maxScaleMeters": 10,
+        "maxYears": 2,
+        "comparisonSeason": "May through September in each year",
+        "preferredAdapterIds": [
+          "sentinel2-sr"
+        ]
+      }
+    },
+    "requiredRoles": [
+      "vegetation"
+    ],
+    "adapterBindings": [
+      {
+        "datasetId": "sentinel2-sr",
+        "revision": 1,
+        "fingerprint": "bd2aa851d27f876156f693476c448252bb229f768d045a3e6060c9d0a9b692f3",
+        "verificationStatus": "passed"
+      }
+    ],
+    "execution": {
+      "kind": "run",
+      "mode": "live",
+      "execution": "inline",
+      "outputs": [
+        "yearly_csv",
+        "metrics_json"
+      ]
+    },
+    "preconditions": [
+      {
+        "kind": "adapter_probe_passed",
+        "datasetId": "sentinel2-sr",
+        "fingerprint": "bd2aa851d27f876156f693476c448252bb229f768d045a3e6060c9d0a9b692f3"
+      },
+      {
+        "kind": "earth_engine_authenticated"
+      }
+    ],
+    "expectedArtifacts": [
+      "execution_manifest",
+      "yearly_csv",
+      "metrics_json"
+    ],
+    "recovery": [
+      {
+        "code": "WORKFLOW_ADAPTER_DRIFT",
+        "action": "reprobe_and_recompile"
+      },
+      {
+        "code": "WORKFLOW_COST_INCREASE_CONFIRMATION_REQUIRED",
+        "action": "request_human_approval"
+      },
+      {
+        "code": "WORKFLOW_REPLAY_FAILED",
+        "action": "return_to_pi"
+      }
+    ],
+    "assertions": [
+      {
+        "kind": "adapter_fingerprint",
+        "datasetId": "sentinel2-sr",
+        "fingerprint": "bd2aa851d27f876156f693476c448252bb229f768d045a3e6060c9d0a9b692f3"
+      },
+      {
+        "kind": "required_role",
+        "role": "vegetation"
+      },
+      {
+        "kind": "max_nominal_pixels",
+        "value": 42527
+      }
+    ],
+    "safety": {
+      "requiresConfirmation": true,
+      "sourceBlockingChecks": [],
+      "doesNotReplayNarrative": true
+    },
+    "provenance": {
+      "sourcePlanId": "plan_16039587db4b_91668a",
+      "sourceJobId": "earth_20260907120250_9dff6f77",
+      "compiledAt": "2026-09-07T12:02:58.155Z"
+    }
+  },
+  "revision": 3,
+  "fingerprint": "8bbfb30cfc1a011ad210096b439cc86a3f746417004d6f59701cbb34d68871e6",
+  "savedAt": "2026-09-07T12:02:58.157Z",
+  "stage": "candidate",
+  "replayCount": 0,
+  "successCount": 0,
+  "failureCount": 0
+}

@@ -1,0 +1,368 @@
+{
+  "adapter": {
+    "schemaVersion": "scoutpi.earth.adapter.v1",
+    "datasetId": "sentinel2-sr",
+    "title": "Sentinel-2 Surface Reflectance Harmonized",
+    "provider": "Copernicus/ESA",
+    "collectionId": "COPERNICUS/S2_SR_HARMONIZED",
+    "documentationUrl": "https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED",
+    "roles": [
+      "vegetation",
+      "water",
+      "water_extent",
+      "built_surface",
+      "fire_recovery",
+      "land_change"
+    ],
+    "startYear": 2017,
+    "scaleMeters": 10,
+    "cadence": "5 days",
+    "limitations": [
+      "Optical observations require cloud and shadow control.",
+      "Cross-year comparisons should use the same season."
+    ],
+    "analysis": {
+      "metric": "normalized_difference_mean",
+      "bands": [
+        "B8",
+        "B4"
+      ],
+      "outputName": "ndvi",
+      "qualityMask": {
+        "mode": "all",
+        "rules": [
+          {
+            "band": "SCL",
+            "op": "neq",
+            "value": 3
+          },
+          {
+            "band": "SCL",
+            "op": "neq",
+            "value": 8
+          },
+          {
+            "band": "SCL",
+            "op": "neq",
+            "value": 9
+          },
+          {
+            "band": "SCL",
+            "op": "neq",
+            "value": 10
+          },
+          {
+            "band": "SCL",
+            "op": "neq",
+            "value": 11
+          }
+        ]
+      },
+      "visualization": {
+        "min": -0.2,
+        "max": 0.8,
+        "palette": [
+          "8c510a",
+          "f6e8c3",
+          "80cdc1",
+          "01665e"
+        ]
+      }
+    },
+    "analysisByRole": {
+      "vegetation": {
+        "metric": "normalized_difference_mean",
+        "bands": [
+          "B8",
+          "B4"
+        ],
+        "outputName": "ndvi",
+        "qualityMask": {
+          "mode": "all",
+          "rules": [
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 3
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 8
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 9
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 10
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 11
+            }
+          ]
+        },
+        "visualization": {
+          "min": -0.2,
+          "max": 0.8,
+          "palette": [
+            "8c510a",
+            "f6e8c3",
+            "80cdc1",
+            "01665e"
+          ]
+        }
+      },
+      "fire_recovery": {
+        "metric": "normalized_difference_mean",
+        "bands": [
+          "B8",
+          "B12"
+        ],
+        "outputName": "nbr",
+        "qualityMask": {
+          "mode": "all",
+          "rules": [
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 3
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 8
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 9
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 10
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 11
+            }
+          ]
+        },
+        "visualization": {
+          "min": -0.5,
+          "max": 0.8,
+          "palette": [
+            "a50026",
+            "fdae61",
+            "ffffbf",
+            "66bd63",
+            "006837"
+          ]
+        }
+      },
+      "water": {
+        "metric": "normalized_difference_mean",
+        "bands": [
+          "B3",
+          "B8"
+        ],
+        "outputName": "ndwi",
+        "qualityMask": {
+          "mode": "all",
+          "rules": [
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 3
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 8
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 9
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 10
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 11
+            }
+          ]
+        },
+        "visualization": {
+          "min": -0.5,
+          "max": 0.5,
+          "palette": [
+            "8c510a",
+            "f6e8c3",
+            "67a9cf",
+            "2166ac"
+          ]
+        }
+      },
+      "water_extent": {
+        "metric": "normalized_difference_mean",
+        "bands": [
+          "B3",
+          "B8"
+        ],
+        "outputName": "ndwi",
+        "qualityMask": {
+          "mode": "all",
+          "rules": [
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 3
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 8
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 9
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 10
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 11
+            }
+          ]
+        },
+        "visualization": {
+          "min": -0.5,
+          "max": 0.5,
+          "palette": [
+            "8c510a",
+            "f6e8c3",
+            "67a9cf",
+            "2166ac"
+          ]
+        }
+      },
+      "built_surface": {
+        "metric": "normalized_difference_mean",
+        "bands": [
+          "B11",
+          "B8"
+        ],
+        "outputName": "ndbi",
+        "qualityMask": {
+          "mode": "all",
+          "rules": [
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 3
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 8
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 9
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 10
+            },
+            {
+              "band": "SCL",
+              "op": "neq",
+              "value": 11
+            }
+          ]
+        },
+        "visualization": {
+          "min": -0.5,
+          "max": 0.5,
+          "palette": [
+            "1a9850",
+            "fee08b",
+            "d73027"
+          ]
+        }
+      }
+    }
+  },
+  "revision": 1,
+  "fingerprint": "bd2aa851d27f876156f693476c448252bb229f768d045a3e6060c9d0a9b692f3",
+  "registeredAt": "2026-09-07T09:23:49.560Z",
+  "source": "example",
+  "enabled": true,
+  "verification": {
+    "status": "passed",
+    "checkedAt": "2026-09-07T09:26:53.493Z",
+    "sampleCount": 2,
+    "availableBands": [
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "B5",
+      "B6",
+      "B7",
+      "B8",
+      "B8A",
+      "B9",
+      "B11",
+      "B12",
+      "AOT",
+      "WVP",
+      "SCL",
+      "TCI_R",
+      "TCI_G",
+      "TCI_B",
+      "MSK_CLDPRB",
+      "MSK_SNWPRB",
+      "QA10",
+      "QA20",
+      "QA60",
+      "MSK_CLASSI_OPAQUE",
+      "MSK_CLASSI_CIRRUS",
+      "MSK_CLASSI_SNOW_ICE"
+    ],
+    "requestedBands": [
+      "B11",
+      "B12",
+      "B3",
+      "B4",
+      "B8",
+      "SCL"
+    ],
+    "outputBands": [
+      "nbr",
+      "ndbi",
+      "ndvi",
+      "ndwi"
+    ],
+    "sampleTime": "2025-01-02"
+  }
+}

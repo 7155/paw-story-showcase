@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "scoutpi.earth.local-export.v1",
+  "planId": "plan_16039587db4b_91668a",
+  "datasetId": "sentinel2-sr",
+  "role": "vegetation",
+  "kind": "change",
+  "period": "2024-2025-change",
+  "format": "geotiff",
+  "scaleMeters": 10,
+  "crs": "EPSG:4326",
+  "dtype": "float32",
+  "path": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907102039_60a846f4/vegetation_2024-2025-change.tif",
+  "bytes": 186687,
+  "sha256": "3a67a11d8a3f265718c903a20ecb58618bb7506122bb9b5854a14f078fb708f1",
+  "createdAt": "2026-09-07T10:20:59.273726+00:00"
+}

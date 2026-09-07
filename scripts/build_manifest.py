@@ -53,6 +53,7 @@ def included_files() -> list[Path]:
         path for path in ROOT.rglob("*")
         if path.is_file()
         and path != TARGET
+        and not path.relative_to(ROOT).as_posix().startswith("paw-story-demo/public/real-apps/")
         and path.name not in EXCLUDED_NAMES
         and path.suffix.lower() not in EXCLUDED_SUFFIXES
         and not any(part in EXCLUDED_PARTS for part in path.relative_to(ROOT).parts)

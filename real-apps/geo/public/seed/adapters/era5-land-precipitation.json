@@ -1,0 +1,55 @@
+{
+  "adapter": {
+    "schemaVersion": "scoutpi.earth.adapter.v1",
+    "datasetId": "era5-land-precipitation",
+    "title": "ERA5-Land Monthly Precipitation",
+    "provider": "ECMWF",
+    "collectionId": "ECMWF/ERA5_LAND/MONTHLY_AGGR",
+    "documentationUrl": "https://developers.google.com/earth-engine/datasets/catalog/ECMWF_ERA5_LAND_MONTHLY_AGGR",
+    "roles": [
+      "precipitation",
+      "climate_background",
+      "flood_driver",
+      "drought_driver"
+    ],
+    "startYear": 1950,
+    "scaleMeters": 11132,
+    "cadence": "monthly",
+    "limitations": [
+      "Reanalysis resolution is coarse for local conclusions."
+    ],
+    "analysis": {
+      "metric": "band_sum",
+      "bands": [
+        "total_precipitation_sum"
+      ],
+      "outputName": "precipitation_m",
+      "visualization": {
+        "min": 0,
+        "max": 2,
+        "palette": [
+          "ffffcc",
+          "a1dab4",
+          "41b6c4",
+          "225ea8",
+          "253494"
+        ]
+      }
+    },
+    "guardrails": [
+      {
+        "id": "coarse-scale",
+        "severity": "warning",
+        "message": "Reanalysis pixels are too coarse for neighborhood-scale attribution."
+      }
+    ]
+  },
+  "revision": 1,
+  "fingerprint": "478b78944c0e4355b5d097013e0ac01bd2ff61535a6438e870ccf87865abc591",
+  "registeredAt": "2026-09-07T09:23:49.569Z",
+  "source": "example",
+  "enabled": true,
+  "verification": {
+    "status": "not_run"
+  }
+}

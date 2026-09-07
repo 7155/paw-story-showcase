@@ -1,0 +1,30 @@
+{
+  "jobId": "earth_20260907102050_b25d5f33",
+  "planId": "plan_e727579344a8_08b27b",
+  "mode": "live",
+  "state": "completed",
+  "createdAt": "2026-09-07T10:20:50.613Z",
+  "updatedAt": "2026-09-07T10:21:08.112Z",
+  "taskIds": [],
+  "artifactDir": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907102050_b25d5f33",
+  "result": {
+    "ok": true,
+    "mode": "live",
+    "execution": "inline",
+    "taskIds": [],
+    "metricsPath": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907102050_b25d5f33/yearly_metrics.json",
+    "csvPath": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907102050_b25d5f33/yearly_metrics.csv",
+    "impactAssessmentPath": null,
+    "impactAssessment": null,
+    "artifact": "__SCOUTPI_WORKSPACE__/jobs/earth_20260907102050_b25d5f33/execution_manifest.json",
+    "request": {
+      "mode": "live",
+      "execution": "inline",
+      "outputs": [
+        "yearly_csv",
+        "metrics_json"
+      ],
+      "suppressWorkflowCompile": true
+    }
+  }
+}
