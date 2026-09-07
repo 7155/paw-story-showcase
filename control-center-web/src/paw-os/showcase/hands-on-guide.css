@@ -1,6 +1,8 @@
 .paw-hands-on-target { outline: 3px solid #6b50d1 !important; outline-offset: 4px !important; box-shadow: 0 0 0 7px #6b50d120 !important; scroll-margin: 24px; }
 @media(prefers-reduced-motion:no-preference) { .paw-hands-on-target { transition: outline-color 120ms ease-out; } }
 
-.paw-demo-cursor { position: fixed; z-index: 2147483647; pointer-events: none; font-size: 28px; color: #6b50d1; text-shadow: -1px -1px white, 1px 1px white; }
+.paw-demo-cursor { position: fixed; z-index: 2147483647; pointer-events: none; width: 28px; height: 32px; filter: drop-shadow(0 1px 2px #14182540); }
 .paw-demo-cursor[hidden] { display: none; }
 @media(prefers-reduced-motion:no-preference) { .paw-demo-cursor { transition: left 500ms ease, top 500ms ease; } }
+
+.paw-demo-click-ring { position: absolute; width: 24px; height: 24px; border: 2px solid #6b50d1; border-radius: 50%; left: -11px; top: -11px; opacity: 0; }

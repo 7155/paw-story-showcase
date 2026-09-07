@@ -1,54 +1,10 @@
+import sampleData from './datasets/lab-samples.v1.json';
 import type { LabKey } from './lab-evidence';
 
 export type DemoDataset = { records: Record<string, string | number>[]; cases: { id: string; input: string; expected: string }[] };
 export type DemoMode = 'baseline' | 'bounded';
 export const demoModeLabels = { baseline: '简化基线', bounded: '完整规则与证据' };
-export const labFlowSamples: Record<LabKey, DemoDataset> = {
-  rag: {
-    records: [
-      { id: 'refund', title: '退款政策', text: '退款申请应在收货后七天内提出，并保留订单编号。' },
-      { id: 'access', title: '项目访问权限', text: '项目访问权限由项目负责人审批，离开项目时撤销。' },
-      { id: 'invoice', title: '发票申请', text: '发票申请需提供订单编号、公司抬头和税号。' },
-    ], cases: [
-      { id: 'refund-case', input: '退款申请期限', expected: 'refund' },
-      { id: 'access-case', input: '项目访问权限由谁审批', expected: 'access' },
-      { id: 'invoice-case', input: '发票申请需要什么', expected: 'invoice' },
-    ],
-  },
-  enterpriseops: {
-    records: [
-      { id: 'customer-a', region: 'CN', role: 'manager', tenureDays: 120 },
-      { id: 'customer-b', region: 'EU', role: 'manager', tenureDays: 120 },
-      { id: 'customer-c', region: 'CN', role: 'manager', tenureDays: 30 },
-    ], cases: [
-      { id: 'allowed', input: 'customer-a', expected: '允许' },
-      { id: 'region', input: 'customer-b', expected: '拒绝' },
-      { id: 'tenure', input: 'customer-c', expected: '拒绝' },
-    ],
-  },
-  cloudops: {
-    records: [
-      { id: 'incident-a', latencyMs: 800, errorRate: 0.01, dbUtilization: 0.3 },
-      { id: 'incident-b', latencyMs: 800, errorRate: 0.08, dbUtilization: 0.3 },
-      { id: 'incident-c', latencyMs: 800, errorRate: 0.01, dbUtilization: 0.95 },
-    ], cases: [
-      { id: 'worker', input: 'incident-a', expected: 'worker' },
-      { id: 'gateway', input: 'incident-b', expected: 'gateway' },
-      { id: 'database', input: 'incident-c', expected: 'database' },
-    ],
-  },
-  memory: {
-    records: [
-      { id: 'memory-a', text: '长期使用中文技术文档。', scope: 'durable' },
-      { id: 'memory-b', text: '今天下午检查测试日志。', scope: 'temporary' },
-      { id: 'memory-c', text: '项目采用文件作为工作事实源。', scope: 'durable' },
-    ], cases: [
-      { id: 'preference', input: 'memory-a', expected: '保留' },
-      { id: 'temporary', input: 'memory-b', expected: '不保留' },
-      { id: 'decision', input: 'memory-c', expected: '保留' },
-    ],
-  },
-};
+export const labFlowSamples: Record<LabKey, DemoDataset> = sampleData;
 
 export const labFlowRules: Record<LabKey, string> = {
   rag: '按问题与文档的关键词及中文双字片段排序，核对 Top-1 来源 ID。只验证本地检索，不生成模型答案。',

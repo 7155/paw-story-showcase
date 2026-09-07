@@ -82,5 +82,18 @@
     "adoptedUnmodifiedSourceSha256": "2d7c4dd724ee8c59a51bd11976d513f85a40f2bc8dea1d77ab64d6b0c629b38a",
     "derivativeSelectedTreeSha256": "7be7384a1170b79def39af1af2aad0b55e2a4b2bfdfda22fd89a808923236812",
     "note": "The snapshot includes current uncommitted frontend work above sourceCommit; sourceCommit is the provenance anchor, while capturedAt and selectedSourceInputSha256 identify the imported working-tree input."
+  },
+  "publicAppExtension": {
+    "date": "2026-09-07",
+    "source": "showcase/vertical-app.ts",
+    "datasetManifest": "showcase/datasets/sources.v1.json",
+    "sourceKind": "showcase-owned-functional-applications",
+    "applications": [
+      "customer handover",
+      "cited knowledge search",
+      "incident triage",
+      "memory curation"
+    ],
+    "boundary": "Same application source in the standalone gallery and Lab ZIP exports. Local browser state and deterministic checks; no production backend or model invocation."
   }
 }

@@ -170,3 +170,14 @@ must not remount or replace the OS shell.
 
 The production source, tests, build, installed application, running Runtime,
 foreground behavior, and user acceptance are separate evidence levels.
+
+## 2026-09-07 richer functional fixtures
+
+The public dataset now contains 127 records and 128 deterministic checks. See
+`showcase/datasets/sources.v1.json` for source-document hashes, transformation
+and counts. Public design summaries are rewritten and identified separately
+from synthetic business identities and boundary cases. Native Memory topic,
+atom and input-detail projections share the same source rows. The four Apps
+use real browser-side operations, source search, work records and undo; they do
+not invoke a Provider or write to production services. Lab export packages and
+the `/apps` gallery share `showcase/vertical-app.ts` and the evaluated dataset.

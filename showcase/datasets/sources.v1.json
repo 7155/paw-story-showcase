@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "paw.public-demo-datasets.v1",
+  "date": "2026-09-07",
+  "dataMode": "public-summaries-and-synthetic-cases",
+  "sourceCommit": "e63819c2cdca377ab6f644adf518de0347492800",
+  "inputs": [
+    {
+      "repository": "personal-agent-workbench",
+      "path": "PROJECT.md",
+      "sha256": "e5eb368c58c7604655a76ebc5408c3f33146f70f485ad70c8279b49eab0618d5",
+      "use": "Manually rewritten public design summaries; no transcript or machine state copied."
+    },
+    {
+      "repository": "personal-agent-workbench",
+      "path": "AGENTS.md",
+      "sha256": "45016c59ba6e6bb2409c3ca1d5965bedb5ab580017cdf6f14fdf096c7a324181",
+      "use": "Manually rewritten public design summaries; no transcript or machine state copied."
+    }
+  ],
+  "cleaning": {
+    "method": "allowlisted fields, rewritten product rules, invented business identities and observations",
+    "excluded": [
+      "raw conversations",
+      "credentials",
+      "personal identifiers",
+      "internal addresses",
+      "machine paths",
+      "customer data",
+      "validation or held-out raw answers"
+    ]
+  },
+  "datasets": {
+    "rag": {
+      "records": 32,
+      "cases": 33
+    },
+    "enterpriseops": {
+      "records": 24,
+      "cases": 24
+    },
+    "cloudops": {
+      "records": 24,
+      "cases": 24
+    },
+    "memory": {
+      "records": 47,
+      "cases": 47
+    }
+  },
+  "memoryCatalog": {
+    "addedTopics": 8,
+    "addedSourceRecords": 44,
+    "addedCurrentAtoms": 32
+  },
+  "scope": "Functional browser applications with deterministic local operations. These case results do not measure model capability or production service quality.",
+  "sourceWorkingTreeState": "working-tree-capture"
+}

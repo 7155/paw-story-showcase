@@ -39,7 +39,7 @@ it.each(Object.keys(labFlowSamples) as LabKey[])('imports, evaluates and exports
   };
   await command('import_materials', { materials: [{ title: `${key}.json`, text: JSON.stringify(labFlowSamples[key]) }] });
   const evaluated = await command('knowledge', { operation: 'showcase_evaluate' });
-  expect(evaluated.artifact?.summary).toContain('候选 3/3');
+  expect(evaluated.artifact?.summary).toContain(`候选 ${labFlowSamples[key].cases.length}/${labFlowSamples[key].cases.length}`);
   expect(evaluated.artifact?.summary).toContain('KEEP');
   await command('prepare_app', { directory: 'showcase' });
   const catalog = parseLabAppRead(await transport.request({ pathId: 'agent.eval-lab.apps.get', query: { projectId } }));
@@ -59,7 +59,7 @@ it.each(Object.keys(labFlowSamples) as LabKey[])('imports, evaluates and exports
   }
   expect(Object.keys(files)).toEqual(['index.html', 'data.json', 'evaluation.json', 'README.md']);
   expect(JSON.parse(files['data.json'])).toEqual(labFlowSamples[key]);
-  expect(JSON.parse(files['evaluation.json'])).toMatchObject({ candidatePassed: 3, total: 3, providerCalls: 0 });
+  expect(JSON.parse(files['evaluation.json'])).toMatchObject({ candidatePassed: labFlowSamples[key].cases.length, total: labFlowSamples[key].cases.length, providerCalls: 0 });
   const source = files['index.html'].match(/<script>const execute=([\s\S]*?);const records=/)![1];
   const execute = runInNewContext(`(${source})`);
   for (const item of labFlowSamples[key].cases) expect(execute(key, labFlowSamples[key].records, item.input, 'bounded').value).toBe(item.expected);

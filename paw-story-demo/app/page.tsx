@@ -1,6 +1,7 @@
 "use client";
 
 import "./full-showcase.css";
+import { VerticalApps } from "./apps/vertical-apps";
 import { NativeDemo } from "./native-demo";
 import { LabShowcase } from "./lab/lab-showcase";
 import { GuidedShowcase, navigateGuidedChapter } from "./guided-showcase";
@@ -1317,6 +1318,7 @@ export function ReferenceProductStory() {
         reliability: <ReliabilitySlide manual/>,
         improvement: <ImprovementSection/>,
         lab: <LabShowcase scenario="rag" embedded/>,
+        apps: <VerticalApps embedded/>,
         memory: <ContextSlide manual/>,
         input: <InputSlide/>,
         "framework-overview": <section className="overview-framework" id="framework-overview"><ResumeSection/></section>,
@@ -1334,6 +1336,7 @@ export function FullProductStory() {
       reliability: <NativeDemo id="reliability" route="/observability" title="真实 PAW Trace 运行记录"/>,
       improvement: <NativeDemo id="improvement" route="/eval-lab" title="真实 PAW Agent Lab 候选与实验"/>,
       lab: <LabShowcase scenario="rag" embedded/>,
+        apps: <VerticalApps embedded/>,
       memory: <NativeDemo id="memory" route="/memory" title="真实 PAW Memory 工作区"/>,
       input: <NativeDemo id="input" route="/input" title="真实 PAW Input Studio"/>,
       "framework-overview": <NativeDemo id="framework-overview" route="/context-debug" title="真实 PAW 上下文运行检查"/>,

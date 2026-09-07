@@ -309,7 +309,7 @@
     {
       "path": "control-center-web/src/app/preview-history-routes.ts",
       "sourceSha256": "d0260008318113a1735efccd044e0640c321f4c59758e92bac4c8f883c5c5f6d",
-      "showcaseSha256": "ac27b381e8eed4094b068e11b4bcad37f98475a8ea3af54216f07141dd94074b",
+      "showcaseSha256": "36892b0ebba167163238820017bd25068b902410ec722c545ee2c8a6f46949f5",
       "adapted": true
     },
     {
@@ -321,7 +321,7 @@
     {
       "path": "control-center-web/src/app/preview-memory-data.ts",
       "sourceSha256": "dd6784addbefda7534546c930ef6fe149fe991756501426239778257ee7271bd",
-      "showcaseSha256": "01e8af648ed562a738ae2c51810dae4db21b1a951e361fd572567c585c5cac7e",
+      "showcaseSha256": "f5dbee404c3e9494de7f78083398e5ad28a0ccd569d6e669343cab38200de247",
       "adapted": true
     },
     {

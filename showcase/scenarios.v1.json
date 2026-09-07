@@ -45,7 +45,9 @@
       "scenarioSources": [
         "control-center-web/src/app/preview-memory-data.ts",
         "control-center-web/src/paw-os/showcase/PawHandsOnGuide.tsx",
-        "control-center-web/src/paw-os/showcase/hands-on-guide.ts"
+        "control-center-web/src/paw-os/showcase/hands-on-guide.ts",
+        "control-center-web/src/app/preview-memory-corpus.ts",
+        "showcase/datasets/memory-corpus.v1.json"
       ],
       "claim": "synthetic-preview"
     },
@@ -125,7 +127,10 @@
         "control-center-web/src/paw-os/showcase/LabFlowControls.tsx",
         "control-center-web/src/app/preview-lab-app-package.ts",
         "control-center-web/src/paw-os/showcase/PawHandsOnGuide.tsx",
-        "control-center-web/src/paw-os/showcase/hands-on-guide.ts"
+        "control-center-web/src/paw-os/showcase/hands-on-guide.ts",
+        "showcase/vertical-app.ts",
+        "showcase/zip.ts",
+        "showcase/datasets/lab-samples.v1.json"
       ],
       "claim": "synthetic-preview",
       "boundary": "The /lab page starts before input import and executes deterministic offline rule evaluation against imported records/cases. A current passing evaluation can produce a runnable offline App ZIP. Historical Agent receipts remain separately labeled; no Provider, private Runtime, production service, or Held-out run is executed."
@@ -180,5 +185,13 @@
       "claim": "host-unavailable",
       "boundary": "The terminal surface uses in-memory sample output and never starts a real PTY."
     }
-  ]
+  ],
+  "standaloneVerticalApps": {
+    "route": "/apps",
+    "renderOwner": "paw-story-demo/app/apps/vertical-apps.tsx",
+    "applicationSource": "showcase/vertical-app.ts",
+    "dataSource": "showcase/datasets/lab-samples.v1.json",
+    "count": 4,
+    "claim": "browser-local-functional-apps"
+  }
 }

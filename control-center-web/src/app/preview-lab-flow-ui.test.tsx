@@ -25,14 +25,14 @@ it('walks the actual Lab UI from empty input through reject, correction, App pre
   fireEvent.click(screen.getByRole('button', { name: '保存新版本' }));
   await waitFor(() => expect(screen.getByRole('button', { name: '运行演示测评' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: '运行演示测评' }));
-  expect(await screen.findByText('基线 1/3 · 候选 1/3 · REJECT · 离线规则实测')).toBeVisible();
+  expect(await screen.findByText('基线 1/33 · 候选 1/33 · REJECT · 离线规则实测')).toBeVisible();
   expect(screen.getByRole('button', { name: '生成 App' })).toBeDisabled();
   fireEvent.click(screen.getByRole('button', { name: '设置候选策略' }));
   fireEvent.change(await screen.findByRole('combobox', { name: /候选策略/ }), { target: { value: '完整规则与证据' } });
   fireEvent.click(screen.getByRole('button', { name: '保存新版本' }));
   await waitFor(() => expect(screen.getByRole('button', { name: '运行演示测评' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: '运行演示测评' }));
-  expect(await screen.findByText('基线 1/3 · 候选 3/3 · KEEP · 离线规则实测')).toBeVisible();
+  expect(await screen.findByText('基线 1/33 · 候选 33/33 · KEEP · 离线规则实测')).toBeVisible();
   await waitFor(() => expect(screen.getByRole('button', { name: '生成 App' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: '生成 App' }));
   expect(await screen.findByRole('button', { name: '下载独立 App' }, { timeout: 5000 })).toBeEnabled();

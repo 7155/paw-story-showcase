@@ -16,3 +16,18 @@ it('keeps a topic, source reference and input-history detail on the same readabl
     expect(ref.item?.sourceContextAvailable).toBe(true);
   }
 });
+
+it('opens every expanded topic and resolves each atom back to its exact source', async () => {
+  const { publicMemoryTopics, publicMemoryCorpus } = await import('./preview-memory-corpus');
+  const transport = createPreviewTransport();
+  expect(publicMemoryTopics).toHaveLength(8);
+  for (const topic of publicMemoryTopics) {
+    const entity = await transport.request({ pathId: 'memory.entity.get', params: { kind: 'book', entityId: topic.id }, responseContract: 'memory-entity.v1' });
+    expect(entity).toMatchObject({ topicPage: { bookId: topic.id, coverage: { visibleAtomCount: 4 } } });
+  }
+  for (const source of publicMemoryCorpus) {
+    const result = await transport.request({ pathId: 'history.detail', query: { eventId: source.eventId } }) as { item: { text: string } };
+    expect(result.item.text).toBe(source.text);
+    if (source.scope === 'durable') expect(previewMemoryReference('atom', source.atomId).item?.text).toBe(source.text);
+  }
+});

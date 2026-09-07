@@ -17,7 +17,16 @@ export function PawHandsOnGuide({ guideId }: { guideId: string }) {
     const cursor = document.createElement('div');
     cursor.className = 'paw-demo-cursor';
     cursor.setAttribute('aria-hidden', 'true');
-    cursor.textContent = '➤';
+    const pointer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    pointer.setAttribute('viewBox', '0 0 28 32');
+    pointer.setAttribute('width', '28'); pointer.setAttribute('height', '32');
+    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    arrow.setAttribute('d', 'M2 1.5v22l5.7-5.5 4.7 10.4 4.3-2-4.8-10.2H21Z');
+    arrow.setAttribute('fill', '#171a21'); arrow.setAttribute('stroke', '#fff');
+    arrow.setAttribute('stroke-width', '1.6'); arrow.setAttribute('stroke-linejoin', 'round');
+    pointer.append(arrow); cursor.append(pointer);
+    const clickRing = document.createElement('span');
+    clickRing.className = 'paw-demo-click-ring'; cursor.append(clickRing);
     document.body.append(cursor);
     const guide = createHandsOnGuide(document, plan, state => {
       ready = state.found && !state.complete;
@@ -41,7 +50,7 @@ export function PawHandsOnGuide({ guideId }: { guideId: string }) {
         cursor.style.left = `${box.left + box.width / 2}px`;
         cursor.style.top = `${box.top + box.height / 2}px`;
         if (Date.now() >= due) {
-          if (guide.clickCurrent()) cursor.animate?.([{ transform: 'scale(1)' }, { transform: 'scale(.75)' }, { transform: 'scale(1)' }], { duration: 280 });
+          if (guide.clickCurrent() && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) clickRing.animate?.([{ transform: 'scale(.3)', opacity: .7 }, { transform: 'scale(1.4)', opacity: 0 }], { duration: 420 });
           due = Date.now() + 2600;
         }
       }

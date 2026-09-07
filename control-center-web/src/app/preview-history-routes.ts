@@ -1,3 +1,4 @@
+import { publicMemoryCorpus } from './preview-memory-corpus';
 import type { ControlPathId } from '@/platform/routes';
 import taskStory from '../../../showcase/task-story.v1.json';
 import type { ControlRequest } from '@/platform/transport';
@@ -20,6 +21,7 @@ type PreviewHistoryItem = {
 };
 
 export const previewMemoryInputSources: readonly PreviewHistoryItem[] = [
+  ...publicMemoryCorpus.map(row => ({ id: row.eventId, text: row.text })),
   { id: 10001, text: '面向用户的解释先给结论，再补充必要原因。' },
   { id: 10002, text: '除最新内容外，其他内容也应保留；网页只需更新，不必每次重写全部内容。' },
   { id: 10003, text: '测试、合成回放和真实运行状态必须分别陈述。' },
@@ -145,9 +147,9 @@ function previewHistoryPage(query: Record<string, unknown>): Record<string, unkn
     ok: true,
     runtimeRevision: HISTORY_RUNTIME_REVISION,
     items,
-    totalCount: 1_284,
+    totalCount: items.length,
     nextCursor: '',
-    limit: 50,
+    limit: Math.max(50, items.length),
     rawTextVisible: false,
   };
 }

@@ -1,3 +1,4 @@
+import { corpusBooks, corpusAtoms, corpusEvidence, corpusReference, corpusEntity } from './preview-memory-corpus';
 import { previewMemoryInputSources } from './preview-history-routes';
 import type { ControlRequest } from '@/platform/transport';
 import taskStory from '../../../showcase/task-story.v1.json';
@@ -24,6 +25,7 @@ export function previewMemoryPage(
     return {
       ok: true,
       items: [
+        ...corpusEvidence(),
         {
           id: 'source:preview-conclusion-first',
           title: '面向用户的解释先给结论，再补充必要原因。',
@@ -132,6 +134,7 @@ export function previewMemoryPage(
           tags: ['表达品味', '证据规则', '并发边界'],
           updatedAtMs: Date.now() - 7_200_000,
         },
+        ...corpusBooks(),
       ],
       nextCursor: '',
       limit: 50,
@@ -164,6 +167,7 @@ export function previewMemoryPage(
 }
 
 export function previewMemoryReference(kind: string, referenceId: string): MemoryReferenceV1 {
+  const expanded = corpusReference(kind, referenceId); if (expanded) return expanded;
   const now = Date.now();
   const referenceKind: ReferenceKind = (
     ['event', 'evidence', 'atom', 'book', 'timeline', 'role_book_revision'] as const
@@ -338,29 +342,29 @@ export function previewMemorySummary(timelineStatuses = new Map<string, string>(
   return {
     ok: true,
     runtimeRevision: 7,
-    snapshotLabel: 'sanitized-local-aggregate-2026-08-28',
-    appCount: 30,
+    snapshotLabel: 'public-memory-corpus-2026-09-07',
+    appCount: 6,
     activeDayCount: 64,
-    completeInputCount: 24_483,
-    memoryItemCount: 15_219,
+    completeInputCount: previewMemoryInputSources.length + 6,
+    memoryItemCount: corpusAtoms().length + 6,
     blockedFragmentCount: 0,
-    memoryBookCount: 108,
-    memoryAtomCount: 566,
+    memoryBookCount: corpusBooks().length + 1,
+    memoryAtomCount: corpusAtoms().length + 6,
     memoryAtomArchivedCount: 0,
     memoryAtomSourceArchiveCount: 0,
     memoryTagCount: 398,
     activityTimelineCount: 462,
     timelineCount: 462,
     pendingCompileEvents: 0,
-    evidenceSourceCount: 24_483,
-    memoryEvidenceCount: 24_483,
-    inputMethodEvidenceCount: 24_483,
+    evidenceSourceCount: corpusEvidence().length + 5,
+    memoryEvidenceCount: corpusEvidence().length + 5,
+    inputMethodEvidenceCount: 5,
     voiceEvidenceCount: 0,
-    agentCapturedSourceCount: 0,
+    agentCapturedSourceCount: corpusEvidence().length,
     agentCapturedEvidenceCount: 1,
     forgottenSourceCount: 0,
     needsReviewSourceCount: 0,
-    currentAtomCount: 566,
+    currentAtomCount: corpusAtoms().length + 6,
     historicalAtomCount: 0,
     agentEvidenceCount: 1,
     agentEvidenceTombstonedCount: 4,
@@ -376,13 +380,13 @@ export function previewMemorySummary(timelineStatuses = new Map<string, string>(
       fresh: true,
       backlog: 0,
       dead: 0,
-      retrievalDocuments: 15_219,
+      retrievalDocuments: corpusAtoms().length + 6,
       checkpointCaughtUp: true,
       vectorCoverage: 1,
     },
     owners: [
-      { ownerKind: 'user', ownerId: 'default', itemCount: 15_219 },
-      { ownerKind: 'agent', ownerId: 'companion-present-v1', itemCount: 566 },
+      { ownerKind: 'user', ownerId: 'default', itemCount: corpusAtoms().length + 6 },
+      { ownerKind: 'agent', ownerId: 'companion-present-v1', itemCount: corpusAtoms().length },
     ],
   };
 }
@@ -661,6 +665,7 @@ function previewMemoryCatalogPage(kind: string): Record<string, unknown> {
     return {
       ...common,
       items: [
+        ...corpusAtoms(),
         {
           id: 'atom:conclusion-first',
           title: '结论先行',
@@ -918,6 +923,7 @@ function previewMemoryGraphEdge(
 }
 
 export function previewMemoryEntity(kindValue: string, entityId: string): Record<string, unknown> {
+  const expanded = corpusEntity(kindValue, entityId); if (expanded) return expanded;
   const kind = kindValue === 'group' || kindValue === 'book' ? kindValue : 'tag';
   const catalog = {
     'agent-runtime': previewMemoryGraphNode('tag:agent-runtime', 'tag', '伙伴运行', '会话、工具与执行边界', 18, 'teal'),

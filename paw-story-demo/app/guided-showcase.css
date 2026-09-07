@@ -63,7 +63,7 @@
  .guided-intro { padding-inline: 24px; }
  .guided-rail { position: static; }
  .guided-rail>h2,.guided-rail>p { display: none; }
- .guided-home .guided-directory { grid-template-columns: repeat(7,minmax(0,1fr)); gap: 8px; }
+ .guided-home .guided-directory { grid-template-columns: repeat(8,minmax(0,1fr)); gap: 8px; }
  .guided-directory>a { padding: 14px 8px; justify-content: center; gap: 8px; }
  .guided-step-name small,.guided-step-arrow { display: none; }
  .guided-step-name strong { font-size: 15px; }

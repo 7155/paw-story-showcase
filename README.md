@@ -19,6 +19,10 @@ Each stage hosts the real PAW frontend: Room, Trace, Agent Lab, Memory,
 Input Studio and Context Debug. A visible demo cursor automatically clicks highlighted controls;
 a step advances only after the expected UI result appears. Detail pages also
 lead with native workspaces, with technical explanations folded below.
+Use `/apps` for four independent, interactive Apps: customer handover, cited
+knowledge search, incident triage, and memory curation. The App source is also
+used by Lab exports; operations update the local demo state and can be saved
+or exported.
 Use `/lab` for the dedicated EnterpriseOps, RAG, CloudOps and Memory Lab page. The latter opens
 four current PAW project workspaces. Each starts before data import, supports
 local rule evaluation and exports a runnable offline App; fixed historical
@@ -145,3 +149,23 @@ The public check rejects machine-specific paths, generated/private directories,
 and symlinks in the deployable source set. A deployment environment may install
 locked third-party dependencies, but all application source and build inputs
 must come from this repository.
+
+## Rich public data and independent Apps
+
+[`showcase/datasets`](showcase/datasets/README.md) contains 127 input records and
+128 local checks across the four scenarios. Thirty-two Memory statements are
+rewritten public design summaries; business identities, policies, observations
+and boundary inputs are explicitly synthetic. No private transcript or live
+customer dataset is bundled. The native Memory workspace adds eight topics,
+44 traceable input sources and 32 current atoms.
+
+The four Apps at `/apps` have distinct business interfaces. Customer handover
+checks constraints, updates the owner and supports undo; knowledge search shows
+source text and saves cited answers; incident triage records an evidence-based
+plan; memory curation stores or excludes inputs and supports recall and undo.
+The same application source is included when Lab exports a ZIP. Downloaded
+Apps run locally without dependencies. Embedded previews retain results in
+memory; an independently opened App uses browser storage when available.
+
+The automatic cursor is a normal arrow with a separate click indication.
+Pause/resume and explicit download controls remain available.

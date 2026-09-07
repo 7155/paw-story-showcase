@@ -23,10 +23,10 @@ export const handsOnPlans: Record<string, GuidePlan> = {
     { instruction: '点击「检查结果」，核对候选与质量口径。', target: button('检查结果'), after: { selector: '[aria-label="当前实验结论"]' } },
   ], completion: '已通过真实实验界面查看设置与结果；未启动新模型实验。' },
   memory: { labels: ['选择主题', '核对来源', '输入依据', '查看原文'], steps: [
-    { instruction: '打开「技术表达、证据等级与 Agent 工作边界」主题。', target: button('技术表达、证据等级与 Agent 工作边界', false), after: text('当前认识', 'h4') },
+    { instruction: '打开「协作与交付」主题。', target: button('协作与交付', false), after: text('当前认识', 'h4') },
     { instruction: '展开「核对原始来源」。', target: button('核对原始来源', false), after: button('已清洗输入依据', false) },
     { instruction: '点击「已清洗输入依据」。', target: button('已清洗输入依据', false), after: button('在输入记录中打开原文') },
-    { instruction: '点击「在输入记录中打开原文」。', target: button('在输入记录中打开原文'), after: { selector: '.history-detail__body', text: '面向用户的解释先给结论' } },
+    { instruction: '点击「在输入记录中打开原文」。', target: button('在输入记录中打开原文'), after: { selector: '.history-detail__body', text: '伙伴需要明确的任务范围' } },
   ], completion: '已从主题回溯到原始输入详情。' },
   input: { labels: ['打开词库', '加入词条', '撤销更新'], steps: [
     { instruction: '点击 Input Studio 的「词库」。', target: button('词库'), after: button('加入所选词条') },

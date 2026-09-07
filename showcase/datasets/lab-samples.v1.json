@@ -1,0 +1,2119 @@
+{
+  "rag": {
+    "records": [
+      {
+        "id": "refund",
+        "title": "退款政策",
+        "text": "退款申请应在收货后七天内提出，并保留订单编号。",
+        "category": "服务政策",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:refund"
+      },
+      {
+        "id": "access",
+        "title": "项目访问权限",
+        "text": "项目访问权限由项目负责人审批，离开项目时撤销。",
+        "category": "账号权限",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:access"
+      },
+      {
+        "id": "invoice",
+        "title": "发票申请",
+        "text": "发票申请需提供订单编号、公司抬头和税号。",
+        "category": "财务流程",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:invoice"
+      },
+      {
+        "id": "expense",
+        "title": "差旅报销",
+        "text": "差旅报销需在行程结束后三十天内提交，并附交通和住宿凭证。",
+        "category": "财务流程",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:expense"
+      },
+      {
+        "id": "leave",
+        "title": "年假申请",
+        "text": "年假申请需提前三个工作日提交，直属主管审批后生效。",
+        "category": "人事制度",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:leave"
+      },
+      {
+        "id": "onboard",
+        "title": "新员工入职",
+        "text": "新员工入职第一天完成身份核验、设备领取和安全培训。",
+        "category": "人事制度",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:onboard"
+      },
+      {
+        "id": "offboard",
+        "title": "员工离职",
+        "text": "员工离职当天撤销账号权限，归还设备并移交未完成任务。",
+        "category": "人事制度",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:offboard"
+      },
+      {
+        "id": "device",
+        "title": "设备报修",
+        "text": "设备报修记录资产编号与故障现象，由服务台安排处理。",
+        "category": "设备管理",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:device"
+      },
+      {
+        "id": "asset",
+        "title": "资产借用",
+        "text": "资产借用须登记用途和归还日期，逾期由领用人说明原因。",
+        "category": "设备管理",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:asset"
+      },
+      {
+        "id": "supplier",
+        "title": "供应商准入",
+        "text": "供应商准入需要营业资质、安全评估和业务负责人确认。",
+        "category": "采购流程",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:supplier"
+      },
+      {
+        "id": "purchase",
+        "title": "采购申请",
+        "text": "采购申请写明预算、用途和比价依据，预算负责人确认后执行。",
+        "category": "采购流程",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:purchase"
+      },
+      {
+        "id": "contract",
+        "title": "合同归档",
+        "text": "合同归档保存签署版本、审批记录与有效期，不以草稿代替正式合同。",
+        "category": "采购流程",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:contract"
+      },
+      {
+        "id": "sla",
+        "title": "服务响应",
+        "text": "服务响应一级事件十五分钟内确认，二级事件一小时内确认。",
+        "category": "服务政策",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:sla"
+      },
+      {
+        "id": "backup",
+        "title": "备份恢复",
+        "text": "备份恢复先验证备份完整性，再在隔离环境中演练恢复流程。",
+        "category": "运行规范",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:backup"
+      },
+      {
+        "id": "release",
+        "title": "发布窗口",
+        "text": "发布窗口安排在业务低峰，变更单应包含验证结果和回滚方案。",
+        "category": "运行规范",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:release"
+      },
+      {
+        "id": "audit",
+        "title": "审计日志",
+        "text": "审计日志记录操作者、时间、资源和变更结果，导出时去除个人标识。",
+        "category": "运行规范",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:audit"
+      },
+      {
+        "id": "incident",
+        "title": "事故沟通",
+        "text": "事故沟通同步影响范围、处理进展和下一次更新时间，不发布未确认根因。",
+        "category": "运行规范",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:incident"
+      },
+      {
+        "id": "meeting",
+        "title": "会议记录",
+        "text": "会议记录写清决定、责任人和截止时间，未决定的问题单独列出。",
+        "category": "协作规范",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:meeting"
+      },
+      {
+        "id": "handover",
+        "title": "项目交接",
+        "text": "项目交接包含任务范围、接口约定、待处理问题与交付文件。",
+        "category": "协作规范",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:handover"
+      },
+      {
+        "id": "retention",
+        "title": "数据保留",
+        "text": "演示数据保留三十天，清理前确认是否存在需要保留的审计回执。",
+        "category": "安全规范",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:retention"
+      },
+      {
+        "id": "credential",
+        "title": "密钥轮换",
+        "text": "密钥轮换通过受控配置完成，旧凭据撤销后验证依赖服务可用。",
+        "category": "安全规范",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:credential"
+      },
+      {
+        "id": "sharing",
+        "title": "资料共享",
+        "text": "资料共享按最小范围授权，公开前移除凭据、个人标识与内部地址。",
+        "category": "安全规范",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:sharing"
+      },
+      {
+        "id": "support",
+        "title": "工单关闭",
+        "text": "工单关闭前确认问题已解决或用户接受替代方案，保留处理记录。",
+        "category": "服务政策",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:support"
+      },
+      {
+        "id": "risk",
+        "title": "风险升级",
+        "text": "风险升级明确影响、触发条件和负责人，并记录已采取的缓解措施。",
+        "category": "协作规范",
+        "origin": "synthetic-business-policy",
+        "sourceTitle": "公开合成企业制度手册",
+        "sourceId": "handbook:risk"
+      },
+      {
+        "id": "paw-session",
+        "title": "Session 与执行恢复 / 唯一执行者",
+        "text": "Pi 负责 Session 的模型与工具循环，页面只投影执行状态。",
+        "category": "产品设计",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:session:1"
+      },
+      {
+        "id": "paw-room",
+        "title": "协作与交付 / 明确分工",
+        "text": "伙伴需要明确的任务范围、输入依赖和验收条件。",
+        "category": "产品设计",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:room:1"
+      },
+      {
+        "id": "paw-memory",
+        "title": "记忆与来源 / 长期价值",
+        "text": "只把稳定偏好、已接受决定和可复用约束写入长期记忆。",
+        "category": "产品设计",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:memory:1"
+      },
+      {
+        "id": "paw-knowledge",
+        "title": "知识与检索 / 材料去重",
+        "text": "相同材料只索引一次，来源和导入版本保持可查询。",
+        "category": "产品设计",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:knowledge:1"
+      },
+      {
+        "id": "paw-evaluation",
+        "title": "测评与改进 / 冻结条件",
+        "text": "比较候选时固定任务、输入、评分口径和执行环境。",
+        "category": "产品设计",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:evaluation:1"
+      },
+      {
+        "id": "paw-input",
+        "title": "输入与词库 / 原生候选",
+        "text": "Rime 负责拼音解析与原生候选，助手候选单独展示。",
+        "category": "产品设计",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:input:1"
+      },
+      {
+        "id": "paw-engineering",
+        "title": "工程与发布 / 小步改动",
+        "text": "修改前读取拥有该行为的模块与下游消费者，保留无关工作。",
+        "category": "产品设计",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:engineering:1"
+      },
+      {
+        "id": "paw-observability",
+        "title": "诊断与运行证据 / 对象绑定",
+        "text": "Trace 报告绑定事故对象，不能把其他运行的日志当作当前证据。",
+        "category": "产品设计",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:observability:1"
+      }
+    ],
+    "cases": [
+      {
+        "id": "refund-case",
+        "input": "退款申请期限",
+        "expected": "refund"
+      },
+      {
+        "id": "access-case",
+        "input": "项目访问权限由谁审批",
+        "expected": "access"
+      },
+      {
+        "id": "invoice-case",
+        "input": "发票申请需要什么",
+        "expected": "invoice"
+      },
+      {
+        "id": "expense-case",
+        "input": "差旅报销提交时间",
+        "expected": "expense"
+      },
+      {
+        "id": "leave-case",
+        "input": "年假申请提前多久",
+        "expected": "leave"
+      },
+      {
+        "id": "onboard-case",
+        "input": "新员工入职第一天做什么",
+        "expected": "onboard"
+      },
+      {
+        "id": "offboard-case",
+        "input": "员工离职如何交接",
+        "expected": "offboard"
+      },
+      {
+        "id": "device-case",
+        "input": "设备报修需要哪些信息",
+        "expected": "device"
+      },
+      {
+        "id": "asset-case",
+        "input": "资产借用需要登记什么",
+        "expected": "asset"
+      },
+      {
+        "id": "supplier-case",
+        "input": "供应商准入审批材料",
+        "expected": "supplier"
+      },
+      {
+        "id": "purchase-case",
+        "input": "采购申请如何确认预算",
+        "expected": "purchase"
+      },
+      {
+        "id": "contract-case",
+        "input": "合同归档保存什么版本",
+        "expected": "contract"
+      },
+      {
+        "id": "sla-case",
+        "input": "服务响应一级事件时间",
+        "expected": "sla"
+      },
+      {
+        "id": "backup-case",
+        "input": "备份恢复先验证什么",
+        "expected": "backup"
+      },
+      {
+        "id": "release-case",
+        "input": "发布窗口有什么要求",
+        "expected": "release"
+      },
+      {
+        "id": "audit-case",
+        "input": "审计日志包含哪些字段",
+        "expected": "audit"
+      },
+      {
+        "id": "incident-case",
+        "input": "事故沟通应该同步什么",
+        "expected": "incident"
+      },
+      {
+        "id": "meeting-case",
+        "input": "会议记录需要记录哪些内容",
+        "expected": "meeting"
+      },
+      {
+        "id": "handover-case",
+        "input": "项目交接包含哪些材料",
+        "expected": "handover"
+      },
+      {
+        "id": "retention-case",
+        "input": "数据保留多久",
+        "expected": "retention"
+      },
+      {
+        "id": "credential-case",
+        "input": "密钥轮换后如何验证",
+        "expected": "credential"
+      },
+      {
+        "id": "sharing-case",
+        "input": "资料共享前需要清理什么",
+        "expected": "sharing"
+      },
+      {
+        "id": "support-case",
+        "input": "工单关闭有什么条件",
+        "expected": "support"
+      },
+      {
+        "id": "risk-case",
+        "input": "风险升级要写哪些信息",
+        "expected": "risk"
+      },
+      {
+        "id": "paw-session-case",
+        "input": "Session 与执行恢复 唯一执行者",
+        "expected": "paw-session"
+      },
+      {
+        "id": "paw-room-case",
+        "input": "协作与交付 明确分工",
+        "expected": "paw-room"
+      },
+      {
+        "id": "paw-memory-case",
+        "input": "记忆与来源 长期价值",
+        "expected": "paw-memory"
+      },
+      {
+        "id": "paw-knowledge-case",
+        "input": "知识与检索 材料去重",
+        "expected": "paw-knowledge"
+      },
+      {
+        "id": "paw-evaluation-case",
+        "input": "测评与改进 冻结条件",
+        "expected": "paw-evaluation"
+      },
+      {
+        "id": "paw-input-case",
+        "input": "输入与词库 原生候选",
+        "expected": "paw-input"
+      },
+      {
+        "id": "paw-engineering-case",
+        "input": "工程与发布 小步改动",
+        "expected": "paw-engineering"
+      },
+      {
+        "id": "paw-observability-case",
+        "input": "诊断与运行证据 对象绑定",
+        "expected": "paw-observability"
+      },
+      {
+        "id": "abstain",
+        "input": "xyzunlistedgalaxy",
+        "expected": "未命中"
+      }
+    ]
+  },
+  "enterpriseops": {
+    "records": [
+      {
+        "id": "customer-a",
+        "title": "蓝桉零售负责人交接",
+        "customer": "蓝桉零售",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 120,
+        "currentOwner": "原负责人 01",
+        "candidateOwner": "候选负责人 01",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:1"
+      },
+      {
+        "id": "customer-b",
+        "title": "海湾物流负责人交接",
+        "customer": "海湾物流",
+        "region": "EU",
+        "role": "manager",
+        "tenureDays": 120,
+        "currentOwner": "原负责人 02",
+        "candidateOwner": "候选负责人 02",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:2"
+      },
+      {
+        "id": "customer-c",
+        "title": "青禾教育负责人交接",
+        "customer": "青禾教育",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 30,
+        "currentOwner": "原负责人 03",
+        "candidateOwner": "候选负责人 03",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:3"
+      },
+      {
+        "id": "customer-d",
+        "title": "远山制造负责人交接",
+        "customer": "远山制造",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 90,
+        "currentOwner": "原负责人 04",
+        "candidateOwner": "候选负责人 04",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:4"
+      },
+      {
+        "id": "customer-e",
+        "title": "晨星能源负责人交接",
+        "customer": "晨星能源",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 89,
+        "currentOwner": "原负责人 05",
+        "candidateOwner": "候选负责人 05",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:5"
+      },
+      {
+        "id": "customer-f",
+        "title": "星港科技负责人交接",
+        "customer": "星港科技",
+        "region": "CN",
+        "role": "analyst",
+        "tenureDays": 180,
+        "currentOwner": "原负责人 06",
+        "candidateOwner": "候选负责人 06",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:6"
+      },
+      {
+        "id": "customer-g",
+        "title": "松林家居负责人交接",
+        "customer": "松林家居",
+        "region": "APAC",
+        "role": "manager",
+        "tenureDays": 365,
+        "currentOwner": "原负责人 07",
+        "candidateOwner": "候选负责人 07",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:7"
+      },
+      {
+        "id": "customer-h",
+        "title": "云岚设计负责人交接",
+        "customer": "云岚设计",
+        "region": "CN",
+        "role": "director",
+        "tenureDays": 365,
+        "currentOwner": "原负责人 08",
+        "candidateOwner": "候选负责人 08",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:8"
+      },
+      {
+        "id": "customer-i",
+        "title": "白鹭服务负责人交接",
+        "customer": "白鹭服务",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 0,
+        "currentOwner": "原负责人 09",
+        "candidateOwner": "候选负责人 09",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:9"
+      },
+      {
+        "id": "customer-j",
+        "title": "银杏食品负责人交接",
+        "customer": "银杏食品",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 91,
+        "currentOwner": "原负责人 10",
+        "candidateOwner": "候选负责人 10",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:10"
+      },
+      {
+        "id": "customer-k",
+        "title": "清溪服饰负责人交接",
+        "customer": "清溪服饰",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 365,
+        "currentOwner": "原负责人 11",
+        "candidateOwner": "候选负责人 11",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:11"
+      },
+      {
+        "id": "customer-l",
+        "title": "澄海工具负责人交接",
+        "customer": "澄海工具",
+        "region": "EU",
+        "role": "analyst",
+        "tenureDays": 180,
+        "currentOwner": "原负责人 12",
+        "candidateOwner": "候选负责人 12",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:12"
+      },
+      {
+        "id": "customer-m",
+        "title": "麦穗农业负责人交接",
+        "customer": "麦穗农业",
+        "region": "CN",
+        "role": "intern",
+        "tenureDays": 100,
+        "currentOwner": "原负责人 13",
+        "candidateOwner": "候选负责人 13",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:13"
+      },
+      {
+        "id": "customer-n",
+        "title": "竹影出版负责人交接",
+        "customer": "竹影出版",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 180,
+        "currentOwner": "原负责人 14",
+        "candidateOwner": "候选负责人 14",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:14"
+      },
+      {
+        "id": "customer-o",
+        "title": "向日会展负责人交接",
+        "customer": "向日会展",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 45,
+        "currentOwner": "原负责人 15",
+        "candidateOwner": "候选负责人 15",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:15"
+      },
+      {
+        "id": "customer-p",
+        "title": "北斗设备负责人交接",
+        "customer": "北斗设备",
+        "region": "US",
+        "role": "manager",
+        "tenureDays": 400,
+        "currentOwner": "原负责人 16",
+        "candidateOwner": "候选负责人 16",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:16"
+      },
+      {
+        "id": "customer-q",
+        "title": "石榴商贸负责人交接",
+        "customer": "石榴商贸",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 240,
+        "currentOwner": "原负责人 17",
+        "candidateOwner": "候选负责人 17",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:17"
+      },
+      {
+        "id": "customer-r",
+        "title": "微光咨询负责人交接",
+        "customer": "微光咨询",
+        "region": "CN",
+        "role": "support",
+        "tenureDays": 150,
+        "currentOwner": "原负责人 18",
+        "candidateOwner": "候选负责人 18",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:18"
+      },
+      {
+        "id": "customer-s",
+        "title": "长风交通负责人交接",
+        "customer": "长风交通",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 60,
+        "currentOwner": "原负责人 19",
+        "candidateOwner": "候选负责人 19",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:19"
+      },
+      {
+        "id": "customer-t",
+        "title": "春雨材料负责人交接",
+        "customer": "春雨材料",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 200,
+        "currentOwner": "原负责人 20",
+        "candidateOwner": "候选负责人 20",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:20"
+      },
+      {
+        "id": "customer-u",
+        "title": "鸣沙文创负责人交接",
+        "customer": "鸣沙文创",
+        "region": "CN",
+        "role": "sales",
+        "tenureDays": 180,
+        "currentOwner": "原负责人 21",
+        "candidateOwner": "候选负责人 21",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:21"
+      },
+      {
+        "id": "customer-v",
+        "title": "青松医疗器械负责人交接",
+        "customer": "青松医疗器械",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 100,
+        "currentOwner": "原负责人 22",
+        "candidateOwner": "候选负责人 22",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:22"
+      },
+      {
+        "id": "customer-w",
+        "title": "流萤照明负责人交接",
+        "customer": "流萤照明",
+        "region": "EU",
+        "role": "manager",
+        "tenureDays": 90,
+        "currentOwner": "原负责人 23",
+        "candidateOwner": "候选负责人 23",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:23"
+      },
+      {
+        "id": "customer-x",
+        "title": "枫叶包装负责人交接",
+        "customer": "枫叶包装",
+        "region": "CN",
+        "role": "manager",
+        "tenureDays": 88,
+        "currentOwner": "原负责人 24",
+        "candidateOwner": "候选负责人 24",
+        "origin": "synthetic-business-request",
+        "sourceTitle": "角色、地区与任期约束样例",
+        "sourceId": "workflow:24"
+      }
+    ],
+    "cases": [
+      {
+        "id": "assign-01",
+        "input": "customer-a",
+        "expected": "允许"
+      },
+      {
+        "id": "assign-02",
+        "input": "customer-b",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-03",
+        "input": "customer-c",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-04",
+        "input": "customer-d",
+        "expected": "允许"
+      },
+      {
+        "id": "assign-05",
+        "input": "customer-e",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-06",
+        "input": "customer-f",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-07",
+        "input": "customer-g",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-08",
+        "input": "customer-h",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-09",
+        "input": "customer-i",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-10",
+        "input": "customer-j",
+        "expected": "允许"
+      },
+      {
+        "id": "assign-11",
+        "input": "customer-k",
+        "expected": "允许"
+      },
+      {
+        "id": "assign-12",
+        "input": "customer-l",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-13",
+        "input": "customer-m",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-14",
+        "input": "customer-n",
+        "expected": "允许"
+      },
+      {
+        "id": "assign-15",
+        "input": "customer-o",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-16",
+        "input": "customer-p",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-17",
+        "input": "customer-q",
+        "expected": "允许"
+      },
+      {
+        "id": "assign-18",
+        "input": "customer-r",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-19",
+        "input": "customer-s",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-20",
+        "input": "customer-t",
+        "expected": "允许"
+      },
+      {
+        "id": "assign-21",
+        "input": "customer-u",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-22",
+        "input": "customer-v",
+        "expected": "允许"
+      },
+      {
+        "id": "assign-23",
+        "input": "customer-w",
+        "expected": "拒绝"
+      },
+      {
+        "id": "assign-24",
+        "input": "customer-x",
+        "expected": "拒绝"
+      }
+    ]
+  },
+  "cloudops": {
+    "records": [
+      {
+        "id": "incident-a",
+        "title": "订单服务观测 01",
+        "service": "订单",
+        "cluster": "演示集群 A",
+        "latencyMs": 800,
+        "errorRate": 0.01,
+        "dbUtilization": 0.3,
+        "severity": "P2",
+        "timeline": "09:00 收到订单服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:1"
+      },
+      {
+        "id": "incident-b",
+        "title": "支付服务观测 02",
+        "service": "支付",
+        "cluster": "演示集群 B",
+        "latencyMs": 800,
+        "errorRate": 0.08,
+        "dbUtilization": 0.3,
+        "severity": "P1",
+        "timeline": "09:00 收到支付服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:2"
+      },
+      {
+        "id": "incident-c",
+        "title": "库存服务观测 03",
+        "service": "库存",
+        "cluster": "演示集群 A",
+        "latencyMs": 800,
+        "errorRate": 0.01,
+        "dbUtilization": 0.95,
+        "severity": "P2",
+        "timeline": "09:00 收到库存服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:3"
+      },
+      {
+        "id": "incident-d",
+        "title": "搜索服务观测 04",
+        "service": "搜索",
+        "cluster": "演示集群 B",
+        "latencyMs": 120,
+        "errorRate": 0.001,
+        "dbUtilization": 0.2,
+        "severity": "观察",
+        "timeline": "09:00 收到搜索服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:4"
+      },
+      {
+        "id": "incident-e",
+        "title": "通知服务观测 05",
+        "service": "通知",
+        "cluster": "演示集群 A",
+        "latencyMs": 650,
+        "errorRate": 0.06,
+        "dbUtilization": 0.94,
+        "severity": "P1",
+        "timeline": "09:00 收到通知服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:5"
+      },
+      {
+        "id": "incident-f",
+        "title": "结算服务观测 06",
+        "service": "结算",
+        "cluster": "演示集群 B",
+        "latencyMs": 500,
+        "errorRate": 0.02,
+        "dbUtilization": 0.9,
+        "severity": "观察",
+        "timeline": "09:00 收到结算服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:6"
+      },
+      {
+        "id": "incident-g",
+        "title": "订单服务观测 07",
+        "service": "订单",
+        "cluster": "演示集群 A",
+        "latencyMs": 501,
+        "errorRate": 0.02,
+        "dbUtilization": 0.9,
+        "severity": "P2",
+        "timeline": "09:00 收到订单服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:7"
+      },
+      {
+        "id": "incident-h",
+        "title": "支付服务观测 08",
+        "service": "支付",
+        "cluster": "演示集群 B",
+        "latencyMs": 200,
+        "errorRate": 0.051,
+        "dbUtilization": 0.3,
+        "severity": "P1",
+        "timeline": "09:00 收到支付服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:8"
+      },
+      {
+        "id": "incident-i",
+        "title": "库存服务观测 09",
+        "service": "库存",
+        "cluster": "演示集群 A",
+        "latencyMs": 200,
+        "errorRate": 0.05,
+        "dbUtilization": 0.3,
+        "severity": "观察",
+        "timeline": "09:00 收到库存服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:9"
+      },
+      {
+        "id": "incident-j",
+        "title": "搜索服务观测 10",
+        "service": "搜索",
+        "cluster": "演示集群 B",
+        "latencyMs": 200,
+        "errorRate": 0.02,
+        "dbUtilization": 0.901,
+        "severity": "P2",
+        "timeline": "09:00 收到搜索服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:10"
+      },
+      {
+        "id": "incident-k",
+        "title": "通知服务观测 11",
+        "service": "通知",
+        "cluster": "演示集群 A",
+        "latencyMs": 900,
+        "errorRate": 0.03,
+        "dbUtilization": 0.9,
+        "severity": "P2",
+        "timeline": "09:00 收到通知服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:11"
+      },
+      {
+        "id": "incident-l",
+        "title": "结算服务观测 12",
+        "service": "结算",
+        "cluster": "演示集群 B",
+        "latencyMs": 420,
+        "errorRate": 0.02,
+        "dbUtilization": 0.97,
+        "severity": "P2",
+        "timeline": "09:00 收到结算服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:12"
+      },
+      {
+        "id": "incident-m",
+        "title": "订单服务观测 13",
+        "service": "订单",
+        "cluster": "演示集群 A",
+        "latencyMs": 1500,
+        "errorRate": 0.18,
+        "dbUtilization": 0.99,
+        "severity": "P1",
+        "timeline": "09:00 收到订单服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:13"
+      },
+      {
+        "id": "incident-n",
+        "title": "支付服务观测 14",
+        "service": "支付",
+        "cluster": "演示集群 B",
+        "latencyMs": 330,
+        "errorRate": 0.0,
+        "dbUtilization": 0.45,
+        "severity": "观察",
+        "timeline": "09:00 收到支付服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:14"
+      },
+      {
+        "id": "incident-o",
+        "title": "库存服务观测 15",
+        "service": "库存",
+        "cluster": "演示集群 A",
+        "latencyMs": 520,
+        "errorRate": 0.01,
+        "dbUtilization": 0.42,
+        "severity": "P2",
+        "timeline": "09:00 收到库存服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:15"
+      },
+      {
+        "id": "incident-p",
+        "title": "搜索服务观测 16",
+        "service": "搜索",
+        "cluster": "演示集群 B",
+        "latencyMs": 90,
+        "errorRate": 0.2,
+        "dbUtilization": 0.1,
+        "severity": "P1",
+        "timeline": "09:00 收到搜索服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:16"
+      },
+      {
+        "id": "incident-q",
+        "title": "通知服务观测 17",
+        "service": "通知",
+        "cluster": "演示集群 A",
+        "latencyMs": 450,
+        "errorRate": 0.01,
+        "dbUtilization": 0.98,
+        "severity": "P2",
+        "timeline": "09:00 收到通知服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:17"
+      },
+      {
+        "id": "incident-r",
+        "title": "结算服务观测 18",
+        "service": "结算",
+        "cluster": "演示集群 B",
+        "latencyMs": 499,
+        "errorRate": 0.049,
+        "dbUtilization": 0.89,
+        "severity": "观察",
+        "timeline": "09:00 收到结算服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:18"
+      },
+      {
+        "id": "incident-s",
+        "title": "订单服务观测 19",
+        "service": "订单",
+        "cluster": "演示集群 A",
+        "latencyMs": 760,
+        "errorRate": 0.045,
+        "dbUtilization": 0.88,
+        "severity": "P2",
+        "timeline": "09:00 收到订单服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:19"
+      },
+      {
+        "id": "incident-t",
+        "title": "支付服务观测 20",
+        "service": "支付",
+        "cluster": "演示集群 B",
+        "latencyMs": 1100,
+        "errorRate": 0.049,
+        "dbUtilization": 0.96,
+        "severity": "P2",
+        "timeline": "09:00 收到支付服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:20"
+      },
+      {
+        "id": "incident-u",
+        "title": "库存服务观测 21",
+        "service": "库存",
+        "cluster": "演示集群 A",
+        "latencyMs": 100,
+        "errorRate": 0.051,
+        "dbUtilization": 0.92,
+        "severity": "P1",
+        "timeline": "09:00 收到库存服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:21"
+      },
+      {
+        "id": "incident-v",
+        "title": "搜索服务观测 22",
+        "service": "搜索",
+        "cluster": "演示集群 B",
+        "latencyMs": 180,
+        "errorRate": 0.002,
+        "dbUtilization": 0.29,
+        "severity": "观察",
+        "timeline": "09:00 收到搜索服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:22"
+      },
+      {
+        "id": "incident-w",
+        "title": "通知服务观测 23",
+        "service": "通知",
+        "cluster": "演示集群 A",
+        "latencyMs": 620,
+        "errorRate": 0.03,
+        "dbUtilization": 0.55,
+        "severity": "P2",
+        "timeline": "09:00 收到通知服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:23"
+      },
+      {
+        "id": "incident-x",
+        "title": "结算服务观测 24",
+        "service": "结算",
+        "cluster": "演示集群 B",
+        "latencyMs": 700,
+        "errorRate": 0.1,
+        "dbUtilization": 0.4,
+        "severity": "P1",
+        "timeline": "09:00 收到结算服务观测；09:02 读取网关错误率；09:04 核对数据库利用率；09:06 对照工作进程延迟。",
+        "origin": "synthetic-observability",
+        "sourceTitle": "可观测性分层诊断样例",
+        "sourceId": "incident:24"
+      }
+    ],
+    "cases": [
+      {
+        "id": "triage-01",
+        "input": "incident-a",
+        "expected": "worker"
+      },
+      {
+        "id": "triage-02",
+        "input": "incident-b",
+        "expected": "gateway"
+      },
+      {
+        "id": "triage-03",
+        "input": "incident-c",
+        "expected": "database"
+      },
+      {
+        "id": "triage-04",
+        "input": "incident-d",
+        "expected": "healthy"
+      },
+      {
+        "id": "triage-05",
+        "input": "incident-e",
+        "expected": "gateway"
+      },
+      {
+        "id": "triage-06",
+        "input": "incident-f",
+        "expected": "healthy"
+      },
+      {
+        "id": "triage-07",
+        "input": "incident-g",
+        "expected": "worker"
+      },
+      {
+        "id": "triage-08",
+        "input": "incident-h",
+        "expected": "gateway"
+      },
+      {
+        "id": "triage-09",
+        "input": "incident-i",
+        "expected": "healthy"
+      },
+      {
+        "id": "triage-10",
+        "input": "incident-j",
+        "expected": "database"
+      },
+      {
+        "id": "triage-11",
+        "input": "incident-k",
+        "expected": "worker"
+      },
+      {
+        "id": "triage-12",
+        "input": "incident-l",
+        "expected": "database"
+      },
+      {
+        "id": "triage-13",
+        "input": "incident-m",
+        "expected": "gateway"
+      },
+      {
+        "id": "triage-14",
+        "input": "incident-n",
+        "expected": "healthy"
+      },
+      {
+        "id": "triage-15",
+        "input": "incident-o",
+        "expected": "worker"
+      },
+      {
+        "id": "triage-16",
+        "input": "incident-p",
+        "expected": "gateway"
+      },
+      {
+        "id": "triage-17",
+        "input": "incident-q",
+        "expected": "database"
+      },
+      {
+        "id": "triage-18",
+        "input": "incident-r",
+        "expected": "healthy"
+      },
+      {
+        "id": "triage-19",
+        "input": "incident-s",
+        "expected": "worker"
+      },
+      {
+        "id": "triage-20",
+        "input": "incident-t",
+        "expected": "database"
+      },
+      {
+        "id": "triage-21",
+        "input": "incident-u",
+        "expected": "gateway"
+      },
+      {
+        "id": "triage-22",
+        "input": "incident-v",
+        "expected": "healthy"
+      },
+      {
+        "id": "triage-23",
+        "input": "incident-w",
+        "expected": "worker"
+      },
+      {
+        "id": "triage-24",
+        "input": "incident-x",
+        "expected": "gateway"
+      }
+    ]
+  },
+  "memory": {
+    "records": [
+      {
+        "id": "memory-a",
+        "title": "文档语言",
+        "text": "长期使用中文技术文档。",
+        "scope": "durable",
+        "topic": "engineering",
+        "origin": "synthetic-preference",
+        "sourceId": "memory:example-a",
+        "topicTitle": "工程与发布",
+        "sourceTitle": "公开记忆整理样例"
+      },
+      {
+        "id": "memory-b",
+        "title": "临时日志检查",
+        "text": "今天下午检查测试日志。",
+        "scope": "temporary",
+        "topic": "engineering",
+        "origin": "synthetic-preference",
+        "sourceId": "memory:example-b",
+        "topicTitle": "工程与发布",
+        "sourceTitle": "公开记忆整理样例"
+      },
+      {
+        "id": "memory-c",
+        "title": "项目事实源",
+        "text": "项目采用文件作为工作事实源。",
+        "scope": "durable",
+        "topic": "engineering",
+        "origin": "public-design-summary",
+        "sourceId": "memory:example-c",
+        "topicTitle": "工程与发布",
+        "sourceTitle": "公开记忆整理样例"
+      },
+      {
+        "id": "memo-session-1",
+        "title": "唯一执行者",
+        "text": "Pi 负责 Session 的模型与工具循环，页面只投影执行状态。",
+        "topic": "session",
+        "topicTitle": "Session 与执行恢复",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:session:1"
+      },
+      {
+        "id": "memo-session-2",
+        "title": "终态判定",
+        "text": "完成与失败由 Runtime 事件确认，不能从进度文案推断。",
+        "topic": "session",
+        "topicTitle": "Session 与执行恢复",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:session:2"
+      },
+      {
+        "id": "memo-session-3",
+        "title": "重连恢复",
+        "text": "连接恢复后先读取权威快照，再应用顺序增量事件。",
+        "topic": "session",
+        "topicTitle": "Session 与执行恢复",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:session:3"
+      },
+      {
+        "id": "memo-session-4",
+        "title": "停止传播",
+        "text": "停止操作需要传到正在执行的工具，页面保留已完成的结果。",
+        "topic": "session",
+        "topicTitle": "Session 与执行恢复",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:session:4"
+      },
+      {
+        "id": "memo-room-1",
+        "title": "明确分工",
+        "text": "伙伴需要明确的任务范围、输入依赖和验收条件。",
+        "topic": "room",
+        "topicTitle": "协作与交付",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:room:1"
+      },
+      {
+        "id": "memo-room-2",
+        "title": "公开交接",
+        "text": "跨伙伴的接口决定要留下可被接收方读取的交接记录。",
+        "topic": "room",
+        "topicTitle": "协作与交付",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:room:2"
+      },
+      {
+        "id": "memo-room-3",
+        "title": "整合责任",
+        "text": "Root 汇总伙伴结果，检查冲突和缺口后给出最终交付。",
+        "topic": "room",
+        "topicTitle": "协作与交付",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:room:3"
+      },
+      {
+        "id": "memo-room-4",
+        "title": "证据回溯",
+        "text": "交付文件保留所属 Session，打开文件时使用相同的工作区绑定。",
+        "topic": "room",
+        "topicTitle": "协作与交付",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:room:4"
+      },
+      {
+        "id": "memo-memory-1",
+        "title": "长期价值",
+        "text": "只把稳定偏好、已接受决定和可复用约束写入长期记忆。",
+        "topic": "memory",
+        "topicTitle": "记忆与来源",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:memory:1"
+      },
+      {
+        "id": "memo-memory-2",
+        "title": "保留来源",
+        "text": "每条记忆保留来源引用，主题页只汇总当前有效的条目。",
+        "topic": "memory",
+        "topicTitle": "记忆与来源",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:memory:2"
+      },
+      {
+        "id": "memo-memory-3",
+        "title": "替代关系",
+        "text": "新决定替代旧决定时保留历史与替代关系，不能静默覆盖。",
+        "topic": "memory",
+        "topicTitle": "记忆与来源",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:memory:3"
+      },
+      {
+        "id": "memo-memory-4",
+        "title": "临时隔离",
+        "text": "一次性事项留在当前任务，不因出现次数多就变成长久偏好。",
+        "topic": "memory",
+        "topicTitle": "记忆与来源",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:memory:4"
+      },
+      {
+        "id": "memo-knowledge-1",
+        "title": "材料去重",
+        "text": "相同材料只索引一次，来源和导入版本保持可查询。",
+        "topic": "knowledge",
+        "topicTitle": "知识与检索",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:knowledge:1"
+      },
+      {
+        "id": "memo-knowledge-2",
+        "title": "来源引用",
+        "text": "检索结果包含文档编号与原文片段，回答能够返回来源检查。",
+        "topic": "knowledge",
+        "topicTitle": "知识与检索",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:knowledge:2"
+      },
+      {
+        "id": "memo-knowledge-3",
+        "title": "无证据拒答",
+        "text": "找不到支持材料时明确说明缺少依据，不补写不存在的事实。",
+        "topic": "knowledge",
+        "topicTitle": "知识与检索",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:knowledge:3"
+      },
+      {
+        "id": "memo-knowledge-4",
+        "title": "版本失效",
+        "text": "材料更新后，旧索引与旧测评标为过期，重新生成当前结果。",
+        "topic": "knowledge",
+        "topicTitle": "知识与检索",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:knowledge:4"
+      },
+      {
+        "id": "memo-evaluation-1",
+        "title": "冻结条件",
+        "text": "比较候选时固定任务、输入、评分口径和执行环境。",
+        "topic": "evaluation",
+        "topicTitle": "测评与改进",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:evaluation:1"
+      },
+      {
+        "id": "memo-evaluation-2",
+        "title": "质量优先",
+        "text": "先检查任务质量是否达标，再比较执行成本与耗时。",
+        "topic": "evaluation",
+        "topicTitle": "测评与改进",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:evaluation:2"
+      },
+      {
+        "id": "memo-evaluation-3",
+        "title": "失败保留",
+        "text": "候选失败题和拒绝推广决定需要保留，不能只展示最佳成绩。",
+        "topic": "evaluation",
+        "topicTitle": "测评与改进",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:evaluation:3"
+      },
+      {
+        "id": "memo-evaluation-4",
+        "title": "范围声明",
+        "text": "开发样例、验证集和未见样本的结果分别陈述。",
+        "topic": "evaluation",
+        "topicTitle": "测评与改进",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:evaluation:4"
+      },
+      {
+        "id": "memo-input-1",
+        "title": "原生候选",
+        "text": "Rime 负责拼音解析与原生候选，助手候选单独展示。",
+        "topic": "input",
+        "topicTitle": "输入与词库",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:input:1"
+      },
+      {
+        "id": "memo-input-2",
+        "title": "完整输入",
+        "text": "只有封口后的完整输入才进入整理，未确认的拼音片段不保留。",
+        "topic": "input",
+        "topicTitle": "输入与词库",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:input:2"
+      },
+      {
+        "id": "memo-input-3",
+        "title": "敏感排除",
+        "text": "密码框、凭据和个人标识不进入被动记忆或公开演示。",
+        "topic": "input",
+        "topicTitle": "输入与词库",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:input:3"
+      },
+      {
+        "id": "memo-input-4",
+        "title": "词库撤销",
+        "text": "词库更新保留回执，出现问题时能够撤销本次改动。",
+        "topic": "input",
+        "topicTitle": "输入与词库",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:input:4"
+      },
+      {
+        "id": "memo-engineering-1",
+        "title": "小步改动",
+        "text": "修改前读取拥有该行为的模块与下游消费者，保留无关工作。",
+        "topic": "engineering",
+        "topicTitle": "工程与发布",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:engineering:1"
+      },
+      {
+        "id": "memo-engineering-2",
+        "title": "精确验证",
+        "text": "测试、构建、安装与真实前台运行代表不同的验证范围。",
+        "topic": "engineering",
+        "topicTitle": "工程与发布",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:engineering:2"
+      },
+      {
+        "id": "memo-engineering-3",
+        "title": "独立构建",
+        "text": "部署输入全部来自当前仓库和锁定依赖，不读取相邻私有目录。",
+        "topic": "engineering",
+        "topicTitle": "工程与发布",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:engineering:3"
+      },
+      {
+        "id": "memo-engineering-4",
+        "title": "先看结果",
+        "text": "对外说明先给可观察结果，再附必要原因与来源。",
+        "topic": "engineering",
+        "topicTitle": "工程与发布",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:engineering:4"
+      },
+      {
+        "id": "memo-observability-1",
+        "title": "对象绑定",
+        "text": "Trace 报告绑定事故对象，不能把其他运行的日志当作当前证据。",
+        "topic": "observability",
+        "topicTitle": "诊断与运行证据",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:observability:1"
+      },
+      {
+        "id": "memo-observability-2",
+        "title": "错误分类",
+        "text": "工具失败、模型回答错误和页面展示错误要分别定位。",
+        "topic": "observability",
+        "topicTitle": "诊断与运行证据",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:observability:2"
+      },
+      {
+        "id": "memo-observability-3",
+        "title": "不冒充修复",
+        "text": "读取日志和提出建议不等于已经修复生产系统。",
+        "topic": "observability",
+        "topicTitle": "诊断与运行证据",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:observability:3"
+      },
+      {
+        "id": "memo-observability-4",
+        "title": "不确定恢复",
+        "text": "调用回执丢失时先核对原操作，避免重复执行有副作用的动作。",
+        "topic": "observability",
+        "topicTitle": "诊断与运行证据",
+        "scope": "durable",
+        "origin": "public-design-summary",
+        "sourceTitle": "PAW 公开设计摘要",
+        "sourceId": "design:observability:4"
+      },
+      {
+        "id": "memo-boundary-1",
+        "title": "临时测试",
+        "text": "今天检查示例运行日志。",
+        "topic": "engineering",
+        "topicTitle": "工程与发布",
+        "scope": "temporary",
+        "origin": "synthetic-boundary-case",
+        "sourceTitle": "人工编写的边界样例",
+        "sourceId": "boundary:1"
+      },
+      {
+        "id": "memo-boundary-2",
+        "title": "一次性会议",
+        "text": "本次讨论结束后整理待办。",
+        "topic": "room",
+        "topicTitle": "协作与交付",
+        "scope": "temporary",
+        "origin": "synthetic-boundary-case",
+        "sourceTitle": "人工编写的边界样例",
+        "sourceId": "boundary:2"
+      },
+      {
+        "id": "memo-boundary-3",
+        "title": "临时端口",
+        "text": "当前预览临时使用端口 4191。",
+        "topic": "engineering",
+        "topicTitle": "工程与发布",
+        "scope": "temporary",
+        "origin": "synthetic-boundary-case",
+        "sourceTitle": "人工编写的边界样例",
+        "sourceId": "boundary:3"
+      },
+      {
+        "id": "memo-boundary-4",
+        "title": "下载检查",
+        "text": "这次演示确认导出文件已保存。",
+        "topic": "evaluation",
+        "topicTitle": "测评与改进",
+        "scope": "temporary",
+        "origin": "synthetic-boundary-case",
+        "sourceTitle": "人工编写的边界样例",
+        "sourceId": "boundary:4"
+      },
+      {
+        "id": "memo-boundary-5",
+        "title": "当日告警",
+        "text": "今天的一条演示告警已恢复。",
+        "topic": "observability",
+        "topicTitle": "诊断与运行证据",
+        "scope": "temporary",
+        "origin": "synthetic-boundary-case",
+        "sourceTitle": "人工编写的边界样例",
+        "sourceId": "boundary:5"
+      },
+      {
+        "id": "memo-boundary-6",
+        "title": "临时采购",
+        "text": "为这次演示准备临时材料。",
+        "topic": "engineering",
+        "topicTitle": "工程与发布",
+        "scope": "temporary",
+        "origin": "synthetic-boundary-case",
+        "sourceTitle": "人工编写的边界样例",
+        "sourceId": "boundary:6"
+      },
+      {
+        "id": "memo-boundary-7",
+        "title": "旧发布策略",
+        "text": "旧方案允许只上传前端子目录；已被独立仓库构建决定替代。",
+        "topic": "engineering",
+        "topicTitle": "工程与发布",
+        "scope": "superseded",
+        "origin": "synthetic-boundary-case",
+        "sourceTitle": "人工编写的边界样例",
+        "sourceId": "boundary:7"
+      },
+      {
+        "id": "memo-boundary-8",
+        "title": "旧输入策略",
+        "text": "旧方案在每次按键后整理输入；已改为完整输入封口后处理。",
+        "topic": "input",
+        "topicTitle": "输入与词库",
+        "scope": "superseded",
+        "origin": "synthetic-boundary-case",
+        "sourceTitle": "人工编写的边界样例",
+        "sourceId": "boundary:8"
+      },
+      {
+        "id": "memo-boundary-9",
+        "title": "旧测评口径",
+        "text": "旧方案仅比较成本；已被质量优先的门禁替代。",
+        "topic": "evaluation",
+        "topicTitle": "测评与改进",
+        "scope": "superseded",
+        "origin": "synthetic-boundary-case",
+        "sourceTitle": "人工编写的边界样例",
+        "sourceId": "boundary:9"
+      },
+      {
+        "id": "memo-boundary-10",
+        "title": "旧协作约定",
+        "text": "旧方案让伙伴各自宣布完成；已改为由 Root 汇总最终交付。",
+        "topic": "room",
+        "topicTitle": "协作与交付",
+        "scope": "superseded",
+        "origin": "synthetic-boundary-case",
+        "sourceTitle": "人工编写的边界样例",
+        "sourceId": "boundary:10"
+      },
+      {
+        "id": "memo-boundary-11",
+        "title": "敏感字段占位",
+        "text": "凭据字段已移除，仅保留敏感内容应排除的分支。",
+        "topic": "input",
+        "topicTitle": "输入与词库",
+        "scope": "sensitive",
+        "origin": "synthetic-boundary-case",
+        "sourceTitle": "人工编写的边界样例",
+        "sourceId": "boundary:11"
+      },
+      {
+        "id": "memo-boundary-12",
+        "title": "个人标识占位",
+        "text": "个人标识已移除，本条只用于验证不进入长期记忆。",
+        "topic": "memory",
+        "topicTitle": "记忆与来源",
+        "scope": "sensitive",
+        "origin": "synthetic-boundary-case",
+        "sourceTitle": "人工编写的边界样例",
+        "sourceId": "boundary:12"
+      }
+    ],
+    "cases": [
+      {
+        "id": "curate-01",
+        "input": "memory-a",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-02",
+        "input": "memory-b",
+        "expected": "不保留"
+      },
+      {
+        "id": "curate-03",
+        "input": "memory-c",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-04",
+        "input": "memo-session-1",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-05",
+        "input": "memo-session-2",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-06",
+        "input": "memo-session-3",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-07",
+        "input": "memo-session-4",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-08",
+        "input": "memo-room-1",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-09",
+        "input": "memo-room-2",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-10",
+        "input": "memo-room-3",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-11",
+        "input": "memo-room-4",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-12",
+        "input": "memo-memory-1",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-13",
+        "input": "memo-memory-2",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-14",
+        "input": "memo-memory-3",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-15",
+        "input": "memo-memory-4",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-16",
+        "input": "memo-knowledge-1",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-17",
+        "input": "memo-knowledge-2",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-18",
+        "input": "memo-knowledge-3",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-19",
+        "input": "memo-knowledge-4",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-20",
+        "input": "memo-evaluation-1",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-21",
+        "input": "memo-evaluation-2",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-22",
+        "input": "memo-evaluation-3",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-23",
+        "input": "memo-evaluation-4",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-24",
+        "input": "memo-input-1",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-25",
+        "input": "memo-input-2",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-26",
+        "input": "memo-input-3",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-27",
+        "input": "memo-input-4",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-28",
+        "input": "memo-engineering-1",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-29",
+        "input": "memo-engineering-2",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-30",
+        "input": "memo-engineering-3",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-31",
+        "input": "memo-engineering-4",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-32",
+        "input": "memo-observability-1",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-33",
+        "input": "memo-observability-2",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-34",
+        "input": "memo-observability-3",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-35",
+        "input": "memo-observability-4",
+        "expected": "保留"
+      },
+      {
+        "id": "curate-36",
+        "input": "memo-boundary-1",
+        "expected": "不保留"
+      },
+      {
+        "id": "curate-37",
+        "input": "memo-boundary-2",
+        "expected": "不保留"
+      },
+      {
+        "id": "curate-38",
+        "input": "memo-boundary-3",
+        "expected": "不保留"
+      },
+      {
+        "id": "curate-39",
+        "input": "memo-boundary-4",
+        "expected": "不保留"
+      },
+      {
+        "id": "curate-40",
+        "input": "memo-boundary-5",
+        "expected": "不保留"
+      },
+      {
+        "id": "curate-41",
+        "input": "memo-boundary-6",
+        "expected": "不保留"
+      },
+      {
+        "id": "curate-42",
+        "input": "memo-boundary-7",
+        "expected": "不保留"
+      },
+      {
+        "id": "curate-43",
+        "input": "memo-boundary-8",
+        "expected": "不保留"
+      },
+      {
+        "id": "curate-44",
+        "input": "memo-boundary-9",
+        "expected": "不保留"
+      },
+      {
+        "id": "curate-45",
+        "input": "memo-boundary-10",
+        "expected": "不保留"
+      },
+      {
+        "id": "curate-46",
+        "input": "memo-boundary-11",
+        "expected": "不保留"
+      },
+      {
+        "id": "curate-47",
+        "input": "memo-boundary-12",
+        "expected": "不保留"
+      }
+    ]
+  }
+}
