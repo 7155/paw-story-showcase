@@ -1,0 +1,1484 @@
+{
+  "schemaVersion": "paw.public-research-history.v1",
+  "title": "211 份论文的历史实验",
+  "snapshotAt": "2026-09-09T06:41:37Z",
+  "scope": "来自该论文项目的历史任务回执；包含失败、停止、阅读、版本及调用记录。不是72次成功评测，也不是当前200份公开示例的成绩。",
+  "corpus": {
+    "attempted": 211,
+    "readable": 209,
+    "failed": 2
+  },
+  "records": [
+    {
+      "id": "record-37",
+      "category": "资料与索引",
+      "title": "导入论文",
+      "state": "failed",
+      "createdAtMs": 1788827211654,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "dd141b20565b4972be7370e20d90608107098168df622b6e21bdd2485648f556"
+    },
+    {
+      "id": "record-36",
+      "category": "资料与索引",
+      "title": "导入论文",
+      "state": "completed",
+      "createdAtMs": 1788828750049,
+      "config": {},
+      "metrics": {
+        "documentCount": 206,
+        "attempted": 211,
+        "failed": 5
+      },
+      "sourceReceiptSha256": "e98bbbe6e064fd35092de302845b0f491320fc3307e3b495a673115c42a7b4e9"
+    },
+    {
+      "id": "record-35",
+      "category": "阅读记录",
+      "title": "阅读记录",
+      "state": "completed",
+      "createdAtMs": 1788829138694,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "62799671681878bcc30f1a787428193ed94bb91b8e476f73922ed354a106467d"
+    },
+    {
+      "id": "record-34",
+      "category": "资料与索引",
+      "title": "清洗资料",
+      "state": "completed",
+      "createdAtMs": 1788832269271,
+      "config": {},
+      "metrics": {
+        "documentCount": 208,
+        "attempted": 211,
+        "failed": 3
+      },
+      "sourceReceiptSha256": "a83c9a7f500ec16af156ad052d011dc50aebd259d21881a4463b2bcc24dd6ba1"
+    },
+    {
+      "id": "record-33",
+      "category": "阅读记录",
+      "title": "阅读记录",
+      "state": "completed",
+      "createdAtMs": 1788834103071,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "0ef008f77b3746ebead66bad1b9d0ef64ead9d7a0a52fd15f8446f88d8948601"
+    },
+    {
+      "id": "record-32",
+      "category": "资料与索引",
+      "title": "替换问题文件",
+      "state": "completed",
+      "createdAtMs": 1788834478225,
+      "config": {},
+      "metrics": {
+        "documentCount": 209,
+        "attempted": 211,
+        "failed": 2
+      },
+      "sourceReceiptSha256": "500dc33b70d46bc442078e9195c0fdf36f0474cbc7e155afa8702d2ef1e0fd89"
+    },
+    {
+      "id": "record-31",
+      "category": "阅读记录",
+      "title": "阅读记录",
+      "state": "completed",
+      "createdAtMs": 1788836142638,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "d4f3a03ce45091492afe861a1f9073fc5fba3ea362e6732802549ec9e23df185"
+    },
+    {
+      "id": "record-30",
+      "category": "阅读记录",
+      "title": "阅读记录",
+      "state": "completed",
+      "createdAtMs": 1788836154198,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "d79909b6e873653cab51a252fcfb2bd872bcfd5e3d7181e418f344e724fc1399"
+    },
+    {
+      "id": "record-29",
+      "category": "阅读记录",
+      "title": "阅读记录",
+      "state": "completed",
+      "createdAtMs": 1788836228617,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "7fdf1db22741eaf83c0dadece85cc5abe31362101119dfd99ef2ea62865c5da7"
+    },
+    {
+      "id": "record-28",
+      "category": "资料与索引",
+      "title": "重解析文档",
+      "state": "completed",
+      "createdAtMs": 1788836253607,
+      "config": {},
+      "metrics": {
+        "documentCount": 209,
+        "attempted": 211,
+        "failed": 2
+      },
+      "sourceReceiptSha256": "d042157f0b64c252df9fdfe6452004a1ad95529f6f3b2a46bf7536ca2f36a594"
+    },
+    {
+      "id": "record-27",
+      "category": "资料与索引",
+      "title": "建立索引",
+      "state": "completed",
+      "createdAtMs": 1788836636926,
+      "config": {
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {
+        "documentCount": 209,
+        "chunkCount": 20017
+      },
+      "sourceReceiptSha256": "d5bcb9e7544f656ba6b1fdad2688d96790c0de6b29ef2e08686e0f349c514523"
+    },
+    {
+      "id": "record-26",
+      "category": "资料与索引",
+      "title": "检索测试",
+      "state": "completed",
+      "createdAtMs": 1788836725923,
+      "config": {
+        "mode": "lexical",
+        "topK": 8,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {},
+      "sourceReceiptSha256": "1d17be23815d0550bd51f46bfbf5f9460477d0f665959d00b90667182616a61d"
+    },
+    {
+      "id": "record-52",
+      "category": "题集与校准",
+      "title": "准备评测题",
+      "state": "completed",
+      "createdAtMs": 1788837073002,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "b2e37cb2bd27bd30c791a4c2afad187c9846ea81a1654d330dcc9d10db5daeac"
+    },
+    {
+      "id": "record-25",
+      "category": "资料与索引",
+      "title": "建立索引",
+      "state": "completed",
+      "createdAtMs": 1788839938029,
+      "config": {
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "paper"
+        }
+      },
+      "metrics": {
+        "documentCount": 209,
+        "chunkCount": 36708
+      },
+      "sourceReceiptSha256": "fcbf5ecd715482d8a9df5ab5e4d0b1be07debe2932cf45b2438ce3ebe9772568"
+    },
+    {
+      "id": "record-63",
+      "category": "应用版本",
+      "title": "深度研究 v1",
+      "state": "saved",
+      "createdAtMs": 1788840270317,
+      "config": {
+        "workflow": {}
+      },
+      "metrics": {
+        "version": 1,
+        "sourceCount": 209,
+        "chunkCount": 36708,
+        "fileCount": 10
+      },
+      "sourceReceiptSha256": "adf5c30b38220f0ed3c3930c8d49bb1d047a6dff0de14d65f5ffbb91a2f89386"
+    },
+    {
+      "id": "record-62",
+      "category": "应用版本",
+      "title": "深度研究 v2",
+      "state": "saved",
+      "createdAtMs": 1788841745400,
+      "config": {
+        "workflow": {
+          "kind": "bilingual_multiquery",
+          "maxQueries": 4
+        }
+      },
+      "metrics": {
+        "version": 2,
+        "sourceCount": 209,
+        "chunkCount": 36708,
+        "fileCount": 10
+      },
+      "sourceReceiptSha256": "dab786bd73b0190824f49439124280d4c2aa499af548618f2ae39d735f677d28"
+    },
+    {
+      "id": "record-51",
+      "category": "题集与校准",
+      "title": "校准评审",
+      "state": "completed",
+      "createdAtMs": 1788842974225,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "8c46cf20775a0ce2d0077a58e9eae46443cefd91ea702b07902533b5820919d4"
+    },
+    {
+      "id": "record-24",
+      "category": "题集与校准",
+      "title": "复用冻结题集",
+      "state": "completed",
+      "createdAtMs": 1788843383224,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "1f4af1c87b112d7752b9ce005d69890f811c25e7288c236c0c23a43008e77652"
+    },
+    {
+      "id": "record-23",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "completed",
+      "createdAtMs": 1788843457357,
+      "config": {
+        "mode": "lexical",
+        "topK": 8,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {
+        "evaluatedCount": 37,
+        "plannedCount": 37,
+        "split": "development",
+        "embeddingQueryCalls": 0,
+        "rerankerCalls": 0,
+        "answerModelCalls": 0,
+        "recall": 0.14864864864864866,
+        "ndcg": 0.12634468930838674,
+        "mrr": 0.12837837837837837,
+        "meanRetrievalLatencyMs": 28.743,
+        "corpusHash": "f6fddbcec1ab5cfa4985b83a4c637f30cb5a242c92cdbb00e47e886f5e3ff14a",
+        "datasetHash": "b56b61a2236bed336cbf9a120c15c127c62681d24fdd22be4a225b5f9a7fa528"
+      },
+      "sourceReceiptSha256": "d28e6f3751cc3de831be1b15b77807e5676f9c8c943a039e2f6adc056f33c32b"
+    },
+    {
+      "id": "record-22",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "completed",
+      "createdAtMs": 1788843502811,
+      "config": {
+        "mode": "lexical",
+        "topK": 8,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "paper"
+        }
+      },
+      "metrics": {
+        "evaluatedCount": 37,
+        "plannedCount": 37,
+        "split": "development",
+        "embeddingQueryCalls": 0,
+        "rerankerCalls": 0,
+        "answerModelCalls": 0,
+        "recall": 0.14864864864864866,
+        "ndcg": 0.12323086008439581,
+        "mrr": 0.125,
+        "meanRetrievalLatencyMs": 66.581,
+        "corpusHash": "f6fddbcec1ab5cfa4985b83a4c637f30cb5a242c92cdbb00e47e886f5e3ff14a",
+        "datasetHash": "b56b61a2236bed336cbf9a120c15c127c62681d24fdd22be4a225b5f9a7fa528"
+      },
+      "sourceReceiptSha256": "a519c56023c2d178a85016bf493bf2aae04d254c286db5b479b7a466acd1f7bc"
+    },
+    {
+      "id": "record-21",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "completed",
+      "createdAtMs": 1788843636977,
+      "config": {
+        "mode": "lexical",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {
+        "evaluatedCount": 37,
+        "plannedCount": 37,
+        "split": "development",
+        "embeddingQueryCalls": 0,
+        "rerankerCalls": 0,
+        "answerModelCalls": 0,
+        "recall": 0.20270270270270271,
+        "ndcg": 0.14389880666708227,
+        "mrr": 0.13586278586278586,
+        "meanRetrievalLatencyMs": 29.6,
+        "corpusHash": "f6fddbcec1ab5cfa4985b83a4c637f30cb5a242c92cdbb00e47e886f5e3ff14a",
+        "datasetHash": "b56b61a2236bed336cbf9a120c15c127c62681d24fdd22be4a225b5f9a7fa528"
+      },
+      "sourceReceiptSha256": "98bc8090a89e3469b0ca978c06c77773658b3cc6aee468e679a7825aba0195d3"
+    },
+    {
+      "id": "record-20",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "completed",
+      "createdAtMs": 1788843935646,
+      "config": {
+        "mode": "lexical",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {
+        "evaluatedCount": 11,
+        "plannedCount": 11,
+        "split": "holdout",
+        "embeddingQueryCalls": 0,
+        "rerankerCalls": 0,
+        "answerModelCalls": 0,
+        "recall": 0.18181818181818182,
+        "ndcg": 0.11471450064935591,
+        "mrr": 0.09090909090909091,
+        "meanRetrievalLatencyMs": 47.496,
+        "corpusHash": "f6fddbcec1ab5cfa4985b83a4c637f30cb5a242c92cdbb00e47e886f5e3ff14a",
+        "datasetHash": "b56b61a2236bed336cbf9a120c15c127c62681d24fdd22be4a225b5f9a7fa528"
+      },
+      "sourceReceiptSha256": "c98bc4cf6d7825b8933211c31d1e0a7569fda98fa4aa47e0dd8ff94a2f2ee8d2"
+    },
+    {
+      "id": "record-19",
+      "category": "资料与索引",
+      "title": "检索测试",
+      "state": "completed",
+      "createdAtMs": 1788844026097,
+      "config": {
+        "mode": "lexical",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {},
+      "sourceReceiptSha256": "de312cea2c73296d42b1ddf4a996db545f1d09ad20a07bb2da31eac79da3e97f"
+    },
+    {
+      "id": "record-18",
+      "category": "资料与索引",
+      "title": "检索测试",
+      "state": "completed",
+      "createdAtMs": 1788844026124,
+      "config": {
+        "mode": "lexical",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {},
+      "sourceReceiptSha256": "0c674c4521725c815ec80e7a6176948dc02fdeed68a792b0b217787ee1822c73"
+    },
+    {
+      "id": "record-50",
+      "category": "回答实验",
+      "title": "回答方案对比",
+      "state": "cancelled",
+      "createdAtMs": 1788849693625,
+      "config": {
+        "baseline": {},
+        "candidate": {}
+      },
+      "metrics": {
+        "holdoutValidated": false,
+        "partialAnswerRecords": 13
+      },
+      "sourceReceiptSha256": "35a5623828f2fe8f62974f28426cdb4e3b8044aa164223138ed5c59177f46f45"
+    },
+    {
+      "id": "record-49",
+      "category": "题集与校准",
+      "title": "校准评审",
+      "state": "completed",
+      "createdAtMs": 1788850394397,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "6c0a7efa075ccbb5d2ac684dfacd465e0878fcd07fc5575e35ccf7eaa664e165"
+    },
+    {
+      "id": "record-48",
+      "category": "题集与校准",
+      "title": "校准评审",
+      "state": "completed",
+      "createdAtMs": 1788856617104,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "89a4da53ad15d936518080747321e7825788c9e106a728dc79d553b7d99c5fac"
+    },
+    {
+      "id": "record-47",
+      "category": "回答实验",
+      "title": "回答方案对比",
+      "state": "cancelled",
+      "createdAtMs": 1788857080884,
+      "config": {
+        "baseline": {},
+        "candidate": {}
+      },
+      "metrics": {
+        "holdoutValidated": false,
+        "partialAnswerRecords": 12
+      },
+      "sourceReceiptSha256": "a733aa0269ddc62c9b70eede4e1197840b50a828573072bc41811eddef281018"
+    },
+    {
+      "id": "record-17",
+      "category": "资料与索引",
+      "title": "检索测试",
+      "state": "completed",
+      "createdAtMs": 1788860323507,
+      "config": {
+        "mode": "lexical",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {},
+      "sourceReceiptSha256": "369aab5777548b1111fed44f053d9c90dd30421c721d21695caef03cfee811a5"
+    },
+    {
+      "id": "record-16",
+      "category": "资料与索引",
+      "title": "检索测试",
+      "state": "completed",
+      "createdAtMs": 1788860351443,
+      "config": {
+        "mode": "lexical",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {},
+      "sourceReceiptSha256": "a08ea9db60827109064c2dfaab230035fc916ca8794484d3e2d8bb166ca3e472"
+    },
+    {
+      "id": "record-61",
+      "category": "应用版本",
+      "title": "深度研究 v3",
+      "state": "saved",
+      "createdAtMs": 1788861331513,
+      "config": {
+        "workflow": {
+          "kind": "bilingual_multiquery",
+          "maxQueries": 4
+        }
+      },
+      "metrics": {
+        "version": 3,
+        "sourceCount": 209,
+        "chunkCount": 20017,
+        "fileCount": 10
+      },
+      "sourceReceiptSha256": "7d41b4a088063180c5b74366d05243e66be5f533572167ac45e5e1f3db168274"
+    },
+    {
+      "id": "record-72",
+      "category": "应用调用",
+      "title": "深度研究 v3 调用",
+      "state": "completed",
+      "createdAtMs": 1788861525330,
+      "config": {
+        "model": "gpt-5.6-luna",
+        "thinkingLevel": "max"
+      },
+      "metrics": {
+        "sourceRecords": 19,
+        "usage": {
+          "inputTokens": 2248,
+          "outputTokens": 1185,
+          "totalTokens": 22377,
+          "cacheReadTokens": 18944,
+          "cacheWriteTokens": 0
+        }
+      },
+      "sourceReceiptSha256": "2ff3fe3cadcc10899fc7c7e4a13a2ab764d1849db77139e85324502ec0ba4c8c"
+    },
+    {
+      "id": "record-60",
+      "category": "应用版本",
+      "title": "深度研究 v4",
+      "state": "saved",
+      "createdAtMs": 1788863008795,
+      "config": {
+        "workflow": {
+          "kind": "bilingual_multiquery",
+          "maxQueries": 4
+        }
+      },
+      "metrics": {
+        "version": 4,
+        "sourceCount": 209,
+        "chunkCount": 20017,
+        "fileCount": 10
+      },
+      "sourceReceiptSha256": "a93e8e5cee316c4311ae2f3dcf0ec85f59577eab4926f368c64118afa9587f05"
+    },
+    {
+      "id": "record-71",
+      "category": "应用调用",
+      "title": "深度研究 v4 调用",
+      "state": "completed",
+      "createdAtMs": 1788863372268,
+      "config": {
+        "model": "gpt-5.6-luna",
+        "thinkingLevel": "max"
+      },
+      "metrics": {
+        "sourceRecords": 22,
+        "usage": {
+          "inputTokens": 1383,
+          "outputTokens": 3794,
+          "totalTokens": 25145,
+          "cacheReadTokens": 19968,
+          "cacheWriteTokens": 0
+        }
+      },
+      "sourceReceiptSha256": "1a5dc619af803fca2fd0919f0106bdfbfa03dd0f5870c395c7767b6447786ee2"
+    },
+    {
+      "id": "record-46",
+      "category": "回答实验",
+      "title": "回答方案对比",
+      "state": "interrupted",
+      "createdAtMs": 1788863630255,
+      "config": {
+        "baseline": {},
+        "candidate": {}
+      },
+      "metrics": {
+        "holdoutValidated": false,
+        "partialAnswerRecords": 14
+      },
+      "sourceReceiptSha256": "7f3cf92a5833e54ab0567ebb86ec4ff411b78717ebf2a1473d5fa9711127068a"
+    },
+    {
+      "id": "record-70",
+      "category": "应用调用",
+      "title": "深度研究 v4 调用",
+      "state": "completed",
+      "createdAtMs": 1788863813384,
+      "config": {
+        "model": "gpt-5.6-luna",
+        "thinkingLevel": "max"
+      },
+      "metrics": {
+        "sourceRecords": 16,
+        "usage": {
+          "inputTokens": 18329,
+          "outputTokens": 2352,
+          "totalTokens": 20681,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 0
+        }
+      },
+      "sourceReceiptSha256": "c212ea7a310568dd77ab41225fa8f6fe25a4d7c911cd8bf0936efc895e06f3a5"
+    },
+    {
+      "id": "record-69",
+      "category": "应用调用",
+      "title": "深度研究 v4 调用",
+      "state": "completed",
+      "createdAtMs": 1788864054127,
+      "config": {
+        "model": "gpt-5.6-luna",
+        "thinkingLevel": "max"
+      },
+      "metrics": {
+        "sourceRecords": 19,
+        "usage": {
+          "inputTokens": 17844,
+          "outputTokens": 757,
+          "totalTokens": 18601,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 0
+        }
+      },
+      "sourceReceiptSha256": "91e22496e6037f42cca41296124abf24610020c6bc780580a180f6c434fe98da"
+    },
+    {
+      "id": "record-59",
+      "category": "应用版本",
+      "title": "深度研究 v5",
+      "state": "saved",
+      "createdAtMs": 1788866331591,
+      "config": {
+        "workflow": {
+          "kind": "bilingual_multiquery",
+          "maxQueries": 4
+        }
+      },
+      "metrics": {
+        "version": 5,
+        "sourceCount": 209,
+        "chunkCount": 20017,
+        "fileCount": 10
+      },
+      "sourceReceiptSha256": "e66e357fe6fe1e80983617f7330a5e0c51a17d31cf3d44a3158d5d9a9fb7e57b"
+    },
+    {
+      "id": "record-15",
+      "category": "资料与索引",
+      "title": "建立索引",
+      "state": "completed",
+      "createdAtMs": 1788868978333,
+      "config": {
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {
+        "documentCount": 209,
+        "chunkCount": 20017
+      },
+      "sourceReceiptSha256": "17e94654d9e5a492e6d4d25bf3e6f09efeb94f04c7dce62e3dbf490ebb38653c"
+    },
+    {
+      "id": "record-14",
+      "category": "资料与索引",
+      "title": "检索测试",
+      "state": "completed",
+      "createdAtMs": 1788869619713,
+      "config": {
+        "mode": "dense",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {},
+      "sourceReceiptSha256": "85de9055b8f19dcbc9a4067a585f4e0b2c0abd71e9c94ed3543af779813fe00c"
+    },
+    {
+      "id": "record-13",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "completed",
+      "createdAtMs": 1788869752818,
+      "config": {
+        "mode": "dense",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {
+        "evaluatedCount": 37,
+        "plannedCount": 37,
+        "split": "development",
+        "embeddingQueryCalls": 37,
+        "rerankerCalls": 0,
+        "answerModelCalls": 0,
+        "recall": 0.5675675675675675,
+        "ndcg": 0.41871233816334424,
+        "mrr": 0.3863883113883114,
+        "meanRetrievalLatencyMs": 1837.916,
+        "corpusHash": "f6fddbcec1ab5cfa4985b83a4c637f30cb5a242c92cdbb00e47e886f5e3ff14a",
+        "datasetHash": "b56b61a2236bed336cbf9a120c15c127c62681d24fdd22be4a225b5f9a7fa528"
+      },
+      "sourceReceiptSha256": "8d60e5f236af9c2807aa59628f4953d9665bc21aef0e4e05863f430de98101da"
+    },
+    {
+      "id": "record-12",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "completed",
+      "createdAtMs": 1788869908785,
+      "config": {
+        "mode": "hybrid",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {
+        "evaluatedCount": 37,
+        "plannedCount": 37,
+        "split": "development",
+        "embeddingQueryCalls": 37,
+        "rerankerCalls": 0,
+        "answerModelCalls": 0,
+        "recall": 0.581081081081081,
+        "ndcg": 0.4087241513214653,
+        "mrr": 0.37662855162855163,
+        "meanRetrievalLatencyMs": 1876.607,
+        "corpusHash": "f6fddbcec1ab5cfa4985b83a4c637f30cb5a242c92cdbb00e47e886f5e3ff14a",
+        "datasetHash": "b56b61a2236bed336cbf9a120c15c127c62681d24fdd22be4a225b5f9a7fa528"
+      },
+      "sourceReceiptSha256": "9e23a1d5c839a19ff1fe1526ea0954e09a592b79e556e573a772ba3cc53f7823"
+    },
+    {
+      "id": "record-11",
+      "category": "资料与索引",
+      "title": "建立索引",
+      "state": "completed",
+      "createdAtMs": 1788870183539,
+      "config": {
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "paper"
+        }
+      },
+      "metrics": {
+        "documentCount": 209,
+        "chunkCount": 36708
+      },
+      "sourceReceiptSha256": "aa5e738ce74f92503b843ce2a5f62c03815db3e78799a3c1aa6cd10e0d9ee441"
+    },
+    {
+      "id": "record-10",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "completed",
+      "createdAtMs": 1788871246108,
+      "config": {
+        "mode": "hybrid",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "paper"
+        }
+      },
+      "metrics": {
+        "evaluatedCount": 37,
+        "plannedCount": 37,
+        "split": "development",
+        "embeddingQueryCalls": 37,
+        "rerankerCalls": 0,
+        "answerModelCalls": 0,
+        "recall": 0.5540540540540541,
+        "ndcg": 0.3902688182830377,
+        "mrr": 0.3611952611952612,
+        "meanRetrievalLatencyMs": 3883.79,
+        "corpusHash": "f6fddbcec1ab5cfa4985b83a4c637f30cb5a242c92cdbb00e47e886f5e3ff14a",
+        "datasetHash": "b56b61a2236bed336cbf9a120c15c127c62681d24fdd22be4a225b5f9a7fa528"
+      },
+      "sourceReceiptSha256": "a7e755aeacab6af6f9aaf9c3d1f1702edadaf736a2839c6c61f73133c2fdeb07"
+    },
+    {
+      "id": "record-9",
+      "category": "资料与索引",
+      "title": "建立索引",
+      "state": "completed",
+      "createdAtMs": 1788871566215,
+      "config": {
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "general"
+        }
+      },
+      "metrics": {
+        "documentCount": 209,
+        "chunkCount": 23695
+      },
+      "sourceReceiptSha256": "0d8bd55c3797af1b37e0f7631d38eb270e239ed703ec6a8b617ffa40a5068696"
+    },
+    {
+      "id": "record-8",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "completed",
+      "createdAtMs": 1788872108011,
+      "config": {
+        "mode": "hybrid",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "general"
+        }
+      },
+      "metrics": {
+        "evaluatedCount": 37,
+        "plannedCount": 37,
+        "split": "development",
+        "embeddingQueryCalls": 37,
+        "rerankerCalls": 0,
+        "answerModelCalls": 0,
+        "recall": 0.5135135135135135,
+        "ndcg": 0.41803794282812323,
+        "mrr": 0.4108108108108108,
+        "meanRetrievalLatencyMs": 3039.527,
+        "corpusHash": "f6fddbcec1ab5cfa4985b83a4c637f30cb5a242c92cdbb00e47e886f5e3ff14a",
+        "datasetHash": "b56b61a2236bed336cbf9a120c15c127c62681d24fdd22be4a225b5f9a7fa528"
+      },
+      "sourceReceiptSha256": "aa9995777c8ab7a1884cb93591dba52b95f10c978f4d31f3386c22133b23a20e"
+    },
+    {
+      "id": "record-7",
+      "category": "资料与索引",
+      "title": "建立索引",
+      "state": "completed",
+      "createdAtMs": 1788875100178,
+      "config": {
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {
+        "documentCount": 209,
+        "chunkCount": 20017
+      },
+      "sourceReceiptSha256": "b359c07d3c8665516f9a242a309957a03d3dcdae8ed318ab7c68cfed06b77a3f"
+    },
+    {
+      "id": "record-6",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "completed",
+      "createdAtMs": 1788876928090,
+      "config": {
+        "mode": "dense",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {
+        "evaluatedCount": 37,
+        "plannedCount": 37,
+        "split": "development",
+        "embeddingQueryCalls": 37,
+        "rerankerCalls": 0,
+        "answerModelCalls": 0,
+        "recall": 0.7837837837837838,
+        "ndcg": 0.5326327287056006,
+        "mrr": 0.47452907452907456,
+        "meanRetrievalLatencyMs": 2936.01,
+        "corpusHash": "f6fddbcec1ab5cfa4985b83a4c637f30cb5a242c92cdbb00e47e886f5e3ff14a",
+        "datasetHash": "b56b61a2236bed336cbf9a120c15c127c62681d24fdd22be4a225b5f9a7fa528"
+      },
+      "sourceReceiptSha256": "eddbc5e42dc010bb147d29ff4aff863e4a2f0f60c698886f16e70cbcea27918c"
+    },
+    {
+      "id": "record-5",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "completed",
+      "createdAtMs": 1788877084046,
+      "config": {
+        "mode": "hybrid",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 40,
+        "threshold": 0,
+        "rerank": false,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {
+        "evaluatedCount": 37,
+        "plannedCount": 37,
+        "split": "development",
+        "embeddingQueryCalls": 37,
+        "rerankerCalls": 0,
+        "answerModelCalls": 0,
+        "recall": 0.8243243243243243,
+        "ndcg": 0.5337338722278249,
+        "mrr": 0.47205159705159705,
+        "meanRetrievalLatencyMs": 2983.089,
+        "corpusHash": "f6fddbcec1ab5cfa4985b83a4c637f30cb5a242c92cdbb00e47e886f5e3ff14a",
+        "datasetHash": "b56b61a2236bed336cbf9a120c15c127c62681d24fdd22be4a225b5f9a7fa528"
+      },
+      "sourceReceiptSha256": "4d0bf5e42c2004633f8cd9a8925a8bfcb777852142d4c8bdb439566a1a553e6b"
+    },
+    {
+      "id": "record-45",
+      "category": "题集与校准",
+      "title": "校准评审",
+      "state": "completed",
+      "createdAtMs": 1788877989320,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "5d3be17c44c42c0c622c34acc96869c987dcf8ee6da0a0f4744447d415f97bb2"
+    },
+    {
+      "id": "record-58",
+      "category": "应用版本",
+      "title": "深度研究 v6",
+      "state": "saved",
+      "createdAtMs": 1788878075321,
+      "config": {
+        "workflow": {
+          "kind": "adaptive_research"
+        }
+      },
+      "metrics": {
+        "version": 6,
+        "sourceCount": 209,
+        "chunkCount": 20017,
+        "fileCount": 14
+      },
+      "sourceReceiptSha256": "d342ad911b8216e1b4047a170387beead81c03c489a098802cf7082563ecd962"
+    },
+    {
+      "id": "record-68",
+      "category": "应用调用",
+      "title": "深度研究 v6 调用",
+      "state": "completed",
+      "createdAtMs": 1788878537721,
+      "config": {
+        "model": "gpt-5.6-luna",
+        "thinkingLevel": "max"
+      },
+      "metrics": {
+        "sourceRecords": 0,
+        "usage": {
+          "inputTokens": 21923,
+          "outputTokens": 4028,
+          "totalTokens": 58719,
+          "cacheReadTokens": 32768,
+          "cacheWriteTokens": 0
+        }
+      },
+      "sourceReceiptSha256": "db8e808e623305b6e87d83931ea36f1036770abd6141b70ef1af459c15f82b41"
+    },
+    {
+      "id": "record-57",
+      "category": "应用版本",
+      "title": "深度研究 v7",
+      "state": "saved",
+      "createdAtMs": 1788881333414,
+      "config": {
+        "workflow": {
+          "kind": "adaptive_research"
+        }
+      },
+      "metrics": {
+        "version": 7,
+        "sourceCount": 209,
+        "chunkCount": 20017,
+        "fileCount": 14
+      },
+      "sourceReceiptSha256": "cfe066f1971c200c0bc19e5ee2cb5165d4f63ac3f93a9de2c9f3cad2cf0a1d62"
+    },
+    {
+      "id": "record-67",
+      "category": "应用调用",
+      "title": "深度研究 v7 调用",
+      "state": "completed",
+      "createdAtMs": 1788881526555,
+      "config": {
+        "model": "gpt-5.6-luna",
+        "thinkingLevel": "max"
+      },
+      "metrics": {
+        "sourceRecords": 9,
+        "usage": {
+          "inputTokens": 12311,
+          "outputTokens": 1095,
+          "totalTokens": 26718,
+          "cacheReadTokens": 13312,
+          "cacheWriteTokens": 0
+        }
+      },
+      "sourceReceiptSha256": "49fbca2de48c316e08489e63f068467a1c608e278308a6274fe9fdf0e15933c1"
+    },
+    {
+      "id": "record-44",
+      "category": "题集与校准",
+      "title": "校准评审",
+      "state": "completed",
+      "createdAtMs": 1788908666494,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "0566d46af6e4749da1321b0818b31a744e9430c2238cde575c93f2b0bce1e291"
+    },
+    {
+      "id": "record-43",
+      "category": "回答实验",
+      "title": "回答方案对比",
+      "state": "failed",
+      "createdAtMs": 1788909414588,
+      "config": {
+        "baseline": {},
+        "candidate": {}
+      },
+      "metrics": {
+        "holdoutValidated": false,
+        "partialAnswerRecords": 2
+      },
+      "sourceReceiptSha256": "04ab9b3e0be63548b9a0e6457a309179c8de8bf82d15302e1354055597a2e48e"
+    },
+    {
+      "id": "record-56",
+      "category": "应用版本",
+      "title": "深度研究 v8",
+      "state": "saved",
+      "createdAtMs": 1788909611073,
+      "config": {
+        "workflow": {
+          "kind": "adaptive_research"
+        }
+      },
+      "metrics": {
+        "version": 8,
+        "sourceCount": 209,
+        "chunkCount": 20017,
+        "fileCount": 14
+      },
+      "sourceReceiptSha256": "14c976755ad0d8585840e779d11110455f3d4e805dcc5bedca2f98d9f7db0017"
+    },
+    {
+      "id": "record-42",
+      "category": "回答实验",
+      "title": "回答方案对比",
+      "state": "cancelled",
+      "createdAtMs": 1788910827864,
+      "config": {
+        "baseline": {},
+        "candidate": {}
+      },
+      "metrics": {
+        "holdoutValidated": false,
+        "partialAnswerRecords": 2
+      },
+      "sourceReceiptSha256": "4d1a3b866d0df84891e7d6ecf8abb493ad0740bf068b6be1e7c387ec48a1765b"
+    },
+    {
+      "id": "record-41",
+      "category": "题集与校准",
+      "title": "校准评审",
+      "state": "completed",
+      "createdAtMs": 1788911663211,
+      "config": {},
+      "metrics": {},
+      "sourceReceiptSha256": "1ea4c4ae507c3ec30de0093b2784fa2d4e23130e126ab392c234bd572e077c4b"
+    },
+    {
+      "id": "record-40",
+      "category": "回答实验",
+      "title": "回答方案对比",
+      "state": "completed",
+      "createdAtMs": 1788912207070,
+      "config": {
+        "baseline": {
+          "model": "gpt-5.6-luna",
+          "thinkingLevel": "max"
+        },
+        "candidate": {
+          "model": "gpt-5.6-luna",
+          "thinkingLevel": "max"
+        }
+      },
+      "metrics": {
+        "baselineMetrics": {
+          "passRate": 0.5,
+          "passed": 1,
+          "total": 2
+        },
+        "candidateMetrics": {
+          "passRate": 0.5,
+          "passed": 1,
+          "total": 2
+        },
+        "holdoutValidated": false
+      },
+      "sourceReceiptSha256": "7b86ae230e73175f346fb8d3a90377d410fc4f31ebdac4ce57cfb6c604b731d1"
+    },
+    {
+      "id": "record-39",
+      "category": "回答实验",
+      "title": "回答方案对比",
+      "state": "completed",
+      "createdAtMs": 1788913179878,
+      "config": {
+        "baseline": {
+          "model": "gpt-5.6-luna",
+          "thinkingLevel": "max"
+        },
+        "candidate": {
+          "model": "gpt-5.6-luna",
+          "thinkingLevel": "max"
+        }
+      },
+      "metrics": {
+        "baselineMetrics": {
+          "passRate": 0.0,
+          "passed": 0,
+          "total": 1
+        },
+        "candidateMetrics": {
+          "passRate": 0.0,
+          "passed": 0,
+          "total": 1
+        },
+        "holdoutValidated": false
+      },
+      "sourceReceiptSha256": "d94ef7b308948a6950e6dff026fc067fc97a64231233826032422c6135e73bd1"
+    },
+    {
+      "id": "record-4",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "interrupted",
+      "createdAtMs": 1788914295467,
+      "config": {
+        "mode": "hybrid",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 80,
+        "threshold": 0,
+        "rerank": true,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {},
+      "sourceReceiptSha256": "d7462d7e81d07a7de2c15713ec4426d29b459a5eef9816f97f3778916424f5ae"
+    },
+    {
+      "id": "record-3",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "interrupted",
+      "createdAtMs": 1788915458743,
+      "config": {
+        "mode": "hybrid",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 80,
+        "threshold": 0,
+        "rerank": true,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {},
+      "sourceReceiptSha256": "7f3a1c2990f4b84448c668a71495ade4689149c7f204a5fe126d319c5cb5d59d"
+    },
+    {
+      "id": "record-2",
+      "category": "检索评测",
+      "title": "检索评测",
+      "state": "interrupted",
+      "createdAtMs": 1788915719875,
+      "config": {
+        "mode": "hybrid",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 80,
+        "threshold": 0,
+        "rerank": true,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {},
+      "sourceReceiptSha256": "0dcc68ddc2ebaa60eca17843b3483b70a622712751c970eb658803d4b71bf2a8"
+    },
+    {
+      "id": "record-1",
+      "category": "资料与索引",
+      "title": "检索测试",
+      "state": "interrupted",
+      "createdAtMs": 1788915944672,
+      "config": {
+        "mode": "hybrid",
+        "topK": 16,
+        "contextChars": 16000,
+        "candidateDepth": 80,
+        "threshold": 0,
+        "rerank": true,
+        "chunking": {
+          "overlap": 120,
+          "size": 900,
+          "strategy": "fixed"
+        }
+      },
+      "metrics": {},
+      "sourceReceiptSha256": "9578db3d5018a67fcd1f05280879ef6934370a364cca30052478c88b00709a9f"
+    },
+    {
+      "id": "record-38",
+      "category": "回答实验",
+      "title": "回答方案对比",
+      "state": "completed",
+      "createdAtMs": 1788916352599,
+      "config": {
+        "baseline": {
+          "model": "gpt-5.6-luna",
+          "thinkingLevel": "high"
+        },
+        "candidate": {
+          "model": "gpt-5.6-luna",
+          "thinkingLevel": "high"
+        }
+      },
+      "metrics": {
+        "baselineMetrics": {
+          "passRate": null,
+          "passed": 0,
+          "total": 1
+        },
+        "candidateMetrics": {
+          "passRate": 0.0,
+          "passed": 0,
+          "total": 1
+        },
+        "holdoutValidated": false
+      },
+      "sourceReceiptSha256": "0967fad25ae6f412d6d541407debfd62681194207ce5d512350d27b086a64215"
+    },
+    {
+      "id": "record-55",
+      "category": "应用版本",
+      "title": "深度研究 v9",
+      "state": "saved",
+      "createdAtMs": 1788919113021,
+      "config": {
+        "workflow": {
+          "kind": "adaptive_research"
+        }
+      },
+      "metrics": {
+        "version": 9,
+        "sourceCount": 209,
+        "chunkCount": 20017,
+        "fileCount": 15
+      },
+      "sourceReceiptSha256": "7edb3c93ffaf5f3a7af4a828daa372281491ed610d053e255a103113c9f6763f"
+    },
+    {
+      "id": "record-66",
+      "category": "应用调用",
+      "title": "深度研究 v9 调用",
+      "state": "completed",
+      "createdAtMs": 1788919274842,
+      "config": {
+        "model": "gpt-5.6-luna",
+        "thinkingLevel": "high"
+      },
+      "metrics": {
+        "sourceRecords": 28,
+        "usage": {
+          "inputTokens": 39322,
+          "outputTokens": 2769,
+          "totalTokens": 119915,
+          "cacheReadTokens": 77824,
+          "cacheWriteTokens": 0
+        }
+      },
+      "sourceReceiptSha256": "a5c987042dae88e9f9543e151d3712aa09560aea4edc6ddd9493f3bfab2eda58"
+    },
+    {
+      "id": "record-65",
+      "category": "应用调用",
+      "title": "深度研究 v9 调用",
+      "state": "completed",
+      "createdAtMs": 1788919680364,
+      "config": {
+        "model": "gpt-5.6-luna",
+        "thinkingLevel": "high"
+      },
+      "metrics": {
+        "sourceRecords": 8,
+        "usage": {
+          "inputTokens": 16038,
+          "outputTokens": 655,
+          "totalTokens": 41269,
+          "cacheReadTokens": 24576,
+          "cacheWriteTokens": 0
+        }
+      },
+      "sourceReceiptSha256": "071e0f59d03199e72d152e480b3159a95c45e87a8c7e79c57faf449464c34153"
+    },
+    {
+      "id": "record-54",
+      "category": "应用版本",
+      "title": "深度研究 v10",
+      "state": "saved",
+      "createdAtMs": 1788920650113,
+      "config": {
+        "workflow": {
+          "kind": "adaptive_research"
+        }
+      },
+      "metrics": {
+        "version": 10,
+        "sourceCount": 209,
+        "chunkCount": 20017,
+        "fileCount": 15
+      },
+      "sourceReceiptSha256": "2aae5a3796b0edf4ce274df0b4ba5123afe8a9e7bf814af6ba8fd4ff20a51670"
+    },
+    {
+      "id": "record-53",
+      "category": "应用版本",
+      "title": "深度研究 v11",
+      "state": "saved",
+      "createdAtMs": 1788921213117,
+      "config": {
+        "workflow": {
+          "kind": "adaptive_research"
+        }
+      },
+      "metrics": {
+        "version": 11,
+        "sourceCount": 209,
+        "chunkCount": 20017,
+        "fileCount": 15
+      },
+      "sourceReceiptSha256": "4e78ef28382920dd0704e53d87a9f00f81e20beae00f731922d161fc2baefd47"
+    },
+    {
+      "id": "record-64",
+      "category": "应用调用",
+      "title": "深度研究 v11 调用",
+      "state": "completed",
+      "createdAtMs": 1788921370860,
+      "config": {
+        "model": "gpt-5.6-luna",
+        "thinkingLevel": "high"
+      },
+      "metrics": {
+        "sourceRecords": 29,
+        "usage": {
+          "inputTokens": 38986,
+          "outputTokens": 3920,
+          "totalTokens": 86938,
+          "cacheReadTokens": 44032,
+          "cacheWriteTokens": 0
+        }
+      },
+      "sourceReceiptSha256": "d562fd8563f866cafadbddca8c2bd39265119ad35fcdf8fb332674b83daba687"
+    }
+  ],
+  "categories": {
+    "资料与索引": 18,
+    "阅读记录": 5,
+    "题集与校准": 8,
+    "应用版本": 11,
+    "检索评测": 13,
+    "回答实验": 8,
+    "应用调用": 9
+  }
+}

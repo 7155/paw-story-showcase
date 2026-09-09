@@ -4,20 +4,31 @@ import { labConnectionKey, requestLabControl } from '../control-request';
 import { object, type JsonValue } from './types';
 import type { ControlTransport } from '@/platform/transport';
 import { projectCommandRejected, projectError } from './api';
+import { parseSourceRead, type SourceLocator, type SourceRead } from '@/features/agent/portable/SourceReader';
+import type { ResearchWorkflow } from './knowledge-types';
 
 export type LabAppAction = { id: string; title: string; prompt: string; kind?: 'completion' | 'retrieval'; inputSchema: Record<string, JsonValue> };
+export type LabAppUsage = Record<string, JsonValue>;
+export type LabAppCallResult = { text?: string; sources?: JsonValue[]; knowledge?: Record<string, JsonValue>;
+  retrievalHits?: JsonValue[]; usage?: LabAppUsage; assistantUsage?: LabAppUsage; usageScopes?: LabAppUsage;
+  stageReceipts?: LabAppUsage; usageScope?: string; receipt?: LabAppUsage };
+export type LabAppCallProgress = { stage?: string; events?: { stage: string; atMs: number }[]; text?: string;
+  sources?: JsonValue[]; knowledge?: Record<string, JsonValue>; retrievalHits?: JsonValue[]; usage?: LabAppUsage;
+  assistantUsage?: LabAppUsage; usageScopes?: LabAppUsage; stageReceipts?: LabAppUsage; usageScope?: string;
+  streamPartial?: boolean; startedAtMs?: number; updatedAtMs?: number };
 export type LabAppSpec = { title: string; description: string; html: string; skill: string; context: string[];
   model: { provider: string; model: string; thinkingLevel: string }; actions: LabAppAction[];
-  externalWorkspace?: { title: string; url: string };
-  knowledge?: { documentCount: number; sourceCount: number; chunkCount: number; profile: { mode: string; topK: number; contextChars: number }; sourceIndexId: string; snapshotSha256: string } };
+  externalWorkspace?: { title: string; url: string; presentation?: 'tabs' | 'split' };
+  appearance?: { accent: string; icon: { symbol: string; background: string }; colorScheme?: 'inherit' | 'light' | 'dark' };
+  knowledge?: { documentCount: number; sourceCount: number; chunkCount: number; profile: { mode: string; topK: number; contextChars: number }; sourceIndexId: string; snapshotSha256: string;
+    workflow?: ResearchWorkflow } };
 export type LabApp = { appId: string; projectId: string; title: string; description: string; revision: number;
   latestVersion: number; activeVersion: number | null; createdAtMs: number; updatedAtMs: number; installation?: unknown };
 export type LabAppVersion = { appId: string; version: number; spec: LabAppSpec; contentHash: string; html: string;
   fileCount: number; byteSize: number; createdAtMs: number; sourceFiles: { path: string; byteSize: number; sha256: string }[] };
-export type LabAppCall = { callId: string; appId: string; version: number; actionId: string; input: Record<string, JsonValue>;
+export type LabAppCall = { callId: string; appId: string; version: number; actionId: string; input: Record<string, JsonValue>; model?: LabAppSpec['model'];
   state: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled' | 'interrupted'; sessionId: string;
-  result: { text?: string; usage?: Record<string, JsonValue>; receipt?: Record<string, JsonValue> }; error: string;
-  progress?: { stage?: string; events?: { stage: string; atMs: number }[]; text?: string; sources?: JsonValue[]; knowledge?: Record<string, JsonValue>; streamPartial?: boolean; startedAtMs?: number; updatedAtMs?: number };
+  result: LabAppCallResult; error: string; progress?: LabAppCallProgress;
   cancelRequested: boolean; createdAtMs: number; updatedAtMs: number };
 export type LabAppRead = { ok: true; items: LabApp[]; app: LabApp | null; version?: LabAppVersion; versions?: LabAppVersion[]; calls?: LabAppCall[]; call?: LabAppCall };
 export type LabAppCommand = { appId: string; expectedRevision: number; clientRequestId: string;
@@ -41,6 +52,7 @@ export function parseLabAppRead(raw: unknown, appId = ''): LabAppRead {
         || !spec.actions.every((raw) => { const action = object(raw); return typeof action.id === 'string' && typeof action.title === 'string' && typeof action.prompt === 'string'; })) throw new Error('应用版本未完整返回。');
     if (spec.externalWorkspace !== undefined) {
       const workspace = object(spec.externalWorkspace);
+      if (workspace.presentation !== undefined && !['tabs', 'split'].includes(String(workspace.presentation))) throw new Error('应用工作台布局无效。');
       if (typeof workspace.title !== 'string' || !workspace.title.trim() || workspace.title.length > 100 || !externalWorkspaceUrl(workspace.url)) throw new Error('应用工作台地址未完整返回。');
     }
   }
@@ -78,6 +90,17 @@ export async function commandLabApp(transport: ControlTransport, command: LabApp
     throw error;
   }
 }
+export async function readLabAppSource(transport: ControlTransport, appId: string, version: number, contentHash: string,
+  locator: SourceLocator): Promise<SourceRead> {
+  if (![locator.sourceId, locator.chunkId, locator.snapshotSha256].every(value => typeof value === 'string' && value.length > 0 && value.length <= 500)
+      || (locator.offset !== undefined && (!Number.isSafeInteger(locator.offset) || locator.offset < 0 || locator.offset > 200000))) throw new Error('来源定位无效。');
+  const value = object(await requestLabControl(transport, { pathId: 'agent.eval-lab.apps.get', query: {
+    appId, version, sourceId: locator.sourceId, chunkId: locator.chunkId, snapshotSha256: locator.snapshotSha256,
+    ...(locator.offset !== undefined ? { sourceOffset: locator.offset } : {}),
+  } }));
+  if (value.ok !== true || value.appId !== appId || value.version !== version || value.contentHash !== contentHash) throw new Error('来源不属于当前冻结应用版本。');
+  return parseSourceRead(value.source, locator);
+}
 const appPendingKey = (transport: ControlTransport) => `paw.lab.app-commands.v1:${labConnectionKey(transport)}`;
 export function pendingLabAppCommands(transport: ControlTransport, appId: string): LabAppCommand[] {
   try {
@@ -99,7 +122,7 @@ function persistAppCommand(transport: ControlTransport, command: LabAppCommand, 
     sessionStorage.setItem(appPendingKey(transport), JSON.stringify(values));
   } catch { /* The mounted surface retains its original operation too. */ }
 }
-export async function downloadLabApp(transport: ControlTransport, appId: string, version: number, target: 'paw' | 'standalone'): Promise<void> {
+export async function downloadLabApp(transport: ControlTransport, appId: string, version: number, target: 'paw' | 'standalone'): Promise<{url:string;filename:string}> {
   const value = object(await requestLabControl(transport, { pathId: 'agent.eval-lab.apps.download', query: { appId, version, target } }));
   if (value.ok !== true || value.appId !== appId || value.version !== version || value.target !== target
       || typeof value.filename !== 'string' || typeof value.base64 !== 'string' || value.base64.length > 128_000_000
@@ -109,6 +132,7 @@ export async function downloadLabApp(transport: ControlTransport, appId: string,
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   if (Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('') !== value.sha256) throw new Error('应用包内容不完整，请重新下载。');
   const url = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' }));
-  const link = document.createElement('a'); link.href = url; link.download = value.filename; link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  const link = document.createElement('a'); link.href = url; link.download = value.filename; document.body.append(link);link.click();link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 600_000);
+  return {url,filename:value.filename};
 }

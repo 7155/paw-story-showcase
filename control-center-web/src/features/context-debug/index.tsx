@@ -591,7 +591,7 @@ function ContextAssemblyOverview({
         <div><dt>模型</dt><dd>{modelLabel(context.model)}</dd></div>
         <div><dt>最终消息</dt><dd>{providerMessages.length} 条</dd></div>
         <div><dt>本轮调用</dt><dd>{context.modelCalls.length} 次</dd></div>
-        <div><dt>上下文用量</dt><dd>{tokenCount === undefined ? '未报告' : `${tokenCount.toLocaleString('zh-CN')} 词元`}</dd></div>
+        <div><dt>上下文用量</dt><dd>{tokenCount === undefined ? '未报告' : `${tokenCount.toLocaleString('zh-CN')} token`}</dd></div>
         <div><dt>累计变化</dt><dd>+{messageChanges.added} / -{messageChanges.removed}</dd></div>
       </dl>
       <ol className="context-debug-assembly__layers" aria-label="本轮上下文装配顺序">
@@ -1070,8 +1070,8 @@ function ContextXraySummary({ call, context, telemetry }: { call?: DebugModelCal
       <XrayMetric label="本轮新增" value={dynamicTail} suffix="条" />
       <XrayMetric label="已封存" value={sealed} suffix="条" />
       <XrayMetric label="待处理" value={pending} suffix="条" />
-      <XrayMetric label="缓存读取" value={cacheRead} suffix="词元" />
-      <XrayMetric label="缓存写入" value={cacheWrite} suffix="词元" />
+      <XrayMetric label="缓存读取" value={cacheRead} suffix="token" />
+      <XrayMetric label="缓存写入" value={cacheWrite} suffix="token" />
     </dl>
     <div className="context-xray-summary__states"><span><strong>缓存状态</strong><small>{cacheEvidence ? cacheEvidence.capability === 'unsupported' ? '模型服务未报告' : cacheEvidence.cacheReadTokens > 0 ? '可用 · 已命中' : '可用 · 未命中' : '尚未收到状态'}</small></span><span><strong>压缩与恢复</strong><small>{compaction || '未报告'} / {recovery || '未报告'}</small></span><span><strong>本轮变化</strong><small>{call ? `共同前缀 ${call.contextDelta.commonPrefixMessages} 条${call.contextDelta.prefixBytes !== undefined ? ` / ${call.contextDelta.prefixBytes} 字节` : ''} · 新增 ${call.contextDelta.addedMessageCount} 条 · 移除 ${call.contextDelta.removedMessageCount} 条` : '暂无模型调用'}</small></span></div>
     <p>正文默认隐藏。打开下方逐次上下文后，可按发生顺序阅读；完整请求和原始结构仍需就地展开。</p>

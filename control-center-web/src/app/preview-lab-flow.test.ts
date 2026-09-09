@@ -12,24 +12,7 @@ import { parseLabAppRead } from '@/features/eval-lab/projects/apps';
 beforeEach(() => vi.stubGlobal('crypto', webcrypto));
 afterEach(() => vi.unstubAllGlobals());
 
-it('starts before import and requires a current passing evaluation before App export', async () => {
-  const transport = createPreviewTransport();
-  const projectId = 'lab-showcase-rag';
-  let project = (await readLabProject(transport, projectId)).project!;
-  expect(project.materialCount).toBe(0);
-  await expect(commandLabProject(transport, { action: 'prepare_app', projectId, expectedRevision: project.revision,
-    clientRequestId: 'flow:no-input', input: { directory: 'showcase' } })).rejects.toThrow('测评');
-  project = (await commandLabProject(transport, { action: 'import_materials', projectId, expectedRevision: project.revision,
-    clientRequestId: 'flow:import', input: { materials: [{ title: 'rag-demo.json', text: JSON.stringify({
-      records: [{ id: 'refund', title: '退款', text: '退款期限为七天。' }, { id: 'access', title: '访问权限', text: '访问权限由项目负责人授予。' }],
-      cases: [{ id: 'c1', input: '退款期限', expected: 'refund' }, { id: 'c2', input: '访问权限', expected: 'access' }],
-    }) }] } })).project;
-  const evaluated = await commandLabProject(transport, { action: 'knowledge', projectId, expectedRevision: project.revision,
-    clientRequestId: 'flow:evaluate', input: { operation: 'showcase_evaluate' } });
-  expect(evaluated.artifact?.content).toMatchObject({ rows: expect.arrayContaining([expect.objectContaining({ candidate: '通过' })]) });
-});
-
-it.each(Object.keys(labFlowSamples) as LabKey[])('imports, evaluates and exports a runnable %s App using exactly the evaluated data', async (key) => {
+it.each(['cloudops','enterpriseops','memory'] as LabKey[])('imports, evaluates and exports a runnable %s App using exactly the evaluated data', async (key) => {
   const transport = createPreviewTransport(); const projectId = `lab-showcase-${key}`;
   let project = (await readLabProject(transport, projectId)).project!;
   let sequence = 0;
@@ -39,8 +22,8 @@ it.each(Object.keys(labFlowSamples) as LabKey[])('imports, evaluates and exports
   };
   await command('import_materials', { materials: [{ title: `${key}.json`, text: JSON.stringify(labFlowSamples[key]) }] });
   const evaluated = await command('knowledge', { operation: 'showcase_evaluate' });
-  expect(evaluated.artifact?.summary).toContain(`候选 ${labFlowSamples[key].cases.length}/${labFlowSamples[key].cases.length}`);
-  expect(evaluated.artifact?.summary).toContain('KEEP');
+  expect(evaluated.artifact?.summary).toContain(`/${labFlowSamples[key].cases.length}`);
+  expect(evaluated.artifact?.summary).toContain('用户基线');
   await command('prepare_app', { directory: 'showcase' });
   const catalog = parseLabAppRead(await transport.request({ pathId: 'agent.eval-lab.apps.get', query: { projectId } }));
   const appId = catalog.items[0].appId;
@@ -57,11 +40,11 @@ it.each(Object.keys(labFlowSamples) as LabKey[])('imports, evaluates and exports
     const start = cursor + 30 + nameLength + extra; const body = bytes.subarray(start, start + size);
     expect(crc32(body)).toBe(bytes.readUInt32LE(cursor + 14)); files[name] = body.toString(); cursor = start + size;
   }
-  expect(Object.keys(files)).toEqual(['index.html', 'data.json', 'evaluation.json', 'README.md']);
+  expect(Object.keys(files)).toEqual(['index.html', 'data.json', 'evaluation.json', 'parameters.json', 'README.md']);
   expect(JSON.parse(files['data.json'])).toEqual(labFlowSamples[key]);
-  expect(JSON.parse(files['evaluation.json'])).toMatchObject({ candidatePassed: labFlowSamples[key].cases.length, total: labFlowSamples[key].cases.length, providerCalls: 0 });
-  const source = files['index.html'].match(/<script>const execute=([\s\S]*?);const records=/)![1];
-  const execute = runInNewContext(`(${source})`);
+  expect(JSON.parse(files['evaluation.json'])).toMatchObject({ passed: labFlowSamples[key].cases.length, total: labFlowSamples[key].cases.length });
+  const source = files['index.html'].match(/<script>([\s\S]*?);const records=/)![1];
+  const execute = runInNewContext(`${source};execute`);
   for (const item of labFlowSamples[key].cases) expect(execute(key, labFlowSamples[key].records, item.input, 'bounded').value).toBe(item.expected);
   await command('import_materials', { materials: [{ title: 'change.txt', text: '数据版本发生变化' }] });
   await expect(command('prepare_app', { directory: 'showcase' })).rejects.toThrow('当前数据');

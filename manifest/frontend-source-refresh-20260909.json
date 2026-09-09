@@ -1,0 +1,460 @@
+{
+  "schemaVersion": "paw.showcase-frontend-refresh.v1",
+  "capturedAt": "2026-09-09T11:16:01.205695+00:00",
+  "sourceRepository": "7155/personal-agent-workbench",
+  "sourceCommit": "67b81f89b87b251ff6c2807344901638f15be15a",
+  "sourceWorkingTreeState": "dirty",
+  "scope": "Selected PAW Lab, portable conversation, citation reader, OS shell and their consumers. Offline execution stays in the public showcase adapter.",
+  "files": [
+    {
+      "path": "control-center-web/src/app/preview-control-transport.tsx",
+      "sourceSha256": "6885007fc9f545a61b5c6667cc6fe11788034f56418724df64b5991bd91adce8",
+      "showcaseSha256": "9e33422b64d7fcc466bcb030058b4015db618869aec63f29b972431750fc7cd0",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/app/preview-history-routes.ts",
+      "sourceSha256": "d0260008318113a1735efccd044e0640c321f4c59758e92bac4c8f883c5c5f6d",
+      "showcaseSha256": "827697db8f8b4f8cb0558ceb53b50411982f436db58b225379ec9ceb6453d705",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/app/preview-input-data.ts",
+      "sourceSha256": "6de577d229f660c48a45e065747420e23b4d4401a1d0216be7ee1727b0334156",
+      "showcaseSha256": "8f167e751582a841f33d7495037ec980c9af9343849930d37ed66f040bde3da5",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/app/preview-memory-data.ts",
+      "sourceSha256": "dd6784addbefda7534546c930ef6fe149fe991756501426239778257ee7271bd",
+      "showcaseSha256": "f91c58394069acd2c09d7c552ff86de85a096a00d31f5378c13540cf544f4adc",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/app/preview-room-data.ts",
+      "sourceSha256": "b71b7b38523ce41f5c71c5679203e2efcae29321c04246edb659d0eccdb43e7b",
+      "showcaseSha256": "009d8f9d07a198ca1c4863d0e79d9656c9b9378044d7e7afae6d52e8ab59f0d2",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/features/agent/AgentRecoveryActions.tsx",
+      "sourceSha256": "beb786e06e82f8eedab37bb85dfd356fecf5a88c7e3ee79a0f7e2a73559ee16d",
+      "showcaseSha256": "beb786e06e82f8eedab37bb85dfd356fecf5a88c7e3ee79a0f7e2a73559ee16d",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/composer/ModelPicker.tsx",
+      "sourceSha256": "f1019bfe404ab3a7b9eb03a626ec97293e738883cf6a4778f26b7fd4742662d1",
+      "showcaseSha256": "f1019bfe404ab3a7b9eb03a626ec97293e738883cf6a4778f26b7fd4742662d1",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/composer/model-picker.css",
+      "sourceSha256": "a801073d965bea6626ef0138283dca4c94a207eed94183a73f839f0445e09621",
+      "showcaseSha256": "a801073d965bea6626ef0138283dca4c94a207eed94183a73f839f0445e09621",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/file-preview/RichHtmlPreview.tsx",
+      "sourceSha256": "9a565b33200787ef348534f4cb9353f99e5a1bff8143eb21956cb417ed757a62",
+      "showcaseSha256": "9a565b33200787ef348534f4cb9353f99e5a1bff8143eb21956cb417ed757a62",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/file-preview/rich-html.ts",
+      "sourceSha256": "1b78c0d5714523afdac77cc1b5a52f031646b06f7a13251a2aa16e7d27ffc991",
+      "showcaseSha256": "feaec4e19e7dafd22e9ab6cfa6c03babe70500288e34d18caf959ecd37ad413c",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/features/agent/file-preview/use-rich-html-url.ts",
+      "sourceSha256": "a33bc761664bef86d3206d31e2f5aaadca13f1b6bd4914d3c2ad0c9a0ecc5bd2",
+      "showcaseSha256": "a33bc761664bef86d3206d31e2f5aaadca13f1b6bd4914d3c2ad0c9a0ecc5bd2",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/portable/PortableConversation.tsx",
+      "sourceSha256": "1695959d58bc6252c6bcab650cffa99b7f977e7b32cc30637413c9dcc624c96b",
+      "showcaseSha256": "1695959d58bc6252c6bcab650cffa99b7f977e7b32cc30637413c9dcc624c96b",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/portable/PortableResearchReceipt.tsx",
+      "sourceSha256": "e73c36b00f93b587a43a3434d25e147dbe50ecb81cf1e449076794a4bbea3c33",
+      "showcaseSha256": "e73c36b00f93b587a43a3434d25e147dbe50ecb81cf1e449076794a4bbea3c33",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/portable/SourceReader.tsx",
+      "sourceSha256": "54732c52938fe9044cb97b3ceb48b268d717307f042e101ce80d211163dc5278",
+      "showcaseSha256": "54732c52938fe9044cb97b3ceb48b268d717307f042e101ce80d211163dc5278",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/portable/conversation-types.ts",
+      "sourceSha256": "4fd922434164c02c9dda18549b217be0797f8bf051059fadaa4b52d8831b1a46",
+      "showcaseSha256": "4fd922434164c02c9dda18549b217be0797f8bf051059fadaa4b52d8831b1a46",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/portable/index.tsx",
+      "sourceSha256": "cf9b7b8c35f355e7ac069708f20a7583008165b912ef575a60809505ce516757",
+      "showcaseSha256": "244aa74420264b43d733764a14ba01b603609272e54d711924adcced57d63fd0",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/features/agent/portable/portable-agent.css",
+      "sourceSha256": "59e8f927022d2589e88ab3fbb7995f357971f6f4e3c4eea2142aea698c03c55c",
+      "showcaseSha256": "59e8f927022d2589e88ab3fbb7995f357971f6f4e3c4eea2142aea698c03c55c",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/portable/portable-conversation.css",
+      "sourceSha256": "7bc0dbc872f1797c9053489694f008f0ef0845e75fc1f59208e2d305e566fa6c",
+      "showcaseSha256": "7bc0dbc872f1797c9053489694f008f0ef0845e75fc1f59208e2d305e566fa6c",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/portable/research-report.ts",
+      "sourceSha256": "943d26828d09c7140650ccecc04748bf20ca8d7fb0a83f1c7aed4d1d504c9b7c",
+      "showcaseSha256": "943d26828d09c7140650ccecc04748bf20ca8d7fb0a83f1c7aed4d1d504c9b7c",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/portable/source-reader.css",
+      "sourceSha256": "d8472cf788433b3c889cb006db8e3bb96f2de30264dea9f367b55c30b5675dac",
+      "showcaseSha256": "d8472cf788433b3c889cb006db8e3bb96f2de30264dea9f367b55c30b5675dac",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/public-error.ts",
+      "sourceSha256": "09bb669734182aea15d394e836ae419217dfa1e485bfe092c6992e48443c10b8",
+      "showcaseSha256": "09bb669734182aea15d394e836ae419217dfa1e485bfe092c6992e48443c10b8",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/timeline/InlineHtmlOutput.tsx",
+      "sourceSha256": "33424a7d02f5ae2cf8854d08b78a6d10d617a4a9f4f7d1783585c10a503a9dae",
+      "showcaseSha256": "33424a7d02f5ae2cf8854d08b78a6d10d617a4a9f4f7d1783585c10a503a9dae",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/agent/timeline/MarkdownRenderer.tsx",
+      "sourceSha256": "90a80772cf56492badb8d88d4ec70ed3bf14404f5c5b1f5963bcbe33cf8ad8e4",
+      "showcaseSha256": "90a80772cf56492badb8d88d4ec70ed3bf14404f5c5b1f5963bcbe33cf8ad8e4",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/context-debug/index.tsx",
+      "sourceSha256": "d1d7c6fe213b5365723f3459767e6f83d3c3bec5608ca7bfbe4aef79452599ae",
+      "showcaseSha256": "a3db4d177078cf49ebecacddffd28579da9ded9caa44b51505e12cf1d539172c",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/features/conversation-ui/ConversationSurfaceContext.tsx",
+      "sourceSha256": "7afd2496f490c268b478d55a242001f187bd635c59e98ca2dff067dfab313ce4",
+      "showcaseSha256": "7afd2496f490c268b478d55a242001f187bd635c59e98ca2dff067dfab313ce4",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/conversation-ui/components/VirtualTranscript.tsx",
+      "sourceSha256": "fa7b65b341610110e7722fc08bf4732309ed25bfc924edd4a1a1395fc3baf399",
+      "showcaseSha256": "fa7b65b341610110e7722fc08bf4732309ed25bfc924edd4a1a1395fc3baf399",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/golden/Calibration.tsx",
+      "sourceSha256": "ac4c1158b54378209fb99dfcb42e9a7e905923d77ca177a8dce9ded23cb21abe",
+      "showcaseSha256": "ac4c1158b54378209fb99dfcb42e9a7e905923d77ca177a8dce9ded23cb21abe",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/golden/CaseReview.tsx",
+      "sourceSha256": "6bfb67090f66a3a7e830b6d6a6a91ed712a2cc0dd36f5b4992d27c68a3a4d872",
+      "showcaseSha256": "6bfb67090f66a3a7e830b6d6a6a91ed712a2cc0dd36f5b4992d27c68a3a4d872",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/golden/Experiment.tsx",
+      "sourceSha256": "2c96950a91fd4d96ec58f9d0c4750887d1d2cc3b81983eabf6e353fb90466841",
+      "showcaseSha256": "2c96950a91fd4d96ec58f9d0c4750887d1d2cc3b81983eabf6e353fb90466841",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/golden/GoldenWorkflow.css",
+      "sourceSha256": "fc738f9f484f768b491857630d198b559b253abb39734520c8503390fec4f716",
+      "showcaseSha256": "fc738f9f484f768b491857630d198b559b253abb39734520c8503390fec4f716",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/golden/GoldenWorkflow.tsx",
+      "sourceSha256": "c53171125f59ae466cd9eeaf80aefd33586efb61947a2e55f4913108239ef602",
+      "showcaseSha256": "c53171125f59ae466cd9eeaf80aefd33586efb61947a2e55f4913108239ef602",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/golden/KnowledgeVariants.tsx",
+      "sourceSha256": "ee5b5c37c2ab7d4af0c4c2a8a124f9b883fd16f1fb9a5f8ce3c7a28de1187162",
+      "showcaseSha256": "ee5b5c37c2ab7d4af0c4c2a8a124f9b883fd16f1fb9a5f8ce3c7a28de1187162",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/golden/QualityComparison.tsx",
+      "sourceSha256": "225855d240354040dab9833fa34ed69078b287d2deb9a68cdfa52d89e46147ab",
+      "showcaseSha256": "225855d240354040dab9833fa34ed69078b287d2deb9a68cdfa52d89e46147ab",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/golden/api.ts",
+      "sourceSha256": "126fe9a39eb3dc5074ce7d81ccdba1653205e58f4a2233e5966d7a2aa5897722",
+      "showcaseSha256": "126fe9a39eb3dc5074ce7d81ccdba1653205e58f4a2233e5966d7a2aa5897722",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/golden/experiment-quality.css",
+      "sourceSha256": "34224a0e09a9a3a8223816a64e5d0a63442cdf22a6ecebaf571b651f155f4e8a",
+      "showcaseSha256": "34224a0e09a9a3a8223816a64e5d0a63442cdf22a6ecebaf571b651f155f4e8a",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/golden/types.ts",
+      "sourceSha256": "08af9b29ff1bde83125e1e34634a13f9f75130a4b5267020a3964b2ac6f4b681",
+      "showcaseSha256": "08af9b29ff1bde83125e1e34634a13f9f75130a4b5267020a3964b2ac6f4b681",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/index.tsx",
+      "sourceSha256": "48aedf521db6f83d38d641eb2c52b9600d79782bea9f49ca4b120bedae039f9b",
+      "showcaseSha256": "48aedf521db6f83d38d641eb2c52b9600d79782bea9f49ca4b120bedae039f9b",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/ArtifactSurface.tsx",
+      "sourceSha256": "e525b6cfc029d60147a18bef1a3844a0bae9d72e4a76e935445a99cdcd280ba7",
+      "showcaseSha256": "e525b6cfc029d60147a18bef1a3844a0bae9d72e4a76e935445a99cdcd280ba7",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/LabAppDelivery.tsx",
+      "sourceSha256": "2298f84e719d316d6eeda2934eef91b2bb568b2c1159cd94a70eb466e084a113",
+      "showcaseSha256": "fc372bc21d2d5d5659c9a0961aca5c6a8ba8bfa33e086c95cf7ecccb89f17103",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/LabAppHost.tsx",
+      "sourceSha256": "5469575b432e8fe29a9936a68df7cd41347bd44125cdc4eba0c0c74286ad1807",
+      "showcaseSha256": "5469575b432e8fe29a9936a68df7cd41347bd44125cdc4eba0c0c74286ad1807",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/LabAppPreview.tsx",
+      "sourceSha256": "4b3f6606adc82e44677ca4011e2ace7dba2f47b00cb0bba613f0c1c05c678094",
+      "showcaseSha256": "4b3f6606adc82e44677ca4011e2ace7dba2f47b00cb0bba613f0c1c05c678094",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/LabKnowledge.tsx",
+      "sourceSha256": "b2d71c3fca91ab18d89fecee22d12c4294c54fe26863ef7283c483581b31034a",
+      "showcaseSha256": "d4eab73da712b95512a6fe18ce6496879e520ec15680dc5f4acd0842fdd56caf",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/LabKnowledgeIntake.tsx",
+      "sourceSha256": "dbf3bc0197967d45a436a4bb36a75d553b1d997616f6955b3a47baf399ca57b5",
+      "showcaseSha256": "843628862a026f8bd4521467f329fc08d7325495e2de1af4aefd18bcc6ee64b8",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/LabProjectJourney.tsx",
+      "sourceSha256": "eff765eac90c3e627918a679f43a3c2e447c17b3285c54dfb755d451cc888513",
+      "showcaseSha256": "121710ea3c7b8a38d2247c22c24126183e36e91044c4e7bec48860686be6a9b2",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/LabProjectWorkbench.tsx",
+      "sourceSha256": "f1860cfff0ab466721825ad39d114f66f70407fd6c3912bf3898db7f66c0791a",
+      "showcaseSha256": "bb96757d136a7f8f2ec5916091ec6e7c209f094c99f6c481db26da001deda052",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/NewKnowledgeApp.tsx",
+      "sourceSha256": "fc20fbdb6b7d20bdfe30bb0b9462a7c051e96bf1e92fad3902e05ff55679fefd",
+      "showcaseSha256": "fc20fbdb6b7d20bdfe30bb0b9462a7c051e96bf1e92fad3902e05ff55679fefd",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/OptimizationGoalSpace.tsx",
+      "sourceSha256": "f9b6ab4ab2d58170fe2d33d067a6b4491b90e7c61f7cc871f401c10287188b01",
+      "showcaseSha256": "f9b6ab4ab2d58170fe2d33d067a6b4491b90e7c61f7cc871f401c10287188b01",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/ProjectDocumentList.tsx",
+      "sourceSha256": "06461b47e882e898524ab4a0f006c7936b79505ad16ff40363b460a6fa9bf359",
+      "showcaseSha256": "06461b47e882e898524ab4a0f006c7936b79505ad16ff40363b460a6fa9bf359",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/ProjectExperimentHistory.tsx",
+      "sourceSha256": "9f72247dc5e01be9d9e5aeaf7799d253e022f3bbe61dc48f5df22df9e4468ecc",
+      "showcaseSha256": "9f72247dc5e01be9d9e5aeaf7799d253e022f3bbe61dc48f5df22df9e4468ecc",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/ProjectGuide.tsx",
+      "sourceSha256": "a5216e15ad9a0061b21e70e1701294a7fc9ef87c266e23bd32fd3e7e0385cbd8",
+      "showcaseSha256": "a5216e15ad9a0061b21e70e1701294a7fc9ef87c266e23bd32fd3e7e0385cbd8",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/ProjectKnowledgeBaseline.tsx",
+      "sourceSha256": "eeaf587307e6fbabd89a4582e4ea1873bcd604e2d8896a48532a2b69f374fb83",
+      "showcaseSha256": "eeaf587307e6fbabd89a4582e4ea1873bcd604e2d8896a48532a2b69f374fb83",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/ProjectMaterials.tsx",
+      "sourceSha256": "4a04ba9ba4fa7c9d21487e61e43dd31746e158fc859d78be972cd5a798dacf47",
+      "showcaseSha256": "4a04ba9ba4fa7c9d21487e61e43dd31746e158fc859d78be972cd5a798dacf47",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/ProjectRequirements.tsx",
+      "sourceSha256": "7dffab443ebab9091391cf0a760a57adb62ca55b151715a4e1897e2f54a7f966",
+      "showcaseSha256": "7dffab443ebab9091391cf0a760a57adb62ca55b151715a4e1897e2f54a7f966",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/api.ts",
+      "sourceSha256": "a932e7a68b1fc576688f403311d884d99a91a65404bdbe8cd1e8558f38e9df12",
+      "showcaseSha256": "a932e7a68b1fc576688f403311d884d99a91a65404bdbe8cd1e8558f38e9df12",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/apps.ts",
+      "sourceSha256": "70b37251aabb2c43bd6afff12f4034db8d4c3c57e09533321e52720a97f6c730",
+      "showcaseSha256": "048ed2d65a28fd298fc260cb39ad5f5dca7abd18baf32439cd2170660ad7bc5b",
+      "adaptation": "public-showcase-integration"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/experiment-history.ts",
+      "sourceSha256": "2bcb16cb90de466a328d28400365438b5bcd0a87505f2c70add7d61dcab9d18b",
+      "showcaseSha256": "2bcb16cb90de466a328d28400365438b5bcd0a87505f2c70add7d61dcab9d18b",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/journey-evidence.ts",
+      "sourceSha256": "11f476a2efee80c681c42a82a8a6f67b6c82c4f4dcfda9064bb842687d7777b8",
+      "showcaseSha256": "11f476a2efee80c681c42a82a8a6f67b6c82c4f4dcfda9064bb842687d7777b8",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/knowledge-baseline.ts",
+      "sourceSha256": "3898bd4a8c462f58ead673e6c95523e456be089d155099012680b17e24db33f4",
+      "showcaseSha256": "3898bd4a8c462f58ead673e6c95523e456be089d155099012680b17e24db33f4",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/knowledge-files.ts",
+      "sourceSha256": "00f44e0181566dbfccfa57f7431ca45026e3c99fb87090fa1611dc89bc2abe83",
+      "showcaseSha256": "00f44e0181566dbfccfa57f7431ca45026e3c99fb87090fa1611dc89bc2abe83",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/knowledge-types.ts",
+      "sourceSha256": "c1ac4fe5846c4c8ba6f7a8ae92fc934a8c64af8ef842d97ca1fe2a2097fb4d7e",
+      "showcaseSha256": "c1ac4fe5846c4c8ba6f7a8ae92fc934a8c64af8ef842d97ca1fe2a2097fb4d7e",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/knowledge-upload.ts",
+      "sourceSha256": "ed885097227a32aa95ed2e00aeb668342a46dc76908c51b3ddf3b12f1aa0f5de",
+      "showcaseSha256": "ed885097227a32aa95ed2e00aeb668342a46dc76908c51b3ddf3b12f1aa0f5de",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/lab-knowledge.css",
+      "sourceSha256": "b4f7f399ab305dff699e40f37b12cfb8afd2af18782a9358e1d08b81fa0bfa75",
+      "showcaseSha256": "b4f7f399ab305dff699e40f37b12cfb8afd2af18782a9358e1d08b81fa0bfa75",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/lab-project-journey.css",
+      "sourceSha256": "a9b47f361b196fe11d799e9749c55adf989f4b1338fb9208b66d5233f7d62fd6",
+      "showcaseSha256": "a9b47f361b196fe11d799e9749c55adf989f4b1338fb9208b66d5233f7d62fd6",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/lab-project-workbench.css",
+      "sourceSha256": "e049e7da25109e9493f7c2b745db92e2d92cc98ed410d1310d19f55ec15c37d8",
+      "showcaseSha256": "e049e7da25109e9493f7c2b745db92e2d92cc98ed410d1310d19f55ec15c37d8",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/optimization-goals.css",
+      "sourceSha256": "6e2b4aa1b8c591a7846788917136d802981a3883101b55cc2a889250f7b55a0d",
+      "showcaseSha256": "6e2b4aa1b8c591a7846788917136d802981a3883101b55cc2a889250f7b55a0d",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/optimization-goals.ts",
+      "sourceSha256": "19f38de7642b0a76cc78c2b9b2c75405d4631490496ed385ef22e9ca797ff39a",
+      "showcaseSha256": "19f38de7642b0a76cc78c2b9b2c75405d4631490496ed385ef22e9ca797ff39a",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/types.ts",
+      "sourceSha256": "065bb7f6957233ed901e6f6a629471e4909dd0da3a21a102587db5fac818190e",
+      "showcaseSha256": "065bb7f6957233ed901e6f6a629471e4909dd0da3a21a102587db5fac818190e",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/use-project-knowledge.ts",
+      "sourceSha256": "5b3601f4696558cf61fcc9e0cb908e0db23eff234b56ccecb1ad4878fbbf6381",
+      "showcaseSha256": "5b3601f4696558cf61fcc9e0cb908e0db23eff234b56ccecb1ad4878fbbf6381",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/projects/views.ts",
+      "sourceSha256": "bb829b6482f7bfe61b2e201020025fc904a78f11926e55440ca1d61c70b4b46c",
+      "showcaseSha256": "bb829b6482f7bfe61b2e201020025fc904a78f11926e55440ca1d61c70b4b46c",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/eval-lab/trials/api.ts",
+      "sourceSha256": "638075c46fcff572a15c138afa478ed2cb5e7fae9b10e24053facf280f3bc484",
+      "showcaseSha256": "638075c46fcff572a15c138afa478ed2cb5e7fae9b10e24053facf280f3bc484",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/paw-os/PawResultWindow.tsx",
+      "sourceSha256": "8f9d67e2e69f94a67a9ca058c6105789c60b313de7996731b7b543da31665fbc",
+      "showcaseSha256": "8f9d67e2e69f94a67a9ca058c6105789c60b313de7996731b7b543da31665fbc",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/extensions/registry.ts",
+      "sourceSha256": "cd2749b0b1a2b9d038926045c735b6f78a59e628b926d913c0e2e14bb2d19e04",
+      "showcaseSha256": "cd2749b0b1a2b9d038926045c735b6f78a59e628b926d913c0e2e14bb2d19e04",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/shell/PawAppIcon.tsx",
+      "sourceSha256": "5068a978322f5135d013b2dec75e384a83e74fe7c162d186fd365ec9b50ac82b",
+      "showcaseSha256": "5068a978322f5135d013b2dec75e384a83e74fe7c162d186fd365ec9b50ac82b",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/shell/paw-app-icon.css",
+      "sourceSha256": "8f89e7dd44e667e22eb663e5f5157a97c8015c0a24a1de9b512ce74abe9b01d1",
+      "showcaseSha256": "8f89e7dd44e667e22eb663e5f5157a97c8015c0a24a1de9b512ce74abe9b01d1",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/platform/routes.ts",
+      "sourceSha256": "94002e32ecc6b1b02920847ae79b9bbdb110d06bc35eeb7ff4eafaa353fbc610",
+      "showcaseSha256": "94002e32ecc6b1b02920847ae79b9bbdb110d06bc35eeb7ff4eafaa353fbc610",
+      "adaptation": "none"
+    }
+  ]
+}

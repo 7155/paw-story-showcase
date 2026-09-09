@@ -419,7 +419,7 @@ export const CONTROL_ROUTES = {
     body: ['action', 'projectId', 'expectedRevision', 'clientRequestId', 'input'],
     requiredBody: ['action', 'expectedRevision', 'clientRequestId', 'input'],
   },
-  'agent.eval-lab.apps.get': { method: 'GET', path: '/api/agent/eval-lab/apps', query: ['appId', 'projectId', 'version', 'callId'] },
+  'agent.eval-lab.apps.get': { method: 'GET', path: '/api/agent/eval-lab/apps', query: ['appId', 'projectId', 'version', 'callId', 'sourceId', 'chunkId', 'snapshotSha256', 'sourceOffset'] },
   'agent.eval-lab.apps.command': { method: 'POST', path: '/api/agent/eval-lab/apps/command',
     body: ['action', 'appId', 'expectedRevision', 'clientRequestId', 'input'],
     requiredBody: ['action', 'appId', 'expectedRevision', 'clientRequestId', 'input'] },

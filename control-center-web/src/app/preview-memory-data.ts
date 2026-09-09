@@ -1,5 +1,5 @@
 import { corpusBooks, corpusAtoms, corpusEvidence, corpusReference, corpusEntity } from './preview-memory-corpus';
-import { previewMemoryInputSources } from './preview-history-routes';
+import { previewMemorySourceExamples, previewHistoryCreatedAtMs, previewHistoryStats } from './preview-history-routes';
 import type { ControlRequest } from '@/platform/transport';
 import taskStory from '../../../showcase/task-story.v1.json';
 import type {
@@ -195,7 +195,7 @@ export function previewMemoryReference(kind: string, referenceId: string): Memor
   });
 
   if (referenceKind === 'event') {
-    const inputSource = previewMemoryInputSources.find(item => referenceId.endsWith(`:${item.id}`));
+    const inputSource = previewMemorySourceExamples.find(item => referenceId.endsWith(`:${item.id}`));
     const text = inputSource?.text ?? (referenceId.endsWith('202')
       ? '一天可能有上千次输入，但碎片和一次性内容不应该直接成为长期记忆；先整理，再按问题召回。'
       : referenceId.endsWith('10001')
@@ -212,11 +212,11 @@ export function previewMemoryReference(kind: string, referenceId: string): Memor
         textPreview: text,
         status: 'active',
         sourceKind: 'squirrel_input_segment',
-        app: 'public.showcase.preview',
+        app: inputSource?.app ?? 'public.showcase.preview',
         ownerKind: 'user',
         ownerId: 'default',
-        occurredAtMs: now - 3_600_000,
-        ...(inputSource ? { sourceContextAvailable: true, sourceContext: { recentContext: '公开合成输入，用于说明记忆来源的回溯关系。', preedit: '', redacted: false, scopeProject: inputSource.project, usedFor: ['source_fingerprint', 'semantic_grouping'] } } : {}),
+        occurredAtMs: inputSource ? previewHistoryCreatedAtMs(inputSource) : now - 3_600_000,
+        ...(inputSource ? { sourceContextAvailable: !inputSource.phase || inputSource.phase==='committed', sourceContext: { recentContext: `公开合成输入，用于说明记忆来源的回溯关系。阶段：${inputSource.phase??'committed'}；非 committed 样例不进入长期记忆。`, preedit: '', redacted: false, scopeProject: inputSource.project, usedFor: ['source_fingerprint', 'semantic_grouping'] } } : {}),
       },
       evidenceRefs: [],
     };
@@ -328,6 +328,7 @@ export function previewMemoryReference(kind: string, referenceId: string): Memor
 }
 
 export function previewMemorySummary(timelineStatuses = new Map<string, string>()): Record<string, unknown> {
+  const historyStats=previewHistoryStats();
   const today = previewLocalDate();
   const currentTimelineStatus = timelineStatuses.get(today) || 'draft';
   const activityTimelineCounts: Record<string, number> = {
@@ -343,11 +344,11 @@ export function previewMemorySummary(timelineStatuses = new Map<string, string>(
     ok: true,
     runtimeRevision: 7,
     snapshotLabel: 'public-memory-corpus-2026-09-07',
-    appCount: 6,
-    activeDayCount: 64,
-    completeInputCount: previewMemoryInputSources.length + 6,
+    appCount: historyStats.appCount,
+    activeDayCount: historyStats.activeDayCount,
+    completeInputCount: historyStats.totalCount,
     memoryItemCount: corpusAtoms().length + 6,
-    blockedFragmentCount: 0,
+    blockedFragmentCount: historyStats.phaseExcludedCount,
     memoryBookCount: corpusBooks().length + 1,
     memoryAtomCount: corpusAtoms().length + 6,
     memoryAtomArchivedCount: 0,
@@ -359,7 +360,7 @@ export function previewMemorySummary(timelineStatuses = new Map<string, string>(
     evidenceSourceCount: corpusEvidence().length + 5,
     memoryEvidenceCount: corpusEvidence().length + 5,
     inputMethodEvidenceCount: 5,
-    voiceEvidenceCount: 0,
+    voiceEvidenceCount: historyStats.voiceCount,
     agentCapturedSourceCount: corpusEvidence().length,
     agentCapturedEvidenceCount: 1,
     forgottenSourceCount: 0,

@@ -1,0 +1,365 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { useState } from 'react';
+import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom';
+import { PawOsAppSurfaceProvider } from '@/features/paw-os/surface-context';
+import { ControlTransportProvider } from '@/app/control-transport';
+import type { ControlRequest } from '@/platform/transport';
+import { MockControlTransport } from '@/test/mock-transport';
+import { useAgentLiveStore } from '@/features/agent/state/live-store';
+import { EvalLabFeature } from '../index';
+import { LabProjectWorkbench } from './LabProjectWorkbench';
+import { ArtifactSurface } from './ArtifactSurface';
+import type { LabArtifact, LabProject, ProjectCommand } from './types';
+
+vi.mock('./ProjectGuide', async () => {
+  const actual = await vi.importActual<typeof import('./ProjectGuide')>('./ProjectGuide');
+  return { ...actual, ProjectGuide: ({ project, draftRequest }: { project: LabProject; draftRequest?: { text: string } }) => <section aria-label="项目 Agent"><p>{project.guideSessionId || '项目对话'}</p>{draftRequest ? <textarea aria-label="Agent 输入草稿" value={draftRequest.text} readOnly /> : null}</section> };
+});
+const clients: QueryClient[] = [];
+afterEach(() => { cleanup(); clients.splice(0).forEach((client) => client.clear()); sessionStorage.clear(); localStorage.clear(); window.history.replaceState(null, '', '/'); vi.restoreAllMocks(); });
+const artifact = (patch: Partial<LabArtifact> = {}): LabArtifact => ({ artifactId: 'artifact-1', revision: 1, title: '项目发现', kind: 'investigation', view: 'markdown', content: '这是一份当前项目的观察。', summary: '', templateRef: null, actions: [], createdAtMs: 1, updatedAtMs: 1, ...patch });
+const project = (patch: Partial<LabProject> = {}): LabProject => ({
+  schemaVersion: 'rag-ime.agent-lab-project.v1', projectId: 'project-1', revision: 1, title: '售后助手', description: '让客服依据新的规则完成任务', briefVersion: 1,
+  materialCount: 0, artifactCount: 0, guideSessionId: '', createdAtMs: 1, updatedAtMs: 1, materialSetId: '',
+  materialSet: { materialSetId: '', version: 0, materials: [], createdAtMs: null }, materialVersions: [],
+  intake: { state: 'needs_materials', requestedPath: '', resolvedPath: '', readCount: 0, readBytes: 0, skippedCount: 0, partial: false, issues: [], checkedAtMs: null },
+  artifacts: [], bindings: [], workspace: { artifactOrder: [], primaryArtifactId: '', layout: 'split' }, workspaceBinding: null, ...patch,
+});
+function withArtifact(item: LabArtifact, patch: Partial<LabProject> = {}) {
+  const { content: _content, ...summary } = item;
+  return project({ artifacts: [summary], artifactCount: 1, workspace: { artifactOrder: [item.artifactId], primaryArtifactId: item.artifactId, layout: 'split' }, ...patch });
+}
+const views = ['markdown', 'table', 'form', 'code', 'html', 'json'];
+function read(current: LabProject | null, items: LabProject[], item?: LabArtifact) { return { ok: true, items, project: current, supportedViews: views, knowledge: { schemaVersion: 'paw.lab-knowledge-resource.v1', corpora: [], indexes: [], datasets: [], evaluations: [], jobs: [], embedding: { provider: 'none', model: '' } }, ...(item ? { artifact: item } : {}) }; }
+function RouteMarker() { const location = useLocation(),navigate=useNavigate(); return <><output aria-label="当前项目路由">{location.pathname}{location.search}</output><button onClick={()=>navigate(-1)}>测试浏览器后退</button></>; }
+function mount(transport: MockControlTransport, props: { initialProjectId?: string; root?: boolean; route?: string; activeSurface?: boolean } = {}) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } }); clients.push(client);
+  const body = <QueryClientProvider client={client}><ControlTransportProvider transport={transport}>{props.root ? <EvalLabFeature /> : <LabProjectWorkbench initialProjectId={props.initialProjectId} />}</ControlTransportProvider></QueryClientProvider>;
+  const surface = props.activeSurface ? <PawOsAppSurfaceProvider appId="eval-lab" active width={1200} height={800}>{body}</PawOsAppSurfaceProvider> : body;
+  return render(props.route ? <MemoryRouter initialEntries={[props.route]}>{surface}<RouteMarker /></MemoryRouter> : surface);
+}
+
+describe('Agent-led Lab project container', () => {
+  it('records journey steps in browser history and returns from a file to its filtered source list', async () => {
+    const current=project({workspace:{artifactOrder:[],primaryArtifactId:'',layout:'focus'},materialCount:1,materialSet:{materialSetId:'materials',version:1,createdAtMs:1,materials:[{sourceId:'paper',title:'冰架论文.md',kind:'document',text:'真实论文正文',uri:'paper.md',origin:'text',byteSize:18,contentHash:'hash',importedAtMs:1}]}});
+    const transport=new MockControlTransport({routes:{'agent.eval-lab.projects.get':(request:ControlRequest)=>read(request.query?.projectId ? current : null,[current])}});
+    mount(transport,{root:true,route:'/eval-lab?project=project-1&projectPage=journey&step=materials'});
+    fireEvent.click(await screen.findByRole('button',{name:/^2 设定目标/},{timeout:5000}));
+    expect(await screen.findByLabelText('当前项目路由')).toHaveTextContent('step=goals');
+    fireEvent.click(screen.getByRole('button',{name:/^3 基线评测/}));
+    await waitFor(()=>expect(screen.getByLabelText('当前项目路由')).toHaveTextContent('step=baseline'));
+    fireEvent.click(screen.getByRole('button',{name:'测试浏览器后退'}));
+    expect(await screen.findByRole('heading',{name:'设定目标'})).toBeVisible();
+    fireEvent.click(screen.getByRole('button',{name:'资料'}));
+    fireEvent.change(await screen.findByRole('searchbox',{name:'搜索文件'}),{target:{value:'冰架'}});
+    fireEvent.click(screen.getByRole('button',{name:/冰架论文.md/}));
+    expect(await screen.findByText('真实论文正文')).toBeVisible();
+    expect(screen.getByLabelText('当前项目路由')).toHaveTextContent('source=text%3Apaper');
+    fireEvent.click(screen.getByRole('button',{name:'返回资料与基线'}));
+    expect(await screen.findByRole('searchbox',{name:'搜索文件'})).toHaveValue('冰架');
+  });
+  it('imports an existing scene as a project without starting its Agent or any trial', async () => {
+    let current: LabProject | null = null; const commands: ProjectCommand[] = [];
+    const historyCollections = [{ sceneId: 'cloudops', title: '云上事故诊断', sourceHash: 'frozen-source', experimentCount: 9,
+      datasetIds: ['incident-validation'], latestEvidenceAtMs: 1 }];
+    const transport = new MockControlTransport({ routes: {
+      'agent.eval-lab.projects.get': (request: ControlRequest) => ({ ...read(request.query?.projectId ? current : null, current ? [current] : []), historyCollections }),
+      'agent.eval-lab.projects.command': (request: ControlRequest) => { const command = request.body as ProjectCommand; commands.push(command);
+        current = project({ title: '云上事故诊断', workspace: { artifactOrder: [], primaryArtifactId: '', layout: 'focus' },
+          historyOrigin: { sceneId: 'cloudops', sourceHash: 'frozen-source', experimentCount: 9, importedAtMs: 1, snapshotArtifactId: 'snapshot', snapshotArtifactRevision: 1 } });
+        return { ok: true, project: current, clientRequestId: command.clientRequestId, replayed: false }; },
+    } });
+    mount(transport);
+    fireEvent.click(await screen.findByRole('button', { name: '导入已有实验' }));
+    fireEvent.click(await screen.findByRole('button', { name: '导入为项目' }));
+    expect(await screen.findByRole('heading', { name: '云上事故诊断', level: 1 })).toBeVisible();
+    expect(commands).toHaveLength(1);
+    expect(commands[0]).toMatchObject({ action: 'import_history', expectedRevision: 0, input: { sceneId: 'cloudops', sourceHash: 'frozen-source' } });
+    expect(transport.requests.every(({ request }) => ['agent.eval-lab.projects.get', 'agent.eval-lab.projects.command'].includes(request.pathId))).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: '返回 Lab 项目' }));
+    fireEvent.click(screen.getByRole('button', { name: '导入已有实验' }));
+    fireEvent.click(await screen.findByRole('button', { name: '打开已导入项目' }));
+    expect(commands).toHaveLength(1);
+  });
+
+  it('recovers a failed project read at the same revision without replaying commands or losing the draft', async () => {
+    let offline = false; const current = project();
+    const transport = new MockControlTransport({ routes: { 'agent.eval-lab.projects.get': (request: ControlRequest) => {
+      if (request.query?.projectId && offline) throw new Error('Failed to fetch');
+      return read(request.query?.projectId ? current : null, [current]);
+    } } });
+    mount(transport, { initialProjectId: current.projectId });
+    fireEvent.click(await screen.findByRole('button', { name: '资料' }));
+    fireEvent.click(screen.getAllByRole('button', { name: '添加材料' })[0]!);
+    const field = await screen.findByRole('textbox', { name: '粘贴材料标题' });
+    fireEvent.change(field, { target: { value: '尚未保存的材料' } });
+    offline = true;
+    await act(async () => { await clients[0]!.invalidateQueries({ queryKey: ['lab-projects'] }); });
+    await screen.findByText('项目服务暂时不可用，请重新读取。');
+    offline = false;
+    await waitFor(() => expect(screen.queryByText('项目服务暂时不可用，请重新读取。')).not.toBeInTheDocument(), { timeout: 4500 });
+    expect(field).toHaveValue('尚未保存的材料');
+    expect(transport.requests.every(({ request }) => ['agent.eval-lab.projects.get','agent.eval-lab.apps.get'].includes(request.pathId))).toBe(true);
+  });
+
+  it('starts with a description and real projects, without a universal business form or fixed Golden journey', async () => {
+    const transport = new MockControlTransport({ routes: { 'agent.eval-lab.projects.get': read(null, []) } });
+    mount(transport, { root: true });
+    expect(await screen.findByRole('textbox', { name: '应用要求' })).toBeVisible();
+    fireEvent.click(screen.getByText('其他项目：文本、源码或已有执行目录'));
+    expect(screen.getByRole('textbox', { name: '描述你的项目' })).toBeVisible();
+    expect(screen.queryByRole('spinbutton', { name: '计划题数' })).not.toBeInTheDocument();
+    expect(screen.queryByText('退货期限')).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: '校准评审' })).not.toBeInTheDocument();
+    expect(transport.requests.every(({ request }) => request.pathId === 'agent.eval-lab.projects.get')).toBe(true);
+  });
+
+  it('creates a description-only project and starts the exact App-owned Session', async () => {
+    let current: LabProject | null = null; const commands: ProjectCommand[] = [];
+    const transport = new MockControlTransport({ routes: {
+      'agent.eval-lab.projects.get': (request: ControlRequest) => read(request.query?.projectId ? current : null, current ? [current] : []),
+      'agent.eval-lab.projects.command': (request: ControlRequest) => { const command = request.body as ProjectCommand; commands.push(command); current = project({ description: String(command.input.description), guideSessionId: 'project-guide-1' }); return { ok: true, project: current, clientRequestId: command.clientRequestId, replayed: false }; },
+      'agent.session.prompt': { ok: true, accepted: true },
+    } });
+    mount(transport);
+    fireEvent.click(await screen.findByText('其他项目：文本、源码或已有执行目录'));
+    fireEvent.change(await screen.findByRole('textbox', { name: '描述你的项目' }), { target: { value: '诊断支付服务故障，不是资料问答' } });
+    fireEvent.click(screen.getByRole('button', { name: '创建并开始' }));
+    await screen.findByText('project-guide-1');
+    await waitFor(() => expect(transport.requests.some(({ request }) => request.pathId === 'agent.session.prompt')).toBe(true));
+    expect(commands).toHaveLength(1);
+    expect(commands[0]!.input).toEqual({ description: '诊断支付服务故障，不是资料问答' });
+    const prompt = transport.requests.find(({ request }) => request.pathId === 'agent.session.prompt')!.request;
+    expect(prompt.params).toEqual({ sessionId: 'project-guide-1' });
+    expect(prompt.body).toMatchObject({ clientMessageId: 'lab-project-start:project-1', delivery: 'prompt' });
+    await waitFor(() => expect(screen.queryByRole('button', { name: '核对原消息' })).not.toBeInTheDocument());
+  });
+
+  it('preserves the new-project description and source path when the page is reopened', async () => {
+    const transport = new MockControlTransport({ routes: { 'agent.eval-lab.projects.get': read(null, []) } });
+    const first = mount(transport);
+    fireEvent.click(await screen.findByText('其他项目：文本、源码或已有执行目录'));
+    fireEvent.change(await screen.findByRole('textbox', { name: '描述你的项目' }), { target: { value: '还在整理的故障排查项目' } });
+    fireEvent.change(screen.getByRole('textbox', { name: '连接执行器上的材料路径' }), { target: { value: '/workspace/incident' } });
+    first.unmount(); mount(transport);
+    fireEvent.click(await screen.findByText('其他项目：文本、源码或已有执行目录'));
+    expect(await screen.findByRole('textbox', { name: '描述你的项目' })).toHaveValue('还在整理的故障排查项目');
+    expect(screen.getByRole('textbox', { name: '连接执行器上的材料路径' })).toHaveValue('/workspace/incident');
+    expect(transport.requests.every(({ request }) => request.pathId === 'agent.eval-lab.projects.get')).toBe(true);
+  });
+
+  it('restores the selected resource and collapsed conversation without running anything', async () => {
+    const current = project();
+    const transport = new MockControlTransport({ routes:{'agent.eval-lab.projects.get':read(current,[current])} });
+    const first = mount(transport,{initialProjectId:current.projectId});
+    fireEvent.click(await screen.findByRole('button',{name:'资料'}));
+    expect(screen.getByRole('button',{name:'展开项目 Agent'})).toBeEnabled();
+    first.unmount(); mount(transport,{initialProjectId:current.projectId});
+    expect(await screen.findByRole('heading',{name:'资料与基线'})).toBeVisible();
+    expect(screen.queryByRole('region',{name:'项目 Agent'})).not.toBeInTheDocument();
+    expect(screen.getByRole('button',{name:'展开项目 Agent'})).toBeEnabled();
+    expect(transport.requests.every(({request}) => ['agent.eval-lab.projects.get','agent.eval-lab.apps.get'].includes(request.pathId))).toBe(true);
+  });
+
+  it('opens the clicked knowledge file from the journey without importing it again', async () => {
+    const current = project({workspace:{artifactOrder:[],primaryArtifactId:'',layout:'focus'}});
+    const state = { ...read(current,[current]).knowledge, corpora: [{ jobId:'corpus', title:'Papers', corpusHash:'h', documentCount:2, byteSize:100,
+      intake:{attemptedCount:3,successfulCount:2,failedCount:1,documents:[
+        {sourceId:'paper-one.pdf',status:'ready',warnings:[],pageCount:2},
+        {sourceId:'paper-two.pdf',status:'ready',warnings:[],pageCount:4},
+        {sourceId:'broken.pdf',status:'failed',warnings:[]}]},
+      preview:[{sourceId:'paper-one.pdf',title:'paper-one.pdf',excerpt:'First paper.'},{sourceId:'paper-two.pdf',title:'paper-two.pdf',excerpt:'Second paper.'}] }] };
+    const transport = new MockControlTransport({routes:{
+      'agent.eval-lab.projects.get':() => ({...read(current,[current]),knowledge:state}),
+      'agent.eval-lab.projects.command':(request: ControlRequest) => {
+        const command = request.body as ProjectCommand;
+        return {ok:true,project:current,clientRequestId:command.clientRequestId,replayed:false};
+      },
+    }});
+    mount(transport,{initialProjectId:current.projectId});
+    fireEvent.click(await screen.findByRole('button',{name:'优化过程'}));
+    const progress = await screen.findByRole('progressbar',{name:'资料载入进度'});
+    await waitFor(() => expect(progress).toHaveAttribute('value','2')); expect(progress).toHaveAttribute('max','3');
+    fireEvent.click(screen.getByRole('button',{name:/paper-two\.pdf/}));
+    expect(await screen.findByRole('heading',{name:'paper-two.pdf'})).toBeVisible();
+    expect(transport.requests.filter(({request}) => request.pathId === 'agent.eval-lab.projects.command').map(({request}) => (request.body as ProjectCommand).input.operation)).toEqual(['inspect_document']);
+  });
+
+  it('honors a project focus layout until the user chooses to show the conversation', async () => {
+    const current = project({workspace:{artifactOrder:[],primaryArtifactId:'',layout:'focus'}});
+    const transport = new MockControlTransport({routes:{'agent.eval-lab.projects.get':read(current,[current])}});
+    const first = mount(transport,{initialProjectId:current.projectId});
+    expect(await screen.findByRole('button',{name:'展开项目 Agent'})).toBeVisible();
+    expect(screen.queryByRole('region',{name:'项目 Agent'})).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button',{name:'资料'}));
+    expect(screen.queryByRole('region',{name:'项目 Agent'})).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button',{name:'展开项目 Agent'}));
+    expect(screen.getByRole('region',{name:'项目 Agent'})).toBeVisible();
+    first.unmount();mount(transport,{initialProjectId:current.projectId});
+    expect(await screen.findByRole('region',{name:'项目 Agent'})).toBeVisible();
+  });
+
+  it('keeps the project route aligned when returning home, changing projects and reopening', async () => {
+    const items = [project(),project({projectId:'project-2',title:'服务拓扑'})];
+    const transport = new MockControlTransport({ routes:{'agent.eval-lab.projects.get':(request: ControlRequest) =>
+      read(items.find((item) => item.projectId === request.query?.projectId) ?? null,items)} });
+    const first = mount(transport,{root:true,route:'/eval-lab?project=project-1',activeSurface:true});
+    expect(await screen.findByRole('heading',{name:'售后助手'})).toBeVisible();
+    fireEvent.click(screen.getByRole('button',{name:'返回 Lab 项目'}));
+    await screen.findByRole('textbox',{name:'应用要求'});
+    expect(screen.getByLabelText('当前项目路由')).toHaveTextContent(/^\/eval-lab$/u);
+    expect(window.location.hash).toBe('#/eval-lab');
+    fireEvent.click(screen.getByRole('button',{name:/服务拓扑/u}));
+    expect(await screen.findByRole('heading',{name:'服务拓扑'})).toBeVisible();
+    const route = screen.getByLabelText('当前项目路由').textContent!;
+    expect(route).toBe('/eval-lab?project=project-2&projectPage=journey');
+    expect(window.location.hash).toBe('#/eval-lab?project=project-2&projectPage=journey');
+    first.unmount();mount(transport,{root:true,route});
+    expect(await screen.findByRole('heading',{name:'服务拓扑'})).toBeVisible();
+  });
+
+  it('restores an unknown first project message after reopening without creating or prompting again automatically', async () => {
+    let current: LabProject | null = null; const prompts: unknown[] = [];
+    const transport = new MockControlTransport({ routes: {
+      'agent.eval-lab.projects.get': (request: ControlRequest) => read(request.query?.projectId ? current : null, current ? [current] : []),
+      'agent.eval-lab.projects.command': ({ body }: ControlRequest) => { const command = body as ProjectCommand; current = project({ guideSessionId: 'guide-unknown-1' }); return { ok: true, project: current, clientRequestId: command.clientRequestId, replayed: false }; },
+      'agent.session.prompt': ({ body }: ControlRequest) => { prompts.push(body); if (prompts.length === 1) throw new TypeError('Response lost'); return { ok: true, accepted: true }; },
+    } });
+    const first = mount(transport);
+    fireEvent.click(await screen.findByText('其他项目：文本、源码或已有执行目录'));
+    fireEvent.change(await screen.findByRole('textbox', { name: '描述你的项目' }), { target: { value: '第一次消息待核对的项目' } });
+    fireEvent.click(screen.getByRole('button', { name: '创建并开始' }));
+    await screen.findByRole('button', { name: '核对原消息' }); first.unmount(); mount(transport);
+    fireEvent.click(await screen.findByRole('button', { name: '核对原消息' }));
+    await waitFor(() => expect(prompts).toHaveLength(2)); expect(prompts[1]).toEqual(prompts[0]);
+    expect(transport.requests.filter(({ request }) => request.pathId === 'agent.eval-lab.projects.command')).toHaveLength(1);
+    await waitFor(() => expect(screen.queryByRole('button', { name: '核对原消息' })).not.toBeInTheDocument());
+  });
+
+  it('clears an uncertain project banner when its exact live message is accepted without sending again', async () => {
+    const guideSessionId = 'guide-live-reconcile';
+    let current: LabProject | null = null; const prompts: unknown[] = [];
+    const transport = new MockControlTransport({ routes: {
+      'agent.eval-lab.projects.get': (request: ControlRequest) => read(request.query?.projectId ? current : null, current ? [current] : []),
+      'agent.eval-lab.projects.command': ({ body }: ControlRequest) => { const command = body as ProjectCommand; current = project({ guideSessionId }); return { ok: true, project: current, clientRequestId: command.clientRequestId, replayed: false }; },
+      'agent.session.prompt': ({ body }: ControlRequest) => { prompts.push(body); throw new TypeError('Response lost'); },
+    } });
+    mount(transport);
+    fireEvent.click(await screen.findByText('其他项目：文本、源码或已有执行目录'));
+    fireEvent.change(await screen.findByRole('textbox', { name: '描述你的项目' }), { target: { value: '接纳结果由实时消息核对' } });
+    fireEvent.click(screen.getByRole('button', { name: '创建并开始' }));
+    await screen.findByRole('button', { name: '核对原消息' });
+    await act(async () => { useAgentLiveStore.getState().acknowledgeOptimistic(guideSessionId, 'different-message', Date.now()); });
+    expect(screen.getByRole('button', { name: '核对原消息' })).toBeVisible();
+    await act(async () => {
+      const optimistic = Object.values(useAgentLiveStore.getState().projections[guideSessionId]!.messagesById).find((row) => row.clientMessageId === 'lab-project-start:project-1')!;
+      const { admissionState: _admission, ...serverMessage } = optimistic;
+      useAgentLiveStore.getState().hydrateSnapshot(guideSessionId, {
+        messages: [{ ...serverMessage, id: 'server-message-1', status: 'completed', deliveryState: 'accepted' }], liveEvents: [], lastSequence: 1, resumeToken: `${guideSessionId}:1`, status: 'idle',
+      });
+    });
+    await waitFor(() => expect(screen.queryByRole('button', { name: '核对原消息' })).not.toBeInTheDocument());
+    expect(prompts).toHaveLength(1);
+    useAgentLiveStore.getState().clear(guideSessionId);
+  });
+
+  it('renders project-defined input fields, preserves an edit across views, and saves its real revision', async () => {
+    let currentArtifact = artifact({ title: '售后条件', kind: 'support_rules', view: 'form', content: {
+      fields: [{ key: 'days', label: '退货期限', type: 'number' }, { key: 'used', label: '允许已使用商品', type: 'boolean' }], values: { days: 7, used: false },
+    } });
+    let current = withArtifact(currentArtifact); const commands: ProjectCommand[] = [];
+    const transport = new MockControlTransport({ routes: {
+      'agent.eval-lab.projects.get': (request: ControlRequest) => read(request.query?.projectId ? current : null, [current], request.query?.artifactId ? currentArtifact : undefined),
+      'agent.eval-lab.projects.command': (request: ControlRequest) => { const command = request.body as ProjectCommand; commands.push(command); currentArtifact = { ...currentArtifact, content: command.input.content!, revision: 2, updatedAtMs: 2 }; current = withArtifact(currentArtifact, { revision: 2, updatedAtMs: 2 }); return { ok: true, project: current, artifact: currentArtifact, replayed: false, clientRequestId: command.clientRequestId }; },
+    } });
+    mount(transport, { initialProjectId: 'project-1' });
+    fireEvent.change(await screen.findByRole('spinbutton', { name: '退货期限' }), { target: { value: '14' } });
+    fireEvent.click(screen.getByRole('button', { name: '资料' }));
+    await screen.findByText('尚未添加资料');
+    fireEvent.click(screen.getByRole('button', { name: '售后条件' }));
+    expect(await screen.findByRole('spinbutton', { name: '退货期限' })).toHaveValue(14);
+    fireEvent.click(screen.getByRole('button', { name: '保存新版本' }));
+    await waitFor(() => expect(commands).toHaveLength(1));
+    expect(commands[0]).toMatchObject({ action: 'publish_artifact', projectId: 'project-1', expectedRevision: 1,
+      input: { artifactId: 'artifact-1', expectedArtifactRevision: 1, content: { values: { days: 14, used: false } } } });
+    await waitFor(() => expect(screen.queryByRole('button', { name: '保存新版本' })).not.toBeInTheDocument());
+  });
+
+  it('uses different columns and interaction types for another project without adding a page branch', async () => {
+    const item = artifact({ title: '故障时间线', kind: 'incident_timeline', view: 'table', content: {
+      columns: [{ key: 'at', label: '事件时间' }, { key: 'service', label: '服务' }, { key: 'observed', label: '实际观测' }],
+      rows: [{ at: '10:01', service: '支付', observed: '连接超时' }],
+    } }); const current = withArtifact(item, { title: '支付故障排查' });
+    const transport = new MockControlTransport({ routes: { 'agent.eval-lab.projects.get': (request: ControlRequest) => read(request.query?.projectId ? current : null, [current], request.query?.artifactId ? item : undefined) } });
+    mount(transport, { initialProjectId: 'project-1' });
+    expect(await screen.findByRole('columnheader', { name: '事件时间' })).toBeVisible();
+    expect(screen.getByRole('cell', { name: '连接超时' })).toBeVisible();
+    expect(screen.queryByRole('spinbutton', { name: '退货期限' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '运行' })).not.toBeInTheDocument();
+  });
+
+  it('restores an unsaved artifact draft after remounting the project', async () => {
+    const item = artifact({ view: 'form', title: '环境观察', content: { fields: [{ key: 'service', label: '受影响服务', type: 'text' }], values: { service: '原值' } } });
+    const current = withArtifact(item);
+    const transport = new MockControlTransport({ routes: { 'agent.eval-lab.projects.get': (request: ControlRequest) => read(request.query?.projectId ? current : null, [current], request.query?.artifactId ? item : undefined) } });
+    const first = mount(transport, { initialProjectId: 'project-1' });
+    fireEvent.change(await screen.findByRole('textbox', { name: '受影响服务' }), { target: { value: '支付服务，仍待确认' } });
+    first.unmount();
+    mount(transport, { initialProjectId: 'project-1' });
+    expect(await screen.findByRole('textbox', { name: '受影响服务' })).toHaveValue('支付服务，仍待确认');
+    expect(screen.getByRole('button', { name: '保存新版本' })).toBeVisible();
+    expect(transport.requests.every(({ request }) => request.pathId === 'agent.eval-lab.projects.get')).toBe(true);
+  });
+
+  it('reconciles an uncertain create with the same command instead of creating another project', async () => {
+    let current: LabProject | null = null; let accepted: Record<string, unknown>; const commands: ProjectCommand[] = [];
+    const transport = new MockControlTransport({ routes: {
+      'agent.eval-lab.projects.get': (request: ControlRequest) => read(request.query?.projectId ? current : null, current ? [current] : []),
+      'agent.eval-lab.projects.command': (request: ControlRequest) => { const command = request.body as ProjectCommand; commands.push(command); if (commands.length === 1) { current = project(); accepted = { ok: true, project: current, replayed: false, clientRequestId: command.clientRequestId }; throw new Error('连接中断'); } return { ...accepted, replayed: true }; },
+    } });
+    mount(transport);
+    fireEvent.click(await screen.findByText('其他项目：文本、源码或已有执行目录'));
+    fireEvent.change(await screen.findByRole('textbox', { name: '描述你的项目' }), { target: { value: '业务任务' } });
+    fireEvent.click(screen.getByRole('button', { name: '创建并开始' }));
+    fireEvent.click(await screen.findByRole('button', { name: '核对原操作' }));
+    await screen.findByRole('heading', { name: '售后助手' });
+    expect(commands).toHaveLength(2); expect(commands[1]).toEqual(commands[0]);
+    expect(screen.queryByRole('button', { name: '核对原操作' })).not.toBeInTheDocument();
+  });
+
+  it('isolates custom HTML and stages only declared interactions without automatically prompting the Agent', async () => {
+    const item = artifact({ title: '服务拓扑', view: 'html', kind: 'service_graph', content: '<button>查看服务</button>', actions: [{ actionId: 'inspect', label: '排查选定服务', prompt: '排查所选服务' }] });
+    const current = withArtifact(item, { guideSessionId: 'guide-1' });
+    const transport = new MockControlTransport({ routes: { 'agent.eval-lab.projects.get': (request: ControlRequest) => read(request.query?.projectId ? current : null, [current], request.query?.artifactId ? item : undefined) } });
+    mount(transport, { initialProjectId: 'project-1' });
+    const frame = await waitFor(() => {
+      const target = document.querySelector<HTMLIFrameElement>('iframe[title="服务拓扑"]');
+      expect(target).not.toBeNull(); return target!;
+    });
+    expect(frame.getAttribute('sandbox')).toBe('allow-scripts');
+    expect(frame.getAttribute('srcdoc')).toBeNull();
+    expect(frame.getAttribute('src')).toBe('/__paw_lab_preview.html');
+    fireEvent(window, new MessageEvent('message', { source: window, data: { type: 'paw.lab.artifact.action', actionId: 'inspect' } }));
+    expect(screen.queryByRole('button', { name: '带入对话' })).not.toBeInTheDocument();
+    fireEvent(window, new MessageEvent('message', { source: frame.contentWindow, data: { type: 'paw.lab.artifact.action', actionId: 'inspect', values: { service: 'payments' } } }));
+    fireEvent.click(await screen.findByRole('button', { name: '带入对话' }));
+    expect((screen.getByRole('textbox', { name: 'Agent 输入草稿' }) as HTMLTextAreaElement).value).toContain('payments');
+    expect(transport.requests.some(({ request }) => request.pathId === 'agent.session.prompt')).toBe(false);
+  });
+});
+
+describe('artifact editing', () => {
+  it('retains a malformed structured-data draft after returning to its preview', async () => {
+    const item = artifact({ view: 'json', content: { observed: 1 } }); const save = vi.fn();
+    function Editor() { const [draft, setDraft] = useState<import('./ArtifactSurface').ArtifactDraft>(); return <ArtifactSurface artifact={item} draft={draft} busy={false} onDraft={setDraft} onSave={save} onAction={vi.fn()} />; }
+    render(<Editor />);
+    fireEvent.click(screen.getByRole('button', { name: '编辑内容' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '成果内容草稿' }), { target: { value: '{invalid' } });
+    fireEvent.click(screen.getByRole('button', { name: '查看成果' }));
+    fireEvent.click(screen.getByRole('button', { name: '保存新版本' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('JSON 格式还不完整');
+    expect(save).not.toHaveBeenCalled();
+  });
+});

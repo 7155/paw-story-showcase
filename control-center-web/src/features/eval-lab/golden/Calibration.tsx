@@ -1,7 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import { Button, Disclosure, Field, TextArea } from '@/components/primitives';
 import { EvidenceView, formatRate, ModelFields } from './Shared';
-import { categoryLabel, isRunnableGoldenModel, verdictLabel, type GoldenCommand, type GoldenSuite, type Verdict } from './types';
+import { categoryLabel, isRunnableGoldenModel, object, verdictLabel, type Calibration, type GoldenCommand, type GoldenSuite, type Verdict } from './types';
 import { SavedProgress } from './WorkflowGuide';
 
 type SampleDraft = { answer: string; humanVerdict: Verdict | null; humanNote: string; labelAuthor?: 'human' | 'agent' };
@@ -93,15 +93,74 @@ export function CalibrationPanel({ suite, disabled, onLabel, onJudge, onCalibrat
       <header><h4>{pendingChanges ? '当前修改尚未校准' : ready ? '校准通过，可以冻结' : '校准尚未通过'}</h4><span className="golden-count">标准版本 {calibration.suiteRevision}</span></header>
       {pendingChanges ? <p className="golden-note">下方仅为已保存标准与标签的校准结果。请先保存修改并重新校准。</p> : null}
       <p>标签来源：用户 {calibration.labelAuthors?.human ?? 0} / Agent {calibration.labelAuthors?.agent ?? 0} / 未记录 {calibration.labelAuthors?.unrecorded ?? calibration.metrics.total}。</p><p>一致率 {formatRate(calibration.metrics.agreement)}，基于 {calibration.metrics.comparable} 个可比较标签；误通过 {calibration.metrics.falsePasses} 个，误拒绝 {calibration.metrics.falseFails} 个，无法判定 {calibration.metrics.uncertain} 个。</p>
+      <CalibrationOrigin suite={suite} calibration={calibration} />
       {calibration.suiteRevision !== suite.revision ? <p className="golden-field-error">标准或标签已修改，请重新校准。</p> : null}
       {calibration.reasons.length ? <ul>{calibration.reasons.map((reason, index) => <li key={index}>{reason}</li>)}</ul> : null}
       <p className="golden-note">小样本的一致率只说明这些已标注样例；不代表所有任务上的评审质量。参考“无法判定”标签不计入通过与否的一致率。</p>
       <div className="golden-judgments">{calibration.judgments.map((judgment) => {
         const item = suite.cases.find((item) => item.caseId === judgment.caseId);
         const sample = item?.samples.find((sample) => sample.sampleId === judgment.sampleId);
-        return <details key={`${judgment.caseId}:${judgment.sampleId}`}><summary><span>{item?.question ?? '题目不可用'}</span><span>参考标签：{sample?.humanVerdict ? verdictLabel[sample.humanVerdict] : '未标注'} · 评审：{verdictLabel[judgment.verdict]}</span></summary><p>{judgment.reason}</p><EvidenceView evidence={judgment.evidence} sources={suite.sources} /></details>;
+        return <details key={`${judgment.caseId}:${judgment.sampleId}`}><summary><span>{item?.question ?? '题目不可用'}</span><span>参考标签：{sample?.humanVerdict ? verdictLabel[sample.humanVerdict] : '未标注'} · 评审：{verdictLabel[judgment.verdict]}</span></summary><p>{judgment.reason}</p><EvidenceView evidence={judgment.evidence} sources={suite.sources} />
+          {judgment.quoteNormalizations?.length ? <Disclosure className="golden-disclosure" summary={`查看 ${judgment.quoteNormalizations.length} 处引用格式对齐`}>
+            {judgment.quoteNormalizations.map((normalization, index) => <figure className="golden-evidence" key={index}><figcaption>原模型引文</figcaption><blockquote>{normalization.from}</blockquote><figcaption>对应原文连续片段</figcaption><blockquote>{normalization.to}</blockquote><p className="golden-note">原文字符 {normalization.startChar}–{normalization.endChar}（左闭右开）。策略：{normalization.alignmentPolicyVersion ?? judgment.quoteAlignmentPolicyVersion ?? '未记录'}。</p></figure>)}
+          </Disclosure> : null}
+        </details>;
       })}</div>
       {savedCalibrationReady ? <div className="golden-section__footer golden-action-bar"><p className="golden-ready">评审已与这些标签对齐，可以进入模型对比。</p><Button variant="primary" disabled={disabled || pendingChanges} onClick={onNext}>继续冻结与实验</Button></div> : null}
     </section> : null}
   </section>;
+}
+
+function CalibrationOrigin({ suite, calibration }: { suite: GoldenSuite; calibration: Calibration }) {
+  if (calibration.rejudgedFrom) return <UncertainRejudgeOrigin suite={suite} calibration={calibration} />;
+  const origin = calibration.reprocessedFrom;
+  if (!origin) return null;
+  const sourceJob = suite.jobs.find((job) => job.jobId === origin.jobId);
+  const source = object(sourceJob?.result?.calibration);
+  const sourceMetrics = object(source.metrics);
+  const sourceUsage = object(sourceJob?.result?.usage);
+  const derivedJob = suite.jobs.find((job) => object(job.result?.calibration).calibrationId === calibration.calibrationId);
+  const derivedUsage = object(derivedJob?.result?.usage);
+  const noNewCalls = derivedUsage.source === 'read_only_reprocess' && derivedUsage.calls === 0;
+  const known = source.calibrationId === origin.calibrationId;
+  const number = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? value : null;
+  const estimate = number(sourceUsage.estimatedCostUsd);
+  const billed = number(sourceUsage.costUsd);
+  const originalJudgments = Array.isArray(source.judgments) ? source.judgments.map(object) : [];
+  return <Disclosure className="golden-disclosure" defaultOpen summary="引用复核与原始校准">
+    <p>复用已完成的模型输出核对引用；题目、标签与原始模型输出保持不变。{noNewCalls ? '本次新增模型调用：0。' : '本次用量以完成回执为准。'}</p>
+    {known ? <>
+      <p>原校准一致率 {formatRate(number(sourceMetrics.agreement))}，无法判定 {number(sourceMetrics.uncertain) ?? '未提供'} 个；原始模型调用 {number(sourceUsage.calls) ?? '未提供'} 次。</p>
+      <p>原调用价表估算：{estimate === null ? '未提供' : `$${estimate.toLocaleString('en-US', { maximumFractionDigits: 7 })}`}；实际账单：{billed === null ? '未提供' : `$${billed.toLocaleString('en-US', { maximumFractionDigits: 7 })}`}。</p>
+      <Disclosure className="golden-disclosure" summary="查看原始判定">
+        <ul>{originalJudgments.map((judgment, index) => <li key={index}>{String(judgment.caseId ?? '')} / {String(judgment.sampleId ?? '')}：{judgment.verdict === 'pass' || judgment.verdict === 'fail' || judgment.verdict === 'uncertain' ? verdictLabel[judgment.verdict] : '未提供'}。{typeof judgment.reason === 'string' ? judgment.reason : ''}</li>)}</ul>
+      </Disclosure>
+    </> : <p>原始校准暂未读到，保留原记录标识，重新读取后可核对。</p>}
+  </Disclosure>;
+}
+
+function UncertainRejudgeOrigin({ suite, calibration }: { suite: GoldenSuite; calibration: Calibration }) {
+  const origin = calibration.rejudgedFrom;
+  if (!origin) return null;
+  const sourceJob = suite.jobs.find((job) => job.jobId === origin.jobId);
+  const source = object(sourceJob?.result?.calibration);
+  const sourceMetrics = object(source.metrics);
+  const sourceUsage = object(sourceJob?.result?.usage);
+  const derivedJob = suite.jobs.find((job) => object(job.result?.calibration).calibrationId === calibration.calibrationId);
+  const rejudgeUsage = object(derivedJob?.result?.rejudgeUsage);
+  const incrementalUsage = object(rejudgeUsage.incrementalUsage);
+  const number = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? value : null;
+  const original = object(origin.originalJudgment);
+  const newCalls = number(rejudgeUsage.newCallCount) ?? 1;
+  const newCost = number(incrementalUsage.costUsd);
+  const newEstimatedCost = number(incrementalUsage.estimatedCostUsd);
+  return <Disclosure className="golden-disclosure" defaultOpen summary="单样例重评与原始校准">
+    <p>只重评 {origin.caseId} / {origin.sampleId} 这 1 个无法判定样例；复用其余 11 条已确认判断和原回执。新增模型调用：{newCalls}。</p>
+    <p>原校准一致率 {formatRate(number(sourceMetrics.agreement))}，无法判定 {number(sourceMetrics.uncertain) ?? '未提供'} 个；原始模型调用 {number(sourceUsage.calls) ?? '未提供'} 次。</p>
+    <p>本次新增调用估算：{newEstimatedCost === null ? '未提供' : `$${newEstimatedCost.toLocaleString('en-US', { maximumFractionDigits: 7 })}`}；实际账单：{newCost === null ? '未提供' : `$${newCost.toLocaleString('en-US', { maximumFractionDigits: 7 })}`}。原始 11 条回执仍保留在 mixed lineage 中，原校准任务不变。</p>
+    <Disclosure className="golden-disclosure" summary="查看原始无法判定结果">
+      <p>{String(origin.caseId)} / {String(origin.sampleId)}：原评审 {origin.originalVerdict === 'uncertain' ? verdictLabel.uncertain : String(origin.originalVerdict)}。{origin.originalReason || String(original.reason ?? '')}</p>
+      {origin.originalReceiptRequestId ? <p className="golden-note">原回执：{origin.originalReceiptRequestId}</p> : null}
+    </Disclosure>
+  </Disclosure>;
 }

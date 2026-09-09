@@ -22,8 +22,10 @@ if [[ ! -x "${vinext}" ]]; then
 fi
 
 npm --prefix "${SITES_PROJECT_ROOT}/../real-apps/geo" run build
+node "${SITES_PROJECT_ROOT}/../control-center-web/scripts/build-portable-agent-ui.mjs"
 node "${script_dir}/materialize-real-apps.mjs"
 node "${script_dir}/materialize-release-assets.mjs"
+node "${script_dir}/materialize-world-evidence.mjs"
 
 control_center_dir="${SITES_PROJECT_ROOT}/../control-center-web"
 if [[ ! -f "${control_center_dir}/package.json" ]]; then

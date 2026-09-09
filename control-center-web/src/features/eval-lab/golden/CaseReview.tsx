@@ -14,15 +14,17 @@ const caseDraft = (item: GoldenCase): Draft => ({
   split: item.split, note: item.review.note, reviewAuthor: item.review.author ?? 'human',
 });
 
-export function CaseReview({ suite, disabled, onReview, onNext, onDraft, onDirtyChange }: {
+export function CaseReview({ suite, disabled, onReview, onNext, onDraft, onSupplement, onDirtyChange }: {
   suite: GoldenSuite; disabled: boolean;
   onReview: (input: GoldenCommand['input']) => Promise<boolean>; onNext: () => void; onDraft?: () => void;
+  onSupplement?: (input: GoldenCommand['input']) => Promise<boolean>;
   onDirtyChange?: (dirty: boolean) => void;
 }) {
   const id = useId();
   const [selectedId, setSelectedId] = useState('');
   const [filter, setFilter] = useState('all');
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const [supplementing, setSupplementing] = useState<string | null>(null);
   const filtered = suite.cases.filter((item) => filter === 'all' || item.review.status === filter);
   const selected = filtered.find((item) => item.caseId === selectedId) ?? filtered.find((item) => item.review.status === 'pending') ?? filtered[0];
   const approved = suite.cases.filter((item) => item.review.status === 'approved');
@@ -60,7 +62,11 @@ export function CaseReview({ suite, disabled, onReview, onNext, onDraft, onDirty
         </button></li>)}</ol>
         {!filtered.length ? <p className="golden-note">此筛选下没有题目。</p> : null}
       </aside>
-      {selected && draft ? <CaseEditor key={selected.caseId} value={draft} onChange={change} sources={suite.sources} disabled={disabled} onSubmit={submit} hasNext={suite.cases.some((item) => item.caseId !== selected.caseId && item.review.status === 'pending')} /> : null}
+      {selected && draft ? <CaseEditor key={selected.caseId} value={draft} onChange={change} sources={suite.sources} knowledgeBound={Boolean(suite.knowledge)} disabled={disabled} onSubmit={submit} onSupplement={onSupplement ? async (input) => {
+        setSupplementing(String(input.evidenceIndex));
+        try { return await onSupplement({ caseId: selected.caseId, evidenceIndex: input.evidenceIndex, sourceId: input.sourceId, quote: input.quote }); }
+        finally { setSupplementing(null); }
+      } : undefined} supplementing={supplementing} hasNext={suite.cases.some((item) => item.caseId !== selected.caseId && item.review.status === 'pending')} /> : null}
     </div>}
     <footer className="golden-section__footer golden-action-bar"><p className="golden-note">{enoughSplits ? pending ? `还有 ${pending} 题待审核；继续后只使用已通过的题目。` : '题目审核已完成。接下来用示例答案对齐评审标准。' : '至少通过一道开发题和一道留出题，才能冻结用于比较的评测集。'}</p>
       <Button variant="primary" onClick={onNext} disabled={!enoughSplits || disabled || hasUnsaved}>继续校准评审</Button>
@@ -68,9 +74,10 @@ export function CaseReview({ suite, disabled, onReview, onNext, onDraft, onDirty
   </section>;
 }
 
-function CaseEditor({ value, onChange, sources, disabled, onSubmit, hasNext }: {
-  value: Draft; onChange: (value: Draft) => void; sources: GoldenSource[]; disabled: boolean;
+function CaseEditor({ value, onChange, sources, knowledgeBound, disabled, onSubmit, onSupplement, supplementing, hasNext }: {
+  value: Draft; onChange: (value: Draft) => void; sources: GoldenSource[]; knowledgeBound: boolean; disabled: boolean;
   onSubmit: (verdict: 'approved' | 'rejected', advance?: boolean) => Promise<void>; hasNext: boolean;
+  onSupplement?: (input: GoldenCommand['input']) => Promise<boolean>; supplementing: string | null;
 }) {
   const id = useId();
   const invalidQuote = value.evidence.some((item) => !item.quote.trim() || !sources.find((source) => source.sourceId === item.sourceId)?.text.includes(item.quote));
@@ -87,14 +94,15 @@ function CaseEditor({ value, onChange, sources, disabled, onSubmit, hasNext }: {
       <Field htmlFor={`${id}-facts`} label="必须回答的事实" description="每行一条；无法回答的问题可以留空。"><TextArea id={`${id}-facts`} value={value.requiredFacts.join('\n')} rows={4} onChange={(event) => onChange({ ...value, requiredFacts: event.target.value.split('\n') })} onBlur={() => onChange({ ...value, requiredFacts: lines(value.requiredFacts.join('\n')) })} /></Field>
       <Field htmlFor={`${id}-rubric`} label="通过标准" description="每行一条，写清什么算满足、什么算遗漏。"><TextArea id={`${id}-rubric`} value={value.rubric.join('\n')} rows={4} onChange={(event) => onChange({ ...value, rubric: event.target.value.split('\n') })} onBlur={() => onChange({ ...value, rubric: lines(value.rubric.join('\n')) })} /></Field>
       <section className="golden-citations" aria-label="引用证据"><h4>引用证据</h4>
-        {value.evidence.map((item, index) => <div className="golden-citation-editor" key={index}>
+        {value.evidence.map((item, index) => { const source = sources.find((candidate) => candidate.sourceId === item.sourceId); const missingFromExcerpt = Boolean(knowledgeBound && source && item.quote.trim() && !source.text.includes(item.quote)); return <div className="golden-citation-editor" key={index}>
           <div className="golden-citation-editor__heading"><label htmlFor={`${id}-source-${index}`}>引用 {index + 1} 的来源</label><IconButton label={`移除引用 ${index + 1}`} icon={<Trash2 size={15} />} onClick={() => onChange({ ...value, evidence: value.evidence.filter((_item, itemIndex) => itemIndex !== index) })} /></div>
           <select id={`${id}-source-${index}`} value={item.sourceId} onChange={(event) => onChange({ ...value, evidence: value.evidence.map((item, itemIndex) => itemIndex === index ? { ...item, sourceId: event.target.value } : item) })}>
             <option value="">选择来源</option>{sources.map((source) => <option key={source.sourceId} value={source.sourceId}>{source.title}</option>)}
           </select>
           <label className="golden-visually-hidden" htmlFor={`${id}-quote-${index}`}>引用 {index + 1} 的原文</label>
           <TextArea id={`${id}-quote-${index}`} value={item.quote} rows={3} placeholder="摘录来源中的原文" onChange={(event) => onChange({ ...value, evidence: value.evidence.map((item, itemIndex) => itemIndex === index ? { ...item, quote: event.target.value } : item) })} />
-        </div>)}
+          {missingFromExcerpt && onSupplement ? <div className="golden-citation-supplement"><Button type="button" size="small" variant="quiet" loading={supplementing === String(index)} disabled={disabled || supplementing !== null} onClick={() => void onSupplement({ caseId: value.caseId, evidenceIndex: index, sourceId: item.sourceId, quote: item.quote })}>从绑定全文补充引用</Button><span>只加入有界上下文；补充成功后仍需保存本题审核。</span></div> : null}
+        </div>; })}
         <Button size="small" variant="quiet" leadingIcon={<Plus size={14} />} onClick={() => onChange({ ...value, evidence: [...value.evidence, { sourceId: sources[0]?.sourceId ?? '', quote: '' }] })}>添加引用</Button>
         {invalidQuote ? <p className="golden-field-error" role="status">请确认引用逐字出现在所选来源中。</p> : null}
         <Disclosure className="golden-disclosure" summary="查看来源原文"><div className="golden-source-reference">{sources.map((source) => <section key={source.sourceId}><h5>{source.title}</h5><small>{source.uri}</small><p>{source.text}</p></section>)}</div></Disclosure>

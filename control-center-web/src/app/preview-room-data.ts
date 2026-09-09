@@ -1,3 +1,5 @@
+import { worldMemoryStats } from '../../../showcase/world';
+import { enrichWorldRoomEvents } from './preview-world-room';
 import { PREVIEW_REPORT_BYTES } from '@/features/agent/preview-data';
 import taskStory from '../../../showcase/task-story.v1.json';
 import {
@@ -191,8 +193,8 @@ export function previewRoomSnapshot(
       searchSummary: '沿 Input Event → Evidence → Timeline / Atom → Recall Receipt 核对数据链',
       toolName: 'memory',
       toolArguments: { op: 'inspect_pipeline', sourceEvents: 1_284, target: 'today timeline + user preferences', rawInput: false },
-      delta: '今天的 1,284 条完整输入先按语义任务聚合为 5 段活动，再把稳定偏好治理成 3 个 Atom。回答“今天做了什么”只召回 Timeline；回答“最近偏好”只召回相关 Atom，原始输入不整段回灌。',
-      resultSummary: '1,284 条输入 → 5 个任务 → 3 条相关偏好；来源可追溯，未封口碎片和无关状态已排除。',
+      delta: `本场景包含 ${worldMemoryStats.sampleCount} 条跨应用来源，其中 ${worldMemoryStats.committedCount} 条已提交，${worldMemoryStats.excludedPhaseCount} 条组合态、草稿或语音中间状态不会进入稳定输入历史。已提交来源再按项目、授权、保留期限与纠正关系治理；回答当前问题只取少量相关来源，原始输入不整段回灌。`,
+      resultSummary: `${worldMemoryStats.sampleCount} 条样例 → ${worldMemoryStats.committedCount} 条稳定提交 → 按当前项目与问题召回；中间状态不进入输入历史，纠正与撤销保留来源。`,
       intercomTargetId: 'participant-context',
       intercomTargetName: 'Jupiter',
       intercomSummary: '行星通信 · Venus → Jupiter：交付 bounded recall 合同；Room 只能按当前 WorkItem 请求 Timeline / Atom，不能复制整库。',
@@ -629,7 +631,7 @@ export function previewRoomSnapshot(
 
   const maxSequence = events.length;
   const throughSequence = Math.max(1, Math.min(options.throughSequence ?? maxSequence, maxSequence));
-  const visibleEvents = events.slice(0, throughSequence);
+  const visibleEvents = enrichWorldRoomEvents(events.slice(0, throughSequence));
   const workItems = [
     showcaseWorkItem({
       roomId,
@@ -651,7 +653,7 @@ export function previewRoomSnapshot(
       now,
       id: 'runtime',
       ownerId: 'participant-runtime',
-      objective: '定义从 1,284 条输入到时间线、偏好 Atom 与按题召回的数据链',
+      objective: `核对 ${worldMemoryStats.sampleCount} 条跨应用样例的提交阶段、治理与有范围召回`,
       expectedOutput: 'Input Event → Evidence → Timeline / Atom → Recall Receipt',
       acceptanceCriteria: ['原始输入不整库回灌', '时间线与偏好分开', '来源可下钻'],
       throughSequence,

@@ -51,7 +51,7 @@ export const projectActions = ['create', 'import_history', 'update_brief', 'impo
 export type ProjectAction = typeof projectActions[number];
 export type ProjectCommand = { action: ProjectAction; projectId?: string; expectedRevision: number; clientRequestId: string; input: Record<string, JsonValue> };
 export type ProjectReceipt = { ok: true; project: LabProject; artifact?: LabArtifact; binding?: LabBinding; clientRequestId: string; replayed: boolean;
-  job?: import('./knowledge-types').KnowledgeJob; upload?: { uploadId: string; ready?: boolean; chunkBytes?: number } };
+  job?: import('./knowledge-types').KnowledgeJob; upload?: { uploadId: string; ready?: boolean; chunkBytes?: number; name?: string; bytes?: number; sha256?: string; index?: number; receivedBytes?: number } };
 export const object = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 const text = (value: unknown): value is string => typeof value === 'string';
 const natural = (value: unknown): value is number => Number.isSafeInteger(value) && Number(value) >= 0;

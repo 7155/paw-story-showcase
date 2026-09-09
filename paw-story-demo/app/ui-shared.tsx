@@ -88,7 +88,7 @@ export function useTimedLoop(durations: readonly number[], manualGateSteps: read
 }
 
 export function PawMark() {
-  return <span className="paw-mark" aria-hidden="true"><i /><i /><i /><i /></span>;
+  return <span className="paw-mark" aria-hidden="true" style={{ backgroundImage: "url(/app-icon-192.png?v=20260909)" }} />;
 }
 
 export function GithubMark({ size = 14 }: { size?: number }) {

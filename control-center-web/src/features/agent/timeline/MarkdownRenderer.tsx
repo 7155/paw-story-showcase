@@ -1,5 +1,5 @@
 import { ArrowUpRight, CheckCircle2, ExternalLink, FileText } from 'lucide-react';
-import { memo, useMemo, type ReactNode } from 'react';
+import { createContext, memo, useContext, useMemo, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -21,6 +21,13 @@ import {
   InlineHtmlOutput,
   standaloneHtmlSource,
 } from './InlineHtmlOutput';
+
+const CitationContext = createContext<{ numbers: ReadonlySet<number>; onOpen: (number: number) => void } | null>(null);
+/** Hosts bind citation numbers to their own frozen evidence; ordinary Agent Markdown is unchanged. */
+export function MarkdownCitations({ numbers, onOpen, children }: { numbers: readonly number[]; onOpen: (number: number) => void; children: ReactNode }) {
+  const value = useMemo(() => ({ numbers: new Set(numbers), onOpen }), [numbers, onOpen]);
+  return <CitationContext.Provider value={value}>{children}</CitationContext.Provider>;
+}
 
 export function TextBlockRenderer({
   block,
@@ -280,14 +287,17 @@ function MarkdownFragment({
   streamingTail?: boolean;
 }) {
   const desktop = usePawOsDesktop();
+  const citations = useContext(CitationContext);
   return (
     <ReactMarkdown
       skipHtml
       remarkPlugins={streamingTail
-        ? [remarkGfm, remarkWorkspaceFileReferences, remarkLiteralHtml, remarkStreamingTail]
-        : [remarkGfm, remarkWorkspaceFileReferences, remarkLiteralHtml]}
+        ? [remarkGfm, remarkWorkspaceFileReferences, remarkLiteralHtml, remarkStreamingTail, [remarkCitationReferences, citations?.numbers]]
+        : [remarkGfm, remarkWorkspaceFileReferences, remarkLiteralHtml, [remarkCitationReferences, citations?.numbers]]}
       components={{
         a: ({ href, children }) => {
+          const citation = href?.match(/^#\/paw-citation\/(\d+)$/u);
+          if (citation && citations?.numbers.has(Number(citation[1]))) return <button type="button" className="agent-markdown__citation" aria-label={`查看引用 ${citation[1]}`} onClick={() => citations.onOpen(Number(citation[1]))}>{children}</button>;
           const filePath = workspaceFileReference(href);
           if (filePath) {
             const target: EvidenceEchoEntity = {
@@ -405,6 +415,32 @@ type MarkdownAstNode = {
   children?: MarkdownAstNode[];
   data?: { hProperties?: Record<string, unknown> };
 };
+
+function remarkCitationReferences(numbers?: ReadonlySet<number>) {
+  return (tree: MarkdownAstNode) => {
+    if (!numbers?.size) return;
+    const visit = (node: MarkdownAstNode) => {
+      if (node.type === 'link' || node.type === 'linkReference' || !node.children) return;
+      node.children = node.children.flatMap((child) => {
+        if (child.type !== 'text' || !child.value) { visit(child); return [child]; }
+        const parts: MarkdownAstNode[] = []; let cursor = 0;
+        // App receipts may annotate a citation with the source page, for
+        // example `[1, 第4页]` or `[1, page 4]`. The page is display context;
+        // binding remains keyed only by the numbered source already supplied
+        // by the host.
+        for (const match of child.value.matchAll(/\[(\d+)(?:\s*[,，]\s*(?:(?:第\s*)?(\d+)\s*页|(?:page|p\.?)\s*(\d+)))?\]/giu)) {
+          if (!numbers.has(Number(match[1]))) continue;
+          if (match.index > cursor) parts.push({ type: 'text', value: child.value.slice(cursor, match.index) });
+          parts.push({ type: 'link', url: `#/paw-citation/${match[1]}`, children: [{ type: 'text', value: match[0] }] });
+          cursor = match.index + match[0].length;
+        }
+        if (cursor < child.value.length) parts.push({ type: 'text', value: child.value.slice(cursor) });
+        return parts;
+      });
+    };
+    visit(tree);
+  };
+}
 
 const WORKSPACE_FILE_REFERENCE = /(?<![\w./:-])(?:\/(?:[\w@+.-]+\/)*|(?:\.\.?\/)?(?:[\w@+.-]+\/)+)?[\w@+.-]+\.(?:md|mdx|markdown|txt|json|jsonl|yaml|yml|toml|ts|tsx|js|jsx|css|scss|html|htm|py|swift|sql|sh|zsh|go|rs|java|rb|c|cpp|h|vue|svelte|xml|csv|tsv|diff|patch)(?![\w.-])/giu;
 

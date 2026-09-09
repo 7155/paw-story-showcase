@@ -2,7 +2,8 @@
 import { createRequire } from 'node:module';
 import { afterEach, expect, it } from 'vitest';
 import { verticalAppDocument } from '../../../showcase/vertical-app';
-import { labFlowSamples, evaluateLabDemo } from '../../../showcase/lab-flow';
+import { evaluateLabDemo } from '../../../showcase/lab-flow';
+import labFlowSamples from '../../../showcase/datasets/lab-samples.v1.json';
 import type { LabKey } from '../../../showcase/lab-evidence';
 const { JSDOM } = createRequire(import.meta.url)('jsdom');
 const windows: Window[] = [];

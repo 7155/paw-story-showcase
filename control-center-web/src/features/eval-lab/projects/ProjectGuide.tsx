@@ -53,6 +53,13 @@ export function pendingProjectMessages(transport: ControlTransport, project: Lab
     });
   } catch { return []; }
 }
+export function acceptedProjectMessage(project: LabProject, clientMessageId: string): boolean {
+  const projection = useAgentLiveStore.getState().projections[project.guideSessionId];
+  return Object.values(projection?.messagesById ?? {}).some((row) => row.role === 'user'
+    && row.clientMessageId === clientMessageId && !row.admissionState
+    && (row.deliveryState === 'accepted' || row.deliveryState === 'applied'
+      || (!row.id.startsWith('local:') && row.status === 'completed')));
+}
 export function retainProjectMessage(transport: ControlTransport, project: LabProject, message: PendingProjectMessage, remove = false) {
   try {
     const remaining = pendingProjectMessages(transport, project).filter((item) => item.clientMessageId !== message.clientMessageId);

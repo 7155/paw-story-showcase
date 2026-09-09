@@ -1,6 +1,15 @@
+import { world } from '../../../showcase/world';
 import corpus from '../../../showcase/datasets/memory-corpus.v1.json';
 import type { MemoryReferenceV1 } from '@/contracts/generated/memory-reference.v1';
-export const publicMemoryCorpus = corpus.map((row, index) => ({ ...row, eventId: 11001 + index, atomId: `atom:corpus-${row.id}` }));
+const sources = world.datasets.memory.sources;
+const retired = new Set(sources.flatMap(row => [row.corrects,row.revokes].filter((value): value is string => Boolean(value))));
+const worldCorpus = sources.map(row => ({
+ id:`world-${row.id}`, title:row.text.slice(0,48), text:row.text,
+ topic:`world-${row.projectId}-${world.datasets.memory.topics.find(topic=>topic.concepts.includes(row.concept))?.id||'rules'}`, topicTitle:`${row.projectId==='project-paw'?'PAW':row.projectId==='project-atlas'?'Atlas':'服务台'} · ${world.datasets.memory.topics.find(topic=>topic.concepts.includes(row.concept))?.title||'项目规则'}`,
+ scope:row.phase==='committed' && row.consent && row.retention==='durable' && !row.revokes && !retired.has(row.id) ? 'durable' : retired.has(row.id) ? 'superseded' : row.retention==='sensitive' ? 'sensitive' : 'transient',
+ origin:'synthetic-boundary', project:row.projectId, app:row.application, phase:row.phase, sourceTime:row.time, sourceId:row.id, sourceTitle:`${row.application} · ${row.time} · ${row.scope} · ${row.phase}`,
+}));
+export const publicMemoryCorpus = [...corpus.map(row=>({...row,project:'personal-agent-workbench',app:'Public Memory Source',phase:'committed',sourceTime:''})),...worldCorpus].map((row, index) => ({ ...row, eventId: 11001 + index, atomId: `atom:corpus-${row.id}` }));
 export const publicMemoryTopics = [...new Map(publicMemoryCorpus.map(row => [row.topic, { key: row.topic, title: row.topicTitle, id: `book:corpus-${row.topic}` }])).values()];
 const reference = (eventId: number) => ({ kind: 'event' as const, id: `event:sanitized:${eventId}`, referenceKind: 'event' as const, referenceId: `event:sanitized:${eventId}`, label: '已清洗输入依据' });
 export function corpusBooks() {

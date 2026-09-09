@@ -57,6 +57,16 @@
       "note": "Captures current uncommitted source frontend work above the commit anchor. The public transport and 69-event Room, Memory and Trace directors remain synthetic. New Lab project/artifact/Knowledge reads and local edits are in-memory demonstrations; Provider execution and indexing are unavailable; offline App packaging is covered separately below. Older product-only visibility and permission differences now follow current PAW. The standalone /lab page projects four editable demo projects and fixed public candidate receipts from a shared evidence module.",
       "labFlowBoundary": "Showcase-only controls now start each vertical project before import, evaluate actual local deterministic rules on imported records/cases, and package the same frozen inputs and rules as an offline App. Historical Agent receipts remain separate. No Provider or private Runtime is executed.",
       "handsOnBoundary": "Native frontend guides automatically click highlighted controls on visible pages, with pause/resume and expected DOM result checks before continuing. No direct fixture state replay, Provider, private Runtime or native input-method effect. Public adapters preserve Session identity and source history."
+    },
+    {
+      "capturedAt": "2026-09-09T11:16:01.205695+00:00",
+      "sourceCommit": "67b81f89b87b251ff6c2807344901638f15be15a",
+      "sourceWorkingTreeState": "dirty",
+      "scope": "Selected PAW Lab, portable conversation, citation reader, OS shell and their consumers. Offline execution stays in the public showcase adapter.",
+      "sourceManifest": "manifest/frontend-source-refresh-20260909.json",
+      "selectedSourceInputFileCount": 75,
+      "adoptedUnmodifiedSourceFileCount": 61,
+      "mergedShowcaseFileCount": 14
     }
   ],
   "dataMode": "synthetic-preview-only",

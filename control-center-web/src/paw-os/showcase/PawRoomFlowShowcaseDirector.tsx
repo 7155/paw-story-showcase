@@ -7,6 +7,7 @@ import {
   PAW_ROOM_FLOW_SHOWCASE_ID,
   pawRoomFlowShowcaseNavigationAtSequence,
   pawRoomFlowShowcaseParticipant,
+  pawRoomFlowShowcaseParticipants,
   type PawRoomFlowShowcaseEventDetail,
   type PawRoomFlowShowcaseNavigation,
   type PawRoomFlowShowcaseView,
@@ -127,10 +128,15 @@ export function PawRoomFlowShowcaseDirector() {
         kind: 'room',
         id: PAW_ROOM_FLOW_SHOWCASE_ID,
         title: 'PAW 立项',
-        subtitle: '真实 USER-DIRECT · 4 条产品线 → 交接 → Docs → Reviewer',
+        subtitle: '合成协作演示 · 4 条产品线 → 交接 → Docs → Reviewer',
       },
       title: 'PAW 立项',
     });
+    for (const participant of pawRoomFlowShowcaseParticipants.filter(item=>item.showcaseRole==='implementer')) {
+      api.getState().openApp('agent',{background:true,entityId:participant.id,target:{kind:'participant',id:participant.id,roomId:PAW_ROOM_FLOW_SHOWCASE_ID,title:participant.celestialName,subtitle:participant.task},title:participant.celestialName});
+    }
+    api.getState().setCollaborationFocusGroup(`room:${PAW_ROOM_FLOW_SHOWCASE_ID}`);
+    api.getState().focusWindow('agent');
     const initialNavigation = pawRoomFlowShowcaseNavigationAtSequence(1);
     if (initialNavigation) activateRoomView(initialNavigation);
 
@@ -208,7 +214,8 @@ export function PawRoomFlowShowcaseDirector() {
   const copy = showcaseEventCopy(current);
   const reviewerStarted = current.sequence >= 58;
   const reviewerNeedsFix = current.sequence >= 62 && current.sequence < 66;
-  const reviewerPassed = current.sequence >= 66;
+  const reviewerCompleted = current.sequence >= 66;
+  const workPatchCount=Math.max(workPatchParticipantIds.size,Math.min(4,Math.max(0,current.sequence-43)));
   const progress = Math.min(100, Math.round((current.sequence / FINAL_SEQUENCE) * 100));
   const phaseLabel = useMemo(() => ({
     goal: 'GOAL RECEIVED',
@@ -233,7 +240,9 @@ export function PawRoomFlowShowcaseDirector() {
     >
       <header>
         <span className="paw-room-flow-showcase__live"><Radio aria-hidden="true" size={13} /> REAL PAWOS</span>
-        <span>PUBLIC SYNTHETIC EVENTS</span>
+        <span>公开合成事件</span>
+        <button type="button" onClick={()=>{api.getState().setCollaborationFocusGroup(`room:${PAW_ROOM_FLOW_SHOWCASE_ID}`);api.getState().focusWindow('agent');}}>全部工作窗口</button>
+        <button type="button" onClick={()=>{api.getState().setCollaborationFocusGroup(null);api.getState().focusWindow('agent');if(api.getState().windows.agent?.placement!=='maximized')api.getState().toggleMaximize('agent');}}>聚焦主会话</button>
         <button aria-label="重新播放 Room 运行过程" onClick={() => window.location.reload()} type="button">
           <RefreshCw aria-hidden="true" size={13} />重播
         </button>
@@ -253,20 +262,20 @@ export function PawRoomFlowShowcaseDirector() {
         <i style={{ transform: `scaleX(${progress / 100})` }} />
       </div>
       <footer>
-        <span data-state={workPatchParticipantIds.size === 4 ? 'done' : 'running'}>
+        <span data-state={workPatchCount === 4 ? 'done' : 'running'}>
           <FileCheck2 aria-hidden="true" size={13} />
           <b>产品 WorkPatch</b>
-          <strong>{workPatchParticipantIds.size}/4</strong>
+          <strong>{workPatchCount}/4</strong>
         </span>
-        <span data-state={reviewerPassed ? 'done' : reviewerStarted ? 'running' : 'queued'}>
+        <span data-state={reviewerCompleted ? 'done' : reviewerStarted ? 'running' : 'queued'}>
           <TestTube2 aria-hidden="true" size={13} />
           <b>Reviewer</b>
-          <strong>{reviewerPassed ? 'PASSED' : reviewerNeedsFix ? 'REVISION' : reviewerStarted ? 'CHECKING' : 'GATED'}</strong>
+          <strong>{reviewerCompleted ? '待复验' : reviewerNeedsFix ? 'REVISION' : reviewerStarted ? 'CHECKING' : 'GATED'}</strong>
         </span>
-        <span data-state={reviewerPassed ? 'done' : reviewerNeedsFix ? 'running' : 'queued'}>
+        <span data-state={reviewerCompleted || reviewerNeedsFix ? 'running' : 'queued'}>
           <ShieldCheck aria-hidden="true" size={13} />
           <b>P0</b>
-          <strong>{reviewerPassed ? '1 → 0' : reviewerNeedsFix ? '1' : '—'}</strong>
+          <strong>{reviewerCompleted ? '1 · 未解决' : reviewerNeedsFix ? '1' : '—'}</strong>
         </span>
       </footer>
       {typeof document !== 'undefined' ? createPortal(

@@ -18,16 +18,20 @@ type PreviewHistoryItem = {
   project: string;
   textPreview: string;
   text: string;
+  phase?: string;
+  sourceTime?: string;
 };
 
-export const previewMemoryInputSources: readonly PreviewHistoryItem[] = [
-  ...publicMemoryCorpus.map(row => ({ id: row.eventId, text: row.text })),
+export const previewMemorySourceExamples: readonly PreviewHistoryItem[] = [
+  ...publicMemoryCorpus.map(row => ({ id: row.eventId, text: row.text, project:row.project,app:row.app,phase:row.phase,sourceTime:row.sourceTime })),
   { id: 10001, text: '面向用户的解释先给结论，再补充必要原因。' },
   { id: 10002, text: '除最新内容外，其他内容也应保留；网页只需更新，不必每次重写全部内容。' },
   { id: 10003, text: '测试、合成回放和真实运行状态必须分别陈述。' },
   { id: 10004, text: '演示应使用真实前端组件，不能用静态示意替代操作。' },
   { id: 10005, text: '减少重复说明，让操作和结果保持清楚。' },
-].map((item, index) => ({ ...item, textPreview: item.text, minutesAgo: 190 + index * 10, source: 'rime_commit' as const, app: 'Public Memory Source', project: 'personal-agent-workbench' }));
+].map((item, index) => ({ ...item, textPreview: item.text, minutesAgo: 190 + index * 10, source: ('app' in item && item.app==='Voice' ? 'voice' : 'rime_commit') as PreviewHistoryItem['source'], app: 'app' in item ? String(item.app) : 'Public Memory Source', project: 'project' in item ? String(item.project) : 'personal-agent-workbench' }));
+
+export const previewMemoryInputSources = previewMemorySourceExamples.filter(source=>!source.phase||source.phase==='committed');
 
 const previewHistoryItems: readonly PreviewHistoryItem[] = [
   {
@@ -135,7 +139,7 @@ function previewHistoryPage(query: Record<string, unknown>): Record<string, unkn
     ))
     .map((item) => ({
       id: item.id,
-      createdAtMs: Date.now() - item.minutesAgo * 60_000,
+      createdAtMs: previewHistoryCreatedAtMs(item),
       source: item.source,
       app: item.app,
       project: item.project,
@@ -157,7 +161,7 @@ function previewHistoryPage(query: Record<string, unknown>): Record<string, unkn
 function previewHistoryDetail(eventId: number): Record<string, unknown> {
   const selected = previewHistoryItems.find((item) => item.id === eventId);
   if (!selected) return { ok: false, reason: 'not_found' };
-  const createdAtMs = Date.now() - selected.minutesAgo * 60_000;
+  const createdAtMs = previewHistoryCreatedAtMs(selected);
   return {
     ok: true,
     runtimeRevision: HISTORY_RUNTIME_REVISION,
@@ -172,7 +176,7 @@ function previewHistoryDetail(eventId: number): Record<string, unknown> {
       project: selected.project,
       provider: 'local',
       candidateRank: null,
-      groupId: 'project:personal-agent-workbench',
+      groupId: selected.project.startsWith('project-') ? selected.project.replace(/^project-/, 'project:') : `project:${selected.project}`,
       groupLevel: 'project',
       auxiliaryContext: {
         available: true,
@@ -233,4 +237,15 @@ function record(value: unknown): Record<string, unknown> {
 
 function stringValue(value: unknown): string {
   return typeof value === 'string' ? value : '';
+}
+
+export function previewHistoryCreatedAtMs(item: {sourceTime?:string;minutesAgo:number}) {
+ const recorded=item.sourceTime ? Date.parse(item.sourceTime) : NaN;
+ return Number.isFinite(recorded) ? recorded : Date.now()-item.minutesAgo*60_000;
+}
+export function previewHistoryStats() {
+ return {totalCount:previewHistoryItems.length,appCount:new Set(previewHistoryItems.map(item=>item.app)).size,
+ activeDayCount:new Set(previewHistoryItems.map(item=>new Date(previewHistoryCreatedAtMs(item)).toISOString().slice(0,10))).size,
+ voiceCount:previewHistoryItems.filter(item=>item.source==='voice').length,
+ phaseExcludedCount:previewMemorySourceExamples.length-previewMemoryInputSources.length};
 }

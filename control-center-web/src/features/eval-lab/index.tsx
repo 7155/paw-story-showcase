@@ -40,6 +40,7 @@ import { LinkedOptimizationWorkbench } from './optimization/OptimizationWorkbenc
 import { ExperimentWorkspace } from './ExperimentWorkspace';
 import { GoldenWorkflow } from './golden/GoldenWorkflow';
 import { LabProjectWorkbench } from './projects/LabProjectWorkbench';
+import { projectViewFromSearch, projectViewRoute, type ProjectView } from './projects/views';
 import { ExperimentApplication } from './ExperimentApplication';
 import { ExperimentResultSummary } from './ExperimentResultSummary';
 import { buildExperimentDisplayMetrics } from './experiment-display-metrics';
@@ -84,9 +85,16 @@ const EVAL_LAB_PAGES = [
 export function EvalLabFeature({ initialPage }: { initialPage?: EvalLabPage } = {}) {
   const routed = useInRouterContext();
   return routed ? <RoutedEvalLabFeature initialPage={initialPage} />
-    : <EvalLabEntry initialPage={initialPage} search={window.location.hash.split('?')[1] ?? window.location.search} onProjectSelect={(id) => {
-      if (window.location.hash.startsWith('#/eval-lab')) window.history.replaceState(null, '', `#${projectRoute(id)}`);
-    }} />;
+    : <UnroutedEvalLabFeature initialPage={initialPage} />;
+}
+
+function UnroutedEvalLabFeature({initialPage}:{initialPage?:EvalLabPage}) {
+  const currentSearch=()=>window.location.hash.split('?')[1] ?? window.location.search;
+  const [search,setSearch]=useState(currentSearch);
+  useEffect(()=>{const restore=()=>setSearch(currentSearch());window.addEventListener('popstate',restore);window.addEventListener('hashchange',restore);return ()=>{window.removeEventListener('popstate',restore);window.removeEventListener('hashchange',restore);};},[]);
+  return <EvalLabEntry initialPage={initialPage} search={search} onProjectSelect={(id,view)=>{
+    const route=projectViewRoute(id,view);reflectProjectRoute(route,null,false);setSearch(route.split('?')[1] ?? '');
+  }} />;
 }
 
 function RoutedEvalLabFeature({ initialPage }: { initialPage?: EvalLabPage }) {
@@ -99,21 +107,21 @@ function RoutedEvalLabFeature({ initialPage }: { initialPage?: EvalLabPage }) {
     const route = deferredRoute.current; deferredRoute.current = undefined;
     navigate(route, { replace: true }); reflectProjectRoute(route, active);
   }, [active, navigate]);
-  return <EvalLabEntry initialPage={initialPage} search={location.search} onProjectSelect={(id) => {
+  return <EvalLabEntry initialPage={initialPage} search={location.search} onProjectSelect={(id,view) => {
     if (!mounted.current) return;
-    const route = projectRoute(id);
+    const route = projectViewRoute(id,view);
+    if(route===location.pathname+location.search) return;
     if (activeRef.current === false) { deferredRoute.current = route; return; }
     deferredRoute.current = undefined;
-    navigate(route, { replace: true }); reflectProjectRoute(route, activeRef.current);
+    navigate(route); reflectProjectRoute(route, activeRef.current, false);
   }} />;
 }
 
-function projectRoute(id: string) { return id ? `/eval-lab?project=${encodeURIComponent(id)}` : '/eval-lab'; }
-function reflectProjectRoute(route: string, active: boolean | null) {
-  if (active === true || window.location.hash.startsWith('#/eval-lab')) window.history.replaceState(null, '', `${window.location.search}#${route}`);
+function reflectProjectRoute(route: string, active: boolean | null, replace = true) {
+  if ((active === true || window.location.hash.startsWith('#/eval-lab')) && window.location.hash!==`#${route}`) window.history[replace ? 'replaceState' : 'pushState'](null, '', `${window.location.search}#${route}`);
 }
 
-function EvalLabEntry({ initialPage, search, onProjectSelect }: { initialPage?: EvalLabPage; search: string; onProjectSelect: (id: string) => void }) {
+function EvalLabEntry({ initialPage, search, onProjectSelect }: { initialPage?: EvalLabPage; search: string; onProjectSelect: (id: string, view?:ProjectView) => void }) {
   const parameters = new URLSearchParams(search);
   const requestedGolden = parameters.get('view') === 'golden';
   const traceReportId = parameters.get('traceReportId')?.trim() ?? '';
@@ -121,7 +129,7 @@ function EvalLabEntry({ initialPage, search, onProjectSelect }: { initialPage?: 
   const [historyOpen, setHistoryOpen] = useState(Boolean(initialPage) || requestedGolden || Boolean(traceReportId));
   useEffect(() => { setHistoryOpen(Boolean(initialPage) || requestedGolden || Boolean(traceReportId)); }, [initialPage, requestedGolden, traceReportId, projectId]);
   return historyOpen ? <div className="lab-project-legacy"><Button className="lab-project-legacy__back" size="small" onClick={() => setHistoryOpen(false)}>返回 Lab 项目</Button><LegacyEvalLabFeature initialPage={initialPage ?? (requestedGolden ? 'golden' : 'workspace')} /></div>
-    : <LabProjectWorkbench initialProjectId={projectId} onProjectSelect={onProjectSelect} onOpenHistory={() => setHistoryOpen(true)} />;
+    : <LabProjectWorkbench initialProjectId={projectId} initialView={projectViewFromSearch(search)} onProjectSelect={onProjectSelect} onOpenHistory={() => setHistoryOpen(true)} />;
 }
 
 export function LegacyEvalLabFeature({ initialPage = 'workspace' }: { initialPage?: EvalLabPage } = {}) {

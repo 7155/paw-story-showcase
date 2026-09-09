@@ -1,0 +1,1639 @@
+{
+  "schema": 1,
+  "title": "极地深度研究",
+  "corpus": {
+    "attempted": 211,
+    "readable": 209,
+    "failed": 2
+  },
+  "scope": "Curated replay of four completed research responses. Questions and answers preserve the saved wording; citation destinations are mapped to included excerpts. No full PDFs, local paths, Runtime session IDs, credentials, or live model calls are included. The 200-document local evaluation sample is a separate public synthetic dataset.",
+  "topics": [
+    {
+      "id": "compare",
+      "title": "两座冰架，为何融化强度不同？",
+      "turns": [
+        {
+          "id": "compare-1",
+          "question": "根据知识库中的原始论文，比较 Rintoul 2016 关于 Totten 冰架的观测与 Hattermann 2014 关于 Fimbul 冰架的模拟：研究方法、海洋热输送与底融的主要证据、各自限制。请给出约 500 字中文研究报告和简短比较表，每项关键结论附可打开的引用，未检索到的证据保留缺口。",
+          "answer": "## 结论摘要\n\nRintoul 等（2016）提供了 Totten 冰架附近的**直接观测证据**：暖深层水经深槽进入冰架腔体，实测海洋热输送足以解释卫星反演的快速底融。[1] Hattermann 等（2014）则用受观测约束的高分辨率海洋—冰架模型解释 Fimbul 的**低底融**：进入腔体的改性暖深层水较少，约为 0.4 m yr⁻¹（14 Gt yr⁻¹）。[9][25] 两者并非矛盾，而是显示不同海岸地形和环流状态下，暖水入腔控制底融强度。\n\n## 简短比较表\n\n| 维度 | Rintoul 2016：Totten | Hattermann 2014：Fimbul |\n|---|---|---|\n| 方法 | 航次现场观测水体性质、流速和地形，并与卫星反演的多年平均底融比较。[1] | 受观测约束的高分辨率区域海洋—冰架数值模拟。[9] |\n| 热输送证据 | 瞬时输运为 **0.22±0.07 Sv**；由多年平均底融反推为 **0.16±0.03 Sv**，二者相符。[1] 暖水可沿深槽直达 Totten。[21] | 南极陆坡流控制陆架交换；最现实强迫下仅少量改性暖深层水进入腔体。[27][25] |\n| 底融证据 | 海洋热通量足以支撑卫星资料推断的快速、多年平均底融。[1] | 模拟约 **0.4 m yr⁻¹、14 Gt yr⁻¹**，与低融化观测一致。[9][25] |\n| 主要限制 | 航次是有限时段采样；作者指出热输送会受局地和远程强迫变化，瞬时观测代表长期状态仍有不确定性。[1] | 结论依赖“简化的当前强迫”，虽能再现观测，但不是直接底融测量；模型分辨率、强迫和敏感性试验的具体影响需进一步核对。[25] |\n\n## 证据缺口\n\n本轮未检索到 Rintoul 论文中完整的观测布设、采样时长及底融空间分布，也未获得 Hattermann 的完整网格设置、强迫时段和参数敏感性结果。因此，上表比较的是两文已返回的核心证据，不能据此评价全部模型误差或区域代表性。",
+          "version": 11,
+          "sourceCount": 29,
+          "sources": [
+            {
+              "number": 1,
+              "title": "2016-Rintoul-OceanHeatDrivesRapidBasalMeltTottenIceShelf",
+              "page": 2,
+              "text": "d to provide sufficient heat to\nsupport the inferred basal melt rate (Materials and Methods). The\nagreement within errors of the two independent transport estimates\n(0.22 ± 0.07 sverdrup from instantaneous velocity measurements and\n0.16 ± 0.03 sverdrup from the multiyear mean basal melt rate), despite\nthe different time periods and assumptions made, demonstrates that the\nobserved water properties and circulation are consistent with high basal\nmelt rates inferred from satellite data. Although ocean heat transport to\nthe cavity likely varies in response to local and remote forcing (26, 27), the\nfact that the observed ocean heat flux is sufficient to support the multiyear\nmean basal melt rate derived from glaciological observations suggests\nthat the conditions measured during the voyage were representative.\nTotten Ice Shelf\n37 40 43\n34\nTotten Ice Shelf\nMoscow University\nIce Shelf\nDalton\nPol",
+              "excerptSha256": "fb816e69c09913529480034cbbdbf89029a838ccead09116ab8d18989d6ad7a3"
+            },
+            {
+              "number": 9,
+              "title": "2014-Hattermann-EddyResolvingSimulationsFimbulIceShelfCavityCirculation",
+              "page": 1,
+              "text": "ems Cooperative Research Centre, University of Tasmania, Private Bag 80, Hobart, Tasmania 7001, Australia\narticle info\nArticle history:\nReceived 26 February 2014\nReceived in revised form 14 July 2014\nAccepted 20 July 2014\nAvailable online 7 August 2014\nKeywords:\nIce/ocean interaction\nContinental shelf/slope exchange\nAntarctic Slope Front processes\nFimbul Ice Shelf basal melting\nEddy overturning\nMesoscale ocean modeling\nabstract\nMelting at the base of ﬂoating ice shelves is a dominant term in the overall Antarctic mass budget. This\nstudy applies a high-resolution regional ice shelf/ocean model, constrained by observations, to (i) quan-\ntify present basal mass loss at the Fimbul Ice Shelf (FIS); and (ii) investigate the oceanic mechanisms that\ngovern the heat supply to ice shelves in the Eastern Weddell Sea. The simulations conﬁrm the low melt\nrates suggested by observations and show that",
+              "excerptSha256": "8721269ffb8e90bf6ba12c8b94f49d3898e22a3a095a44c04dfabc28b02c109f"
+            },
+            {
+              "number": 21,
+              "title": "2024-Kusahara-Modelingseasonaltodecadaloceancryosphereinteractionsalongthe",
+              "page": 2,
+              "text": "Coast had few ocean\nobservations until recently. Before an Australian oceano-\ngraphic survey conducted in January 2015 (Rintoul et al.,\n2016; Silvano et al., 2017), there were only two CTD (con-\nductivity, temperature, and depth) stations just south of the\nshelf break (Bindoff et al., 2000; Williams et al., 2011). Al-\nthough these isolated CTD proﬁles showed the local pres-\nence of warm bottom-intensiﬁed mCDW on the continental\nshelf break, the details of their potential pathways across the\nshelf and the roles in ocean–cryosphere interaction were un-\nclear at the time. Presenting ground-breaking new CTD and\nbathymetry data in front of the TIS, Rintoul et al. (2016) con-\nﬁrmed for the ﬁrst time the direct access of warm mCDW\ntoward the TIS through deep troughs. Silvano et al. (2017)\nused the extended oceanographic observations to show that\nmCDW is abundant in deep layers over the continen",
+              "excerptSha256": "62c5941de9422024e18a0d399527eb8b76b54231bf63d9fd63a76196e25cfd22"
+            },
+            {
+              "number": 25,
+              "title": "2014-Hattermann-EddyResolvingSimulationsFimbulIceShelfCavityCirculation",
+              "page": 15,
+              "text": "range between our low-end estimate and the\n0.9 m year/C0 1 suggested by Nicholls et al. (2008) , who simulated a\ncomparable weak state of shallow melting in a coarse resolution\nmodel, but with more warm water entering the cavity.\n7. Conclusion\nThis study presents the ﬁrst high-resolution ocean circulation\nmodel of the Fimbul Ice Shelf (FIS) region in East Antarctica. For\na simpliﬁed present-day forcing, the model reproduces recent\nsub-ice shelf observations and appears to capture the major\ndynamical processes of the slope front–continental shelf–ice shelf\nsystem.\nThe main lessons from the eddy-resolving simulations are as\nfollows: (i) for the most realistic forcing, only small amounts of\nModiﬁed Warm Deep Water (MWDW) enter beneath the FIS, sug-\ngesting relatively weak basal melting of about 0.4 m year /C0 1\n(14 Gt year/C0 1) and an ice shelf mass balance that is likely close to\nequilibr",
+              "excerptSha256": "be4f12887ed3daf3976c74758ac8525a1d3f9318f4e67b952a2d82a0d6cec829"
+            },
+            {
+              "number": 27,
+              "title": "2014-Hattermann-EddyResolvingSimulationsFimbulIceShelfCavityCirculation",
+              "page": 2,
+              "text": "## Page 2\n\nHere, we use a regional high-resolution ice shelf/ocean model,\ninformed by recent sub-ice shelf observations, to investigate basal\nmelting at the Fimbul Ice Shelf (FIS). The oceanographic conﬁgura-\ntion of the FIS, illustrated by the schematic cross-section in Fig. 1,i s\ntypical for the ice shelves along the coast of Dronning Maud Land\n(40/C176W–20/C176E), where ice shelves cover large parts of the narrow\ncontinental shelf. Basal melting in this region is believed to be lar-\ngely determined by the dynamics of the Antarctic Slope Front\n(ASF), which circulates westward along the steep continental slope\n(Chavanne et al., 2010; Heywood et al., 1998 ) and separates the\nWarm Deep Water (WDW) in the deep ocean off-shore from the\ncolder and fresher Eastern Shelf Water (ESW) on the continental\ns",
+              "excerptSha256": "469d5927d62194d0c4a6874f4dccc2076ce76c3ebaec6e002f8fc805d3eac146"
+            }
+          ],
+          "createdAtMs": 1788921370860,
+          "sourceReceiptSha256": "d562fd8563f866cafadbddca8c2bd39265119ad35fcdf8fb332674b83daba687",
+          "receipt": {
+            "totalTokens": 86938,
+            "estimatedCostUsd": 0.01338184,
+            "elapsedMs": 206025,
+            "modelCalls": 6,
+            "searchCalls": 4,
+            "sourceReadCalls": 0
+          },
+          "assistantUsage": {
+            "allTokenFieldsComplete": true,
+            "cacheReadTokens": 44032,
+            "cacheReadTokensComplete": true,
+            "cacheWriteTokens": 0,
+            "cacheWriteTokensComplete": true,
+            "callCountScope": "settled_receipts",
+            "calls": 1,
+            "costComplete": false,
+            "costUsd": null,
+            "costUsdComplete": false,
+            "elapsedComplete": true,
+            "elapsedMs": 206025,
+            "elapsedMsComplete": true,
+            "estimateComplete": true,
+            "estimatedCostUsd": 0.01338184,
+            "estimatedCostUsdComplete": true,
+            "inputTokens": 38986,
+            "inputTokensComplete": true,
+            "knownCacheReadTokens": 44032,
+            "knownCacheWriteTokens": 0,
+            "knownCostUsd": null,
+            "knownElapsedMs": 206025,
+            "knownEstimatedCostUsd": 0.01338184,
+            "knownInputTokens": 38986,
+            "knownModelCallCount": 6,
+            "knownOutputTokens": 3920,
+            "knownToolCallCount": 10,
+            "knownTotalTokens": 86938,
+            "modelCallCount": 6,
+            "modelCallCountComplete": true,
+            "outputTokens": 3920,
+            "outputTokensComplete": true,
+            "source": "runtime_stage_receipts",
+            "toolCallCount": 10,
+            "toolCallCountComplete": true,
+            "toolCallCountScope": "native_tool_attempts",
+            "totalTokens": 86938,
+            "totalTokensComplete": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "heat",
+      "title": "海洋热输送如何影响底融？",
+      "turns": [
+        {
+          "id": "heat-1",
+          "question": "请根据知识库中的原始论文，研究海洋热输送与南极冰架底部融化的关系。选择至少两篇有直接支持的论文，比较研究对象、观测或模拟方法、主要结论与不确定性，形成一份约 800 字的中文研究报告。每项关键结论附本轮引用，找不到的证据明确保留缺口。",
+          "answer": "# 海洋热输送与南极冰架底部融化关系研究报告\n\n## 结论摘要\n\n本轮证据支持：海洋热输送是南极冰架底部融化的重要直接能量来源，但融化强度并不只由水温决定，还受暖水进入陆架的路径、涡旋、潮汐、海底地形和冰架厚度分布控制。[1][2][8] 观测研究与高分辨率模拟均显示，暖的中层南大洋水跨越陆架坡折进入冰架空腔后，可显著增强底融；不过现有研究仍不足以证明所有区域存在统一的长期变化关系。\n\n## 研究范围与方法\n\n比较两篇有直接支持的论文：Rintoul等（2016）研究东南极Totten冰架，采用现场海洋观测并与卫星反演的多年平均融化率进行热收支核对；Hattermann等（2014）研究东南极Fimbul冰架，采用受观测约束的高分辨率、涡解析冰架—海洋区域模型，分析热量输送机制。[3][4][17] 本轮知识库检索4次；原文邻近片段读取因剩余证据预算不足未成功，以下仅使用实际返回文本。\n\n## 证据与比较\n\n| 论文 | 研究对象与方法 | 主要结论 | 不确定性 |\n|---|---|---|---|\n| Rintoul等（2016） | Totten冰架前缘发现深通道，并测得暖水进入冰架空腔的输运；再将瞬时流速估计与卫星/冰川学得到的多年平均底融率比较。[3][4] | 暖水输运约为0.22±0.07 Sv；由多年平均底融率反推的独立输运为0.16±0.03 Sv，二者误差范围内一致，说明观测到的海水性质和环流足以支撑较高底融率。[3] 因而，海洋热通量是Totten冰架快速底融的可信物理机制。[4] | 海洋热输送可能受局地和远程强迫而变化；论文认为航次观测可能具有代表性，但现场输运与多年平均融化率来自不同时间尺度，长期变化仍未被直接观测。[3] |\n| Hattermann等（2014） | Fimbul冰架采用高分辨率涡解析区域模型，并以观测约束，模拟冰架空腔环流、底融和与外海交换。[17][18] | 模拟确认该区较低的现代底融率，并指出暖中层水跨越陆架坡折是重要热源。[2][22] 涡旋影响锋面热输送；冰架厚度分布会调节融化响应，细尺度海底地形则控制暖水能否进入空腔。[1] | 许多冰架下方的细尺度地形仍未知，导致暖水通道和底融空间分布存在模型不确定性。[1] 结果还依赖涡旋是否被充分解析，因此粗分辨率模型可能高估或误判区域底融。[22] |\n\n## 分歧与不确定性\n\n两篇论文并非结论矛盾，而是强调不同层次：Totten研究提供了较强的现场热收支闭合证据，说明“暖水输送足以造成高底融”；Fimbul研究则表明，在暖水较弱或进入受限的区域，底融率可以较低，且局地地形和冰架几何会重新分配热量。[1][3] 现有材料没有提供两地可直接比较的统一底融率、长期海洋热通量序列或误差分解，因此不能据此推断海洋热输送对整个南极冰架底融的普适定量关系。\n\n## 后续研究建议\n\n应补充两篇论文的方法和误差章节，重点核对现场观测持续时间、卫星融化率反演假设，以及模型边界条件、海底地形误差和涡旋分辨率。还需要长期系泊观测与冰架底部雷达/卫星资料结合，才能区分短期暖水入侵与多年尺度底融趋势。",
+          "version": 9,
+          "sourceCount": 28,
+          "sources": [
+            {
+              "number": 1,
+              "title": "2014-Hattermann-EddyResolvingSimulationsFimbulIceShelfCavityCirculation",
+              "page": 15,
+              "text": "simulating basal melting in other\nregions of Antarctica. In particular, the role of mesoscale eddies\nin determining heat transport across oceanic fronts over the conti-\nnental shelf break is a general result ( Stewart and Thompson,\n2013) that must be considered when assessing ice shelf basal melt-\ning in large scale oceanic simulations, such as the global warming\nstudies of Hellmer et al. (2012) and Kusahara and Hasumi (2013) .\nAlso the modulating effect of the ice shelf thickness distribution on\nthe melting response is a new ﬁnding that may help to better\nunderstand basal melting dynamics under other ice shelves.\nFinally, our results highlight the relevance of small-scale topo-\ngraphic features, which are still largely unknown beneath many\nice shelves, for controlling the access of warm water into the ice\nshelf cavity.\nOur work therefore emphasizes the need for further process-\noriented",
+              "excerptSha256": "17350d88fe15caa76baca1e58e83d383ca295264b9c382c69808c8d7aeb5f749"
+            },
+            {
+              "number": 2,
+              "title": "2014-Hattermann-EddyResolvingSimulationsFimbulIceShelfCavityCirculation",
+              "page": 1,
+              "text": ", 1992; Rignot et al., 2013 ).\nThe largest oceanic heat source for driving basal melting originates\nfrom the relatively warm, mid-depth Southern Ocean waters that\ninteract with the colder coastal waters across narrow fronts along\nthe continental shelf break. In West Antarctica, these warm waters\nare observed directly inside the ice shelf cavities ( Jenkins et al.,\n2010), and there is growing evidence that the observed increased\nglacial mass loss may have been triggered by increased access of\nwarm water onto the continental shelf ( Pritchard et al., 2012;\nJacobs et al., 2011 ). In East Antarctica, such a deep ocean heat\ntransport is believed to be much weaker at present ( Nicholls\net al., 2009 ), although the continental-scale warming simulations\nof Hellmer et al. (2012) and Kusahara and Hasumi (2013) suggest\nthat future circulation changes may increase basal melting on dec-\nadal time sca",
+              "excerptSha256": "002e59d89ad886f511fd28d0e711f14dd504eaa6c25ad76c027944763a982a35"
+            },
+            {
+              "number": 3,
+              "title": "2016-Rintoul-OceanHeatDrivesRapidBasalMeltTottenIceShelf",
+              "page": 2,
+              "text": "d to provide sufficient heat to\nsupport the inferred basal melt rate (Materials and Methods). The\nagreement within errors of the two independent transport estimates\n(0.22 ± 0.07 sverdrup from instantaneous velocity measurements and\n0.16 ± 0.03 sverdrup from the multiyear mean basal melt rate), despite\nthe different time periods and assumptions made, demonstrates that the\nobserved water properties and circulation are consistent with high basal\nmelt rates inferred from satellite data. Although ocean heat transport to\nthe cavity likely varies in response to local and remote forcing (26, 27), the\nfact that the observed ocean heat flux is sufficient to support the multiyear\nmean basal melt rate derived from glaciological observations suggests\nthat the conditions measured during the voyage were representative.\nTotten Ice Shelf\n37 40 43\n34\nTotten Ice Shelf\nMoscow University\nIce Shelf\nDalton\nPol",
+              "excerptSha256": "fb816e69c09913529480034cbbdbf89029a838ccead09116ab8d18989d6ad7a3"
+            },
+            {
+              "number": 4,
+              "title": "2016-Rintoul-OceanHeatDrivesRapidBasalMeltTottenIceShelf",
+              "page": 1,
+              "text": "bal sea-level rise, also experiences rapid basal melt, but the role of ocean forcing was not known\nbecause of a lack of observations near the ice shelf. Observations from the Totten calving front confirm that\n(0.22 ± 0.07) × 10\n6 m3 s−1 of warm water enters the cavity through a newly discovered deep channel. The ocean heat\ntransport into the cavity is sufficient to support the large basal melt rates inferred from glaciological observations.\nChange in ocean heat flux is a plausible physical mechanism to explain past and projected changes in this sector of\nthe East Antarctic Ice Sheet and its contribution to sea level.\nINTRODUCTION\nIce shelves form where the Antarctic Ice Sheet reaches the ocean and\nbegins to float. Back stress produced by the interaction of the floating\nice shelf with side walls and topographic rises buttresses the grounded\nice sheet and inhibits the flow of ice into the",
+              "excerptSha256": "e9fc5e54ede92672d0525dcb45f2fa9e4a2e4c5dd1d8487fdac4ac54a4e66269"
+            },
+            {
+              "number": 8,
+              "title": "2023-Xia-Eddyandtidaldrivenbasalmeltingofthe",
+              "page": 10,
+              "text": "elting of the MUIS is more controlled by\ntidal processes. For the 118° E transect, which lies equidistant\nbetween the TIS and MUIS, eddies drive heat ﬂux transport used\nin TIS basal melting from near the ISF and the CSB, while tidal\nprocesses make larger contributions over the continental shelf area.\nFor the 123° E transect, to the east of the MUIS, the in ﬂuence from\neddies and tides are almost opposite. We ﬁnd stronger tidal\ncontributions to the basal melting of the MUIS resulting from the\nISF and the CSB, while for the continental shelf region, the eddy\ncomponent of the ocean heat transport dominates the basal melting.\nFor the easternmost transect at 127° E, the tidal component of the\nocean heat transport dominates the basal melting of the TIS and the\nMUIS. The eddy processes make larger contributions near the ISF\nand the CSB area where more eddies are observed and where\nthe western d",
+              "excerptSha256": "5d304885bfd34c67d109f0cb91759d378e5c53a7cad675e041cf364575b07e2b"
+            },
+            {
+              "number": 17,
+              "title": "2014-Hattermann-EddyResolvingSimulationsFimbulIceShelfCavityCirculation",
+              "page": 1,
+              "text": "ems Cooperative Research Centre, University of Tasmania, Private Bag 80, Hobart, Tasmania 7001, Australia\narticle info\nArticle history:\nReceived 26 February 2014\nReceived in revised form 14 July 2014\nAccepted 20 July 2014\nAvailable online 7 August 2014\nKeywords:\nIce/ocean interaction\nContinental shelf/slope exchange\nAntarctic Slope Front processes\nFimbul Ice Shelf basal melting\nEddy overturning\nMesoscale ocean modeling\nabstract\nMelting at the base of ﬂoating ice shelves is a dominant term in the overall Antarctic mass budget. This\nstudy applies a high-resolution regional ice shelf/ocean model, constrained by observations, to (i) quan-\ntify present basal mass loss at the Fimbul Ice Shelf (FIS); and (ii) investigate the oceanic mechanisms that\ngovern the heat supply to ice shelves in the Eastern Weddell Sea. The simulations conﬁrm the low melt\nrates suggested by observations and show that",
+              "excerptSha256": "8721269ffb8e90bf6ba12c8b94f49d3898e22a3a095a44c04dfabc28b02c109f"
+            },
+            {
+              "number": 18,
+              "title": "2014-Hattermann-EddyResolvingSimulationsFimbulIceShelfCavityCirculation",
+              "page": 1,
+              "text": "## Page 1\n\nEddy-resolving simulations of the Fimbul Ice Shelf cavity circulation:\nBasal melting and exchange with open ocean\nT. Hattermann a,b,⇑, L.H. Smedsrud c, O.A. Nøst a,b, J.M. Lilly d, B.K. Galton-Fenzi e,f\na Norwegian Polar Institute, Fram Centre, Hjalmar Johansens gt. 14, N-9296 Tromsø, Norway\nb Akvaplan NIVA, Fram Centre, Hjalmar Johansens gt. 14, N-9296 Tromsø, Norway\nc Geophysical Institute, University of Bergen and Bjerknes Centre for Climate Research, Allégaten 70, 5007 Bergen, Norway\nd NorthWest Research Associates, PO Box 3027, Bellevue, WA 98009, USA\ne Australian Antarctic Division, Channel Highway, Kingston, Tasmania 7050, Australia\nf Antarctic Climate & Ecosystems Cooperative Research Centre, University of Tasmania, Private Bag 80, Hobart, Tasmania 7001, Australia\narticle info\nA",
+              "excerptSha256": "4746580db23ed81fee2b3f9115250876a3d4b68679a57f421d29e4f6a023255b"
+            },
+            {
+              "number": 22,
+              "title": "2014-Hattermann-EddyResolvingSimulationsFimbulIceShelfCavityCirculation",
+              "page": 2,
+              "text": "th satellite observations, the present-day melt\nrates from our eddy-resolving simulations are considerably lower\nthan suggested by earlier coarse-resolution models, and experi-\nments with varying climate forcing provide new insights into the\nmechanisms that regulate basal melting in this sector of East Ant-\narctica. New ﬁndings of our study are the existence of two distinct\nstates of melting, and the effect of the ice thickness distribution\nwhich modulates the melting response at the FIS.\n2. Background and data\nThis section brieﬂy presents the different datasets used to set\nup and validate our simulations of the FIS cavity circulation.\n2.1. Fimbul Ice Shelf geometry\nBecause the circulation and water mass exchange inside the ice\nshelf cavity directly relates to ice shelf draft and bedrock topogra-\nphy, we brieﬂy introduce the geometrical conﬁguration of the FIS.\nFig. 2(a) shows a map of t",
+              "excerptSha256": "81ca051a8b00f6b162d7a1ab0a0e429124ce153291d5515d1300cdb5ff4c8e07"
+            }
+          ],
+          "createdAtMs": 1788919274842,
+          "sourceReceiptSha256": "a5c987042dae88e9f9543e151d3712aa09560aea4edc6ddd9493f3bfab2eda58",
+          "receipt": {
+            "totalTokens": 119915,
+            "estimatedCostUsd": 0.01274368,
+            "elapsedMs": 182825,
+            "modelCalls": 8,
+            "searchCalls": 4,
+            "sourceReadCalls": 0
+          },
+          "assistantUsage": {
+            "allTokenFieldsComplete": true,
+            "cacheReadTokens": 77824,
+            "cacheReadTokensComplete": true,
+            "cacheWriteTokens": 0,
+            "cacheWriteTokensComplete": true,
+            "callCountScope": "settled_receipts",
+            "calls": 1,
+            "costComplete": false,
+            "costUsd": null,
+            "costUsdComplete": false,
+            "elapsedComplete": true,
+            "elapsedMs": 182825,
+            "elapsedMsComplete": true,
+            "estimateComplete": true,
+            "estimatedCostUsd": 0.01274368,
+            "estimatedCostUsdComplete": true,
+            "inputTokens": 39322,
+            "inputTokensComplete": true,
+            "knownCacheReadTokens": 77824,
+            "knownCacheWriteTokens": 0,
+            "knownCostUsd": null,
+            "knownElapsedMs": 182825,
+            "knownEstimatedCostUsd": 0.01274368,
+            "knownInputTokens": 39322,
+            "knownModelCallCount": 8,
+            "knownOutputTokens": 2769,
+            "knownToolCallCount": 8,
+            "knownTotalTokens": 119915,
+            "modelCallCount": 8,
+            "modelCallCountComplete": true,
+            "outputTokens": 2769,
+            "outputTokensComplete": true,
+            "source": "runtime_stage_receipts",
+            "toolCallCount": 8,
+            "toolCallCountComplete": true,
+            "toolCallCountScope": "native_tool_attempts",
+            "totalTokens": 119915,
+            "totalTokensComplete": true
+          }
+        },
+        {
+          "id": "heat-2",
+          "question": "追问：刚才第一篇论文里，0.22 Sv 与 0.16 Sv 这两个估计为什么可以相互验证？请回到原文，用 150 字以内解释它们的独立性和限制，并附引用。",
+          "answer": "0.22 Sv来自航次瞬时流速观测，0.16 Sv则由多年平均底融率反推，时间尺度和假设不同，因此可作独立交叉检验；二者误差范围重叠。限制是输运会受局地、远程强迫变化，单次航次代表性仍非长期实测。[1]",
+          "version": 9,
+          "sourceCount": 8,
+          "sources": [
+            {
+              "number": 1,
+              "title": "2016-Rintoul-OceanHeatDrivesRapidBasalMeltTottenIceShelf",
+              "page": 2,
+              "text": "d to provide sufficient heat to\nsupport the inferred basal melt rate (Materials and Methods). The\nagreement within errors of the two independent transport estimates\n(0.22 ± 0.07 sverdrup from instantaneous velocity measurements and\n0.16 ± 0.03 sverdrup from the multiyear mean basal melt rate), despite\nthe different time periods and assumptions made, demonstrates that the\nobserved water properties and circulation are consistent with high basal\nmelt rates inferred from satellite data. Although ocean heat transport to\nthe cavity likely varies in response to local and remote forcing (26, 27), the\nfact that the observed ocean heat flux is sufficient to support the multiyear\nmean basal melt rate derived from glaciological observations suggests\nthat the conditions measured during the voyage were representative.\nTotten Ice Shelf\n37 40 43\n34\nTotten Ice Shelf\nMoscow University\nIce Shelf\nDalton\nPol",
+              "excerptSha256": "fb816e69c09913529480034cbbdbf89029a838ccead09116ab8d18989d6ad7a3"
+            }
+          ],
+          "createdAtMs": 1788919680364,
+          "sourceReceiptSha256": "071e0f59d03199e72d152e480b3159a95c45e87a8c7e79c57faf449464c34153",
+          "receipt": {
+            "totalTokens": 41269,
+            "estimatedCostUsd": 0.00448512,
+            "elapsedMs": 33506,
+            "modelCalls": 5,
+            "searchCalls": 1,
+            "sourceReadCalls": 0
+          },
+          "assistantUsage": {
+            "allTokenFieldsComplete": true,
+            "cacheReadTokens": 24576,
+            "cacheReadTokensComplete": true,
+            "cacheWriteTokens": 0,
+            "cacheWriteTokensComplete": true,
+            "callCountScope": "settled_receipts",
+            "calls": 1,
+            "costComplete": false,
+            "costUsd": null,
+            "costUsdComplete": false,
+            "elapsedComplete": true,
+            "elapsedMs": 33506,
+            "elapsedMsComplete": true,
+            "estimateComplete": true,
+            "estimatedCostUsd": 0.00448512,
+            "estimatedCostUsdComplete": true,
+            "inputTokens": 16038,
+            "inputTokensComplete": true,
+            "knownCacheReadTokens": 24576,
+            "knownCacheWriteTokens": 0,
+            "knownCostUsd": null,
+            "knownElapsedMs": 33506,
+            "knownEstimatedCostUsd": 0.00448512,
+            "knownInputTokens": 16038,
+            "knownModelCallCount": 5,
+            "knownOutputTokens": 655,
+            "knownToolCallCount": 4,
+            "knownTotalTokens": 41269,
+            "modelCallCount": 5,
+            "modelCallCountComplete": true,
+            "outputTokens": 655,
+            "outputTokensComplete": true,
+            "source": "runtime_stage_receipts",
+            "toolCallCount": 4,
+            "toolCallCountComplete": true,
+            "toolCallCountScope": "native_tool_attempts",
+            "totalTokens": 41269,
+            "totalTokensComplete": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "glacier",
+      "title": "冰川速度制图的方法比较",
+      "turns": [
+        {
+          "id": "glacier-1",
+          "question": "Heid与Kääb比较中，被认为对全球冰川速度制图和监测最稳健的两种匹配方法是什么？",
+          "answer": "**论文直接观察：**Heid 与 Kääb 认为最稳健的两种匹配方法是：\n\n1. **CCF-O**（归一化互相关方法）\n2. **COSI-Corr**（相位相关算法）\n\n原文将二者称为适用于全球尺度冰川速度制图与监测的“两种最稳健匹配方法”。[2, p. 1]\n\n**跨论文推断：**无。  \n**证据不足/冲突：**未发现与该结论冲突的检索证据。",
+          "version": 7,
+          "sourceCount": 9,
+          "sources": [
+            {
+              "number": 2,
+              "title": "2012-Heid-Evaluationofexistingimagematchingmethodsforderiving",
+              "page": 1,
+              "text": "red to\nCCF-O when thin clouds cover the surface, or if one of the images contains snow dunes. In total, we consider\nCCF-O and COSI-Corr to be the two most robust matching methods for global-scale mapping and monitoring\nof glacier velocities. If combining CCF-O with locally adaptive template sizes and by ﬁltering the matching\nresults automatically by comparing the displacement matrix to its low pass ﬁltered version, the matching\nprocess can be automated to a large degree. This allows the derivation of glacier velocities with minimal\n(but not without!) user interaction and hence also opens up the possibility of global-scale mapping and\nmonitoring of glacier ﬂow.\n© 2011 Elsevier Inc. All rights reserved.\n1. Introduction\nDeriving surface velocity ﬁelds of glaciers, rock glaciers, ice caps\nand ice shelves using optical satellite images is an ef ﬁcient method\nwith low costs, which has been use",
+              "excerptSha256": "b798585bd305355bb0ef5d7d7a79c0a32b06a46c3059b4787d026c2411ae4375"
+            }
+          ],
+          "createdAtMs": 1788881526555,
+          "sourceReceiptSha256": "49fbca2de48c316e08489e63f068467a1c608e278308a6274fe9fdf0e15933c1",
+          "receipt": {
+            "totalTokens": 26718,
+            "estimatedCostUsd": 0.0040424400000000004,
+            "elapsedMs": 68201,
+            "modelCalls": 5,
+            "searchCalls": 2,
+            "sourceReadCalls": 0
+          },
+          "assistantUsage": {
+            "allTokenFieldsComplete": true,
+            "cacheReadTokens": 13312,
+            "cacheReadTokensComplete": true,
+            "cacheWriteTokens": 0,
+            "cacheWriteTokensComplete": true,
+            "callCountScope": "settled_receipts",
+            "calls": 1,
+            "costComplete": false,
+            "costUsd": null,
+            "costUsdComplete": false,
+            "elapsedComplete": true,
+            "elapsedMs": 68201,
+            "elapsedMsComplete": true,
+            "estimateComplete": true,
+            "estimatedCostUsd": 0.0040424400000000004,
+            "estimatedCostUsdComplete": true,
+            "inputTokens": 12311,
+            "inputTokensComplete": true,
+            "knownCacheReadTokens": 13312,
+            "knownCacheWriteTokens": 0,
+            "knownCostUsd": null,
+            "knownElapsedMs": 68201,
+            "knownEstimatedCostUsd": 0.0040424400000000004,
+            "knownInputTokens": 12311,
+            "knownModelCallCount": 5,
+            "knownOutputTokens": 1095,
+            "knownToolCallCount": 4,
+            "knownTotalTokens": 26718,
+            "modelCallCount": 5,
+            "modelCallCountComplete": true,
+            "outputTokens": 1095,
+            "outputTokensComplete": true,
+            "source": "runtime_stage_receipts",
+            "toolCallCount": 4,
+            "toolCallCountComplete": true,
+            "toolCallCountScope": "native_tool_attempts",
+            "totalTokens": 26718,
+            "totalTokensComplete": true
+          }
+        }
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "id": "paper-001",
+      "name": "semantic_3e21d92a2aeabaaed625a3c7a342adb83ade60c5.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-002",
+      "name": "semantic_82196858f6cbd62eb28cc0e8f8ecc1655f5e8ad2.pdf",
+      "pages": 14,
+      "status": "ready"
+    },
+    {
+      "id": "paper-003",
+      "name": "semantic_b8be3e1f6255c2a1c98cb06f89a2da9d38c6298f.pdf",
+      "pages": 11,
+      "status": "ready"
+    },
+    {
+      "id": "paper-004",
+      "name": "semantic_c92f22607eb5afbfb156236647d31b25a56d7b30.pdf",
+      "pages": 0,
+      "status": "failed"
+    },
+    {
+      "id": "paper-005",
+      "name": "2002-Rignot-IceShelfChangesPineIslandBay19472000JGlaciol.pdf",
+      "pages": 11,
+      "status": "ready"
+    },
+    {
+      "id": "paper-006",
+      "name": "2005-nivlisen-anantarcticiceshelfindronningmaudlandepicpdf.pdf",
+      "pages": 36,
+      "status": "ready"
+    },
+    {
+      "id": "paper-007",
+      "name": "2015-Drews-EvolutionofDerwaelIceRisein.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-008",
+      "name": "2016-Favier-Dynamicinfluenceofpinningpointson.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-009",
+      "name": "2016-Philippe-Icecoreevidencefora20th.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-010",
+      "name": "2016-regional-modelingoftheshirasedrainagebasineastantarcticafullstokesvss388faa68.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-011",
+      "name": "2017-recent-riftformationandimpactonthestructuralintegrityofthebrunticeshab64ba37.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-012",
+      "name": "2018-Goel-Icerisestratigraphyrevealschangesin.pdf",
+      "pages": 11,
+      "status": "ready"
+    },
+    {
+      "id": "paper-013",
+      "name": "2018-past-andfuturedynamicsofthebrunticeshelffromseabedbathymetryandices9c704947.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-014",
+      "name": "2018-promising-oldesticesitesineastantarcticabasedonthermodynamicalmodelling472926d2.pdf",
+      "pages": 15,
+      "status": "ready"
+    },
+    {
+      "id": "paper-015",
+      "name": "2018-the-internalstructureofthebrunticeshelffromicepenetratingradaranalysif812abe6.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-016",
+      "name": "2019-Lindbck-Spatialandtemporalvariationsinbasal.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-017",
+      "name": "2019-calving-cycleofthebrunticeshelfantarcticadrivenbychangesiniceshelfgb200a57f.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-018",
+      "name": "2020-Eisermann-BathymetryBeneathIceShelvesWesternDML.pdf",
+      "pages": 10,
+      "status": "ready"
+    },
+    {
+      "id": "paper-019",
+      "name": "2021-geomorphology-andshallowsubseafloorstructuresunderneaththeekstromicesh21798b2b.pdf",
+      "pages": 1,
+      "status": "ready"
+    },
+    {
+      "id": "paper-020",
+      "name": "2022-Lowther-Areviewofthescientificknowledge.pdf",
+      "pages": 37,
+      "status": "ready"
+    },
+    {
+      "id": "paper-021",
+      "name": "2022-Suganuma-RegionalsealevelhighstandtriggeredHolocene.pdf",
+      "pages": 11,
+      "status": "ready"
+    },
+    {
+      "id": "paper-022",
+      "name": "2022-geomorphology-andshallowsubseafloorstructuresunderneaththeekstromicesh48c57e97.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-023",
+      "name": "2023-slowdown-ofshiraseglaciereastantarcticacausedbystrengtheningalongshorewac40cef6.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-024",
+      "name": "2023-warming-beneathaneastantarcticiceshelfduetof30be655.pdf",
+      "pages": 21,
+      "status": "ready"
+    },
+    {
+      "id": "paper-025",
+      "name": "2024-Unknown-60yearremotesensingobservationsrevealedcrosscycleevolutionofthebruntc5a9831f.pdf",
+      "pages": 7,
+      "status": "ready"
+    },
+    {
+      "id": "paper-026",
+      "name": "2024-Wauthy-Spatialandtemporalvariabilityofenvironmental.pdf",
+      "pages": 24,
+      "status": "ready"
+    },
+    {
+      "id": "paper-027",
+      "name": "2024-coastal-bathymetryincentraldronningmaudlandeastantarctica1ed83018.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-028",
+      "name": "2024-rapid-accelerationofthebrunticeshelfaftercalvingofa81icebergbc7713a3.pdf",
+      "pages": 6,
+      "status": "ready"
+    },
+    {
+      "id": "paper-029",
+      "name": "2010-Amundson-Aunifyingframeworkforicebergcalvingmodels.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-030",
+      "name": "2013-Depoorter-CalvingfluxesandbasalmeltratesofAntarctic.pdf",
+      "pages": 6,
+      "status": "ready"
+    },
+    {
+      "id": "paper-031",
+      "name": "2015-Liu-Oceandriventhinningenhancesicebergcalvingandretreat.pdf",
+      "pages": 6,
+      "status": "ready"
+    },
+    {
+      "id": "paper-032",
+      "name": "2016-Wang-GroundingandcalvingcycleofMertzIceTongue.pdf",
+      "pages": 15,
+      "status": "ready"
+    },
+    {
+      "id": "paper-033",
+      "name": "2019-Mohajerani-DetectionofGlacierCalvingMarginswithConvolutionalNeural.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-034",
+      "name": "2021-Qi-A15yearcircumAntarcticicebergcalvingdataset.pdf",
+      "pages": 19,
+      "status": "ready"
+    },
+    {
+      "id": "paper-035",
+      "name": "2022-Greene-Antarcticcalvinglossrivalsiceshelfthinning.pdf",
+      "pages": 18,
+      "status": "ready"
+    },
+    {
+      "id": "paper-036",
+      "name": "2025-Bird-AssessingthesensitivityoftheVanderfordGlacierEast.pdf",
+      "pages": 19,
+      "status": "ready"
+    },
+    {
+      "id": "paper-037",
+      "name": "2006-Fricker-IceshelfgroundingzonestructurefromICESatlaser.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-038",
+      "name": "2011-Jacobs-StrongeroceancirculationandincreasedmeltingunderPine.pdf",
+      "pages": 6,
+      "status": "ready"
+    },
+    {
+      "id": "paper-039",
+      "name": "2015-Coumou-weakeningsummercirculationNorthernHemispheremid.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-040",
+      "name": "2016-Furst-ThesafetybandofAntarcticiceshelves.pdf",
+      "pages": 4,
+      "status": "ready"
+    },
+    {
+      "id": "paper-041",
+      "name": "2016-Schodlok-IceshelfbasalmeltratesaroundscpA.pdf",
+      "pages": 25,
+      "status": "ready"
+    },
+    {
+      "id": "paper-042",
+      "name": "2018-King-TheinternalstructureoftheBruntIceShelf.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-043",
+      "name": "2018-Silvano-Fresheningglacialmeltwaterenhancesmeltingice.pdf",
+      "pages": 11,
+      "status": "ready"
+    },
+    {
+      "id": "paper-044",
+      "name": "2019-DeRydt-CalvingcycleoftheBruntIceShelfAntarctica.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-045",
+      "name": "2019-Hodgson-PastandfuturedynamicsoftheBruntIce.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-046",
+      "name": "2021-Baumhoer-EnvironmentaldriversofcircumAntarcticglacierandice.pdf",
+      "pages": 25,
+      "status": "ready"
+    },
+    {
+      "id": "paper-047",
+      "name": "2021-Huot-Influenceofoceantidesandiceshelveson.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-048",
+      "name": "2021-Minowa-ThermohalinestructureandcirculationbeneaththeLanghovdeGlacier.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-049",
+      "name": "2022-Burgard-AnassessmentofbasalmeltparameterisationsforAntarctic.pdf",
+      "pages": 45,
+      "status": "ready"
+    },
+    {
+      "id": "paper-050",
+      "name": "2022-CNKI-UDC10486.pdf",
+      "pages": 129,
+      "status": "ready"
+    },
+    {
+      "id": "paper-051",
+      "name": "2022-Francis-AtmosphericTriggersoftheBruntIceShelfCalving.pdf",
+      "pages": 15,
+      "status": "ready"
+    },
+    {
+      "id": "paper-052",
+      "name": "2022-Miles-HighspatialandtemporalvariabilityinAntarcticice.pdf",
+      "pages": 14,
+      "status": "ready"
+    },
+    {
+      "id": "paper-053",
+      "name": "2022-Unknown-1Paper.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-054",
+      "name": "2022-VanAchter-Influenceoffasticeonfutureiceshelf.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-055",
+      "name": "2023-Andreasen-ChangeinAntarcticiceshelfareafrom2009.pdf",
+      "pages": 14,
+      "status": "ready"
+    },
+    {
+      "id": "paper-056",
+      "name": "2023-Baumhoer-IceLinesAnewdatasetofAntarcticice.pdf",
+      "pages": 10,
+      "status": "ready"
+    },
+    {
+      "id": "paper-057",
+      "name": "2023-Benjamin-AnnualmassbudgetAntarcticiceshelves.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-058",
+      "name": "2023-Li-Satelliterecordreveals1960saccelerationofTottenIce.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-059",
+      "name": "2023-Mosbeux-SeasonalvariabilityinAntarcticiceshelfvelocitiesforced.pdf",
+      "pages": 22,
+      "status": "ready"
+    },
+    {
+      "id": "paper-060",
+      "name": "2023-Paolo-WidespreadslowdowninthinningratesofWestAntarctic.pdf",
+      "pages": 25,
+      "status": "ready"
+    },
+    {
+      "id": "paper-061",
+      "name": "2023-Stutz-InlandthinningofscpByrdGlacierscpAntarctica.pdf",
+      "pages": 18,
+      "status": "ready"
+    },
+    {
+      "id": "paper-062",
+      "name": "2023-Unknown-fulltextmaybeusedor.pdf",
+      "pages": 122,
+      "status": "ready"
+    },
+    {
+      "id": "paper-063",
+      "name": "2023-Wilner-EvaluationoffourcalvinglawsforAntarcticice.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-064",
+      "name": "2023-Xia-Eddyandtidaldrivenbasalmeltingofthe.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-065",
+      "name": "2024-Cheng-60YEARREMOTESENSINGOBSERVATIONSREVEALEDCROSSCYCLE.pdf",
+      "pages": 7,
+      "status": "ready"
+    },
+    {
+      "id": "paper-066",
+      "name": "2024-Marsh-BriefcommunicationRapidaccelerationoftheBruntIce.pdf",
+      "pages": 6,
+      "status": "ready"
+    },
+    {
+      "id": "paper-067",
+      "name": "2024-Miles-ProgressiveunanchoringofAntarcticiceshelvessince1973-dup1.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-068",
+      "name": "2024-Miles-ProgressiveunanchoringofAntarcticiceshelvessince1973-dup3.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-069",
+      "name": "2024-Miles-ProgressiveunanchoringofAntarcticiceshelvessince1973.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-070",
+      "name": "2025-Galton-Fenzi-RealisticiceshelfoceanstateestimatesRISEof.pdf",
+      "pages": 27,
+      "status": "ready"
+    },
+    {
+      "id": "paper-071",
+      "name": "2025-Hancock-UnderIceShelfEddyattheStancombWillsIceTongue.pdf",
+      "pages": 20,
+      "status": "ready"
+    },
+    {
+      "id": "paper-072",
+      "name": "2005-Stearns-AnewvelocitymapforByrdGlacierEast.pdf",
+      "pages": 6,
+      "status": "ready"
+    },
+    {
+      "id": "paper-073",
+      "name": "2009-Khazendar-Rolesofmarineicerheologyandfracturein.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-074",
+      "name": "2012-Heid-Evaluationofexistingimagematchingmethodsforderiving.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-075",
+      "name": "2014-Larour-Representationofsharpriftsandfaultsmechanicsin.pdf",
+      "pages": 18,
+      "status": "ready"
+    },
+    {
+      "id": "paper-076",
+      "name": "2015-Chen-Surfacevelocityestimationsoficeshelvesinthe.pdf",
+      "pages": 14,
+      "status": "ready"
+    },
+    {
+      "id": "paper-077",
+      "name": "2016-Hughes-Sheetstreamandshelfflowasprogressiveice.pdf",
+      "pages": 33,
+      "status": "ready"
+    },
+    {
+      "id": "paper-078",
+      "name": "2017-Li-ICEVELOCITYMEASUREMENTINEASTANTARCTICAFROM1960s.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-079",
+      "name": "2017-Liu-IceVelocityVariationsofthePolarRecordGlacier.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-080",
+      "name": "2017-Mouginot-ComprehensiveAnnualIceSheetVelocityMappingUsingLandsat.pdf",
+      "pages": 20,
+      "status": "ready"
+    },
+    {
+      "id": "paper-081",
+      "name": "2017-wangzeyang-SchoolDepartmentCollegeSurveyingGeoinformatics.pdf",
+      "pages": 93,
+      "status": "ready"
+    },
+    {
+      "id": "paper-082",
+      "name": "2018-ALLEY-ContinentwideestimatesofAntarcticstrainratesfrom.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-083",
+      "name": "2018-DeRydt-Recentriftformationandimpactonthestructural.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-084",
+      "name": "2018-vip-Paper.pdf",
+      "pages": 79,
+      "status": "ready"
+    },
+    {
+      "id": "paper-085",
+      "name": "2019-Cheng-ICEFLOWVELOCITYMAPPINGOFEASTANTARCTICAFROM.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-086",
+      "name": "2019-lxwwwwwwwwwwwwwwww-TongjiUniversityconformityrequirements.pdf",
+      "pages": 80,
+      "status": "ready"
+    },
+    {
+      "id": "paper-087",
+      "name": "2020-Greene-Detectingseasonalicedynamicsinsatelliteimages.pdf",
+      "pages": 14,
+      "status": "ready"
+    },
+    {
+      "id": "paper-088",
+      "name": "2020-Shen-AntarcticwideannualiceflowmapsfromLandsat.pdf",
+      "pages": 23,
+      "status": "ready"
+    },
+    {
+      "id": "paper-089",
+      "name": "2021-Lei-AutonomousRepeatImageFeatureTrackingautoRIFTandIts.pdf",
+      "pages": 20,
+      "status": "ready"
+    },
+    {
+      "id": "paper-090",
+      "name": "2021-Luo-ICEFLOWVELOCITYMAPPINGINEASTANTARCTICAUSING.pdf",
+      "pages": 6,
+      "status": "ready"
+    },
+    {
+      "id": "paper-091",
+      "name": "2021-Samsonov-SARderivedflowvelocityanditslinkto.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-092",
+      "name": "2022-Feng-Ahierarchicalnetworkdensificationapproachforreconstructionof.pdf",
+      "pages": 20,
+      "status": "ready"
+    },
+    {
+      "id": "paper-093",
+      "name": "2022-Lei-ProcessingmethodologyfortheITSLIVESentinel1.pdf",
+      "pages": 27,
+      "status": "ready"
+    },
+    {
+      "id": "paper-094",
+      "name": "2022-Li-OverestimationandadjustmentofAntarcticiceflowvelocity.pdf",
+      "pages": 24,
+      "status": "ready"
+    },
+    {
+      "id": "paper-095",
+      "name": "2022-Nilsson-ElevationchangeAntarcticIceSheet1985.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-096",
+      "name": "2022-Rignot-ChangesinAntarcticIceSheetMotionDerivedFrom.pdf",
+      "pages": 10,
+      "status": "ready"
+    },
+    {
+      "id": "paper-097",
+      "name": "2023-CNKI-11627.pdf",
+      "pages": 10,
+      "status": "ready"
+    },
+    {
+      "id": "paper-098",
+      "name": "2023-CNKI-202012SHANXIARCHITECTUREDec2020.pdf",
+      "pages": 4,
+      "status": "ready"
+    },
+    {
+      "id": "paper-099",
+      "name": "2023-CNKI-CitationLIRongxingHEMeixiGE.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-100",
+      "name": "2023-Kondo-Calvingiceflowandthicknessofoutletglaciers.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-101",
+      "name": "2023-Lee-IceVelocityVariationsoftheCookIceShelf.pdf",
+      "pages": 22,
+      "status": "ready"
+    },
+    {
+      "id": "paper-102",
+      "name": "2023-Yuan-57YearIceVelocityDynamicsByrd.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-103",
+      "name": "2024-Donda-Footprintofsustainedpolewardwarmwaterflowwithin.pdf",
+      "pages": 10,
+      "status": "ready"
+    },
+    {
+      "id": "paper-104",
+      "name": "2024-Zhang-HistoricalIceVelocityMappingofPineIslandGlacier.pdf",
+      "pages": 4,
+      "status": "ready"
+    },
+    {
+      "id": "paper-105",
+      "name": "2025-Baldacchino-ModellingGNSSobservedseasonalvelocitychangesofthe.pdf",
+      "pages": 21,
+      "status": "ready"
+    },
+    {
+      "id": "paper-106",
+      "name": "2025-Fan-Flowlawsforiceconstrainedby70years.pdf",
+      "pages": 24,
+      "status": "ready"
+    },
+    {
+      "id": "paper-107",
+      "name": "2025-Gardner-ITSLIVEglobalglaciervelocitydatainnear-dup1.pdf",
+      "pages": 29,
+      "status": "ready"
+    },
+    {
+      "id": "paper-108",
+      "name": "2025-Gardner-ITSLIVEglobalglaciervelocitydatainnear.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-109",
+      "name": "2025-Wang-DeeplearningtheflowlawofAntarcticice-dup1.pdf",
+      "pages": 65,
+      "status": "ready"
+    },
+    {
+      "id": "paper-110",
+      "name": "2025-Wang-DeeplearningtheflowlawofAntarcticice.pdf",
+      "pages": 22,
+      "status": "ready"
+    },
+    {
+      "id": "paper-111",
+      "name": "2026-Paolo-IceShelfThicknessChangedHdt.pdf",
+      "pages": 6,
+      "status": "ready"
+    },
+    {
+      "id": "paper-112",
+      "name": "1994-TAKAHASHI-SurfacemassbalanceineastDronning.pdf",
+      "pages": 7,
+      "status": "ready"
+    },
+    {
+      "id": "paper-113",
+      "name": "2014-Hui-MappingblueiceareasinAntarcticausingETM.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-114",
+      "name": "2014-climatic-signalsfrom76shallowfirncoresindronningmaudlandeastantarctica.pdf",
+      "pages": 0,
+      "status": "failed"
+    },
+    {
+      "id": "paper-115",
+      "name": "2017-detecting-highspatialvariabilityoficeshelfbasalmassbalanceroibaudouiniceshelfantarctica.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-116",
+      "name": "2017-glaciological-settingsandrecentmassbalanceofblaskimenislandindronningmaudlandantarctica.pdf",
+      "pages": 14,
+      "status": "ready"
+    },
+    {
+      "id": "paper-117",
+      "name": "2018-Gardner-IncreasedWestAntarcticandunchangedEastAntarcticice.pdf",
+      "pages": 27,
+      "status": "ready"
+    },
+    {
+      "id": "paper-118",
+      "name": "2018-TheIMBIEteam-MassbalanceoftheAntarcticIceSheetfrom.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-119",
+      "name": "2019-Morlighem-Deepglacialtroughsandstabilizingridgesunveiledbeneath.pdf",
+      "pages": 25,
+      "status": "ready"
+    },
+    {
+      "id": "paper-120",
+      "name": "2019-Rignot-FourdecadesofAntarcticIceSheetmassbalance.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-121",
+      "name": "2019-Shepherd-TrendsinAntarcticIceSheetElevationandMass.pdf",
+      "pages": 10,
+      "status": "ready"
+    },
+    {
+      "id": "paper-122",
+      "name": "2020-Mankoff-GreenlandIceSheetsolidicedischargefrom1986.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-123",
+      "name": "2021-three-decadespatialpatternsinsurfacemassbalanceofthenivliseniceshelf37b885b8.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-124",
+      "name": "2022-Nilsson-ElevationchangeoftheAntarcticIceSheet1985.pdf",
+      "pages": 26,
+      "status": "ready"
+    },
+    {
+      "id": "paper-125",
+      "name": "2022-Stokes-ResponseoftheEastAntarcticIceSheetto.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-126",
+      "name": "2023-mass-balanceofthegreenlandandantarcticicesheetsfrom1992to2020734821bc.pdf",
+      "pages": 20,
+      "status": "ready"
+    },
+    {
+      "id": "paper-127",
+      "name": "2024-Davison-WidespreadincreaseindischargefromwestAntarcticPeninsula.pdf",
+      "pages": 15,
+      "status": "ready"
+    },
+    {
+      "id": "paper-128",
+      "name": "2024-Dawson-HeterogeneousBasalThermalConditionsUnderpinningAdelieGeorge.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-129",
+      "name": "2024-Dmgaard-Earlyaerialexpeditionphotosreveal85yearsof.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-130",
+      "name": "2024-Pelle-SubglacialDischargeAcceleratesDynamicRetreatofAuroraSubglacial.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-131",
+      "name": "2025-ONeill-ISMIP6basedAntarcticprojectionsto2100simulationswith.pdf",
+      "pages": 23,
+      "status": "ready"
+    },
+    {
+      "id": "paper-132",
+      "name": "2025-Shen-EvolutionofsupraglaciallakesoverthepanAntarctic.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-133",
+      "name": "2021-surface-meltwaterdrainageandpondingonameryiceshelfeastantarctica1973204e16eb31.pdf",
+      "pages": 14,
+      "status": "ready"
+    },
+    {
+      "id": "paper-134",
+      "name": "2024-Mahagaonkar-Supraglaciallakeevolutionanditsdrivers.pdf",
+      "pages": 15,
+      "status": "ready"
+    },
+    {
+      "id": "paper-135",
+      "name": "2024-cryoconite-holesgeomorphometryspatialdistributionandradiativeimpactovert873aa1d9.pdf",
+      "pages": 10,
+      "status": "ready"
+    },
+    {
+      "id": "paper-136",
+      "name": "2014-Dutrieux-StrongSensitivityPineIslandIceShelfMeltingScience.pdf",
+      "pages": 29,
+      "status": "ready"
+    },
+    {
+      "id": "paper-137",
+      "name": "2014-Hattermann-EddyResolvingSimulationsFimbulIceShelfCavityCirculation.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-138",
+      "name": "2015-Stewart-TheNeutralDensityTemporalResidualMeanoverturningcirculation.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-139",
+      "name": "2016-Rintoul-OceanHeatDrivesRapidBasalMeltTottenIceShelf.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-140",
+      "name": "2017-sea-levelresponsetomeltingofantarcticiceshelvesonmulticentennialtimesef933dbe.pdf",
+      "pages": 28,
+      "status": "ready"
+    },
+    {
+      "id": "paper-141",
+      "name": "2018-Colleoni-SpatiotemporalvariabilityofprocessesacrossAntarcticice-dup1.pdf",
+      "pages": 14,
+      "status": "ready"
+    },
+    {
+      "id": "paper-142",
+      "name": "2018-Colleoni-SpatiotemporalvariabilityofprocessesacrossAntarcticice.pdf",
+      "pages": 14,
+      "status": "ready"
+    },
+    {
+      "id": "paper-143",
+      "name": "2018-Florence-SpatiotemporalvariabilityprocessesacrossAntarctic.pdf",
+      "pages": 14,
+      "status": "ready"
+    },
+    {
+      "id": "paper-144",
+      "name": "2019-Sun-TopographicShelfWavesControlSeasonalMelting.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-145",
+      "name": "2020-Hirano-StrongiceoceaninteractionbeneathShiraseGlacierTongue.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-146",
+      "name": "2020-Smith-Pervasiveicesheetmasslossreflects.pdf",
+      "pages": 4,
+      "status": "ready"
+    },
+    {
+      "id": "paper-147",
+      "name": "2020-modeling-intensiveoceancryosphereinteractionsinlutzowholmbayeastantarcti0a549b7f.pdf",
+      "pages": 6,
+      "status": "ready"
+    },
+    {
+      "id": "paper-148",
+      "name": "2020-strong-iceoceaninteractionbeneathshiraseglaciertongueineastantarctica431b323f.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-149",
+      "name": "2021-Kusahara-ModelingintensiveoceancryosphereinteractionsinLutzowHolmBay.pdf",
+      "pages": 21,
+      "status": "ready"
+    },
+    {
+      "id": "paper-150",
+      "name": "2021-Lipscomb-ISMIP6basedprojectionsofoceanforcedAntarcticIce.pdf",
+      "pages": 29,
+      "status": "ready"
+    },
+    {
+      "id": "paper-151",
+      "name": "2021-Nakayama-AntarcticSlopeCurrentModulatesOceanHeatIntrusionsTowards.pdf",
+      "pages": 10,
+      "status": "ready"
+    },
+    {
+      "id": "paper-152",
+      "name": "2022-VanAchter-Modellinglandfastseaiceanditsinfluenceon.pdf",
+      "pages": 14,
+      "status": "ready"
+    },
+    {
+      "id": "paper-153",
+      "name": "2023-Jordan-Increasedwarmwaterintrusionscouldcausemassloss.pdf",
+      "pages": 11,
+      "status": "ready"
+    },
+    {
+      "id": "paper-154",
+      "name": "2023-Malczyk-Constraintsonsubglacialmeltfluxesfromobservationsof.pdf",
+      "pages": 15,
+      "status": "ready"
+    },
+    {
+      "id": "paper-155",
+      "name": "2023-Wang-SeasonalvariationsinCircumpolarDeepWaterintrusionsinto.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-156",
+      "name": "2023-simulation-basedinferenceofsurfaceaccumulationandbasalmeltratesofanan7ed0d91b.pdf",
+      "pages": 33,
+      "status": "ready"
+    },
+    {
+      "id": "paper-157",
+      "name": "2023-southern-oceanwarmingandantarcticiceshelfmeltinginconditionsplausiblebec6c2bb4.pdf",
+      "pages": 21,
+      "status": "ready"
+    },
+    {
+      "id": "paper-158",
+      "name": "2024-Kusahara-Modelingseasonaltodecadaloceancryosphereinteractionsalongthe.pdf",
+      "pages": 31,
+      "status": "ready"
+    },
+    {
+      "id": "paper-159",
+      "name": "2024-Lauber-HydrographyandcirculationbelowFimbulisenIce.pdf",
+      "pages": 26,
+      "status": "ready"
+    },
+    {
+      "id": "paper-160",
+      "name": "2024-Park-AmundsenCirculationControlsMelt.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-161",
+      "name": "2025-Zeising-Enhancedbasalmeltinginwinterand.pdf",
+      "pages": 18,
+      "status": "ready"
+    },
+    {
+      "id": "paper-162",
+      "name": "2020-Fraser-HighresolutionmappingofcircumAntarcticlandfastsea.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-163",
+      "name": "2022-Nakamura-Interactivemovementsofoutletglaciertongueandlandfast.pdf",
+      "pages": 8,
+      "status": "ready"
+    },
+    {
+      "id": "paper-164",
+      "name": "2010-Brunt-MappingGroundingZoneRossIceShelfICESat.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-165",
+      "name": "2014-Rignot-WidespreadrapidgroundinglineretreatofPineIsland.pdf",
+      "pages": 8,
+      "status": "ready"
+    },
+    {
+      "id": "paper-166",
+      "name": "2017-Aoki-BreakupoflandfastseaiceinLutzowHolmBay.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-167",
+      "name": "2021-Pelle-WidespreadGroundingLineRetreatofTottenGlacierEast.pdf",
+      "pages": 11,
+      "status": "ready"
+    },
+    {
+      "id": "paper-168",
+      "name": "2023-Li-Groundinglineretreatandtidemodulatedoceanchannels.pdf",
+      "pages": 20,
+      "status": "ready"
+    },
+    {
+      "id": "paper-169",
+      "name": "2023-Rignot-Observationsofgroundingzonesarethemissingkey.pdf",
+      "pages": 4,
+      "status": "ready"
+    },
+    {
+      "id": "paper-170",
+      "name": "2009-GreveBlatter-Dynamicsicesheetsglaciers.pdf",
+      "pages": 300,
+      "status": "ready"
+    },
+    {
+      "id": "paper-171",
+      "name": "2016-Miles-PanIceSheetGlacierTerminusChangeEastAntarcticaRevealsSensitivityOfWilkesLandToSeaIceChanges.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-172",
+      "name": "2017-Li-NewAnalyticalMethodEstimatingAntarcticIce.pdf",
+      "pages": 15,
+      "status": "ready"
+    },
+    {
+      "id": "paper-173",
+      "name": "2017-Lovell-Subdecadalvariationsinoutletglacierterminuspositions.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-174",
+      "name": "2018-Wang-AccuratecoastalDEMgenerationbymergingASTERGDEM.pdf",
+      "pages": 13,
+      "status": "ready"
+    },
+    {
+      "id": "paper-175",
+      "name": "2019-Edwards-RevisitingAntarcticicelossduetomarineice.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-176",
+      "name": "2019-Morlighem-Deepglacialtroughsandstabilizingridgesunveiledbeneath.pdf",
+      "pages": 7,
+      "status": "ready"
+    },
+    {
+      "id": "paper-177",
+      "name": "2019-Mouginot-FortysixyearsofGreenlandIceSheetmass.pdf",
+      "pages": 6,
+      "status": "ready"
+    },
+    {
+      "id": "paper-178",
+      "name": "2019-Nitsche-EastAntarcticiceflowdynamicbasedonsubglacial.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-179",
+      "name": "2019-Schroder-FourdecadesofAntarcticsurfaceelevationchangesfrom.pdf",
+      "pages": 23,
+      "status": "ready"
+    },
+    {
+      "id": "paper-180",
+      "name": "2019-lxwwwwwwwwwwwwwwww-TongjiUniversityconformityrequirements.pdf",
+      "pages": 80,
+      "status": "ready"
+    },
+    {
+      "id": "paper-181",
+      "name": "2021-Zhang-Anewautomaticapproachforextractingglaciercenterlines.pdf",
+      "pages": 19,
+      "status": "ready"
+    },
+    {
+      "id": "paper-182",
+      "name": "2022-CNKI-424Vol42No4.pdf",
+      "pages": 14,
+      "status": "ready"
+    },
+    {
+      "id": "paper-183",
+      "name": "2023-Li-Satelliterecordreveals1960saccelerationofTottenIce.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-184",
+      "name": "2023-Wallis-WidespreadseasonalspeedupofwestAntarcticPeninsula.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-185",
+      "name": "2024-Greene-UbiquitousaccelerationinGreenlandIceSheetcalvingfrom.pdf",
+      "pages": 21,
+      "status": "ready"
+    },
+    {
+      "id": "paper-186",
+      "name": "2014-Favier-RetreatPineIslandGlacierControlledByMarineIceSheetInstability.pdf",
+      "pages": 16,
+      "status": "ready"
+    },
+    {
+      "id": "paper-187",
+      "name": "2024-Unknown-32.pdf",
+      "pages": 4,
+      "status": "ready"
+    },
+    {
+      "id": "paper-188",
+      "name": "2002-Scambos-PII003442579290101O.pdf",
+      "pages": 10,
+      "status": "ready"
+    },
+    {
+      "id": "paper-189",
+      "name": "2013-Ohshima-AntarcticBottomWaterproductionbyintenseseaice.pdf",
+      "pages": 6,
+      "status": "ready"
+    },
+    {
+      "id": "paper-190",
+      "name": "2015-Coumou-weakeningsummercirculationNorthernHemispheremid.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-191",
+      "name": "2015-Massom-ExternalinfluencesontheMertzGlacierTongueEast.pdf",
+      "pages": 17,
+      "status": "ready"
+    },
+    {
+      "id": "paper-192",
+      "name": "2016-Furst-ThesafetybandofAntarcticiceshelves.pdf",
+      "pages": 4,
+      "status": "ready"
+    },
+    {
+      "id": "paper-193",
+      "name": "2017-Li-NewAnalyticalMethodEstimatingAntarcticIce.pdf",
+      "pages": 15,
+      "status": "ready"
+    },
+    {
+      "id": "paper-194",
+      "name": "2018-Mohajerani-MassLossofTottenandMoscowUniversityGlaciers.pdf",
+      "pages": 9,
+      "status": "ready"
+    },
+    {
+      "id": "paper-195",
+      "name": "2019-Howat-TheReferenceElevationModelofAntarctica.pdf",
+      "pages": 10,
+      "status": "ready"
+    },
+    {
+      "id": "paper-196",
+      "name": "2020-Greene-Detectingseasonalicedynamicssatelliteimages.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-197",
+      "name": "2021-Child-BasalCrevasseFormationonByrdGlacierEastAntarctica.pdf",
+      "pages": 10,
+      "status": "ready"
+    },
+    {
+      "id": "paper-198",
+      "name": "2021-Lei-AutonomousRepeatImageFeatureTrackingautoRIFT-dup1.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-199",
+      "name": "2021-Lei-AutonomousRepeatImageFeatureTrackingautoRIFTandIts.pdf",
+      "pages": 20,
+      "status": "ready"
+    },
+    {
+      "id": "paper-200",
+      "name": "2021-Nagler-ContinuousMonitoringofIceMotionandDischargeof.pdf",
+      "pages": 4,
+      "status": "ready"
+    },
+    {
+      "id": "paper-201",
+      "name": "2021-Still-Mechanicsanddynamicsofpinningpointsonthe.pdf",
+      "pages": 19,
+      "status": "ready"
+    },
+    {
+      "id": "paper-202",
+      "name": "2022-CNKI-Paper.pdf",
+      "pages": 89,
+      "status": "ready"
+    },
+    {
+      "id": "paper-203",
+      "name": "2022-Nilsson-ElevationchangeAntarcticIceSheet1985-dup1.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-204",
+      "name": "2022-Nilsson-ElevationchangeAntarcticIceSheet1985-dup2.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-205",
+      "name": "2022-Nilsson-ElevationchangeAntarcticIceSheet1985.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-206",
+      "name": "2022-Ruckamp-ComparisonoficedynamicsusingfullStokesand.pdf",
+      "pages": 22,
+      "status": "ready"
+    },
+    {
+      "id": "paper-207",
+      "name": "2023-Feng-hierarchicalnetworkdensificationapproachreconstructionhistorical.pdf",
+      "pages": 6,
+      "status": "ready"
+    },
+    {
+      "id": "paper-208",
+      "name": "2023-Kondo-Calvingiceflowthicknessoutletglaciers.pdf",
+      "pages": 5,
+      "status": "ready"
+    },
+    {
+      "id": "paper-209",
+      "name": "2023-Miles-SlowdownofShiraseGlacierEastAntarcticacausedby.pdf",
+      "pages": 12,
+      "status": "ready"
+    },
+    {
+      "id": "paper-210",
+      "name": "2023-Thompson-GlaciologicalhistoryandstructuralevolutionoftheShackleton.pdf",
+      "pages": 18,
+      "status": "ready"
+    },
+    {
+      "id": "paper-211",
+      "name": "2025-Unknown-LutzowHolmBayLHBEastAntarctica-dup1.pdf",
+      "pages": 5,
+      "status": "ready"
+    }
+  ]
+}

@@ -29,10 +29,11 @@ export function VirtualTranscript({ empty, label, lead }: {
   empty?: ReactNode;
 }) {
   const surface = useConversationSurface();
-  const { conversationId, messages, phase } = surface;
+  const { conversationId, messages, phase, scrollToLatestRequest } = surface;
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const sizerRef = useRef<HTMLDivElement | null>(null);
   const pinned = usePinnedTranscript(scrollRef, sizerRef, conversationId);
+  const lastScrollToLatestRequest = useRef(0);
   const rememberedAnchor = readSessionScrollMemory(conversationId)?.row;
 
   const getKey = useCallback((message: TranscriptMessage) => message.id, []);
@@ -62,6 +63,16 @@ export function VirtualTranscript({ empty, label, lead }: {
   useEffect(() => {
     if (isPinnedRef.current) scrollToBottom('auto');
   }, [isPinnedRef, messages, scrollToBottom]);
+
+  /* A submitted turn is an explicit claim on the tail, even when the reader
+   * had detached to inspect older rows. Passive progress keeps the reader's
+   * position; only a new host request may reattach it. */
+  useEffect(() => {
+    const request = scrollToLatestRequest ?? 0;
+    if (request <= lastScrollToLatestRequest.current) return;
+    lastScrollToLatestRequest.current = request;
+    scrollToBottom('auto');
+  }, [scrollToLatestRequest, scrollToBottom]);
 
   const messageIndex = useMemo(
     () => new Map(messages.map((message, index) => [message.id, index])),

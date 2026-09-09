@@ -3,17 +3,20 @@ import type { LabApp, LabAppVersion } from '@/features/eval-lab/projects/apps';
 import { type DemoDataset, type DemoMode } from '../../../showcase/lab-flow';
 import { verticalAppDocument } from '../../../showcase/vertical-app';
 import type { LabKey } from '../../../showcase/lab-evidence';
+import type { LabConfig } from '../../../showcase/guided-lab';
 
 export const digestBytes = async (bytes: Uint8Array) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new Uint8Array(bytes).buffer))].map((value) => value.toString(16).padStart(2, '0')).join('');
 export const digestText = (text: string) => digestBytes(new TextEncoder().encode(text));
 
-export async function buildLabDemoApp(projectId: string, title: string, key: LabKey, dataset: DemoDataset, mode: DemoMode, report: unknown, version = 1) {
+export async function buildLabDemoApp(projectId: string, title: string, key: LabKey, dataset: DemoDataset, mode: DemoMode, report: unknown, version = 1,
+  options: { html?: string; extraFiles?: Record<string, string>; config?: LabConfig } = {}) {
   const appId = `extension:lab-${(await digestText(projectId)).slice(0, 32)}`;
-  const html = verticalAppDocument(key, dataset, mode, report, `${appId}:${version}`);
+  const html = options.html ?? verticalAppDocument(key, dataset, mode, report, `${appId}:${version}`, options.config);
   const files = {
     'index.html': html,
     'data.json': JSON.stringify(dataset, null, 2),
     'evaluation.json': JSON.stringify(report, null, 2),
+    ...options.extraFiles,
     'README.md': `# ${title}\n\n解压后直接在浏览器中打开 index.html。无需安装依赖、填写 Key 或启动服务。\n\n本 App 提供对应场景的业务操作、来源检查、工作记录保存与导出，使用与演示测评相同的离线规则；不是模型能力、生产运行或跨任务泛化证明。data.json 和 evaluation.json 保留本轮输入与评测结果。\n`,
   };
   const bytes = storedZip(files);

@@ -19,3 +19,5 @@
 .vertical-app-toolbar a { display:inline-flex; align-items:center; gap:5px; color:#697386; font-size:12px; white-space:nowrap; }
 
 @media(min-width:801px) {.vertical-app-tabs {grid-template-columns:repeat(4,minmax(0,1fr));}}
+
+.vertical-app-toolbar>div:last-child { flex-wrap:wrap; }

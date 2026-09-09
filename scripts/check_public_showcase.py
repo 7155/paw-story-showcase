@@ -28,6 +28,7 @@ SECRET_PATTERNS = {
 }
 FORBIDDEN_PARTS = {
     ".git",
+    ".generated",
     ".impeccable",
     ".playwright-cli",
     ".sites-runtime",
@@ -68,7 +69,7 @@ def is_private_local_path(path: Path) -> bool:
 def is_forbidden_generated_path(path: Path) -> bool:
     relative = path.relative_to(ROOT)
     return (
-        relative.as_posix().startswith("paw-story-demo/public/real-apps/")
+        relative.as_posix().startswith(("paw-story-demo/public/real-apps/", "control-center-web/public/portable-agent-ui/"))
         or path.name in FORBIDDEN_NAMES
         or path.suffix.lower() in FORBIDDEN_SUFFIXES
         or any(part in FORBIDDEN_PARTS for part in relative.parts)

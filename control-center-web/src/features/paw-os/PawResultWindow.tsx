@@ -2,7 +2,7 @@ import { AudioLines, ExternalLink, FileOutput, Globe2, Image as ImageIcon, Monit
 import { useMemo, useState } from 'react';
 import type { PawOsWindowTarget } from './model/desktop';
 import { RICH_HTML_SANDBOX, richHtmlDocument } from '@/features/agent/file-preview/rich-html';
-import { useRichHtmlUrl } from '@/features/agent/file-preview/use-rich-html-url';
+import { useRichHtmlPreview } from '@/features/agent/file-preview/use-rich-html-url';
 
 type ResultTarget = Extract<PawOsWindowTarget, { kind: 'result' }>;
 
@@ -14,7 +14,7 @@ const kindLabel: Record<ResultTarget['resultKind'], string> = {
 export function PawResultWindow({ target }: { target: ResultTarget }) {
   const [failedSource, setFailedSource] = useState(false);
   const html = useMemo(() => target.content?.trim() ? richHtmlDocument(target.content) : '', [target.content]);
-  const htmlUrl = useRichHtmlUrl(html, Boolean(html));
+  const { frame, key, onLoad, url: htmlUrl } = useRichHtmlPreview(html, Boolean(html));
   const source = safeResultSource(target.source);
   const isHtml = target.resultKind === 'html' || target.resultKind === 'web' || target.resultKind === 'game' || target.resultKind === 'music';
 
@@ -27,7 +27,7 @@ export function PawResultWindow({ target }: { target: ResultTarget }) {
         <div><small>{kindLabel[target.resultKind]}</small><h1>{target.title}</h1>{target.subtitle ? <p>{target.subtitle}</p> : null}</div>
         <span className="paw-result-window__state"><Globe2 size={13} />已隔离</span>
       </header>
-      {isHtml && htmlUrl ? <iframe className="paw-result-window__frame" referrerPolicy="no-referrer" sandbox={RICH_HTML_SANDBOX} src={htmlUrl} title={target.title} /> : null}
+      {isHtml && htmlUrl ? <iframe className="paw-result-window__frame" key={key} onLoad={onLoad} ref={frame} referrerPolicy="no-referrer" sandbox={RICH_HTML_SANDBOX} src={htmlUrl} title={target.title} /> : null}
       {target.resultKind === 'image' && source && !failedSource ? <figure className="paw-result-window__media paw-result-window__media--image"><img alt={target.title} onError={() => setFailedSource(true)} src={source} /></figure> : null}
       {target.resultKind === 'audio' && source && !failedSource ? <div className="paw-result-window__media paw-result-window__media--audio"><AudioLines aria-hidden="true" size={28} /><audio controls onError={() => setFailedSource(true)} preload="metadata" src={source} /></div> : null}
       {target.resultKind === 'artifact' && source ? <section className="paw-result-window__artifact"><FileOutput aria-hidden="true" size={28} /><div><strong>{target.title}</strong><p>{target.subtitle || '受控文件回执已准备好。'}</p></div><a href={source} rel="noreferrer" target="_blank"><ExternalLink size={15} />打开文件</a></section> : null}

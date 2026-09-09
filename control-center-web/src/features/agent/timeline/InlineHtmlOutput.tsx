@@ -2,7 +2,7 @@ import { Code2, Globe2, Maximize2, Minimize2, PanelTopOpen, X } from 'lucide-rea
 import { memo, useMemo, useState } from 'react';
 import { usePawOsDesktop } from '@/features/paw-os/surface-context';
 import { RICH_HTML_SANDBOX, richHtmlDocument } from '../file-preview/rich-html';
-import { useRichHtmlUrl } from '../file-preview/use-rich-html-url';
+import { useRichHtmlPreview } from '../file-preview/use-rich-html-url';
 
 const INLINE_HEIGHT = 420;
 const EXPANDED_HEIGHT = 720;
@@ -23,7 +23,7 @@ export const InlineHtmlOutput = memo(function InlineHtmlOutput({
   const [showSource, setShowSource] = useState(false);
   const document = useMemo(() => richHtmlDocument(content), [content]);
   const result = useMemo(() => htmlResultDescriptor(content), [content]);
-  const url = useRichHtmlUrl(document);
+  const { frame, key, onLoad, url } = useRichHtmlPreview(document);
   const frameHeight = expanded ? EXPANDED_HEIGHT : INLINE_HEIGHT;
 
   return (
@@ -77,6 +77,9 @@ export const InlineHtmlOutput = memo(function InlineHtmlOutput({
       </header>
       <iframe
         className="agent-html-output__frame"
+        key={key}
+        onLoad={onLoad}
+        ref={frame}
         referrerPolicy="no-referrer"
         sandbox={RICH_HTML_SANDBOX}
         src={url}

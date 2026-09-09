@@ -1,3 +1,5 @@
+import { businessConfig, businessFields, evaluateBusiness, type BusinessEvaluation } from './preview-business-lab';
+import { OPTIMIZATION_PROJECT_ID, PreviewOptimizationProject } from './preview-optimization-project';
 import type { ControlPathId } from '@/platform/routes';
 import type { ControlRequest } from '@/platform/transport';
 import type { MockRouteHandler } from '@/test/mock-transport';
@@ -7,6 +9,10 @@ import { currentLabExperiments } from '../../../showcase/lab-evidence';
 import { labDemoProjectId, labDemoScenarios } from '../../../showcase/lab-demo';
 import { evaluateLabDemo, parseLabDemoDataset, labFlowRules, type DemoDataset, type DemoMode } from '../../../showcase/lab-flow';
 import { buildLabDemoApp } from './preview-lab-app-package';
+import { PreviewResearchKnowledge, readPublicLabRecord, writePublicLabRecord } from './preview-research-knowledge';
+import researchHistory from '../../../paw-story-demo/public/evidence/research-history.v1.json';
+import { portableResearchDocument } from '../../../showcase/portable-research-app';
+import { defaultLabConfig } from '../../../showcase/guided-lab';
 
 const capturedAt = Date.UTC(2026, 8, 7, 8);
 const supportedViews = ['markdown', 'table', 'form', 'code', 'html', 'json'];
@@ -22,9 +28,15 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
   const artifacts = new Map<string, LabArtifact>();
   const jobs = new Map<string, KnowledgeJob[]>();
   const receipts = new Map<string, { signature: string; receipt: ProjectReceipt }>();
-  const evaluations = new Map<string, { signature: string; dataset: DemoDataset; mode: DemoMode; result: ReturnType<typeof evaluateLabDemo> }>();
+  const evaluations = new Map<string, BusinessEvaluation>();
   const apps = new Map<string, Awaited<ReturnType<typeof buildLabDemoApp>>[]>();
+  const research = new Map<string, PreviewResearchKnowledge>();
+  const researchFor = (id: string) => {
+    if (!research.has(id)) research.set(id, new PreviewResearchKnowledge(id));
+    return research.get(id)!;
+  };
   let sequence = 0;
+  const optimization = new PreviewOptimizationProject();
   const artifactKey = (projectId: string, id: string, revision: number) => `${projectId}/${id}@${revision}`;
   const fail = (message: string, code = 'SHOWCASE_INVALID_REQUEST') => ({ ok: false, code, message });
   const unsupported = () => fail('公开演示仅保存本页的合成状态。真实 Agent 执行、索引构建和应用打包请在 PAW 中运行。');
@@ -80,7 +92,10 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
   }
 
   function knowledge(project: LabProject): KnowledgeState {
+    if (project.projectId === 'lab-showcase-rag' || project.projectId.startsWith('lab-project-showcase-') || research.has(project.projectId)) return researchFor(project.projectId).state;
     const materials = project.materialSet.materials;
+    if (/^lab-showcase-(cloudops|enterpriseops|memory)$/.test(project.projectId)) return { schemaVersion: 'paw.lab-knowledge-resource.v1',
+      corpora: [], indexes: [], datasets: [], evaluations: [], jobs: [], embedding: { provider: 'none', model: '' } };
     return { schemaVersion: 'paw.lab-knowledge-resource.v1',
       corpora: [{ jobId: `${project.projectId}:corpus`, title: 'PAW 设计材料 · 合成演示', corpusHash: previewDigest,
         documentCount: materials.length, byteSize: materials.reduce((sum, row) => sum + row.byteSize, 0), intake: { skippedCount: 0, scannedCount: materials.length },
@@ -128,17 +143,43 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
     project.intake.readCount = 0; project.intake.readBytes = 0; project.intake.state = 'needs_materials';
     putArtifact(project, { artifactId: 'demo-intake', title: '从导入数据开始', kind: 'brief', view: 'markdown', summary: '本轮输入、测评与 App 交付',
       content: `# ${scenario.title}\n\n## 1. 导入数据\n\n点击上方「导入示例数据」，或上传自己的 JSON 文件。数据文件包含 records（业务记录）和 cases（题目、输入与期望结果）。\n\n## 2. 设置测评标准\n\n${labFlowRules[experiment.key]}\n\n## 3. 运行演示测评\n\n对导入的每道题实际执行本地规则，逐项比较基线、候选与期望结果。全部题目通过后可以生成 App；修改数据或策略后需重新测评。\n\n## 4. 导出 App\n\n试用本轮生成的离线 App，下载 ZIP，解压后直接打开 index.html。\n\n本轮是离线规则演示，无模型调用。历史 Agent 实验成绩另列，不能当作本轮结果。` });
-    putArtifact(project, { artifactId: 'demo-config', title: '本轮测评标准', kind: 'configuration', view: 'form', summary: '保存配置后，比较相同输入上的基线与候选',
-      content: { fields: [{ key: 'mode', label: '候选策略', type: 'select', required: true, options: ['完整规则与证据', '简化基线'] }],
-        values: { mode: '完整规则与证据' }, description: `${labFlowRules[experiment.key]}\n通过条件：本轮每道题的结果都必须与 expected 完全一致。历史实验指标不参与本轮计分。` } });
+    putArtifact(project, { artifactId: 'demo-config', title: '基线处理策略', kind: 'configuration', view: 'form', summary: '保存配置后，比较相同输入上的基线与候选',
+      content: { fields: businessFields(experiment.key),
+        values: Object.fromEntries(businessFields(experiment.key).map(field=>[field.key,defaultLabConfig[field.key as keyof typeof defaultLabConfig]])), description: `${labFlowRules[experiment.key]}\n通过条件：本轮每道题的结果都必须与 expected 完全一致。历史实验指标不参与本轮计分。` } });
     project.workspace.artifactOrder = ['demo-intake', 'demo-config'];
     project.workspace.primaryArtifactId = 'demo-intake';
   }
 
+  const repairProject = createProject('写入与登记恢复 · 优化演示', '四条工作线的合同已交付，OS 却找不到文件。沿 Trace 诊断并比较修复候选。', [{title:'故障描述',text:'公开合成：workspace_write 成功后 document_register 返回 503，旧补偿删除了已保存文件。'}], OPTIMIZATION_PROJECT_ID);
+  optimization.initialize(repairProject, putArtifact);
+
+  const researchProject = projects.get('lab-showcase-rag')!;
+  researchProject.title = '深度研究';
+  researchProject.description = '从研究资料出发，先设计解析、清洗、切片和检索基线，再用同一题集比较方案，交付带来源的研究应用。公开演示使用 200 份合成文档与 16 道已公开训练题；论文项目的历史记录另列。';
+  const history = putArtifact(researchProject, { artifactId: 'paper-experiment-history', title: '论文项目 · 72 条历史记录', kind: 'evidence', view: 'table', summary: researchHistory.scope,
+    content: { columns: [{key:'category',label:'类型'},{key:'title',label:'记录'},{key:'state',label:'状态'},{key:'config',label:'配置'},{key:'metrics',label:'记录结果'}],
+      rows: researchHistory.records.map(row => ({category:row.category,title:row.title,state:row.state,config:JSON.stringify(row.config),metrics:JSON.stringify(row.metrics)})),
+      caption: '211 份论文项目的历史元数据；209 份可读、2 份失败。这里只读已有回执，不将其成绩计入本轮公开资料的检索测评。' } });
+  researchProject.workspace = { artifactOrder: [history.artifactId], primaryArtifactId: history.artifactId, layout: 'focus' };
+
+  type SavedProjects = { version: 1; evaluations?:[string,BusinessEvaluation][]; projects: [string, LabProject][]; artifacts: [string, LabArtifact][];
+    apps: [string, Awaited<ReturnType<typeof buildLabDemoApp>>[]][] };
+  const restored = readPublicLabRecord<SavedProjects>('project-workspaces').then(saved => {
+    if (saved?.version !== 1) return;
+    for (const [id, project] of saved.projects) if (id !== OPTIMIZATION_PROJECT_ID) projects.set(id, project);
+    for (const [id, artifact] of saved.artifacts) if (!id.startsWith(OPTIMIZATION_PROJECT_ID + '/')) artifacts.set(id, artifact);
+    for (const [id, versions] of saved.apps) apps.set(id, versions);
+    for (const [id, evaluation] of saved.evaluations ?? []) evaluations.set(id,evaluation);
+  });
+  const persistProjects = () => writePublicLabRecord('project-workspaces', { version: 1,
+    projects: [...projects], artifacts: [...artifacts], apps: [...apps], evaluations:[...evaluations] } satisfies SavedProjects);
+
   return {
-    'agent.eval-lab.projects.get': (request: ControlRequest) => {
+    'agent.eval-lab.projects.get': async (request: ControlRequest) => {
+      await restored;
       const projectId = String(request.query?.projectId ?? '');
       const project = projects.get(projectId) ?? null;
+      if (projectId === 'lab-showcase-rag' || projectId.startsWith('lab-project-showcase-') || research.has(projectId)) await researchFor(projectId).ready;
       if (projectId && !project) return fail('找不到这个演示项目，请返回项目列表。', 'SHOWCASE_NOT_FOUND');
       const artifactId = String(request.query?.artifactId ?? '');
       const revision = Number(request.query?.artifactRevision ?? project?.artifacts.find((item) => item.artifactId === artifactId)?.revision);
@@ -148,17 +189,21 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
         availableAdapters: [], historyCollections: [], ...(project ? { materialSet: project.materialSet, knowledge: knowledge(project) } : {}),
         ...(project && demoKey(project.projectId) ? { demoFlow: { evaluationCurrent: evaluations.get(project.projectId)?.signature === flowSignature(project),
           canGenerate: evaluations.get(project.projectId)?.signature === flowSignature(project) && evaluations.get(project.projectId)?.result.decision === 'keep',
+          runs:evaluations.get(project.projectId)?.runs.map(run=>({id:run.id,name:run.name,passed:run.passed,total:run.total})) ?? [],
           decision: evaluations.get(project.projectId)?.result.decision ?? '', appVersion: apps.get(project.projectId)?.at(-1)?.version.version ?? 0 } } : {}),
+        ...(project?.projectId === OPTIMIZATION_PROJECT_ID ? {optimization: optimization.status(project)} : {}),
         ...(artifact ? { artifact } : {}) });
     },
     'agent.eval-lab.projects.command': async (request: ControlRequest) => {
+      await restored;
       const body = object(request.body); const input = object(body.input); const clientRequestId = String(body.clientRequestId ?? '');
       const signature = JSON.stringify(body); const prior = receipts.get(clientRequestId);
       if (prior) return prior.signature === signature ? structuredClone({ ...prior.receipt, replayed: true }) : fail('该请求编号已经用于另一项操作。', 'SHOWCASE_CONFLICT');
       let project = projects.get(String(body.projectId ?? ''));
       if (body.action !== 'create' && !project) return fail('找不到这个演示项目。', 'SHOWCASE_NOT_FOUND');
       if (project && body.expectedRevision !== project.revision) return fail('项目版本已更新，请重新读取后继续。', 'SHOWCASE_CONFLICT');
-      let artifact: LabArtifact | undefined; let job: KnowledgeJob | undefined;
+      let artifact: LabArtifact | undefined; let job: KnowledgeJob | undefined; let upload: ProjectReceipt['upload'];
+      let projectChanged = true;
       if (body.action === 'create') {
         if (input.path) return fail('公开演示不会读取本机路径，请添加文本文件或直接描述项目。');
         const description = String(input.description ?? '').trim();
@@ -167,7 +212,18 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
           Array.isArray(input.materials) ? input.materials.map(object) : []);
       } else {
         project = structuredClone(project!);
-        if (body.action === 'publish_artifact') {
+        if (project.projectId === OPTIMIZATION_PROJECT_ID && body.action === 'knowledge' && String(input.operation).startsWith('optimization_')) {
+          try { artifact = optimization.command(project, input, putArtifact, id => artifacts.get(artifactKey(project!.projectId, id, project!.artifacts.find(a => a.artifactId === id)?.revision ?? 0))); project.workspace.primaryArtifactId = artifact.artifactId; }
+          catch (error) { return fail(error instanceof Error ? error.message : '优化演示未完成。'); }
+        } else if (body.action === 'knowledge' && (project.projectId === 'lab-showcase-rag' || project.projectId.startsWith('lab-project-showcase-') || research.has(project.projectId) || String(input.operation).startsWith('upload_'))) {
+          try { ({job, upload} = await researchFor(project.projectId).command(input)); projectChanged = false; }
+          catch (error) { return fail(error instanceof Error ? error.message : '资料处理未完成。'); }
+        } else if (body.action === 'publish_artifact' && !input.artifactId) {
+          const value = { artifactId: `artifact:${crypto.randomUUID()}`, title: String(input.title || ''), kind: String(input.kind || 'document'),
+            view: String(input.view), summary: String(input.summary || ''), content: input.content };
+          if (input.expectedArtifactRevision !== 0 || !isArtifact({ ...value, revision: 1, createdAtMs: Date.now(), updatedAtMs: Date.now(), templateRef: null, actions: [] })) return fail('新成果的内容或初始版本无效。');
+          artifact = putArtifact(project, value as Parameters<typeof putArtifact>[1]);
+        } else if (body.action === 'publish_artifact') {
           const index = project.artifacts.findIndex((item) => item.artifactId === input.artifactId);
           const previous = project.artifacts[index];
           if (!previous || previous.revision !== input.expectedArtifactRevision) return fail('成果版本已更新，请重新读取。', 'SHOWCASE_CONFLICT');
@@ -191,25 +247,48 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
             const dataset = parseLabDemoDataset(project.materialSet.materials.map((item) => item.text));
             const configuration = project.artifacts.find((item) => item.artifactId === 'demo-config')!;
             const content = artifacts.get(artifactKey(project.projectId, configuration.artifactId, configuration.revision))!.content;
-            const selectedMode = object(object(content).values).mode;
-            if (!['简化基线', '完整规则与证据'].includes(String(selectedMode))) return fail('请在测评标准中选择并保存有效的候选策略。');
-            const mode: DemoMode = selectedMode === '简化基线' ? 'baseline' : 'bounded';
-            const result = evaluateLabDemo(demoKey(project.projectId)!, dataset, mode);
-            artifact = putArtifact(project, { artifactId: 'demo-report', title: '本轮测评结果', kind: 'evaluation', view: 'table',
-              summary: `基线 ${result.baselinePassed}/${result.total} · 候选 ${result.candidatePassed}/${result.total} · ${result.decision.toUpperCase()} · 离线规则实测`,
-              content: { columns: [{ key: 'caseId', label: '题目' }, { key: 'input', label: '输入' }, { key: 'expected', label: '期望结果' },
-                { key: 'baseline', label: '基线' }, { key: 'actual', label: '候选实际结果' }, { key: 'candidate', label: '候选判定' }], rows: result.rows,
-                caption: `本轮导入的 ${dataset.records.length} 条记录、${result.total} 道题。逐项执行本地规则，Provider 调用为 0；不是历史 Agent 指标或模型能力测评。` } });
-            evaluations.set(project.projectId, { signature: flowSignature(project), dataset, mode, result });
+            const config = businessConfig(demoKey(project.projectId)!,object(object(content).values));
+            const evaluated = evaluateBusiness(demoKey(project.projectId)!,dataset,config,input.phase !== 'baseline',flowSignature(project));
+            const runs=evaluated.runs;
+            artifact = putArtifact(project, { artifactId: 'demo-report', title: '本轮逐题结果', kind: 'evaluation', view: 'table',
+              summary: runs.map(run=>`${run.name} ${run.passed}/${run.total}`).join(' · '),
+              content: { columns: [{key:'caseId',label:'题目'},{key:'expected',label:'期望'},...runs.map((run,i)=>({key:`run${i}`,label:run.name}))],
+                rows:dataset.cases.map((question,i)=>({caseId:question.id,expected:question.expected,...Object.fromEntries(runs.map((run,j)=>[`run${j}`,`${run.rows[i].passed?'通过':'失败'} · ${run.rows[i].actual}`]))})),
+                caption:`同一批 ${dataset.records.length} 条记录、${dataset.cases.length} 道公开题。逐项执行本地规则，模型调用为 0。` } });
+            evaluations.set(project.projectId,evaluated);
             project.workspace.primaryArtifactId = artifact.artifactId;
           } catch (error) { return fail(error instanceof Error ? error.message : '本轮数据未能测评。'); }
+        } else if (body.action === 'prepare_app' && (project.projectId === 'lab-showcase-rag' || project.projectId.startsWith('lab-project-showcase-'))) {
+          try {
+            const resource = researchFor(project.projectId); await resource.ready;
+            const selected = resource.exportEvaluation(String(input.evaluationJobId || resource.state.evaluations[0]?.jobId || ''));
+            const versions = apps.get(project.projectId) ?? [], version = versions.length + 1;
+            const config = { ...defaultLabConfig, strategy: selected.index.chunking.strategy === 'fixed' ? 'fixed' as const : 'paragraph' as const,
+              size: selected.index.chunking.size, overlap: selected.index.chunking.overlap,
+              topK: selected.evaluation.profile.topK, contextChars: selected.evaluation.profile.contextChars };
+            const dataset: DemoDataset = { records: selected.documents.filter(doc => doc.status === 'ready').map(doc => ({ id:doc.id,title:doc.title,sourceTitle:doc.name,text:doc.text })), cases:selected.questions };
+            const [js, css] = await Promise.all(['agent-ui.js','agent-ui.css'].map(async name => {
+              const response = await fetch(`${import.meta.env.BASE_URL}portable-agent-ui/${name}`);
+              if (!response.ok) throw new Error('研究对话组件尚未构建，请刷新后重试。'); return response.text();
+            }));
+            const html = portableResearchDocument({title:'研究资料助手',version,corpusHash:selected.evaluation.corpusHash,
+              documentCount:dataset.records.length,chunks:selected.chunks,config,profile:selected.evaluation.profile,questions:dataset.cases.map(row=>row.input)}, {js,css});
+            const app = await buildLabDemoApp(project.projectId,'研究资料助手','rag',dataset,'bounded',selected.evaluation,version,
+              {html,config,extraFiles:{'parameters.json':JSON.stringify({chunking:selected.index.chunking,profile:selected.evaluation.profile},null,2)}});
+            apps.set(project.projectId,[...versions,app]);
+            artifact = putArtifact(project,{artifactId:'research-export',title:'研究应用交付记录',kind:'evidence',view:'markdown',
+              summary:`v${version} · ${dataset.records.length} 份资料 · 采用已完成的检索评测`,
+              content:`# 研究资料助手 v${version}\n\n使用本轮选定的资料、切片与检索参数，复用 PAW 的对话、引用与报告组件。\n\n- 资料：${dataset.records.length} 份\n- 切片：${selected.chunks.length} 个\n- 题集：${selected.evaluation.evaluatedCount} 道公开开发题\n- 来源召回率：${(selected.evaluation.report.metrics.metrics.recallAtK[String(config.topK)]*100).toFixed(1)}%\n\n独立包运行本地关键词检索并返回原文片段，不会调用模型生成研究结论。`});
+          } catch(error) { return fail(error instanceof Error ? error.message : '研究应用未生成。'); }
         } else if (body.action === 'prepare_app' && demoKey(project.projectId)) {
           const evaluated = evaluations.get(project.projectId);
           if (!evaluated || evaluated.signature !== flowSignature(project)) return fail('请先对当前数据与已保存配置完成测评，再生成 App。');
-          if (evaluated.result.decision !== 'keep') return fail('本轮测评还有失败项，请修正数据或策略并重新测评。');
+          const chosen = evaluated.runs.find(run=>run.id===input.runId) ?? [...evaluated.runs].sort((a,b)=>b.passed-a.passed)[0];
+          if (chosen.passed !== chosen.total) return fail('所选方案还有失败项，请修正数据或策略并重新测评。');
           const versions = apps.get(project.projectId) ?? [];
           const app = await buildLabDemoApp(project.projectId, project.title, demoKey(project.projectId)!, evaluated.dataset, evaluated.mode,
-            { ...evaluated.result, materialSetId: project.materialSetId, configurationRevision: project.artifacts.find((item) => item.artifactId === 'demo-config')?.revision }, versions.length + 1);
+            { ...chosen, materialSetId: project.materialSetId, configurationRevision: project.artifacts.find((item) => item.artifactId === 'demo-config')?.revision }, versions.length + 1,
+            {config:chosen.config,extraFiles:{'parameters.json':JSON.stringify(chosen.config,null,2)}});
           apps.set(project.projectId, [...versions, app]);
           artifact = putArtifact(project, { artifactId: 'demo-export', title: 'App 交付回执', kind: 'evidence', view: 'markdown', summary: `离线 App v${app.version.version} · ${app.version.fileCount} 份文件`,
             content: `# App 已生成\n\n打开「应用交付」，可以试用并下载独立 App。\n\n- 本轮题目：${evaluated.result.total}\n- 候选通过：${evaluated.result.candidatePassed}\n- 文件：${app.version.sourceFiles.map((item) => item.path).join('、')}\n- 数据版本：${project.materialSetId}\n\n导出包含实际源码、输入和测评回执。无模型服务、生产数据连接或 PAW 安装操作。` });
@@ -228,13 +307,15 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
             publicSpec: { operation: 'search', projectId: project.projectId }, result: { kind: 'search', dataMode: 'synthetic-preview-only', query, indexId: input.indexId, hits } };
           jobs.set(project.projectId, [job, ...(jobs.get(project.projectId) ?? [])]);
         } else return unsupported();
-        project.revision++; project.updatedAtMs = Date.now(); projects.set(project.projectId, project);
+        if (projectChanged) { project.revision++; project.updatedAtMs = Date.now(); projects.set(project.projectId, project); }
       }
-      const receipt: ProjectReceipt = { ok: true, project, clientRequestId, replayed: false, ...(artifact ? { artifact } : {}), ...(job ? { job } : {}) };
+      if (projectChanged) await persistProjects();
+      const receipt: ProjectReceipt = { ok: true, project, clientRequestId, replayed: false, ...(artifact ? { artifact } : {}), ...(job ? { job } : {}), ...(upload ? {upload} : {}) };
       receipts.set(clientRequestId, { signature, receipt: structuredClone(receipt) });
       return structuredClone(receipt);
     },
-    'agent.eval-lab.apps.get': (request: ControlRequest) => {
+    'agent.eval-lab.apps.get': async (request: ControlRequest) => {
+      await restored;
       const projectId = String(request.query?.projectId ?? ''); const appId = String(request.query?.appId ?? '');
       const groups = [...apps.entries()].filter(([id, versions]) => (!projectId || id === projectId) && (!appId || versions[0]?.app.appId === appId));
       const versions = groups[0]?.[1] ?? []; const latest = versions.at(-1);
@@ -243,7 +324,12 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
         ...(appId && selected ? { version: selected.version, versions: versions.map((value) => value.version) } : {}), calls: [] });
     },
     'agent.eval-lab.golden.get': () => ({ ok: true, items: [], suite: null }),
-    'agent.eval-lab.trials.get': () => ({ schemaVersion: 'rag-ime.agent-lab-trial.v1', jobs: [], registeredSceneIds: [] }),
+    'agent.eval-lab.trials.get': async (request: ControlRequest) => {
+      await Promise.all([...research.values()].map(resource => resource.ready));
+      const trialJobs = [...research.values()].flatMap(resource => resource.trials);
+      const selected = trialJobs.find(job => job.jobId === request.query?.jobId);
+      return { schemaVersion: 'rag-ime.agent-lab-trial.v1', jobs: trialJobs, registeredSceneIds: ['knowledge-resource'], ...(selected ? {job:selected} : {}) };
+    },
     'agent.eval-lab.apps.command': unsupported,
     'agent.eval-lab.apps.download': (request: ControlRequest) => {
       const value = [...apps.values()].flat().find((item) => item.app.appId === request.query?.appId && item.version.version === Number(request.query?.version));

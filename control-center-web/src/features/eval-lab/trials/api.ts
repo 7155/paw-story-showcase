@@ -38,11 +38,12 @@ export function parseTrialList(value: unknown): TrialList {
   return data as TrialList;
 }
 
-function receipt(value: unknown): TrialJob {
+export function parseTrialReceipt(value: unknown): TrialJob {
   const data = object(value);
   if (data.schemaVersion !== schema || !isJob(data.job)) throw new Error('实验回执不完整，请核对本次操作。');
   return data.job;
 }
+const receipt = parseTrialReceipt;
 
 function rejection(error: unknown): boolean {
   const value = object(error); const details = object(value.details);

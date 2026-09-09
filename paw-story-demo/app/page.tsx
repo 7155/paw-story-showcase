@@ -1,6 +1,8 @@
 "use client";
 
 import "./full-showcase.css";
+import "./world-showcase.css";
+import { worldMemoryStats } from "../../showcase/world";
 import { VerticalApps } from "./apps/vertical-apps";
 import { NativeDemo } from "./native-demo";
 import { LabShowcase } from "./lab/lab-showcase";
@@ -177,14 +179,14 @@ const orbitalWork = [
     id: "runtime",
     name: "Memory",
     tag: "记忆层 · GOVERNED RECALL",
-    task: "1,284 条输入怎样压成任务，再按问题找回",
+    task: `${worldMemoryStats.sampleCount} 条跨应用样例，哪些能进入历史与召回`,
     phase: "输入事件 → 时间线 / 原子记忆 → 召回回执",
     receipt: "memory-value-loop.md",
     className: "solar-planet--build",
     color: "#ffaa88",
     subWorker: "Skill · rag-retrieval-optimization",
-    subVerify: "数据链 · 1,284 inputs / 5 tasks / 3 preferences",
-    metric: "1,284 → 5 → 按题召回",
+    subVerify: `数据链 · ${worldMemoryStats.committedCount} 条稳定提交 / ${worldMemoryStats.excludedPhaseCount} 条中间状态`,
+    metric: `${worldMemoryStats.sampleCount} 条样例 → 治理 → 按范围召回`,
     summary: "用户问“继续昨天的 PAW 工作台方案”，Agent 找回交付与已接受的修复，再解释为什么选择候选 B。原始输入仍在来源层，不整段灌进 Agent。",
     tdd: "WORKPATCH · RECALL BOUNDED",
   },
@@ -1011,17 +1013,19 @@ const roomMorphTargets = [
   { left: 36, top: 38, width: 30, height: 28 },
 ] as const;
 
-function RoomTransformationDemo() {
-  const orbitLoop = useLoop(orbitalWork.length, 1700, false);
+function RoomTransformationDemo({ id }: { id?: string }) {
+  const orbitLoop = useLoop(orbitalWork.length, 2400, true);
   const setOrbitPlaying = orbitLoop.setPlaying;
-  const [stage, setStage] = useState<RoomStage>("windows");
-  const [playing, setPlaying] = useState(false);
+  const [stage, setStage] = useState<RoomStage>("orbit");
+  const [roomStarted, setRoomStarted] = useState(false);
+  const [roomPlaying, setRoomPlaying] = useState(true);
+  const [playing, setPlaying] = useState(true);
   const [runKey, setRunKey] = useState(0);
   const reducedMotion = useSyncExternalStore(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot);
   const [morphGeometry, setMorphGeometry] = useState<MorphGeometry[]>([]);
   const roomRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const stageStateRef = useRef<RoomStage>("windows");
+  const stageStateRef = useRef<RoomStage>("orbit");
   const browserReady = useSyncExternalStore(subscribeBrowserReady, browserSnapshot, serverSnapshot);
 
   useEffect(() => {
@@ -1086,6 +1090,7 @@ function RoomTransformationDemo() {
   }, []);
 
   const beginMorph = useCallback(() => {
+    setRoomStarted(true);
     setOrbitPlaying(false);
 
     if (reducedMotion) {
@@ -1100,7 +1105,7 @@ function RoomTransformationDemo() {
   }, [captureMorphGeometry, reducedMotion, setOrbitPlaying]);
 
   useEffect(() => {
-    if (!playing) return;
+    if (!playing || reducedMotion) return;
 
     const timer = window.setTimeout(() => {
       if (stage === "orbit") {
@@ -1115,7 +1120,7 @@ function RoomTransformationDemo() {
     }, stage === "orbit" ? 7_600 : 2_600);
 
     return () => window.clearTimeout(timer);
-  }, [beginMorph, playing, stage]);
+  }, [beginMorph, playing, reducedMotion, stage]);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -1132,6 +1137,7 @@ function RoomTransformationDemo() {
   }, [setOrbitPlaying]);
 
   const restart = () => {
+    setRoomPlaying(true);
     orbitLoop.restart();
     setStage("orbit");
     setPlaying(!reducedMotion);
@@ -1145,6 +1151,7 @@ function RoomTransformationDemo() {
   };
 
   const seekRoom = (step: number) => {
+    if (step > 0) setRoomStarted(true);
     setOrbitPlaying(false);
     setPlaying(false);
     if (step <= 0) {
@@ -1161,7 +1168,7 @@ function RoomTransformationDemo() {
 
   const toggleRoomPlayback = () => {
     if (stage === "windows") {
-      restart();
+      setRoomPlaying(value=>!value);
       return;
     }
     const nextPlaying = !playing;
@@ -1172,14 +1179,13 @@ function RoomTransformationDemo() {
   const roomStep = stage === "orbit" ? 0 : stage === "morph" ? 1 : 2;
 
   return (
-    <div className="room-transformation" data-stage={stage} ref={roomRef}>
+    <div id={id} className="room-transformation" data-stage={stage} ref={roomRef}>
       <ShowcasePlayback
         ariaLabel="多 Agent 协作演示控制"
-        disabled={reducedMotion}
         onRestart={restart}
         onSeek={seekRoom}
         onToggle={toggleRoomPlayback}
-        playing={playing}
+        playing={stage === "windows" ? roomPlaying : playing}
         stages={roomPlaybackStages}
         step={roomStep}
         trailing={browserReady ? <a className="slide-open" href={pawOsShowcaseUrl()} rel="noreferrer" target="_blank">全屏操作<SquareArrowOutUpRight size={14}/></a> : null}
@@ -1233,23 +1239,34 @@ function RoomTransformationDemo() {
           <span className="room-morph-caption"><b>身份不变</b><small>行星轨道 → 桌面窗口</small></span>
         </div>
 
-        {stage !== "orbit" ? <PawOsLiveRoom key={runKey} visible={stage === "windows"}/> : null}
+        {roomStarted ? <PawOsLiveRoom key={runKey} visible={stage === "windows"} playing={roomPlaying}/> : null}
 
       </div>
     </div>
   );
 }
 
-function PawOsLiveRoom({ visible }: { visible: boolean }) {
+function PawOsLiveRoom({ visible, playing }: { visible: boolean; playing: boolean }) {
+  const frameRef = useRef<HTMLIFrameElement>(null);
   const [loadedSource, setLoadedSource] = useState("");
   const browserReady = useSyncExternalStore(subscribeBrowserReady, browserSnapshot, serverSnapshot);
-  const source = useMemo(() => browserReady ? pawOsShowcaseUrl() : "", [browserReady]);
+  const source = useMemo(() => browserReady ? pawOsShowcaseUrl(true) : "", [browserReady]);
   const loaded = Boolean(source) && loadedSource === source;
+  useEffect(()=>{
+    const frame=frameRef.current;if(!frame||!source)return;
+    let onScreen=false;
+    const send=()=>frame.contentWindow?.postMessage({type:'paw-story:room-playback',playing:visible&&playing&&onScreen&&!document.hidden},new URL(source,window.location.href).origin);
+    const observer=new IntersectionObserver(([entry])=>{onScreen=Boolean(entry?.isIntersecting);send();},{threshold:.1});
+    const ready=(event:MessageEvent)=>{if(event.source===frame.contentWindow&&event.origin===new URL(source,window.location.href).origin&&event.data?.type==='paw-story:room-ready')send();};
+    observer.observe(frame);document.addEventListener('visibilitychange',send);window.addEventListener('message',ready);send();
+    return()=>{observer.disconnect();document.removeEventListener('visibilitychange',send);window.removeEventListener('message',ready);};
+  },[loaded,source,visible,playing]);
 
   return (
     <div aria-hidden={!visible} className="pawos-live-room" data-loaded={loaded || undefined} data-visible={visible || undefined}>
       <div className="pawos-live-room__loading" role="status"><Orbit size={18}/><span><strong>正在进入真实 PAWOS</strong><small>加载 PAW 立项、四条产品线、行星通信、Skill / Tool / Docs 回执与实际窗口层…</small></span></div>
       <iframe
+        ref={frameRef}
         allow="clipboard-read; clipboard-write"
         loading="lazy"
         onLoad={() => { if (source) setLoadedSource(source); }}
@@ -1270,7 +1287,7 @@ function pawOsSurfaceUrl(route: string, showcaseId: string, instanceId?: string)
   const localStoryHost = process.env.NODE_ENV !== "production" && ["localhost", "127.0.0.1"].includes(window.location.hostname)
     && window.location.port !== "5174";
   if (localStoryHost) {
-    return `${window.location.protocol}//${window.location.hostname}:5174/${query}`;
+    return `http://127.0.0.1:5174/${query}`;
   }
   return `/pawos/index.html${query}`;
 }
@@ -1287,8 +1304,9 @@ function serverSnapshot(): boolean {
   return false;
 }
 
-function pawOsShowcaseUrl(): string {
-  return pawOsSurfaceUrl("/agent?room=room-preview", "room-flow");
+function pawOsShowcaseUrl(controlled = false): string {
+  const source = pawOsSurfaceUrl("/agent?room=room-preview", "room-flow");
+  return controlled ? source.replace("#", "&storyRoomPlayback=1#") : source;
 }
 
 function Footer() {
@@ -1332,9 +1350,9 @@ export function FullProductStory() {
   return <main className="home full-showcase guided-home" id="top" onClick={navigateGuidedChapter}>
     <Navbar/>
     <GuidedShowcase panels={{
-      agents: <NativeDemo id="agents" route="/agent?room=room-preview" title="真实 PAW Room 协作工作区"/>,
+      agents: <RoomTransformationDemo id="agents"/>,
       reliability: <NativeDemo id="reliability" route="/observability" title="真实 PAW Trace 运行记录"/>,
-      improvement: <NativeDemo id="improvement" route="/eval-lab" title="真实 PAW Agent Lab 候选与实验"/>,
+      improvement: <div id="improvement"><NativeDemo id="optimization" route="/eval-lab?project=lab-showcase-repair" title="真实 PAW Lab · 写入与登记优化演示"/></div>,
       lab: <LabShowcase scenario="rag" embedded/>,
         apps: <VerticalApps embedded/>,
       memory: <NativeDemo id="memory" route="/memory" title="真实 PAW Memory 工作区"/>,

@@ -27,6 +27,8 @@ export interface ConversationSurfaceController {
   conversationId: string;
   messages: readonly TranscriptMessage[];
   phase: RunPhase;
+  /** Monotonic host request to move a detached reader to the new tail. */
+  scrollToLatestRequest?: number;
   capabilities: ConversationSurfaceCapabilities;
   retry?(message: AssistantMessage): void;
   /** Per-card guard: a Room only retries the newest unsuperseded failure. */

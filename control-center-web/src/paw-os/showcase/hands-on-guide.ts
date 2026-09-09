@@ -23,10 +23,10 @@ export const handsOnPlans: Record<string, GuidePlan> = {
     { instruction: '点击「检查结果」，核对候选与质量口径。', target: button('检查结果'), after: { selector: '[aria-label="当前实验结论"]' } },
   ], completion: '已通过真实实验界面查看设置与结果；未启动新模型实验。' },
   memory: { labels: ['选择主题', '核对来源', '输入依据', '查看原文'], steps: [
-    { instruction: '打开「协作与交付」主题。', target: button('协作与交付', false), after: text('当前认识', 'h4') },
+    { instruction: '打开「PAW · 写入、登记与恢复」主题。', target: button('PAW · 写入、登记与恢复', false), after: text('当前认识', 'h4') },
     { instruction: '展开「核对原始来源」。', target: button('核对原始来源', false), after: button('已清洗输入依据', false) },
     { instruction: '点击「已清洗输入依据」。', target: button('已清洗输入依据', false), after: button('在输入记录中打开原文') },
-    { instruction: '点击「在输入记录中打开原文」。', target: button('在输入记录中打开原文'), after: { selector: '.history-detail__body', text: '伙伴需要明确的任务范围' } },
+    { instruction: '点击「在输入记录中打开原文」。', target: button('在输入记录中打开原文'), after: { selector: '.history-detail__body', text: '文件已经写成功' } },
   ], completion: '已从主题回溯到原始输入详情。' },
   input: { labels: ['打开词库', '加入词条', '撤销更新'], steps: [
     { instruction: '点击 Input Studio 的「词库」。', target: button('词库'), after: button('加入所选词条') },
@@ -38,6 +38,13 @@ export const handsOnPlans: Record<string, GuidePlan> = {
     { instruction: '展开「系统指令」，查看本轮实际字段。', target: button('系统指令', false), after: text('You are the local RagIme coding agent.', 'pre,code') },
     { instruction: '点击「生成 HTML 报告」。', target: button('生成 HTML 报告'), after: { selector: 'a', text: '下载报告', exact: true } },
   ], completion: '已打开真实上下文报告，可继续查看或导出。' },
+  optimization: { labels: ['重放失败', '冻结条件', '比较候选', '检查差异', '选择候选'], steps: [
+    { instruction: '重放原流程，检查登记失败后的文件回滚。', target: button('重放原流程'), after: text('旧 catch 把登记失败当成整体失败', 'td') },
+    { instruction: '冻结相同的八项故障与对照条件。', target: button('冻结检查条件'), after: button('同条件比较候选') },
+    { instruction: '执行三个候选，并比较每项实际状态检查。', target: button('同条件比较候选'), after: text('同条件候选比较') },
+    { instruction: '打开逐题差异，查看省步骤的候选为什么仍被拒绝。', target: button('逐题差异与失败原因'), after: text('具体差异', 'th') },
+    { instruction: '只有通过当前冻结条件的候选才能采用。', target: button('采用当前候选'), after: text('候选采用回执') },
+  ], completion: '已复现失败、比较候选并记录有范围的采用结论；这次没有调用模型。' },
   lab: { labels: ['导入数据', '运行测评', '生成 App', '导出 App'], steps: [
     { instruction: '点击「导入示例数据」。', target: button('导入示例数据'), after: button('运行演示测评') },
     { instruction: '点击「运行演示测评」，等待逐题结果。', target: button('运行演示测评'), after: button('生成 App') },

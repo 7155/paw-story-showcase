@@ -24,6 +24,17 @@ after(async () => {
   await vite.close();
 });
 
+test('application delivery replaces the four legacy tabs and links back to the matching experiment', async () => {
+  const { default: Page } = await vite.ssrLoadModule('/app/apps/page.tsx');
+  for (const [key, title, folder] of [['rag', '深度研究', 'deep-research'], ['cloudops', '云上故障诊断', 'cloudops'], ['enterpriseops', '企业交付', 'enterpriseops'], ['memory', '记忆整理', 'memory']]) {
+    const html = renderToStaticMarkup(await Page({ searchParams: Promise.resolve({ scenario: key }) }));
+    assert.ok(html.includes(`title="${title}导出应用"`));
+    assert.ok(html.includes(`href="/lab?scenario=${key}"`));
+    assert.ok(html.includes(`/real-apps/${folder}-app.zip`));
+    assert.doesNotMatch(html, /松果售后助手|Wix 知识助手|地理研判台|EnterpriseRAG 实验台/);
+  }
+});
+
 test("current Lab snapshot drives four scenarios and homepage without rewriting historical receipts", async () => {
   const { currentLabExperiments } = await vite.ssrLoadModule("/app/lab-evidence.ts");
   const { CurrentExperimentPanel } = await vite.ssrLoadModule("/app/details/sandbox/sandbox-lab.tsx");
@@ -87,14 +98,16 @@ test("standalone Lab page selects four real project surfaces with matching publi
   const { currentLabExperiments } = await vite.ssrLoadModule("/app/lab-evidence.ts");
   for (const experiment of currentLabExperiments) {
     const html = renderToStaticMarkup(await Page({ searchParams: Promise.resolve({ scenario: experiment.key }) }));
-    assert.match(html, /从导入数据，到导出 App/);
+    assert.match(html, /应用实验室/);
     assert.equal((html.match(/<iframe/g) ?? []).length, 1);
-    assert.ok(html.includes(`${experiment.label} · 真实 PAW Lab 项目工作区`));
+    assert.match(html, /真实 PAW Lab 项目工作区/);
+    assert.doesNotMatch(html, /guided-lab-workspace/);
+    assert.match(html, /真实 Lab 前端/);
     assert.ok(html.includes(`href="/lab?scenario=${experiment.key}" aria-current="page"`));
     assert.ok(html.includes(experiment.id));
     assert.ok(html.includes(experiment.qualityAfter));
     assert.ok(html.includes(experiment.costAfter));
-    assert.match(html, /不启动新模型运行/);
+    assert.match(html, /本轮执行离线规则/);
     assert.match(html, /工作区里的演示编辑不会改变这些结果/);
   }
   const { FullProductStory } = await vite.ssrLoadModule("/app/page.tsx");
@@ -198,13 +211,15 @@ test("unified home contains every demo and resolved module detail links", async 
   const { showcaseChapters } = await vite.ssrLoadModule("/app/showcase-directory.tsx");
   for (const item of showcaseChapters) await readFile(path.join(root, `app${item.href}/page.tsx`), "utf8");
   assert.match(html, /下一步：诊断/);
-  assert.equal((html.match(/<iframe/g) || []).length, 8);
-  for (const title of ["真实 PAW Room 协作工作区", "真实 PAW Trace 运行记录", "真实 PAW Agent Lab 候选与实验", "真实 PAW Memory 工作区", "真实 PAW Input Studio", "真实 PAW 上下文运行检查"]) assert.ok(html.includes(title));
+  assert.equal((html.match(/<iframe/g) || []).length, 7);
+  assert.match(html, /room-transformation[^>]*data-stage="orbit"/);
+  assert.match(html, /room-orbit-layer/);
+  for (const title of ["真实 PAW Trace 运行记录", "真实 PAW Lab · 写入与登记优化演示", "真实 PAW Memory 工作区", "真实 PAW Input Studio", "真实 PAW 上下文运行检查"]) assert.ok(html.includes(title));
   assert.doesNotMatch(html, /story-candidates|improvement-steps|输入法演示进度/);
 
   assert.match(html, /lab-showcase--embedded/);
-  assert.match(html, /从导入数据，到导出 App/);
-  assert.match(html, /不启动新模型运行/);
+  assert.match(html, /应用实验室/);
+  assert.match(html, /本轮执行离线规则/);
   assert.match(html, /href="\/lab\?scenario=rag"/);
   const source = await readFile(path.join(root, "app/precision-story.tsx"), "utf8");
   assert.match(source, /window\.innerHeight \* \.38/);
@@ -496,7 +511,8 @@ test("renders the month-long multi-Agent frontend selection history", async () =
   const route = await readFile(path.join(root, "app/details/frontend/page.tsx"), "utf8");
   const styles = await readFile(path.join(root, "app/globals.css"), "utf8");
 
-  assert.match(html, /一个月里，多 Agent 前端为什么换了七种视图/);
+  assert.match(html, /PAWOS 演进：公共记录、任务投影与工作窗口/);
+  assert.match(html, /class="presentation-appendix-body" hidden=""/);
   assert.match(html, /2026\.07\.16 → 08\.29/);
   assert.equal((html.match(/data-evolution-stage=/g) ?? []).length, 7);
   assert.match(html, /结构化 Room/);
@@ -769,4 +785,34 @@ test("keeps the public resume slice source-bound and easy to enter", async () =>
   assert.match(styles, /\.architecture-flow\{[^}]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
   assert.match(styles, /@media\(max-width:860px\)[^{]*\{[^}]*\.resume-lead/);
   assert.doesNotMatch(styles, /resume-proof-rail|resume-case-index/);
+});
+
+test("technical details read continuously with concrete examples and a viewport-sized workspace", async () => {
+  const decks=await vite.ssrLoadModule('/app/details/presentation-decks.ts');
+  const {PresentationShell}=await vite.ssrLoadModule('/app/details/presentation-shell.tsx');
+  const {readingArticles}=await vite.ssrLoadModule('/app/details/detail-reading-content.ts');
+  for(const deck of [decks.agentsDeck,decks.evaluationDeck,decks.contextDeck,decks.inputDeck,decks.frontendDeck]){
+    assert.ok(deck.slides.length>=5);
+    assert.equal(new Set(deck.slides.map(slide=>slide.id)).size,deck.slides.length);
+    const html=renderToStaticMarkup(React.createElement(PresentationShell,{deck},React.createElement('p',null,'archived detail content')));
+    assert.match(html,/aria-label="技术说明"/);
+    assert.equal((html.match(/class="detail-section"/g)||[]).length,deck.slides.filter(section=>section.visual.kind!=='native').length);
+    assert.doesNotMatch(html,/演示模式|退出演示|上一页|下一页/);
+    assert.match(html,/data-fill-viewport="true"/);
+    assert.match(html,/返回技术说明/);
+    assert.ok((html.match(/aria-label="具体示例"/g)||[]).length>=4);
+    assert.match(html,/class="presentation-appendix-body" hidden=""/);
+    assert.ok(html.includes(deck.slides[0].title));
+    assert.ok(deck.slides.some(slide=>slide.visual.kind==='native'));
+    for(const slide of deck.slides){
+      assert.ok(readingArticles[deck.id].sections[slide.id]?.explanation.length,`missing explanation: ${slide.id}`);
+      assert.ok(html.includes(`id="${slide.id}"`),`missing readable section: ${slide.id}`);
+      for(const source of slide.sources){
+        if(source.href.startsWith('/evidence/'))await readFile(path.join(root,'public',source.href));
+      }
+    }
+  }
+  for(const [canonical,served] of [['../showcase/world.v2.json','public/evidence/world.v2.json'],['../showcase/datasets/lab-world.v2.json','public/evidence/lab-world.v2.json']]){
+    assert.deepEqual(await readFile(path.join(root,canonical)),await readFile(path.join(root,served)));
+  }
 });

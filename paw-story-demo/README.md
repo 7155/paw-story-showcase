@@ -6,9 +6,11 @@
 
 当前主入口 `/` 是分阶段的真实前端工作区，`/?view=full` 保持兼容。固定导航一次聚焦一个模块；Room、Trace、Agent Lab、Memory、Input Studio、Context Debug 都嵌入 `control-center-web` 的实际组件。紫色描边指向真实控件，观察到普通点击及其界面结果后才推进引导。不会自动调用控件、用计时器跳过操作或通过模拟卡片宣布成功。所有详情页也先呈现真实工作区，技术说明与历史示意默认折叠。
 
-四个垂直场景独立放在 `/lab`：EnterpriseOps、RAG、CloudOps、Memory 各有对应的真实 Lab 项目入口。场景可用 `?scenario=enterpriseops|rag|cloudops|memory` 直接定位。每个项目从零材料开始，按「导入数据 → 保存测评策略 → 逐题比较 → 生成、试用并导出 App」操作；可以导入示例或自己的 `records` / `cases` JSON。这里实际执行离线规则并导出同源离线 App，不调用 Provider。修改数据或已保存配置后，需要重新测评才能生成新版本。
+四个案例放在 `/lab`，首页的 Lab 阶段复用同一操作页：深度研究、云上故障诊断、企业交付、记忆整理。通过 `?scenario=rag|cloudops|enterpriseops|memory` 定位案例，按「资料与基线 → 设定目标 → 基线测评 → 优化实验 → 结果对比 → 应用交付」操作；浏览器分别保存四个案例的资料、参数和进度。深度研究支持多文件和文件夹，使用 PDF.js 在浏览器内提取 PDF 文字层，也可导入 TXT、Markdown 或 JSON；扫描 PDF 会显示未读取原因，离线模式不含 OCR。另三个场景支持对应的 `records` / `cases` JSON。
 
-历史 Agent 候选矩阵、对照条件与回执保留在折叠的独立证据区，仍使用 `showcase/lab-evidence.ts` 的同一份公开快照；它们不是本轮规则演示的成绩。导出的 ZIP 含 `index.html`、数据、本轮测评回执与 README，解压后直接打开页面即可运行。`control-center-web/scripts/export-lab-demo-apps.mjs [输出目录]` 使用同一导出代码生成四个示例包，可用于不支持浏览器下载的预览宿主。
+深度研究示例选自仓库已有的 EnterpriseRAG-Bench 公开合成资料：200 份文档、16 道已公开训练题，包含这些题目的全部相关来源。切片、重叠、检索数量、证据上限和标题权重实际参与本地计算。其余场景比较具体业务规则。测评结果、字符量与历史模型实验分别呈现；推荐仅适用于本轮资料和检查题。修改资料、题集或保存新的基线后，旧结果不再用于应用交付。下载的独立 HTML 携带采用的参数、资料和检查结果，并执行同一算法。
+
+论文项目的 72 条历史记录可在深度研究的优化实验步骤展开，包含 211 份来源的处理、检索、回答、应用版本与调用；公开快照仅包含白名单元数据和聚合指标，不含论文正文或问题、回答、个人路径。历史 Agent 候选矩阵、对照条件与回执保留在折叠的独立证据区，仍使用 `showcase/lab-evidence.ts` 的同一份公开快照；它们不是本轮规则演示的成绩。展开原始 PAW Lab 工作区后，其 ZIP 导出含 `index.html`、数据、本轮测评回执与 README，解压后直接打开页面即可运行。`control-center-web/scripts/export-lab-demo-apps.mjs [输出目录]` 使用同一导出代码生成四个示例包，可用于不支持浏览器下载的预览宿主。
 
 1. 任务开场：一起设计 PAW，先看目标与预期交付。
 2. 协作交付：四条产品线分工、交接并汇总结果。
@@ -109,4 +111,10 @@ python3 scripts/check_public_showcase.py
 
 自动演示：可见页面默认显示演示鼠标并按顺序点击真实控件，每步等待界面结果；支持暂停和继续。切换页面或隐藏标签时暂停。自动导出可能受浏览器下载策略限制，可以直接点击导出按钮。完整部署命令见仓库根目录 README。
 
-四个独立应用入口为 `/apps`，首页「应用」阶段直接嵌入同一份可执行界面。客户交接、知识台、事故诊断和记忆整理各自有业务操作；不再共用单个查询表单。生成代码位于 `../showcase/vertical-app.ts`，Lab 导出与独立入口共用它。数据与清洗来源见 `../showcase/datasets/README.md`。
+四个应用入口为 `/apps?scenario=rag|cloudops|enterpriseops|memory`，首页「应用」阶段嵌入同一份界面。深度研究直接复用 `control-center-web/src/features/agent/portable` 的 PAW 对话、输入框、Markdown、引用阅读器和报告导出；`showcase/research-conversation-app.ts` 只提供离线记录适配及轻量布局。其余三例复用 `showcase/vertical-app.ts` 的业务工作台，保留交接、撤销、诊断计划和记忆来源操作。
+
+`/lab` 直接嵌入 PAW 的 Lab 项目工作台，为四例提供六步操作：资料与基线 → 目标 → 基线测评 → 候选实验 → 逐题比较 → 应用交付。资料列表、文档阅读、基线表单、需求偏好、实验记录、比较表和应用交付均来自 PAW 组件；展示层只连接浏览器内的离线数据适配器。文件和操作进度保存在当前浏览器；新资料或新基线会使旧结果退出当前比较。PDF 读取文字层，不包含 OCR。深度研究示例取自现有公开合成语料的 200 份资料，使用 16 道 train 检查题；本地词法检索与字符开销不代表模型回答质量、Token 或账单。
+
+`research-history.v1.json` 回放论文项目的 72 条记录，其中包含失败和阅读操作；211 份论文中 209 份已读取、2 份未读取。`research-conversations.v1.json` 单独保留 4 条实际保存的回答、引用片段和聚合用量，未包含原始会话或完整论文。它们与 200 份合成资料的本地实验分开呈现。
+
+构建时先从本站 PAW 源码生成可携带对话组件，再由 `scripts/materialize-guided-apps.mjs` 生成 HTML 和 ZIP 到忽略目录 `public/real-apps/`。解压后直接打开 `index.html`；预览与下载使用同一文件。业务 App 使用本轮测评的参数与计算函数；没有后端或 Provider 调用。开发时可先运行 `node ../control-center-web/scripts/build-portable-agent-ui.mjs` 和 `node scripts/materialize-real-apps.mjs` 刷新导出应用。

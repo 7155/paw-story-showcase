@@ -24,3 +24,6 @@ __pycache__/
 !/paw-story-demo/README.md
 
 /paw-story-demo/public/real-apps/
+/control-center-web/.generated/
+
+/control-center-web/public/portable-agent-ui/

@@ -119,3 +119,5 @@
 .lab-showcase--embedded .lab-showcase-content { padding-bottom: 24px; }
 .lab-showcase--embedded .lab-showcase-intro { padding-top: 32px; padding-bottom: 20px; }
 .lab-showcase--embedded .lab-showcase-intro h2 { font-size: clamp(26px,3vw,36px); }
+
+.lab-original-workspace{margin-top:20px}.lab-original-workspace>summary{cursor:pointer;padding:14px 0;color:var(--lab-muted);font-size:14px}.lab-showcase-intro{padding-block:24px}.lab-showcase-intro h1{font-size:30px}.lab-showcase-eyebrow{display:none}.lab-showcase-intro>p{font-size:14px}.lab-showcase--embedded .lab-showcase-intro h2{font-size:28px}.lab-scenario-nav small{font-size:13px}.lab-scenario-nav strong{font-size:16px}.lab-public-results{margin-top:28px}

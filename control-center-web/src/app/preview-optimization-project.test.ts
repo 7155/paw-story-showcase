@@ -1,0 +1,66 @@
+import { describe,it,expect } from 'vitest';
+import { commandLabProject,readLabProject } from '@/features/eval-lab/projects/api';
+import { createPreviewTransport } from './preview-control-transport';
+import { evaluateRepairSuite,runRepairReplay } from '../../../showcase/optimization';
+import {validateWorld} from '../../../showcase/world';
+import type { ArtifactTable, JsonValue, ProjectAction } from '@/features/eval-lab/projects/types';
+describe('long world and executable optimization',()=>{
+ it('preserves all shared task references',()=>{expect(validateWorld()).toMatchObject({valid:true,counts:{agents:6,tasks:9,messages:51,toolCalls:40,artifacts:9,cases:154}});});
+ it('detects distinct regressions in the original and cheap candidates',()=>{
+  expect(runRepairReplay('baseline','registration-503').after.content).toContain('合同 v1');
+  expect(runRepairReplay('cheap','registration-503')).toMatchObject({outcome:'completed',recovery:'none',passed:false});
+  expect(runRepairReplay('baseline','duplicate-submit').writeCount).toBe(2);
+  expect(runRepairReplay('repaired','unknown-write-receipt')).toMatchObject({writeCount:1,fileReceipt:'confirmed'});
+  expect(runRepairReplay('repaired','stale-revision').after.operationId).toBe('external-op');
+  expect(evaluateRepairSuite('repaired')).toMatchObject({total:8,passed:8,decision:'keep',providerCalls:0});
+ });
+ it('uses native Lab commands and invalidates adoption when saved config changes',async()=>{
+  const t=createPreviewTransport(),id='lab-showcase-repair';let n=0;
+  const act=async(operation:string)=>{const {project}=await readLabProject(t,id);return commandLabProject(t,{projectId:id,action:'knowledge',expectedRevision:project!.revision,clientRequestId:`optimization:${++n}`,input:{operation}});};
+  await expect(act('optimization_compare')).rejects.toThrow('冻结');
+  await act('optimization_original');expect((await readLabProject(t,id,'repair-trace')).artifact?.content).toMatchObject({rows:expect.arrayContaining([expect.objectContaining({tool:'workspace_restore'})])});
+  await act('optimization_freeze');await act('optimization_compare');await act('optimization_keep');
+  const {project,artifact}=await readLabProject(t,id,'repair-config');const content=artifact!.content as {values:Record<string,string>};
+  await commandLabProject(t,{projectId:id,action:'publish_artifact',expectedRevision:project!.revision,clientRequestId:'optimization:edited',input:{artifactId:'repair-config',expectedArtifactRevision:artifact!.revision,content:{...content,values:{...content.values,variant:'候选 A · 只忽略登记异常'}}}});
+  await expect(act('optimization_keep')).rejects.toThrow('重新比较');
+  await act('optimization_compare');await expect(act('optimization_keep')).rejects.toThrow('失败项');
+  expect((await readLabProject(t,id,'repair-decision')).artifact?.content).toContain('采用范围');
+ });
+ it.each(['remove-case','change-expectation','unknown-fault'] as const)('rejects unsupported edited checks instead of silently evaluating the built-in suite: %s',async(change)=>{
+  const t=createPreviewTransport(),id='lab-showcase-repair';let n=0;
+  const command=async(action:ProjectAction,input:Record<string,JsonValue>)=>{const {project}=await readLabProject(t,id);return commandLabProject(t,{projectId:id,action,expectedRevision:project!.revision,clientRequestId:`edited-cases:${++n}`,input});};
+  const act=(operation:string)=>command('knowledge',{operation});
+  await act('optimization_freeze');await act('optimization_compare');await act('optimization_keep');
+  const report=(await readLabProject(t,id,'repair-compare')).artifact!;
+  const artifact=(await readLabProject(t,id,'repair-cases')).artifact!;
+  const original=artifact.content as unknown as ArtifactTable,edited=structuredClone(original);
+  if(change==='remove-case')edited.rows=edited.rows.filter(row=>row.id==='write-failed');
+  else if(change==='change-expectation')edited.rows[0].expected='登记失败后，删除已写入文件才通过。';
+  else edited.rows[0].id='write-receipt-and-readback-both-timeout';
+  await command('publish_artifact',{artifactId:'repair-cases',expectedArtifactRevision:artifact.revision,content:edited as unknown as JsonValue});
+  await expect(act('optimization_keep')).rejects.toThrow('重新比较');
+  await expect(act('optimization_freeze')).rejects.toThrow('内置八项');
+  await expect(act('optimization_compare')).rejects.toThrow('冻结');
+  expect((await readLabProject(t,id,'repair-compare',report.revision)).artifact?.content).toEqual(report.content);
+  const current=(await readLabProject(t,id,'repair-cases')).artifact!;
+  await command('publish_artifact',{artifactId:'repair-cases',expectedArtifactRevision:current.revision,content:original as unknown as JsonValue});
+  await act('optimization_freeze');await act('optimization_compare');await act('optimization_keep');
+  expect((await readLabProject(t,id,'repair-compare')).artifact?.summary).toContain('8/8');
+ });
+ it('refuses unexecuted imported materials and recovers after restoring the supported inputs',async()=>{
+  const t=createPreviewTransport(),id='lab-showcase-repair';let n=0;
+  const command=async(action:ProjectAction,input:Record<string,JsonValue>)=>{const {project}=await readLabProject(t,id);return commandLabProject(t,{projectId:id,action,expectedRevision:project!.revision,clientRequestId:`edited-materials:${++n}`,input});};
+  const act=(operation:string)=>command('knowledge',{operation});
+  await act('optimization_freeze');await act('optimization_compare');await act('optimization_keep');
+  const original=(await readLabProject(t,id)).project!.materialSet.materials.map(row=>row.sourceId);
+  await command('import_materials',{materials:[{title:'自定义模拟文件',text:'初始文件 revision=99；写入超时后回读也超时。'}]});
+  await expect(act('optimization_keep')).rejects.toThrow('重新比较');
+  await expect(act('optimization_freeze')).rejects.toThrow('内置模拟材料');
+  await expect(act('optimization_compare')).rejects.toThrow('冻结');
+  expect((await readLabProject(t,id,'repair-compare')).artifact?.summary).toContain('8/8');
+  const added=(await readLabProject(t,id)).project!.materialSet.materials.filter(row=>!original.includes(row.sourceId)).map(row=>row.sourceId);
+  await command('remove_materials',{sourceIds:added});
+  await act('optimization_freeze');await act('optimization_compare');await act('optimization_keep');
+  expect((await readLabProject(t,id,'repair-decision')).artifact?.content).toContain('采用范围');
+ });
+});

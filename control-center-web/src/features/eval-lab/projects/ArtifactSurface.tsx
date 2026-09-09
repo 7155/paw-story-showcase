@@ -1,8 +1,8 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/primitives';
-import { useRichHtmlUrl } from '@/features/agent/file-preview/use-rich-html-url';
+import { useRichHtmlPreview } from '@/features/agent/file-preview/use-rich-html-url';
 import { object, type ArtifactAction, type ArtifactCode, type ArtifactForm, type ArtifactTable, type JsonValue, type LabArtifact } from './types';
 
 export type ArtifactDraft = { revision: number; content: JsonValue; raw?: string };
@@ -93,9 +93,8 @@ function ProjectForm({ content, disabled, onChange }: { content: ArtifactForm; d
 
 /** Unique-origin HTML can only stage declared user interaction, never call a Tool. */
 function IsolatedProjectHtml({ artifact, content, onAction }: { artifact: LabArtifact; content: string; onAction: (action: ArtifactAction, values: Record<string, JsonValue>) => void }) {
-  const frame = useRef<HTMLIFrameElement>(null);
   const source = useMemo(() => isolatedProjectDocument(content), [content]);
-  const previewUrl = useRichHtmlUrl(source);
+  const { frame, key, onLoad, url: previewUrl } = useRichHtmlPreview(source);
   useEffect(() => {
     const receive = (event: MessageEvent) => {
       if (event.source !== frame.current?.contentWindow) return;
@@ -109,7 +108,7 @@ function IsolatedProjectHtml({ artifact, content, onAction }: { artifact: LabArt
     };
     window.addEventListener('message', receive); return () => window.removeEventListener('message', receive);
   }, [artifact.actions, onAction]);
-  return <iframe ref={frame} title={artifact.title} sandbox="allow-scripts" referrerPolicy="no-referrer" src={previewUrl} />;
+  return <iframe key={key} onLoad={onLoad} ref={frame} title={artifact.title} sandbox="allow-scripts" referrerPolicy="no-referrer" src={previewUrl} />;
 }
 export function isolatedProjectDocument(content: string): string {
   const csp = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";

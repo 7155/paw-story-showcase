@@ -65,10 +65,10 @@ export function useLabProjects(projectId: string) {
     }
   }, onSettled: (_value, error) => { if (!error || projectCommandRejected(error)) void client.invalidateQueries({ queryKey: catalogKey }); } });
   return { connection, catalog, project, mutation, pending: pending.data ?? null,
-    async submit(action: ProjectAction, input: ProjectCommand['input'], target?: LabProject | null) {
+    async submit(action: ProjectAction, input: ProjectCommand['input'], target?: LabProject | null, throwRejected = false) {
       if (client.getQueryData<Pending | null>(pendingKey)) return undefined;
       return mutation.mutateAsync({ action, ...(target ? { projectId: target.projectId } : {}), expectedRevision: target?.revision ?? 0,
-        clientRequestId: `lab-project:${crypto.randomUUID()}`, input: structuredClone(input) }).catch(() => undefined);
+        clientRequestId: `lab-project:${crypto.randomUUID()}`, input: structuredClone(input) }).catch((error) => { if (throwRejected && projectCommandRejected(error)) throw error; return undefined; });
     },
     async reconcile() { const value = client.getQueryData<Pending | null>(pendingKey); return value?.outcome === 'unknown' ? mutation.mutateAsync(value.command).catch(() => undefined) : undefined; },
   };

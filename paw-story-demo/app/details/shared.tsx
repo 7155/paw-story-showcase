@@ -1,11 +1,10 @@
 "use client";
 
-import { NativeDemo } from "../native-demo";
-import { DecisionGuide } from "./decision-guide";
+import { PresentationShell } from "./presentation-shell";
+import { detailPresentation } from "./presentation-decks";
 
 import {
   ArrowDown,
-  ArrowLeft,
   ArrowRight,
   BookOpen,
   Brain,
@@ -27,7 +26,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { GithubMark, PawMark, PlaybackControls, useLoop } from "../ui-shared";
+import { PlaybackControls, useLoop } from "../ui-shared";
 
 const industrySources = {
   context: {
@@ -1541,36 +1540,8 @@ function AgentSolutionSummary() {
 }
 
 export function DetailShell({ index, title, sub, children, repositories, pageClassName }: { index: string; title: string; sub: string; children: ReactNode; repositories?: readonly { label: string; href: string }[]; pageClassName?: string }) {
-  const demo = index.startsWith("05") ? { id: "input", route: "/input", title: "真实 PAW Input Studio" }
-    : index.startsWith("04") ? { id: "memory", route: "/memory", title: "真实 PAW Memory 工作区" }
-    : pageClassName === "detail-page--vertical-lab" ? { id: "improvement", route: "/eval-lab", title: "真实 PAW Agent Lab 候选与实验" }
-    : { id: "agents", route: "/agent?room=room-preview", title: "真实 PAW Room 协作工作区" };
-  const repositoryLinks = repositories ?? [
-    { label: "paw-story-showcase", href: "https://github.com/7155/paw-story-showcase" },
-    { label: "personal-agent-workbench", href: "https://github.com/7155/personal-agent-workbench" },
-  ];
-  return (
-    <main className={`detail-page${pageClassName ? ` ${pageClassName}` : ""}`} id="top">
-      <header className="detail-nav">
-        <a className="detail-back" href="/"><ArrowLeft size={14}/>返回主页</a>
-        <span className="detail-brand"><PawMark/>PAW STORY SHOWCASE</span>
-      </header>
-      <div className="detail-head">
-        <span className="slide-index">{index}</span>
-        <h1>{title}</h1>
-        <p>{sub}</p>
-      </div>
-      <section className="detail-live-native" aria-label="真实前端点击演示"><NativeDemo {...demo}/></section>
-      <details className="detail-reading"><summary>展开技术说明、历史示意与原始依据</summary><div className="detail-body"><DecisionGuide topic={pageClassName === "detail-page--vertical-lab" ? "evaluation" : pageClassName === "detail-page--frontend-evolution" ? "frontend" : index.startsWith("05") ? "input" : index.startsWith("04") ? "context" : "agents"}/>{children}</div></details>
-      <footer className="detail-foot">
-        <span>真实前端组件 + 明确标注的合成演示数据；本页不证明 PAW Runtime 安装或前台验收状态。</span>
-        <nav aria-label="作者的项目仓库">
-          {repositoryLinks.map((repository) => <a href={repository.href} key={repository.href} rel="noreferrer" target="_blank"><GithubMark size={13}/>{repository.label}</a>)}
-        </nav>
-        <a href="/">回到任务主线<ArrowRight size={13}/></a>
-      </footer>
-    </main>
-  );
+  void title; void sub; void repositories;
+  return <PresentationShell deck={detailPresentation(index,pageClassName)}>{children}</PresentationShell>;
 }
 
 export function InputDetail() {

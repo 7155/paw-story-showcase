@@ -8,10 +8,10 @@ import { GoldenExperiment } from './Experiment';
 import { formatTime, GoldenModelCatalog, ModelFields } from './Shared';
 import { goldenJourney, goldenSteps as steps, WorkflowGuide } from './WorkflowGuide';
 import { GoldenRunRecord } from './RunRecord';
-import { isActiveJob, isRunnableGoldenModel, jobLabel, jobStateLabel, type GoldenAction, type GoldenCommand, type GoldenJob, type GoldenSource, type GoldenSuite } from './types';
+import { isActiveJob, isRunnableGoldenModel, jobLabel, jobStateLabel, object, type GoldenAction, type GoldenCommand, type GoldenJob, type GoldenSource, type GoldenSuite } from './types';
 import './GoldenWorkflow.css';
 
-export function GoldenWorkflow({ onClose, startNew = false, initialSuiteId = '' }: { onClose?: () => void; startNew?: boolean; initialSuiteId?: string }) {
+export function GoldenWorkflow({ onClose, startNew = false, initialSuiteId = '', initialJobId='', onSelectJob }: { onClose?: () => void; startNew?: boolean; initialSuiteId?: string; initialJobId?:string; onSelectJob?:(jobId:string)=>void }) {
   const id = useId();
   const [selectedSuiteId, setSelectedSuiteId] = useState<string | null | undefined>(initialSuiteId || (startNew ? null : undefined));
   const [step, setStep] = useState(0);
@@ -34,7 +34,9 @@ export function GoldenWorkflow({ onClose, startNew = false, initialSuiteId = '' 
   const reportSourceDirty = useCallback((value: boolean) => reportDirty('source', value), [reportDirty]);
   const activeJob = suite?.jobs.find(isActiveJob);
   const lastJob = suite ? [...suite.jobs].sort((left, right) => right.updatedAtMs - left.updatedAtMs)[0] : undefined;
-  const visibleJob = activeJob ?? (lastJob && ['failed', 'interrupted', 'cancelled'].includes(lastJob.state) ? lastJob : undefined);
+  const rejudgeableCalibration = suite?.jobs.find((job) => job.kind === 'calibrate' && job.state === 'completed' && job.canRejudgeUncertainCalibration === true);
+  const reprocessableCalibration = suite?.jobs.find((job) => job.kind === 'calibrate' && job.state === 'completed' && job.canReprocessCalibration === true);
+  const visibleJob = initialJobId ? suite?.jobs.find(job=>job.jobId===initialJobId && job.kind!=='experiment') : activeJob ?? (lastJob && ['failed', 'interrupted', 'cancelled'].includes(lastJob.state) ? lastJob : rejudgeableCalibration ?? reprocessableCalibration);
   const commandBusy = selectedSuiteId === undefined || Boolean(workflow.pending) || workflow.mutation.isPending || !workflow.query.isFetched || workflow.query.isPending || workflow.query.isError;
   const disabled = commandBusy || Boolean(activeJob);
   const journey = goldenJourney(suite, hasUnsaved);
@@ -48,17 +50,23 @@ export function GoldenWorkflow({ onClose, startNew = false, initialSuiteId = '' 
   useEffect(() => {
     if (!suite || suite.suiteId === lastSuite.current) return;
     lastSuite.current = suite.suiteId;
-    setStep(suite.snapshot ? 3 : suite.calibration ? 2 : goldenJourney(suite).next);
+    const selected=suite.jobs.find(job=>job.jobId===initialJobId);
+    setStep(selected ? selected.kind==='calibrate' ? 2 : selected.kind==='draft' ? 1 : 3 : suite.snapshot ? 3 : suite.calibration ? 2 : goldenJourney(suite).next);
   }, [suite]);
   const createNew = () => {
     setSelectedSuiteId(null); setStep(0); lastSuite.current = ''; setNewGeneration((value) => value + 1);
   };
   const submit = async (action: GoldenAction, input: GoldenCommand['input'] = {}) => {
     if (hasUnsaved && ['freeze', 'calibrate', 'draft'].includes(action)) return false;
+    if (action === 'experiment' && input.runMode === 'development_trial') {
+      const caseIds = Array.isArray(input.caseIds) ? input.caseIds.filter((value): value is string => typeof value === 'string') : [];
+      const allowed = new Set(suite?.cases.filter((item) => item.split === 'development' && item.review.status === 'approved').map((item) => item.caseId));
+      if (!suite || caseIds.length === 0 || caseIds.length > 16 || caseIds.length !== new Set(caseIds).size || caseIds.some((caseId) => !allowed.has(caseId))) return false;
+    }
     return Boolean(await workflow.submit(action, input, suite));
   };
-  const resumeJob = async (job: GoldenJob) => {
-    if (await submit('resume', { jobId: job.jobId }) && job.kind === 'draft') setStep(1);
+  const resumeJob = async (job: GoldenJob, completeDraft = false) => {
+    if (await submit('resume', { jobId: job.jobId, ...(completeDraft ? { completeDraft: true } : {}) }) && job.kind === 'draft') setStep(1);
   };
   const verifyPending = async () => {
     const command = workflow.pending?.command;
@@ -87,14 +95,14 @@ export function GoldenWorkflow({ onClose, startNew = false, initialSuiteId = '' 
       </div> : null}
     </header>
     <div className="golden-steps" role="tablist" aria-label="Golden 工作步骤">{steps.map((label, index) => <button key={label} type="button" id={`${id}-tab-${index}`} role="tab" aria-label={label} aria-selected={step === index} aria-describedby={`${id}-step-state-${index}`} aria-controls={`${id}-panel-${index}`} data-complete={journey.done[index] || undefined} tabIndex={step === index ? 0 : -1} disabled={index > 0 && !suite} onKeyDown={(event) => onTabKey(event, index)} onClick={() => setStep(index)}><span className="golden-step-number" aria-hidden="true">{journey.done[index] ? <Check size={16} /> : index + 1}</span><span className="golden-step-label">{label}<small id={`${id}-step-state-${index}`}>{journey.done[index] ? '已完成' : ['提供真实资料', '确认答案依据', '对齐评分标准', '比较实际表现'][index]}</small></span></button>)}</div>
-    <WorkflowGuide suite={suite} step={step} unsaved={hasUnsaved} onStep={setStep} />
+    {!initialJobId ? <WorkflowGuide suite={suite} step={step} unsaved={hasUnsaved} onStep={setStep} /> : null}
     {hasUnsaved ? <div className="golden-recovery" role="status" aria-label="未保存的评测标准"><div><strong>草稿已保留，尚未纳入评测标准</strong><p>{[sourceDirty ? '起草模型有未保存修改' : '', reviewDirty ? '审核标准有未保存修改' : '', calibrationDirty ? '校准评审有未保存修改' : ''].filter(Boolean).join('；')}。请先保存修改，再校准和冻结。</p></div><div>{sourceDirty ? <Button size="small" onClick={() => setStep(0)}>返回起草模型</Button> : null}{reviewDirty ? <Button size="small" onClick={() => setStep(1)}>返回审核标准</Button> : null}{calibrationDirty ? <Button size="small" onClick={() => setStep(2)}>返回校准评审</Button> : null}</div></div> : null}
     {workflow.query.isPending ? <p className="golden-reading" role="status">正在读取评测集…</p> : null}
     {workflow.query.isError ? <div className="golden-recovery" role="alert"><div><strong>无法读取评测集</strong><p>{goldenErrorMessage(workflow.query.error)}</p></div><Button size="small" leadingIcon={<RefreshCw size={14} />} loading={workflow.query.isFetching} onClick={() => void workflow.query.refetch()}>重新读取</Button></div> : null}
     {workflow.pending?.outcome === 'unknown' ? <div className="golden-recovery" role="alert"><div><strong>本次操作的结果尚未确认</strong><p>核对回执会复用原请求；在确认结果前，不会提交另一项操作。</p></div><Button variant="primary" size="small" onClick={() => void verifyPending()}>核对本次操作</Button></div>
       : workflow.mutation.error && isGoldenRejection(workflow.mutation.error) ? <p className="golden-command-error" role="alert">{goldenErrorMessage(workflow.mutation.error, '这次操作未被接受，已重新读取当前版本。请核对后重试。')}</p> : null}
     {workflow.pending?.outcome === 'sending' ? <p className="golden-reading" role="status">正在提交本次操作…</p> : null}
-    {visibleJob ? <JobStatus job={visibleJob} stale={workflow.query.isError} disabled={commandBusy} onCancel={() => void submit('cancel', { jobId: visibleJob.jobId })} onResume={() => void resumeJob(visibleJob)} /> : null}
+    {visibleJob ? <JobStatus job={visibleJob} stale={workflow.query.isError} disabled={commandBusy} onCancel={() => void submit('cancel', { jobId: visibleJob.jobId })} onResume={() => void resumeJob(visibleJob)} onReprocessCalibration={() => void submit('reprocess_calibration', { jobId: visibleJob.jobId })} onRejudgeUncertainCalibration={() => void submit('rejudge_uncertain_calibration', { jobId: visibleJob.jobId })} onCompleteDraft={() => void resumeJob(visibleJob, true)} /> : null}
     {suite?.knowledge ? <p className="golden-note">知识库回答评测 · {suite.knowledge.documentCount.toLocaleString()} 篇文档 / {suite.knowledge.chunkCount.toLocaleString()} 个切片。每题先检索，再把有界证据交给 Pi 回答；参考答案只用于评审。</p> : null}
     {suite?.calibration?.referenceAuthority === 'agent_assisted' ? <p className="golden-note">本轮包含 Agent 辅助标注，用于验证流程和比较配置；不代表独立人工金标验收。</p> : null}
     {suite?.datasetProvenance?.kind === 'imported_reference' ? <p className="golden-note">本次从 {suite.datasetProvenance.totalCases} 道原题中选取 {suite.datasetProvenance.selectedCases} 道。原题和参考答案已保留，请核对标准；错误与边界样例是本地构造的校准草稿，需要编辑和标注，不是数据集原始答案。</p> : null}
@@ -102,9 +110,9 @@ export function GoldenWorkflow({ onClose, startNew = false, initialSuiteId = '' 
       {suite ? <SourceSummary suite={suite} disabled={disabled || reviewDirty || calibrationDirty} onDirtyChange={reportSourceDirty} onJudge={(input) => submit('judge_config', input)} onDraft={() => void submit('draft').then((accepted) => { if (accepted) setStep(1); })} /> : <SourceForm key={newGeneration} disabled={commandBusy} onCreate={async (input) => { const receipt = await workflow.submit('create', input); if (receipt) setSelectedSuiteId(receipt.suite.suiteId); }} />}
     </div>
     {suite ? <>
-        <div id={`${id}-panel-1`} className="golden-panel" role="tabpanel" aria-labelledby={`${id}-tab-1`} hidden={step !== 1}><CaseReview key={suite.suiteId} suite={suite} disabled={disabled} onDirtyChange={reportReviewDirty} onReview={(input) => submit('review_case', input)} onNext={() => setStep(2)} onDraft={() => setStep(0)} /></div>
+        <div id={`${id}-panel-1`} className="golden-panel" role="tabpanel" aria-labelledby={`${id}-tab-1`} hidden={step !== 1}><CaseReview key={suite.suiteId} suite={suite} disabled={disabled} onDirtyChange={reportReviewDirty} onReview={(input) => submit('review_case', input)} onSupplement={suite.knowledge ? (input) => submit('supplement_source', input) : undefined} onNext={() => setStep(2)} onDraft={() => setStep(0)} /></div>
       <div id={`${id}-panel-2`} className="golden-panel" role="tabpanel" aria-labelledby={`${id}-tab-2`} hidden={step !== 2}><CalibrationPanel key={suite.suiteId} suite={suite} disabled={disabled} onDirtyChange={reportCalibrationDirty} reviewDirty={reviewDirty} onLabel={(input) => submit('label_sample', input)} onJudge={(input) => submit('judge_config', input)} onCalibrate={() => void submit('calibrate')} onNext={() => setStep(3)} onReview={() => setStep(1)} /></div>
-      <div id={`${id}-panel-3`} className="golden-panel" role="tabpanel" aria-labelledby={`${id}-tab-3`} hidden={step !== 3}><GoldenExperiment key={suite.suiteId} suite={suite} disabled={disabled} unsaved={hasUnsaved} onFreeze={() => void submit('freeze')} onExperiment={(input) => submit('experiment', input)} onReview={() => setStep(1)} onCalibrate={() => setStep(2)} /></div>
+      <div id={`${id}-panel-3`} className="golden-panel" role="tabpanel" aria-labelledby={`${id}-tab-3`} hidden={step !== 3}><GoldenExperiment key={suite.suiteId} initialJobId={initialJobId} onSelectJob={onSelectJob} suite={suite} disabled={disabled} unsaved={hasUnsaved} onFreeze={() => void submit('freeze')} onExperiment={(input) => submit('experiment', input)} onReview={() => setStep(1)} onCalibrate={() => setStep(2)} /></div>
     </> : null}
   </section></GoldenModelCatalog>;
 }
@@ -153,10 +161,21 @@ function SourceSummary({ suite, disabled, onDraft, onJudge, onDirtyChange }: { s
     <footer className="golden-section__footer golden-action-bar">{suite.datasetProvenance?.kind === 'imported_reference' ? <p className="golden-note">原始题目已经导入。请选择“核对题目”继续；此处不会重新生成或覆盖原题。</p> : <><p className="golden-note">{suite.cases.length ? '保留已审核题目，更新待审草案；更新后需要重新校准。' : '起草使用已配置的 Agent 模型，所有题目先进入待审核状态。'}</p><Button variant="primary" disabled={disabled || changed || !isRunnableGoldenModel(model)} onClick={onDraft}>{suite.cases.length ? '重新起草题目' : '让 Agent 起草题目'}</Button></>}</footer>
   </section>;
 }
-function JobStatus({ job, stale, disabled, onCancel, onResume }: { job: GoldenJob; stale: boolean; disabled: boolean; onCancel: () => void; onResume: () => void }) {
+function JobStatus({ job, stale, disabled, onCancel, onResume, onReprocessCalibration, onRejudgeUncertainCalibration, onCompleteDraft }: { job: GoldenJob; stale: boolean; disabled: boolean; onCancel: () => void; onResume: () => void; onReprocessCalibration: () => void; onRejudgeUncertainCalibration: () => void; onCompleteDraft: () => void }) {
   const active = isActiveJob(job);
+  const partial = object(job.result);
+  const partialSelection = object(partial.caseSelection);
+  const trial = job.kind === 'experiment' && (job.runMode === 'development_trial' || partial.runMode === 'development_trial');
+  const trialCaseCount = job.caseIds?.length ?? (Array.isArray(partialSelection.caseIds) ? partialSelection.caseIds.length : undefined);
   const canReprocess = job.kind === 'draft' && job.state === 'failed' && job.canReprocess === true;
+  const canReprocessCalibration = job.kind === 'calibrate' && job.state === 'completed' && job.canReprocessCalibration === true;
+  const canRejudgeUncertainCalibration = job.kind === 'calibrate' && job.state === 'completed' && job.canRejudgeUncertainCalibration === true;
+  const canCompleteDraft = job.kind === 'draft' && job.state === 'failed' && job.canCompleteDraft === true;
+  const rawProgress = job.result?.draftProgress;
+  const draftProgress = rawProgress && typeof rawProgress === 'object' && !Array.isArray(rawProgress) ? rawProgress as Record<string, unknown> : undefined;
+  const countedDraft = draftProgress && typeof draftProgress.caseCount === 'number' && Number.isFinite(draftProgress.caseCount)
+    && typeof draftProgress.targetCount === 'number' && Number.isFinite(draftProgress.targetCount) ? draftProgress : undefined;
   const canRetry = job.state === 'failed' && job.canRetryFailedCall === true;
-  return <section className="golden-job" data-state={stale ? 'stale' : job.state} aria-label="当前任务状态"><div><p role="status">{active && !stale ? <LoaderCircle aria-hidden="true" size={15} className="golden-job__spinner" /> : null}<strong>{jobLabel[job.kind]} · {jobStateLabel[job.state]}</strong><span>{formatTime(job.updatedAtMs)}</span></p><p>{stale ? '上次读取的状态，当前进展尚未确认。' : job.error || job.progress || (active ? '等待真实执行回执。' : '任务已经停止。')}</p>{canReprocess ? <p>复用原结果重新处理，不会重新调用模型。</p> : canRetry ? <p>保留已成功的结果，重试已确认失败的调用并继续剩余任务。</p> : null}{job.sessionId ? <GoldenRunRecord sessionId={job.sessionId} active={active && !stale} /> : null}</div><div>{active ? <Button size="small" disabled={disabled} onClick={onCancel}>停止任务</Button> : job.state === 'interrupted' ? <Button size="small" disabled={disabled} onClick={onResume}>恢复任务</Button> : canReprocess ? <Button size="small" disabled={disabled} onClick={onResume}>重新处理结果</Button> : canRetry ? <Button size="small" disabled={disabled} onClick={onResume}>重试未完成部分</Button> : null}</div></section>;
+  return <section className="golden-job" data-state={stale ? 'stale' : job.state} aria-label="当前任务状态"><div><p role="status">{active && !stale ? <LoaderCircle aria-hidden="true" size={15} className="golden-job__spinner" /> : null}<strong>{trial ? '开发题小批试跑' : jobLabel[job.kind]} · {jobStateLabel[job.state]}</strong><span>{formatTime(job.updatedAtMs)}</span></p><p>{stale ? '上次读取的状态，当前进展尚未确认。' : job.error || job.progress || (active ? '等待真实执行回执。' : '任务已经停止。')}</p>{trial ? <p>仅执行 {trialCaseCount ?? '所选'} 道开发题；留出题未读取。</p> : null}{canReprocess ? <p>复用原结果重新处理，不会重新调用模型。</p> : canRejudgeUncertainCalibration ? <p>只重评 1 个无法判定样例，会调用模型 1 次；其余 11 条判断和原回执会复用，原校准记录保持不变。</p> : canReprocessCalibration ? <p>仅对齐引用中的格式差异，不会重新调用模型；原校准结果和模型回执会保留。</p> : canRetry ? <p>保留已成功的结果，重试已确认失败的调用并继续剩余任务。</p> : null}{countedDraft ? <p>草稿进度：{String(countedDraft.caseCount)} / {String(countedDraft.targetCount)} 题{typeof countedDraft.exactQuoteCaseCount === 'number' && Number.isFinite(countedDraft.exactQuoteCaseCount) ? ` · ${countedDraft.exactQuoteCaseCount} 题引用已对应原文` : ''}。全部检查通过后进入待审核题目。</p> : null}{canCompleteDraft ? <p>补齐会复用已返回内容，并调用模型补写缺少的题目或修复不合格引用；真实用量继续计入此任务。</p> : null}{job.sessionId ? <GoldenRunRecord sessionId={job.sessionId} active={active && !stale} /> : null}</div><div>{active ? <Button size="small" disabled={disabled} onClick={onCancel}>停止任务</Button> : job.state === 'interrupted' ? <Button size="small" disabled={disabled} onClick={onResume}>恢复任务</Button> : canReprocess ? <Button size="small" disabled={disabled} onClick={onResume}>重新处理结果</Button> : canRejudgeUncertainCalibration ? <Button size="small" variant="primary" disabled={disabled} onClick={onRejudgeUncertainCalibration}>重评 1 个无法判定样例</Button> : canReprocessCalibration ? <Button size="small" disabled={disabled} onClick={onReprocessCalibration}>重新核对引用</Button> : canRetry ? <Button size="small" disabled={disabled} onClick={onResume}>重试未完成部分</Button> : null}{canCompleteDraft ? <Button size="small" variant="primary" disabled={disabled} onClick={onCompleteDraft}>补齐题目并校验引用</Button> : null}</div></section>;
 }
 function emptySource(): GoldenSource { return { sourceId: `source:${crypto.randomUUID()}`, title: '', kind: 'document', uri: '', text: '' }; }

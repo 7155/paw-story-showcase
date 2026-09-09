@@ -121,13 +121,26 @@ export function applyPreviewConfigurationChanges(
   return next;
 }
 
+const worldLexiconExamples = [
+ ['回执未知','hui zhi wei zhi','网络中断时保留未知状态，先回读业务结果。跨三天的项目复盘重复使用。'],
+ ['有范围召回','you fan wei zhao hui','PAW 项目与 Atlas 课程使用相似措辞，但召回范围分别保留。'],
+ ['部分成功','bu fen cheng gong','文件已存在、辅助登记待重试，用于解释组合步骤的真实状态。'],
+ ['幂等写入','mi deng xie ru','重试复用业务 operationId，登记尝试独立计数。'],
+ ['冻结条件','dong jie tiao jian','比较候选前固定输入、初始文件与八项故障条件。'],
+ ['来源回溯','lai yuan hui su','从主题、记忆条目回到原应用已提交的输入。'],
+ ['候选失效','hou xuan shi xiao','切换窗口或文档版本变化后，旧补全不再回写。'],
+ ['在途工单','zai tu gong dan','客户负责人交接保留工单、下一次回访与 revision。'],
+ ['配置差异','pei zhi cha yi','云运维结合变更、日志和时间线提出可验证假设。'],
+ ['局部复验','ju bu fu yan','应用补丁后复演原故障；单元检查与完整任务结果分别记录。'],
+] as const;
+
 export function previewLexiconReview(): Record<string, unknown> {
   const nowMs = Date.now();
   return {
     schemaVersion: 'rag-ime.rime-lexicon-review.v1',
     ok: true,
     project: 'wisdom-weasel-rag-ime',
-    entryCount: 2,
+    entryCount: 2 + worldLexiconExamples.length,
     entries: [
       {
         reviewKey: 'preview-lexicon-01',
@@ -157,6 +170,7 @@ export function previewLexiconReview(): Record<string, unknown> {
         defaultSelected: false,
         riskLabel: '需确认',
       },
+      ...worldLexiconExamples.map(([text,pinyin,reason],index)=>({reviewKey:`preview-world-lexicon-${index+1}`,text,pinyin,weight:7+index,positiveCount:3+index,negativeCount:0,reasons:['公开合成的已提交输入样例',reason],reviewSource:'local_feedback',reviewReason:reason,selected:false,defaultSelected:false,riskLabel:'项目术语'})),
     ],
     reviewToken: 'a'.repeat(64),
     confirmText: 'APPLY REVIEWED RIME LEXICON',
@@ -181,7 +195,7 @@ export function previewLexiconReview(): Record<string, unknown> {
         status: 'succeeded',
         startedAtMs: nowMs - 43_201_250,
         completedAtMs: nowMs - 43_200_000,
-        candidateCount: 3,
+        candidateCount: 3 + worldLexiconExamples.length,
         filteredEntryCount: 1,
         errorCode: '',
         error: '',

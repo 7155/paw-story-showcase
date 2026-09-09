@@ -10,8 +10,8 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "VITE_CONTROL_TRANSPORT=mock VITE_BUILD_CHANNEL=preview vite --host 127.0.0.1",
-    "build": "tsc -b && VITE_CONTROL_TRANSPORT=mock VITE_BUILD_CHANNEL=preview vite build",
+    "dev": "node scripts/build-portable-agent-ui.mjs && VITE_CONTROL_TRANSPORT=mock VITE_BUILD_CHANNEL=preview vite --host 127.0.0.1",
+    "build": "node scripts/build-portable-agent-ui.mjs && tsc -b && VITE_CONTROL_TRANSPORT=mock VITE_BUILD_CHANNEL=preview vite build",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc -b --pretty false",
     "test": "pnpm run test:showcase",
@@ -45,6 +45,7 @@
     "d3-contour": "4.0.2",
     "lucide-react": "^1.24.0",
     "motion": "^12.42.2",
+    "pdfjs-dist": "6.3.289",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-markdown": "^10.1.0",

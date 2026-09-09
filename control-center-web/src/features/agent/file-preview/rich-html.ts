@@ -7,26 +7,52 @@
  */
 export const RICH_HTML_SANDBOX = 'allow-downloads allow-forms allow-modals allow-pointer-lock allow-popups allow-scripts';
 
-export const RICH_HTML_PREVIEW_PATH = '/__paw_html_preview';
+// The public showcase serves PAW's isolated preview document as a static asset.
+export const RICH_HTML_PREVIEW_PATH = `${import.meta.env.BASE_URL}__paw_lab_preview.html`;
+export const RICH_HTML_PREVIEW_CHUNK_SIZE = 0x8000;
+export const RICH_HTML_PREVIEW_MAX_CHARS = 16 * 1024 * 1024;
+export const RICH_HTML_PREVIEW_MAX_CHUNKS = Math.ceil(
+  RICH_HTML_PREVIEW_MAX_CHARS / RICH_HTML_PREVIEW_CHUNK_SIZE,
+);
+
+export type RichHtmlPreviewStart = {
+  kind: 'paw.html-preview.start';
+  transferId: string;
+  chunkCount: number;
+  sourceLength: number;
+};
+
+export type RichHtmlPreviewChunk = {
+  kind: 'paw.html-preview.chunk';
+  transferId: string;
+  chunkIndex: number;
+  chunk: string;
+};
+
+export type RichHtmlPreviewEnd = {
+  kind: 'paw.html-preview.end';
+  transferId: string;
+};
+
+/** Split by UTF-16 code units; concatenation restores the exact source string. */
+export function richHtmlPreviewChunks(source: string): string[] {
+  if (source.length > RICH_HTML_PREVIEW_MAX_CHARS) {
+    throw new RangeError(`HTML preview source exceeds ${RICH_HTML_PREVIEW_MAX_CHARS} characters`);
+  }
+  const chunks: string[] = [];
+  for (let offset = 0; offset < source.length; offset += RICH_HTML_PREVIEW_CHUNK_SIZE) {
+    chunks.push(source.slice(offset, offset + RICH_HTML_PREVIEW_CHUNK_SIZE));
+  }
+  return chunks;
+}
 
 /**
- * Put authored HTML in the URL fragment of a dedicated loopback document.
- * Fragments never cross the HTTP boundary. The document served by 8766 owns a
- * narrow preview-only CSP and an opaque sandbox, so authored scripts can run
- * without relaxing the Control Center's CSP or sharing its origin.
+ * Return the short dedicated loopback document URL. The authored HTML travels
+ * after navigation through the bound iframe's postMessage channel; putting it
+ * in the URL makes large reports fail before the preview document can load.
  */
-export function richHtmlPreviewUrl(source: string): string {
-  const bytes = new TextEncoder().encode(source);
-  let binary = '';
-  const chunkSize = 0x8000;
-  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
-  }
-  const encoded = window.btoa(binary)
-    .replaceAll('+', '-')
-    .replaceAll('/', '_')
-    .replace(/=+$/u, '');
-  return `${RICH_HTML_PREVIEW_PATH}#${encoded}`;
+export function richHtmlPreviewUrl(): string {
+  return RICH_HTML_PREVIEW_PATH;
 }
 
 export function richHtmlDocument(source: string): string {

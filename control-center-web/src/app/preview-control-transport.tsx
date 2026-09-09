@@ -1,3 +1,5 @@
+import { world } from '../../../showcase/world';
+import { worldRoomFiles } from './preview-world-room';
 import { createPreviewTraceReportRoutes } from "./preview-trace-report-routes";
 import {
   MAX_COMPOSER_ATTACHMENT_BYTES,
@@ -97,12 +99,22 @@ function reliabilityExecutionMode(sessionId: string): 'read_only' | 'per_action'
 class PreviewControlTransport extends MockControlTransport {
   private readonly roomFlowPlayback?: PreviewRoomFlowPlayback;
   private roomFlowStarted = false;
+  private roomFlowPaused = false;
   private roomFlowTimer: number | null = null;
 
   constructor(options: MockControlTransportOptions & { roomFlowPlayback?: PreviewRoomFlowPlayback }) {
     const { roomFlowPlayback, ...transportOptions } = options;
     super(transportOptions);
     this.roomFlowPlayback = roomFlowPlayback;
+    if(roomFlowPlayback && typeof window!=='undefined') {
+     this.roomFlowPaused=window.parent!==window&&new URLSearchParams(window.location.search).get('storyRoomPlayback')==='1';
+     window.addEventListener('message',event=>{
+      if(event.source!==window.parent || !document.referrer)return;
+      if(event.origin!==new URL(document.referrer).origin || event.data?.type!=='paw-story:room-playback')return;
+      this.roomFlowPaused=event.data.playing!==true;
+     });
+     if(window.parent!==window&&document.referrer)queueMicrotask(()=>window.parent.postMessage({type:'paw-story:room-ready'},new URL(document.referrer).origin));
+    }
   }
 
   override subscribe<Event = unknown>(
@@ -176,6 +188,7 @@ class PreviewControlTransport extends MockControlTransport {
       const delayMs = pawRoomFlowShowcaseDelayBeforeSequenceMs(sequence)
         + (sequence === 58 ? reviewerGateHoldMs : 0);
       this.roomFlowTimer = window.setTimeout(() => {
+        if (this.roomFlowPaused || document.hidden) { schedule(index); return; }
         if (!Number.isInteger(sequence)) return;
         playback.onSequence(sequence);
         this.emit('agent.room.events', event);
@@ -1687,13 +1700,14 @@ const PREVIEW_MANAGED_FILES: Record<string, PreviewManagedFile> = {
 function previewManagedFile(request: ControlRequest): Record<string, unknown> {
   const mediaId = stringValue(record(request.params).mediaId);
   const sessionId = stringValue(record(request.query).sessionId);
-  const sha256 = 'c'.repeat(64);
+  const worldFile = worldRoomFiles[mediaId];
+  const sha256 = worldFile?.sha256 ?? 'c'.repeat(64);
   // Exercises the dialog's error + retry path against a receipt that genuinely
   // cannot be read, rather than against a mocked-out success.
   if (mediaId === 'media_previewbroken01') {
     throw new Error('Preview file receipt is unavailable.');
   }
-  const file = PREVIEW_MANAGED_FILES[mediaId];
+  const file = worldFile ?? PREVIEW_MANAGED_FILES[mediaId];
   if (!file || !sessionId) {
     throw new Error('Preview file receipt is unavailable.');
   }
@@ -3803,7 +3817,7 @@ function previewDebugContext(sessionId: string, turnId: string): Record<string, 
   const selectedTurn = turnSpecs.find((turn) => turn.turnId === normalizedTurnId) ?? turnSpecs.at(-1)!;
   const now = selectedTurn.capturedAtMs;
   const userPrompt = selectedTurn.prompt;
-  const systemPrompt = 'You are the local RagIme coding agent. Follow the stable role and workspace policy.';
+  const systemPrompt = 'You are the local RagIme coding agent. Follow the stable role and workspace policy.\n\n公开合成场景：保持同一主目标，按任务依赖交接证据；工具回执未知时保留未知。已提交输入才可成为治理来源，记忆按当前项目与有效版本筛选。补丁应用、局部检查、原任务复验分别记录。';
   const executionMode = isReliabilitySession(sessionId)
     ? reliabilityExecutionMode(sessionId)
     : 'full_trust';
@@ -3827,7 +3841,7 @@ function previewDebugContext(sessionId: string, turnId: string): Record<string, 
       role: 'custom',
       customType: 'rag-ime-memory-recall',
       content: executionMode === 'full_trust'
-        ? '<rag-ime-context type="memory_recall">已召回：用户偏好真实运行时验证。</rag-ime-context>'
+        ? `<rag-ime-context type="memory_recall" scope="project:paw" maxItems="3">\n${world.datasets.memory.sources.filter(source=>['source-001','source-011','source-041'].includes(source.id)&&source.scope==='project:paw'&&source.phase==='committed'&&source.consent).map(source=>`来源 ${source.id} · ${source.application} · ${source.time}：${source.text}`).join('\n')}\n选取原因：本轮在核对协作恢复和上下文装配。排除 Atlas 课程记录、临时想法、composition、draft、partial 与未同意保留的输入。\n</rag-ime-context>`
         : '<rag-ime-context type="memory_recall" disposition="omitted">本案例未使用 Memory / RAG。</rag-ime-context>',
       display: false,
     },
@@ -4710,14 +4724,15 @@ function previewWorkspaceList(path: string, sessionId: string): Record<string, u
 function previewWorkspaceRead(path: string, sessionId: string): Record<string, unknown> {
   const name = path.split('/').at(-1) ?? '';
   const post = previewRoomSnapshot('room-preview').events.map(event => record(record(event.payload).post)).find(post => typeof post.content === 'string' && post.content.startsWith(`WorkPatch · ${name}：`));
-  const content = post ? `# ${name}
+  const worldFile = Object.values(worldRoomFiles).find(file=>file.path===path || path.endsWith(`/${file.path}`));
+  const content = worldFile?.content ?? (post ? `# ${name}
 
 公开合成 Room 交付
 
 ${String(post.content).split('：').slice(1).join('：')}
 ` : path.endsWith('.md')
     ? '# Personal Agent Workbench\n\n这是工作区文件预览。\n'
-    : 'export function previewWorkspace() {\n  return "ready";\n}\n';
+    : 'export function previewWorkspace() {\n  return "ready";\n}\n');
   return {
     schemaVersion: 'rag-ime.agent-workspace-read.v1',
     ok: true,
