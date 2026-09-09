@@ -15,8 +15,9 @@ public adaptations are recorded in
 [`manifest/frontend-source-snapshot.v1.json`](manifest/frontend-source-snapshot.v1.json).
 
 Use `/` for the guided native workbench (`/?view=full` is a compatible alias).
-Each stage hosts the real PAW frontend: Room, Trace, Agent Lab, Memory,
-Input Studio and Context Debug. A visible demo cursor automatically clicks highlighted controls;
+The workbench stages host the real PAW frontend: Room, Trace, Agent Lab and Memory.
+The input stage replays typing, candidates, contextual completion and acceptance,
+with a voice demo alongside it; Input Studio remains available in the details. A visible demo cursor automatically clicks highlighted controls;
 a step advances only after the expected UI result appears. Detail pages also
 lead with native workspaces, with technical explanations folded below.
 Use `/apps` for four independent, interactive Apps: customer handover, cited

@@ -31,7 +31,6 @@ import {
   SquareArrowOutUpRight,
 } from "lucide-react";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { ResumeSection } from "./resume-section";
 import { PrecisionStory } from "./precision-story";
 import { CollaborationResult, ImprovementSection } from "./story-journey";
 import { ShowcasePlayback, type ShowcaseStage } from "./showcase-playback";
@@ -274,7 +273,7 @@ function Navbar() {
         <div className="story-navbar-actions">
           <a className="story-lab-link" href="#lab" aria-current={activeChapter === "lab" ? "location" : undefined} onClick={() => setActiveChapter("lab")}>Agent Lab<ArrowRight size={13}/></a>
           <MoreFeaturesMenu/>
-          <a className="resume-nav-link" href="#framework-overview">框架与技术</a>
+          <a className="resume-nav-link" href="/details/frontend">框架与技术</a>
           <a aria-label="作者 GitHub · 7155" className="gh-icon" href="https://github.com/7155" rel="noreferrer" target="_blank"><GithubMark size={17}/></a>
           <a className="story-source-link" href="https://github.com/7155/paw-story-showcase" rel="noreferrer" target="_blank">源码<SquareArrowOutUpRight size={14}/></a>
         </div>
@@ -1339,7 +1338,6 @@ export function ReferenceProductStory() {
         apps: <VerticalApps embedded/>,
         memory: <ContextSlide manual/>,
         input: <InputSlide/>,
-        "framework-overview": <section className="overview-framework" id="framework-overview"><ResumeSection/></section>,
       }}/>
       <Footer/>
     </main>
@@ -1356,8 +1354,7 @@ export function FullProductStory() {
       lab: <LabShowcase scenario="rag" embedded/>,
         apps: <VerticalApps embedded/>,
       memory: <NativeDemo id="memory" route="/memory" title="真实 PAW Memory 工作区"/>,
-      input: <NativeDemo id="input" route="/input" title="真实 PAW Input Studio"/>,
-      "framework-overview": <NativeDemo id="framework-overview" route="/context-debug" title="真实 PAW 上下文运行检查"/>,
+      input: <InputSlide/>,
     }}/>
     <Footer/>
   </main>;

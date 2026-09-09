@@ -199,23 +199,25 @@ test("unified home contains every demo and resolved module detail links", async 
   assert.match(html, /class="home full-showcase guided-home"/);
   assert.equal((html.match(/<main[ >]/g) || []).length, 1);
   assert.equal((html.match(/<h1[ >]/g) || []).length, 1);
-  for (const id of ["agents", "reliability", "improvement", "lab", "memory", "input", "framework-overview"]) {
+  for (const id of ["agents", "reliability", "improvement", "lab", "apps", "memory", "input"]) {
     assert.equal((html.match(new RegExp(`id="${id}"`, "g")) || []).length, 1);
   }
   const directory = html.slice(html.indexOf('class="showcase-directory guided-directory"'), html.indexOf('</nav>', html.indexOf('class="showcase-directory guided-directory"')));
-  assert.equal((directory.match(/href="#/g) || []).length, 8);
-  assert.equal((html.match(/class="guided-panel"/g) || []).length, 8);
-  assert.equal((html.match(/class="guided-panel" hidden=""/g) || []).length, 7);
+  assert.equal((directory.match(/href="#/g) || []).length, 7);
+  assert.equal((html.match(/class="guided-panel"/g) || []).length, 7);
+  assert.equal((html.match(/class="guided-panel" hidden=""/g) || []).length, 6);
+  assert.match(html, /输入法演示进度/);
+  assert.doesNotMatch(html, /检查运行上下文|id="framework-overview"/);
   assert.match(directory, /href="#agents" aria-current="step"/);
   for (const [, anchor] of directory.matchAll(/href="#([^"]+)"/g)) assert.ok(html.includes(`id="${anchor}"`), anchor);
   const { showcaseChapters } = await vite.ssrLoadModule("/app/showcase-directory.tsx");
   for (const item of showcaseChapters) await readFile(path.join(root, `app${item.href}/page.tsx`), "utf8");
   assert.match(html, /下一步：诊断/);
-  assert.equal((html.match(/<iframe/g) || []).length, 7);
+  assert.equal((html.match(/<iframe/g) || []).length, 5);
   assert.match(html, /room-transformation[^>]*data-stage="orbit"/);
   assert.match(html, /room-orbit-layer/);
-  for (const title of ["真实 PAW Trace 运行记录", "真实 PAW Lab · 写入与登记优化演示", "真实 PAW Memory 工作区", "真实 PAW Input Studio", "真实 PAW 上下文运行检查"]) assert.ok(html.includes(title));
-  assert.doesNotMatch(html, /story-candidates|improvement-steps|输入法演示进度/);
+  for (const title of ["真实 PAW Trace 运行记录", "真实 PAW Lab · 写入与登记优化演示", "真实 PAW Memory 工作区"]) assert.ok(html.includes(title));
+  assert.doesNotMatch(html, /story-candidates|improvement-steps/);
 
   assert.match(html, /lab-showcase--embedded/);
   assert.match(html, /应用实验室/);

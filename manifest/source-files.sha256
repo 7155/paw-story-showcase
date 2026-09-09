@@ -1,7 +1,7 @@
 7ad2a64c1248db2894b10d0da99ce4aae4b4d23d4f53ad17e275b90de00cdc86  .dockerignore
 c381922d335f79e5afaaef45238b0131e219ac84de92b1850a636eeb5c22fee4  .gitignore
 b5ccec3f765848bb5d7665889b45103ed64c3c7194ca9d1c0c4cf2c16f2fb242  Dockerfile
-2d415e1dd0c52d53addd1d713505a033885e3c65a6940907b6d203127f5465d5  README.md
+c33e55563e41606360fe7ef05256aa4a460dbe36224b8be88708e200c6137598  README.md
 a39758f33c20a7b6772c4767c83744cc96305c33ee97dc5944d2fb664bbaf3ec  SHOWCASE_DATA.md
 f29fb3a6d71d230162b2b6bf16e244eb775979cadcab615b3a1d697ee18b7fab  UPSTREAM.json
 48aabbfb1782e77a76412293c1e3ad5b7ec7a698729309dc93a405520dd27ddb  assets/brand/README.md
@@ -976,7 +976,7 @@ da85f526c82acf5f7f77c8b4c60bd57dad554990d9e9eb19734484da9c087e9e  paw-story-demo
 6877cea5846b779aa9abd417b59a7997eeb6411aad6d3c66b2f06e0af44d117f  paw-story-demo/app/full-showcase.css
 8a812967a0da01ab4994c0d4ee413fcce9c996f83a9cc28b9a02b662fc919d1c  paw-story-demo/app/globals.css
 b47d999ad18100a2214668c504dbc0fd844bdb59a0d8b5ee5247ec2aa1b18f4b  paw-story-demo/app/guided-showcase.css
-f32a48ab0c394029ad87bcaaa93c6f7a5f31333ad93888c3f59dc4b28c62e915  paw-story-demo/app/guided-showcase.tsx
+50c0a9e1dd8398194997101327f8ad0650b065fc955bc974bf40b26a0733d125  paw-story-demo/app/guided-showcase.tsx
 adf67408cc4ef672b76d02a46298108a80af66dfca494496a1374e6923de03ac  paw-story-demo/app/hands-on-hint.tsx
 64ee07359cfabcf4bf72850fb5089f3f9689870536cfcfdcb371b3606cb46a2a  paw-story-demo/app/lab/lab-showcase.css
 d08aa25f46943a33456bafbb19dd534f45aaa115e0050cd080e1e32eba4b72a2  paw-story-demo/app/lab/lab-showcase.tsx
@@ -985,7 +985,7 @@ d20c2de7a20ba0e821fee7e6b3127b7abafd937f16f228f923047402af185a72  paw-story-demo
 1ec1680502cfad24ae84c99b30f9201d6d569866713e53f5a7fc97dba71733e0  paw-story-demo/app/layout.tsx
 6c1cf00d7258827dfe78a2c1645d16e807daee876eb828b6532ccb110c2a9093  paw-story-demo/app/native-demo.css
 c08ea2f5b02e8fde76e31d44e7d06bedecaaeb89d270c5dc17ef5db47f2ed849  paw-story-demo/app/native-demo.tsx
-594e748d968b24292ea69b04c8010f449166900208b075f18af33bfb61204a1d  paw-story-demo/app/page.tsx
+a5e15163ebee500a4b489f2eecb5ad57dd5907b4eaa35b76e97045d8824ded26  paw-story-demo/app/page.tsx
 af98c96d9e55ce239da550ae8f8c899489e1fc518127ee92ed06cc3ae22e72ff  paw-story-demo/app/precision-story.css
 e16a1e6b04eabe7f825b728b8486c04d2e36c6433ed8b7e8950529fc423b8a22  paw-story-demo/app/precision-story.tsx
 5be1ba3523cd7e3c0a1e626a0b309c9d784af270152062775cae15fcfc613fbe  paw-story-demo/app/project-atlas.css
@@ -993,7 +993,7 @@ e16a1e6b04eabe7f825b728b8486c04d2e36c6433ed8b7e8950529fc423b8a22  paw-story-demo
 9327cbada39c8bdb280b8b458c889c958f1d1e9c3104ec09cdec744ae2ba67b1  paw-story-demo/app/project-reading-route.css
 ba1884526824784265a2ce4d645d40da694eb011fec3b4cda35c1d5681adb405  paw-story-demo/app/project-reading-route.tsx
 5197fcc682d05e0cd4c980f28fa003859d559b1abcf0906a2f1cb7101bd3ad57  paw-story-demo/app/resume-section.tsx
-d7e2f347e98f51dead89099c2a5831ec842ed2e5ace692f5d69660952a6119f6  paw-story-demo/app/showcase-directory.tsx
+a134d60e8b984ed84eb11b842bbe798c050a213788581c645500bd61f25805cf  paw-story-demo/app/showcase-directory.tsx
 66ddba5ca46b845dbc74057b0d8657aa23f5d8b02bc20dea7381ea4df4cf3e08  paw-story-demo/app/showcase-playback.tsx
 4b9f36cc33923357e5ffe739f5de2b3a86e705bbd24d855adf9e90f3bd211f27  paw-story-demo/app/story-journey.tsx
 7f261630166c8327cf5163a7d0d61d94a7d2d9966ddcf13adcd3ca123d2e635d  paw-story-demo/app/story-system.css
@@ -1180,7 +1180,7 @@ d131856ad0338a00e2ec65f46735047d460af88302047e15bab1fed857bb754f  paw-story-demo
 4995d6abda058d7dda279adcc1830b3dacadda7c4fa5d54d22ec7141599bed38  paw-story-demo/tests/guided-lab.test.mjs
 eae1d187870ad9a4b3f0c37b40589b25c1a2090dcbee19964555cf70c136b118  paw-story-demo/tests/rendered-html.test.mjs
 6988d9c5beba3bf34b47d5a5d55cfde988d490cacee7c0a4f3ae7ec3b1b79115  paw-story-demo/tests/task-story.test.mjs
-42eca0fae3d92dfc91971be910693a885fd52df0c00c5165af57cd1f0e348179  paw-story-demo/tests/ui-components.test.mjs
+abb4f8628dc83ec6af4951667b77f89ecdafccc87e961d91da261eeafa1d313f  paw-story-demo/tests/ui-components.test.mjs
 78b32827340020946561f99ca15589ee9470e9da408b13ba674f942d7f5fa220  paw-story-demo/tsconfig.json
 1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f  paw-story-demo/vendor/shadcn-tailwind-4.13.0.LICENSE.md
 bc7d83425702955b4cb67cb14ede9d603f9d912376d57a2d81d661094d2a782a  paw-story-demo/vendor/shadcn-tailwind-4.13.0.css

@@ -8,7 +8,6 @@ import './guided-showcase.css';
 function subscribe(listener: () => void) { window.addEventListener('hashchange', listener); return () => window.removeEventListener('hashchange', listener); }
 function snapshot() {
   const id = window.location.hash.slice(1);
-  if (['framework', 'resume', 'story-route'].includes(id)) return 'framework-overview';
   return showcaseChapters.some(item => item.id === id) ? id : 'agents';
 }
 const serverSnapshot = () => 'agents';
