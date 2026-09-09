@@ -77,6 +77,16 @@
       "selectedSourceInputFileCount": 72,
       "adoptedUnmodifiedSourceFileCount": 67,
       "mergedShowcaseFileCount": 5
+    },
+    {
+      "capturedAt": "2026-09-09T13:31:00.882673+00:00",
+      "sourceCommit": "a9ce9ec1eb4810adf06b9e82a81fe795e583782b",
+      "sourceWorkingTreeState": "selected-production-files-match-commit",
+      "scope": "Matching Trace query response contracts after clean-source regression verification.",
+      "sourceManifest": "manifest/frontend-source-refresh-20260909-trace-contract.json",
+      "selectedSourceInputFileCount": 3,
+      "adoptedUnmodifiedSourceFileCount": 3,
+      "mergedShowcaseFileCount": 0
     }
   ],
   "dataMode": "synthetic-preview-only",

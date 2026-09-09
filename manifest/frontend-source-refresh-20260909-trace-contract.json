@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "paw.showcase-frontend-refresh.v1",
+  "capturedAt": "2026-09-09T13:31:00.882673+00:00",
+  "sourceRepository": "7155/personal-agent-workbench",
+  "sourceCommit": "a9ce9ec1eb4810adf06b9e82a81fe795e583782b",
+  "sourceWorkingTreeState": "selected-production-files-match-commit",
+  "scope": "Synchronize the embedded Trace response optimization metadata and generated validators.",
+  "dataMode": "synthetic-preview-only",
+  "files": [
+    {
+      "path": "control-center-web/src/contracts/generated-validators.ts",
+      "sourceSha256": "8d83714463ffc369000702da8b6dbc01993852682b02b1b134970e25e5b08c97",
+      "showcaseSha256": "8d83714463ffc369000702da8b6dbc01993852682b02b1b134970e25e5b08c97",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/contracts/generated/observability-trace-get.v1.ts",
+      "sourceSha256": "20d672139e86a66dd499d9c1f432c93c68f5c879e945a38a1283cd52f6dca6dd",
+      "showcaseSha256": "20d672139e86a66dd499d9c1f432c93c68f5c879e945a38a1283cd52f6dca6dd",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/contracts/schema-index.ts",
+      "sourceSha256": "b1f8a8ba9ba2cbaa2da57cfe901bda3bc3cc3e9930c0509f608fc458b2046800",
+      "showcaseSha256": "b1f8a8ba9ba2cbaa2da57cfe901bda3bc3cc3e9930c0509f608fc458b2046800",
+      "adaptation": "none"
+    }
+  ]
+}
