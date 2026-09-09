@@ -849,7 +849,7 @@ aad068008657cced01e09a5c59ec81556eede81552f13f27d7d0b46a118a03fb  control-center
 28bf50c7b79330b1c917134c91871e723bf479c889f5cfe10ec2540a38c62510  control-center-web/src/paw-os/shell/PawBackgroundActivity.tsx
 b2cf31a082b2f4e90d81e49d27f5375f9456c81077e2410c266cb5086829f98f  control-center-web/src/paw-os/shell/PawCompositionField.tsx
 0172f21bcc1e757a05663aeb09b76301072232b36d523e6818767e649ecaf4c4  control-center-web/src/paw-os/shell/PawContextMenu.tsx
-b10a5a78ad324eb5f8653f8ebc3ad871ec52501967d65dfbf5fc88377cf681be  control-center-web/src/paw-os/shell/PawDesktop.tsx
+5b1b12776b031047866bc57c1c75183111715104033e303a76649b5492c0d2a1  control-center-web/src/paw-os/shell/PawDesktop.tsx
 cf944577d423d7951de8530871fa781333b080342f1ea123d55aff967ea7cb19  control-center-web/src/paw-os/shell/PawFieldLede.tsx
 e006bcd885b1e7d4f7d7e75dca08ca6732f387880d200c2872357aa0aa3fde80  control-center-web/src/paw-os/shell/PawNotificationCenter.tsx
 b3c3092dcf25c369b89340e92fb719a0920d073186fc10dfa7c0dfb76563ce92  control-center-web/src/paw-os/shell/PawProjectDocuments.tsx
