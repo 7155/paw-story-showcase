@@ -116,7 +116,7 @@ export function PawTraceFlowShowcaseDirector() {
   const openTraceAgent = useCallback(() => {
     if (findVisible('.trace-showcase-workbench')) return;
     const state = api.getState();
-    const windowId = state.openApp('system-monitor', { initialRoute: '/trace-agent', title: 'Trace Agent' });
+    const windowId = state.openApp('trace-agent', { initialRoute: '/trace-agent', title: 'Trace Agent' });
     const opened = api.getState().windows[windowId];
     if (opened && opened.placement !== 'maximized') api.getState().toggleMaximize(windowId);
   }, [api, findVisible]);

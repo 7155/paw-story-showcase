@@ -1,0 +1,443 @@
+{
+  "schemaVersion": "paw.showcase-frontend-refresh.v1",
+  "capturedAt": "2026-09-09T13:21:14.361554+00:00",
+  "sourceRepository": "7155/personal-agent-workbench",
+  "sourceCommit": "9dd4f105e9a9d5d7940be563bf192a0abf79d6e9",
+  "sourceWorkingTreeState": "selected-production-files-match-commit",
+  "scope": "Latest Room round sheets and centered partner windows, standalone Trace optimization App and contracts, shared App sidebars, Extension host registry and two-second stellar frame animation. Preserve the newer Lab candidate frontend captured earlier today and synthetic public adapters.",
+  "dataMode": "synthetic-preview-only",
+  "files": [
+    {
+      "path": "control-center-web/src/app/mount-control-center.tsx",
+      "sourceSha256": "e98ca7590e8fe75be528579e7fb6fc24521cd49ac63994b61207f4c9028f9b03",
+      "showcaseSha256": "e98ca7590e8fe75be528579e7fb6fc24521cd49ac63994b61207f4c9028f9b03",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/app/register-extension-hosts.ts",
+      "sourceSha256": "2904f74eaeb3f0e1293bc645ae440ed5c51e72907c23706c1f636406aac7a4fa",
+      "showcaseSha256": "2904f74eaeb3f0e1293bc645ae440ed5c51e72907c23706c1f636406aac7a4fa",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/contracts/generated-validators.ts",
+      "sourceSha256": "c54348642867ea21edd5dde5dfb338cd58e3d2dc2c9edf5bf87f8393f140a38d",
+      "showcaseSha256": "c54348642867ea21edd5dde5dfb338cd58e3d2dc2c9edf5bf87f8393f140a38d",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/contracts/generated.ts",
+      "sourceSha256": "f84686d376190373a58f215bf3ed3644676cc7807310cf8fd58ef83cb195ed34",
+      "showcaseSha256": "f84686d376190373a58f215bf3ed3644676cc7807310cf8fd58ef83cb195ed34",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/contracts/generated/trace-diagnostic-inspection.v1.ts",
+      "sourceSha256": "f0219bd4222e644319c27dbf65d0284d86e3d868b291348e651caa42d755900b",
+      "showcaseSha256": "f0219bd4222e644319c27dbf65d0284d86e3d868b291348e651caa42d755900b",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/contracts/generated/trace-diagnostic-report-list.v1.ts",
+      "sourceSha256": "bb9fa245d1541aff4475b3435597104a1ed810b8b4e9e5723de2bd94199bc37e",
+      "showcaseSha256": "bb9fa245d1541aff4475b3435597104a1ed810b8b4e9e5723de2bd94199bc37e",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/contracts/generated/trace-diagnostic-report.v1.ts",
+      "sourceSha256": "aef21ce847e9a477b8be9af5729d4e9e862be08a0bb7f572fbeb0811a3989481",
+      "showcaseSha256": "aef21ce847e9a477b8be9af5729d4e9e862be08a0bb7f572fbeb0811a3989481",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/contracts/generated/trace-diagnostic-result.v1.ts",
+      "sourceSha256": "705826173c9ca80fc5d8019b6fc2931f021bdc538c1d635cd9ab0649c901b0d5",
+      "showcaseSha256": "705826173c9ca80fc5d8019b6fc2931f021bdc538c1d635cd9ab0649c901b0d5",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/contracts/generated/trace-envelope.v1.ts",
+      "sourceSha256": "c4e415784c0113caba9d38e823602e5f2173876e013063edfb829a1dd6931fa6",
+      "showcaseSha256": "c4e415784c0113caba9d38e823602e5f2173876e013063edfb829a1dd6931fa6",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/contracts/generated/trace-optimization.v1.ts",
+      "sourceSha256": "2376b5c1520f1f8f492804b447025298ca35328a01e455882a07747a8a7d023c",
+      "showcaseSha256": "2376b5c1520f1f8f492804b447025298ca35328a01e455882a07747a8a7d023c",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/contracts/schema-index.ts",
+      "sourceSha256": "40f937caa3249217e7999bc9305e527a4fdae886ebcb2ecb9e9313401ade3531",
+      "showcaseSha256": "40f937caa3249217e7999bc9305e527a4fdae886ebcb2ecb9e9313401ade3531",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/files/PawOsFilesApp.tsx",
+      "sourceSha256": "2b90fb35716e9ad8237fc18bcc8937055525402e4fcc5d6c7444b75faac2430d",
+      "showcaseSha256": "2b90fb35716e9ad8237fc18bcc8937055525402e4fcc5d6c7444b75faac2430d",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/files/paw-os-files-app.css",
+      "sourceSha256": "8de32ceb1e4c07ce17eb058a0a22d433a2e0cfd539feb3879ba27382673f5426",
+      "showcaseSha256": "8de32ceb1e4c07ce17eb058a0a22d433a2e0cfd539feb3879ba27382673f5426",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/knowledge/index.tsx",
+      "sourceSha256": "23294acd4884d972019322c1b1aa6bc8cdd9de1ca8bb7ec3407469f989a549d8",
+      "showcaseSha256": "23294acd4884d972019322c1b1aa6bc8cdd9de1ca8bb7ec3407469f989a549d8",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/knowledge/knowledge.css",
+      "sourceSha256": "219478cb2df449613a982ba182fc77f7a5a7f1f356e6132d96addfa0abcd59da",
+      "showcaseSha256": "219478cb2df449613a982ba182fc77f7a5a7f1f356e6132d96addfa0abcd59da",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/paw-os/app-icons.ts",
+      "sourceSha256": "1d5d119b9fdfc4d66f1511f7f86791f3ff30c1968b6bcb8e9f4533700898667a",
+      "showcaseSha256": "1d5d119b9fdfc4d66f1511f7f86791f3ff30c1968b6bcb8e9f4533700898667a",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/paw-os/model/app-registry.ts",
+      "sourceSha256": "8f39aa306eef2a014c1ae9ae562649436f5a488cd372d3723b33b285f8124717",
+      "showcaseSha256": "8f39aa306eef2a014c1ae9ae562649436f5a488cd372d3723b33b285f8124717",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/diagnostic-start.ts",
+      "sourceSha256": "fbe2f402a5eabb6957bdc6e27fd9961b930394917d05a168dfa765af054de310",
+      "showcaseSha256": "fbe2f402a5eabb6957bdc6e27fd9961b930394917d05a168dfa765af054de310",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/html-export.ts",
+      "sourceSha256": "cad07d3a016aab5fca447d1b80ced30b0a378ee34414984c1e1cc91709ba0dce",
+      "showcaseSha256": "cad07d3a016aab5fca447d1b80ced30b0a378ee34414984c1e1cc91709ba0dce",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/index.tsx",
+      "sourceSha256": "505d393e4c60bfc1440ee12d3e93dbe757a7c4ba111c47b34372a5932fe0b381",
+      "showcaseSha256": "505d393e4c60bfc1440ee12d3e93dbe757a7c4ba111c47b34372a5932fe0b381",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/optimization-command.ts",
+      "sourceSha256": "5eef381143e88516ab0c6a92759509a40c89c07caa4a8d0e1a17e1a4fe86d28a",
+      "showcaseSha256": "5eef381143e88516ab0c6a92759509a40c89c07caa4a8d0e1a17e1a4fe86d28a",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/optimization-intent.tsx",
+      "sourceSha256": "5766f7a2e23aeb16c963ae1f7afec1932221686553ecf192ff203fc0feb0f499",
+      "showcaseSha256": "5766f7a2e23aeb16c963ae1f7afec1932221686553ecf192ff203fc0feb0f499",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/optimization-report-content.tsx",
+      "sourceSha256": "517ca7d8d16472bac1495bc095f9e263baaf27997fd643b2ec928a37336b3ef8",
+      "showcaseSha256": "517ca7d8d16472bac1495bc095f9e263baaf27997fd643b2ec928a37336b3ef8",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/optimization-report-model.ts",
+      "sourceSha256": "9438f5ae910417780699487cab03e67bb091d6372e725e74cae56294a5fee3f0",
+      "showcaseSha256": "9438f5ae910417780699487cab03e67bb091d6372e725e74cae56294a5fee3f0",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/optimization-report.css",
+      "sourceSha256": "35fd199b53ef9e8d74db6d09f857d9c515952b48e7bf3eb1ad81d9f360f98b9a",
+      "showcaseSha256": "35fd199b53ef9e8d74db6d09f857d9c515952b48e7bf3eb1ad81d9f360f98b9a",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/report-document.tsx",
+      "sourceSha256": "0e1170f484cb62a31e91e104c0c977e1b27e48d4d5503f06723bc4e5e6a0417f",
+      "showcaseSha256": "0e1170f484cb62a31e91e104c0c977e1b27e48d4d5503f06723bc4e5e6a0417f",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/timeline-order.ts",
+      "sourceSha256": "4236320702dea48078ed102cc8985304573bc01b102e687a44bb1d6bd4d1c3d9",
+      "showcaseSha256": "4236320702dea48078ed102cc8985304573bc01b102e687a44bb1d6bd4d1c3d9",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/trace-agent.css",
+      "sourceSha256": "253e405e5422dff4d87d73af75606b247bbf0c31f47ef6a7cf7ae3a6d7fc39b9",
+      "showcaseSha256": "d38e6c7ffe3198fc4ed945ee3f80b08857ae5ab72ee6a1db260f044f622645c0",
+      "adaptation": "Preserve public showcase integration while adopting the latest source change."
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/trace-app-shell.tsx",
+      "sourceSha256": "ea4b3573352bceaa13a4f887304b9ca913b9027d605ecdb06b5f23728c5f5c5b",
+      "showcaseSha256": "ea4b3573352bceaa13a4f887304b9ca913b9027d605ecdb06b5f23728c5f5c5b",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/features/trace-agent/trace-app.css",
+      "sourceSha256": "101242b273317495a121017aac8186bb58beab4ad2b11dbe2ad9271e77e503d9",
+      "showcaseSha256": "101242b273317495a121017aac8186bb58beab4ad2b11dbe2ad9271e77e503d9",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/apps/PawAppsRuntime.tsx",
+      "sourceSha256": "3fb35c290d257cbe2fa4ce5f6f9794794ac53dd13b4f24e8e295cd1b322f39a2",
+      "showcaseSha256": "3fb35c290d257cbe2fa4ce5f6f9794794ac53dd13b4f24e8e295cd1b322f39a2",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/apps/PawNativeApps.tsx",
+      "sourceSha256": "c5ad53008705ab8e01a5a298340fd0bc0660e5c08434c11c29e07c46885d394b",
+      "showcaseSha256": "c5ad53008705ab8e01a5a298340fd0bc0660e5c08434c11c29e07c46885d394b",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/apps/PawRoomRoundSheet.tsx",
+      "sourceSha256": "639855a3efedd0a0b74a83caf60e81ce23ec9c2c5613be92980eebb8c84fd367",
+      "showcaseSha256": "639855a3efedd0a0b74a83caf60e81ce23ec9c2c5613be92980eebb8c84fd367",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/apps/PawRoomWorkspace.tsx",
+      "sourceSha256": "e499a3d646eaf2a6c9236e098554f5b20ab96fcc6d2dc8cf3f1ff6403986800f",
+      "showcaseSha256": "bbb7dd0c10f14d7d9f93f5ca3a9eb9764b861e5a86d7097013bb90a521dfae28",
+      "adaptation": "Preserve public showcase integration while adopting the latest source change."
+    },
+    {
+      "path": "control-center-web/src/paw-os/apps/PawSystemAppsMigrated.tsx",
+      "sourceSha256": "52a2f828df625c27da3ec8c92321725dedb3b7894bf54ef213d0251668cbc77d",
+      "showcaseSha256": "52a2f828df625c27da3ec8c92321725dedb3b7894bf54ef213d0251668cbc77d",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/apps/app-sidebar.css",
+      "sourceSha256": "cc2777318aeaffb8289970cfbfd60306ef4336408e0809544831161bc8125532",
+      "showcaseSha256": "cc2777318aeaffb8289970cfbfd60306ef4336408e0809544831161bc8125532",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/apps/app-sidebar.tsx",
+      "sourceSha256": "3628483a75862b0979c7c62a4b77d848b449ff0907add1c9c83af2977d301ad9",
+      "showcaseSha256": "3628483a75862b0979c7c62a4b77d848b449ff0907add1c9c83af2977d301ad9",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/apps/entries/PawTraceAgentAppEntry.tsx",
+      "sourceSha256": "5cd1b46b0d35b5cd24cfdaa4f34db5c3a58795a78e83124c0c30d395248be08a",
+      "showcaseSha256": "0b919279ec3285040a21b431ca95c320950bffb877521ec02176b7196459a5c0",
+      "adaptation": "Preserve public showcase integration while adopting the latest source change."
+    },
+    {
+      "path": "control-center-web/src/paw-os/apps/paw-apps.css",
+      "sourceSha256": "0ba9dca923b125a4ae5774f680d9bf72c4adf3409784ac792234f8e8a5c17e00",
+      "showcaseSha256": "ea4056bafbc48572da41c4e09a0b1bf804a2a28abd0750340cfd03112f4e9e41",
+      "adaptation": "Preserve public showcase integration while adopting the latest source change."
+    },
+    {
+      "path": "control-center-web/src/paw-os/apps/paw-room-round-sheet.css",
+      "sourceSha256": "f75faf692240a130dc08e305fca1a8848ebd25370b4300b9a860c8e58a187830",
+      "showcaseSha256": "f75faf692240a130dc08e305fca1a8848ebd25370b4300b9a860c8e58a187830",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/apps/room-round-task-sheet.ts",
+      "sourceSha256": "05940c1b61377ff9e2c5e3d7ba9b714148488f9cfa04a0a2a19571683ba65ba1",
+      "showcaseSha256": "05940c1b61377ff9e2c5e3d7ba9b714148488f9cfa04a0a2a19571683ba65ba1",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/nebula-frames/00.png",
+      "sourceSha256": "948fdd4e6f6cf310b70d1a561e0fcbd7453ac50b3ea0daad5ac8289fcf414cd3",
+      "showcaseSha256": "948fdd4e6f6cf310b70d1a561e0fcbd7453ac50b3ea0daad5ac8289fcf414cd3",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/nebula-frames/01.png",
+      "sourceSha256": "d38bf27500b06eb094b8520109c6bb2089ec3434c22241d82d1e5051699361fa",
+      "showcaseSha256": "d38bf27500b06eb094b8520109c6bb2089ec3434c22241d82d1e5051699361fa",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/nebula-frames/02.png",
+      "sourceSha256": "1946af4e89fb41b902c05ae65c4a614c1be36fd3bf2f8a3d6d62f6af8c161b5b",
+      "showcaseSha256": "1946af4e89fb41b902c05ae65c4a614c1be36fd3bf2f8a3d6d62f6af8c161b5b",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/nebula-frames/03.png",
+      "sourceSha256": "355fded409cb38451d3e1b6654f27398d615ffb4c29d6bdebad1912ab0589148",
+      "showcaseSha256": "355fded409cb38451d3e1b6654f27398d615ffb4c29d6bdebad1912ab0589148",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/nebula-frames/04.png",
+      "sourceSha256": "e32be611a91654d96cbe9330c436b52635a0fcb58368e79918dde43021dfa561",
+      "showcaseSha256": "e32be611a91654d96cbe9330c436b52635a0fcb58368e79918dde43021dfa561",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/nebula-frames/05.png",
+      "sourceSha256": "e0535c3626bf6ef4c79b859e7e5686c1bfa0511243adb63c7a04aee821e22f1d",
+      "showcaseSha256": "e0535c3626bf6ef4c79b859e7e5686c1bfa0511243adb63c7a04aee821e22f1d",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/nebula-frames/06.png",
+      "sourceSha256": "0d3b9834a8038de5f0be3f52100f78d2d990f57db652b196a07cf57887349b32",
+      "showcaseSha256": "0d3b9834a8038de5f0be3f52100f78d2d990f57db652b196a07cf57887349b32",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/nebula-frames/07.png",
+      "sourceSha256": "1fc081a892043c2b08c149bfe34d4cbc6a9fffefe4f8742893ccf3e43460b556",
+      "showcaseSha256": "1fc081a892043c2b08c149bfe34d4cbc6a9fffefe4f8742893ccf3e43460b556",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/nebula-frames/08.png",
+      "sourceSha256": "efb75aad6cf7ea98bbdc0574761a606593ac694e48df5a75c74f5656389aa74b",
+      "showcaseSha256": "efb75aad6cf7ea98bbdc0574761a606593ac694e48df5a75c74f5656389aa74b",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/nebula-frames/09.png",
+      "sourceSha256": "5a9b8de455b3cd0fbe87f33ab1ee720a40758a42d8220d592c6838f4ce3cc887",
+      "showcaseSha256": "5a9b8de455b3cd0fbe87f33ab1ee720a40758a42d8220d592c6838f4ce3cc887",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/ringed-frames/00.png",
+      "sourceSha256": "b2063a0b820e747c25d7612db156e76221f9332415549b925a6ba3797a31dbe5",
+      "showcaseSha256": "b2063a0b820e747c25d7612db156e76221f9332415549b925a6ba3797a31dbe5",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/ringed-frames/01.png",
+      "sourceSha256": "9c8635a4175d21c9b77425c65829aeae7f1b317a4c7d3800434acb285d0bf01e",
+      "showcaseSha256": "9c8635a4175d21c9b77425c65829aeae7f1b317a4c7d3800434acb285d0bf01e",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/ringed-frames/02.png",
+      "sourceSha256": "781a2a738bc215e1111e03229eb61d680a1bf1e9583fb14b9ff215dc9f819d17",
+      "showcaseSha256": "781a2a738bc215e1111e03229eb61d680a1bf1e9583fb14b9ff215dc9f819d17",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/ringed-frames/03.png",
+      "sourceSha256": "c669fd093887018a34c052af15f80b5259f106070396bf122c5f0fbe01c3a32d",
+      "showcaseSha256": "c669fd093887018a34c052af15f80b5259f106070396bf122c5f0fbe01c3a32d",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/ringed-frames/04.png",
+      "sourceSha256": "35d8bc9a50e5efc271554c418e962ce2000da204ee2b7ea7efd8e34259c9afd0",
+      "showcaseSha256": "35d8bc9a50e5efc271554c418e962ce2000da204ee2b7ea7efd8e34259c9afd0",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/ringed-frames/05.png",
+      "sourceSha256": "d1a592976febd7458690073acfc1260a8a8b9b9f7077e0ea7a1be44de73ab28b",
+      "showcaseSha256": "d1a592976febd7458690073acfc1260a8a8b9b9f7077e0ea7a1be44de73ab28b",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/ringed-frames/06.png",
+      "sourceSha256": "57a0a4baf24e037c9e4f9b47c27490cb8a04c370e0faf7b5a9b2620cf7439e7e",
+      "showcaseSha256": "57a0a4baf24e037c9e4f9b47c27490cb8a04c370e0faf7b5a9b2620cf7439e7e",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/ringed-frames/07.png",
+      "sourceSha256": "3a5c24395fc806ac7adefd4fa43ba5e685f892ff885c71b9ff2bcbd86553721c",
+      "showcaseSha256": "3a5c24395fc806ac7adefd4fa43ba5e685f892ff885c71b9ff2bcbd86553721c",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/ringed-frames/08.png",
+      "sourceSha256": "3407effae924ba3fe12992ff3d01725287d582d8d4f5c1cb216a0d4afdf0d73c",
+      "showcaseSha256": "3407effae924ba3fe12992ff3d01725287d582d8d4f5c1cb216a0d4afdf0d73c",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/assets/stellar/ringed-frames/09.png",
+      "sourceSha256": "fb3c0acb6c682a7bf0953cadfc2b8301143203bfd07df97f9b3f513fd2276560",
+      "showcaseSha256": "fb3c0acb6c682a7bf0953cadfc2b8301143203bfd07df97f9b3f513fd2276560",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/extensions/host-registry.ts",
+      "sourceSha256": "ae9b12ca5c03a48e8de33eadbc571f05373987f49d52e1638be0da2df965b200",
+      "showcaseSha256": "ae9b12ca5c03a48e8de33eadbc571f05373987f49d52e1638be0da2df965b200",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/extensions/registry.ts",
+      "sourceSha256": "a5f531491512fed918be3759e1a7b335e5e617970d9aa2be1dea0ac04098d14f",
+      "showcaseSha256": "a5f531491512fed918be3759e1a7b335e5e617970d9aa2be1dea0ac04098d14f",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/shell/PawAppIcon.tsx",
+      "sourceSha256": "b2a8e827af503c4cf988e718c13d05698fdc81c45478d385e3dcec9dbae82a8d",
+      "showcaseSha256": "b2a8e827af503c4cf988e718c13d05698fdc81c45478d385e3dcec9dbae82a8d",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/shell/PawStellarBackdrop.tsx",
+      "sourceSha256": "8df2e3ed4b8d77426644a0735795245103e56b3675918e77b53f39cb7431ae2d",
+      "showcaseSha256": "8df2e3ed4b8d77426644a0735795245103e56b3675918e77b53f39cb7431ae2d",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/shell/PawStopMotionPlanet.tsx",
+      "sourceSha256": "e93ee157b81396d3a0e8f4372579c80f19dd6f0ff9f76c2e6f7a44a119414e8b",
+      "showcaseSha256": "e93ee157b81396d3a0e8f4372579c80f19dd6f0ff9f76c2e6f7a44a119414e8b",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/shell/PawWindowLayer.tsx",
+      "sourceSha256": "ca21300676bc3d7c446aa3530d053a2bca5c684b87a9fa809f28bbf3584dae71",
+      "showcaseSha256": "ca21300676bc3d7c446aa3530d053a2bca5c684b87a9fa809f28bbf3584dae71",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/shell/stellar-stop-motion.ts",
+      "sourceSha256": "14b05f808b4ce09e283216a5ff5f497aa655785de4ab8670a14dd29e61c729a2",
+      "showcaseSha256": "14b05f808b4ce09e283216a5ff5f497aa655785de4ab8670a14dd29e61c729a2",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/styles/paw-os-room-focus.css",
+      "sourceSha256": "c68d127513b0f18fe466903ade6cafb51763f278f2bcedfc5636a813a4204410",
+      "showcaseSha256": "c68d127513b0f18fe466903ade6cafb51763f278f2bcedfc5636a813a4204410",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/styles/paw-os-stellar.css",
+      "sourceSha256": "52898101af9260a2593e40b345e524b59d7e24b957d1db454ab1fa707809803d",
+      "showcaseSha256": "52898101af9260a2593e40b345e524b59d7e24b957d1db454ab1fa707809803d",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/paw-os/styles/paw-os-sys-apps-migrated-v1.css",
+      "sourceSha256": "5ee7c8da6cab94ae8cc5fcf8529cc5cd904daa15304cda9cb0583e87acd9cddc",
+      "showcaseSha256": "5ee7c8da6cab94ae8cc5fcf8529cc5cd904daa15304cda9cb0583e87acd9cddc",
+      "adaptation": "none"
+    },
+    {
+      "path": "control-center-web/src/platform/routes.ts",
+      "sourceSha256": "02780757918593655b580391a6e03e3fb057edd33624b8d4572ead5c0f3060c9",
+      "showcaseSha256": "97722c4c03d5ebb97b1be85c6024c408b9ab990d56332d3fc434999cdefa187e",
+      "adaptation": "Preserve public showcase integration while adopting the latest source change."
+    }
+  ]
+}

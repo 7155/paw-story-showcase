@@ -119,9 +119,13 @@
 }
 .paw-desktop-root .paw-planet-detach { margin-left: auto; }
 .paw-desktop-root .paw-window-shell[data-focus-layout] .paw-planet-close { margin-left: 0; }
-.paw-desktop-root .paw-room-focus-satellite-rail { position: absolute; z-index: 10; inset-inline: 0; overflow: auto hidden; overscroll-behavior-x: contain; pointer-events: auto; scrollbar-width: thin; scrollbar-color: #a8b4c4 transparent; }
+.paw-desktop-root .paw-room-focus-satellite-rail { position: absolute; z-index: 10; min-width: 0; min-height: 0; overflow: hidden auto; overscroll-behavior-y: contain; pointer-events: auto; scrollbar-width: thin; scrollbar-color: var(--paw-stellar-muted, #a8b4c4) transparent; }
 .paw-desktop-root .paw-room-focus-satellite-rail:focus-visible { outline: 2px solid #3567b7; outline-offset: -2px; }
-.paw-desktop-root .paw-room-focus-satellite-track { position: relative; height: 100%; min-width: 100%; }
+.paw-desktop-root .paw-room-focus-satellite-track { position: relative; width: 100%; min-height: 100%; }
+/* Ordinary resize handles extend 12px beyond their window. In a scrolling
+ * partner area that creates a scrollbar and clips the last content controls.
+ * Keep the existing inner hit area without enlarging this area's scroll box. */
+.paw-desktop-root .paw-room-focus-satellite-rail .paw-window-shell[data-focus-layout] { overflow: clip; }
 .paw-desktop-root .paw-room-focus-traffic.paw-room-focus-overview {
   position: absolute;
   z-index: 45;

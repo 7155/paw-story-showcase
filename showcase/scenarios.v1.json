@@ -109,6 +109,22 @@
       "claim": "synthetic-preview"
     },
     {
+      "id": "trace-agent",
+      "routes": [
+        "/trace-agent",
+        "/trace-agent?view=new",
+        "/trace-agent?view=knowledge",
+        "/trace-agent?view=capabilities"
+      ],
+      "renderOwner": "control-center-web/src/paw-os/apps/entries/PawTraceAgentAppEntry.tsx",
+      "scenarioSources": [
+        "control-center-web/src/app/preview-trace-report-routes.ts",
+        "control-center-web/src/paw-os/showcase/hands-on-guide.ts"
+      ],
+      "claim": "synthetic-preview",
+      "boundary": "Latest standalone Trace frontend with public synthetic reports and frozen task intent. No private capability catalog, model execution, candidate installation, or runtime repair is performed."
+    },
+    {
       "id": "eval-lab",
       "routes": [
         "/eval-lab",

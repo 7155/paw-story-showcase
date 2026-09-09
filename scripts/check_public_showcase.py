@@ -17,7 +17,7 @@ UPSTREAM = ROOT / "UPSTREAM.json"
 SCENARIOS = ROOT / "showcase/scenarios.v1.json"
 FILE_MANIFEST = ROOT / "manifest/source-files.sha256"
 REGISTRY = WEB / "src/features/paw-os/model/app-registry.ts"
-EXPECTED_APP_COUNT = 12
+EXPECTED_APP_COUNT = 13
 TEXT_SUFFIXES = {".css", ".html", ".js", ".json", ".md", ".mjs", ".py", ".ts", ".tsx", ".txt"}
 SECRET_PATTERNS = {
     "GitHub token": re.compile(r"(?:ghp|gho|github_pat)_[A-Za-z0-9_]{20,}"),

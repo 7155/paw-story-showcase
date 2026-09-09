@@ -1349,7 +1349,7 @@ export function FullProductStory() {
     <Navbar/>
     <GuidedShowcase panels={{
       agents: <RoomTransformationDemo id="agents"/>,
-      reliability: <NativeDemo id="reliability" route="/observability" title="真实 PAW Trace 运行记录"/>,
+      reliability: <NativeDemo id="reliability" route="/trace-agent" title="真实 PAW Trace 运行记录"/>,
       improvement: <div id="improvement"><NativeDemo id="optimization" route="/eval-lab?project=lab-showcase-repair" title="真实 PAW Lab · 写入与登记优化演示"/></div>,
       lab: <LabShowcase scenario="rag" embedded/>,
         apps: <VerticalApps embedded/>,

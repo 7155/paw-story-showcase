@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
+import { webcrypto } from 'node:crypto';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { commandLabProject, readLabProject } from '@/features/eval-lab/projects/api';
 import { parseKnowledgeState } from '@/features/eval-lab/projects/knowledge-types';
 import { parseLabAppRead } from '@/features/eval-lab/projects/apps';
@@ -8,13 +9,16 @@ import { createPreviewTransport } from './preview-control-transport';
 import { currentLabExperiments } from '../../../showcase/lab-evidence';
 import { labDemoProjectId } from '../../../showcase/lab-demo';
 
+beforeEach(() => vi.stubGlobal('crypto', webcrypto));
+afterEach(() => vi.unstubAllGlobals());
+
 describe('current PAW Lab showcase transport', () => {
   it('binds all four vertical projects to the same public candidate evidence', async () => {
     const transport = createPreviewTransport();
     for (const experiment of currentLabExperiments) {
       const projectId = labDemoProjectId(experiment.key);
       const { project, artifact } = await readLabProject(transport, projectId, 'candidate-matrix');
-      expect(project?.workspace.primaryArtifactId).toBe('demo-intake');
+      expect(project?.workspace.primaryArtifactId).toBe(experiment.key === 'rag' ? 'paper-experiment-history' : 'demo-intake');
       expect(project?.materialCount).toBe(0);
       const table = artifact?.content as { rows: { quality: string; cost: string; decision: string }[]; caption: string };
       expect(table.rows.map((row) => row.quality)).toEqual(experiment.stages.map((stage) => stage.quality));
@@ -59,19 +63,23 @@ describe('current PAW Lab showcase transport', () => {
     const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Unexpected external request'));
     try {
       const transport = createPreviewTransport();
-      const catalog = await readLabProject(transport);
-      const detail = await readLabProject(transport, catalog.items[0].projectId);
+      const detail = await readLabProject(transport, 'lab-showcase-rag');
       const knowledge = parseKnowledgeState(detail.knowledge);
-      expect(knowledge.indexes[0].corpusHash).toBe(knowledge.corpora[0].corpusHash);
+      expect(knowledge.indexes).toEqual([]);
+      const indexed = await commandLabProject(transport, { action: 'knowledge', projectId: detail.project!.projectId,
+        expectedRevision: detail.project!.revision, clientRequestId: 'lab-project:showcase-index',
+        input: { operation: 'index', corpusId: knowledge.corpora[0].jobId, embedding: 'none', chunking: { strategy: 'general', size: 700, overlap: 100 } } });
+      expect(indexed.job?.result?.corpusHash).toBe(knowledge.corpora[0].corpusHash);
       const searched = await commandLabProject(transport, { action: 'knowledge', projectId: detail.project!.projectId,
         expectedRevision: detail.project!.revision, clientRequestId: 'lab-project:showcase-search',
-        input: { operation: 'search', indexId: knowledge.indexes[0].jobId, query: 'Session' } });
-      expect(searched.job?.result?.hits?.[0].content).toContain('Pi');
+        input: { operation: 'search', indexId: indexed.job!.jobId, query: knowledge.corpora[0].preview[0].excerpt.slice(0, 100) } });
+      expect(searched.job?.result?.hits?.length).toBeGreaterThan(0);
+      expect(searched.job?.result?.hits?.[0].content).toBeTruthy();
       expect(fetch).not.toHaveBeenCalled();
     } finally { fetch.mockRestore(); }
   });
 
-  it('returns valid empty runtime resources and rejects real execution explicitly', async () => {
+  it('returns valid empty runtime resources and requires evaluation before app export', async () => {
     const transport = createPreviewTransport();
     expect(parseLabAppRead(await transport.request({ pathId: 'agent.eval-lab.apps.get' })).items).toEqual([]);
     expect(parseGoldenRead(await transport.request({ pathId: 'agent.eval-lab.golden.get' })).items).toEqual([]);
@@ -79,6 +87,6 @@ describe('current PAW Lab showcase transport', () => {
     const catalog = await readLabProject(transport);
     const { project } = await readLabProject(transport, catalog.items[0].projectId);
     await expect(commandLabProject(transport, { action: 'prepare_app', projectId: project!.projectId,
-      expectedRevision: project!.revision, clientRequestId: 'lab-project:no-runtime', input: { directory: '/workspace/demo' } })).rejects.toThrow('公开演示');
+      expectedRevision: project!.revision, clientRequestId: 'lab-project:no-runtime', input: { directory: '/workspace/demo' } })).rejects.toThrow('请先完成并选择一项检索评测');
   });
 });

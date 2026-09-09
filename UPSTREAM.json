@@ -67,6 +67,16 @@
       "selectedSourceInputFileCount": 75,
       "adoptedUnmodifiedSourceFileCount": 61,
       "mergedShowcaseFileCount": 14
+    },
+    {
+      "capturedAt": "2026-09-09T13:21:14.361554+00:00",
+      "sourceCommit": "9dd4f105e9a9d5d7940be563bf192a0abf79d6e9",
+      "sourceWorkingTreeState": "selected-production-files-match-commit",
+      "scope": "Latest PAW main Room, Trace, shared sidebars and stellar frontend. The earlier Lab candidate refresh remains in place.",
+      "sourceManifest": "manifest/frontend-source-refresh-20260909-room-trace.json",
+      "selectedSourceInputFileCount": 72,
+      "adoptedUnmodifiedSourceFileCount": 67,
+      "mergedShowcaseFileCount": 5
     }
   ],
   "dataMode": "synthetic-preview-only",

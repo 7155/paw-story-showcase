@@ -12,7 +12,7 @@ export const handsOnPlans: Record<string, GuidePlan> = {
     { instruction: '点击 input-method-plan.md，打开交付文件。', target: { selector: 'a', text: '打开文件 input-method-plan.md' }, after: text('公开合成 Room 交付', '.paw-files-preview p,.paw-files-markdown p,p') },
   ], completion: '已从伙伴交付打开真实 Files 预览。' },
   reliability: { labels: ['诊断入口', '选择事故', '开始诊断', '查看报告'], steps: [
-    { instruction: '点击 System Monitor 的「Trace Agent」。', target: button('Trace Agent'), after: button('选择 Tool error · Workflow 事故') },
+    { instruction: '点击「新建优化任务」，选择需要检查的工作记录。', target: button('新建优化任务'), after: button('选择 Tool error · Workflow 事故') },
     { instruction: '勾选「Tool error · Workflow 事故」。', target: button('选择 Tool error · Workflow 事故'), after: { selector: 'input[type="checkbox"][aria-label="选择 Tool error · Workflow 事故"]:checked' } },
     { instruction: '点击「开始诊断」。这里只处理公开合成案例。', target: button('开始诊断'), after: button('打开网页报告') },
     { instruction: '点击「打开网页报告」，查看诊断依据。', target: button('打开网页报告'), after: { selector: '.trace-audit', text: '公开合成' } },
