@@ -12,7 +12,7 @@ export type LabConfig = {
 export type LabPreferences = { accuracy: number; cost: number };
 export type LabRun = { id: string; name: string; config: LabConfig; signature: string; createdAt: string; total: number; passed: number; quality: number; contextChars: number; chunks: number; rows: { id: string; input: string; expected: string; actual: string; passed: boolean; detail: string; sourceIds: string[] }[] };
 export const guidedScenarios: { key: LabKey; title: string; files: string; goal: string; result: string }[] = [
-  { key: 'rag', title: '海岚交接研究助手', files: '15 项入口 · 10 份有效正文 · 16 道题', goal: '围绕交接问题找到获准材料，保留可回到原文的来源，并拒绝材料没有回答的结论。', result: '可追溯交接研究应用' },
+  { key: 'rag', title: '深度研究', files: '15 项入口 · 10 份有效正文 · 16 道题', goal: '以海岚交接研究助手为例，把资料做成可试用的研究应用，保留来源，并明确资料没有回答的内容。', result: '可追溯交接研究应用' },
   { key: 'cloudops', title: '云上故障诊断', files: '告警、日志与配置快照', goal: '根据观测定位责任组件，区分多重异常与证据不足。', result: '故障诊断应用' },
   { key: 'enterpriseops', title: '企业交付', files: '客户、负责人和交接要求', goal: '按地区、资格和容量完成客户交接，保留当前业务状态。', result: '客户交接应用' },
   { key: 'memory', title: '记忆整理', files: '输入记录与已有记忆', goal: '从已提交的输入中整理长期记忆，识别合并、纠正与撤销。', result: '记忆整理应用' },

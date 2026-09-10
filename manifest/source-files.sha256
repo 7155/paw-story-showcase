@@ -990,11 +990,11 @@ d2c22952febc6476e43bff0dc1e5d63fa92db6d72580746e74dbf54c2b58b0ce  package.json
 494e64a8818b6158e89321250500ad5ad018e33ad5cfea06a1cacd2cf4da75fa  paw-story-demo/.npmrc
 3aaa796a3035ef1030e4ff4071c0c7dc1e79f2c5d31cb227155626ddb94b480b  paw-story-demo/.openai/hosting.json
 ca2b110cfc4bb1849ea8c25349ed70c1934e3524c04d475f25f5bc04ead49bdb  paw-story-demo/README.md
-33704004b01bf16bd6d9e4e06883e73ea8d11db2b5d32ed618ada4fe35ead487  paw-story-demo/app/apps/page.tsx
+e25ec7313bf7e6de95ba3e6ac785f139be572e2b7662d4d3d54a774aedd3009e  paw-story-demo/app/apps/page.tsx
 dd9b0929235fb237d5687924cc21673b201b1da0288cfc3b8ee873cc329b135b  paw-story-demo/app/apps/research-report-downloads.css
 2ec13d6265d8308a41084555f42fcc31e2f3c80982467c1177b60de20ef0f30c  paw-story-demo/app/apps/research-report-downloads.tsx
 1cb1446cbfcdda965a929c7350c22cdde00ca3233665920a3905a1c1f155b4c2  paw-story-demo/app/apps/vertical-apps.css
-216478280f9861e1da8b12ae98ce561ede881f4068154fe6d2783415abf01dfc  paw-story-demo/app/apps/vertical-apps.tsx
+1cb7706cda6bbfdc74cb8eb5ea98b4357469e2d5e5879882427f7db936410d72  paw-story-demo/app/apps/vertical-apps.tsx
 59fd54229d5735428f83805d62d05cefd4ee1bda0a22c6744eaf42e1a806385a  paw-story-demo/app/candidate-comparison.tsx
 17a965f8948b21510cdf8ecbd70c5fdf58100e10970463f6a8fd2cc4795f8044  paw-story-demo/app/chatgpt-auth.ts
 a6069b49cbe997024e9e5d22ecec5cb938c6117ac0249ec2c92d76a564a15be2  paw-story-demo/app/companion-asset.ts
@@ -1022,6 +1022,9 @@ da85f526c82acf5f7f77c8b4c60bd57dad554990d9e9eb19734484da9c087e9e  paw-story-demo
 b47d999ad18100a2214668c504dbc0fd844bdb59a0d8b5ee5247ec2aa1b18f4b  paw-story-demo/app/guided-showcase.css
 50c0a9e1dd8398194997101327f8ad0650b065fc955bc974bf40b26a0733d125  paw-story-demo/app/guided-showcase.tsx
 adf67408cc4ef672b76d02a46298108a80af66dfca494496a1374e6923de03ac  paw-story-demo/app/hands-on-hint.tsx
+b8697071d5ce788b6c5ed5e6e1ac940ffcf4decbd94d03ef1d9d282cb054f9f3  paw-story-demo/app/input-branches.json
+15fad45f67fc2e2facdc8ba6b2ae5c0ca32207853e3bb6a00382e3d45087ed21  paw-story-demo/app/input-host.css
+08044e665ab5fe31122c726797d881b174aa4e9346b07661a533faa2fa10f34c  paw-story-demo/app/input-scenarios.json
 64ee07359cfabcf4bf72850fb5089f3f9689870536cfcfdcb371b3606cb46a2a  paw-story-demo/app/lab/lab-showcase.css
 8d6dd02f40c0392149b13ffb371eab2e71441eeb5b481a452d4f97f4005f0323  paw-story-demo/app/lab/lab-showcase.tsx
 3eeed518eb169fe45f71a5fa35cff996c07c30ba79bbc7784c9a85f4e5eacbc4  paw-story-demo/app/lab/page.tsx
@@ -1029,7 +1032,7 @@ d20c2de7a20ba0e821fee7e6b3127b7abafd937f16f228f923047402af185a72  paw-story-demo
 1ec1680502cfad24ae84c99b30f9201d6d569866713e53f5a7fc97dba71733e0  paw-story-demo/app/layout.tsx
 6c1cf00d7258827dfe78a2c1645d16e807daee876eb828b6532ccb110c2a9093  paw-story-demo/app/native-demo.css
 c08ea2f5b02e8fde76e31d44e7d06bedecaaeb89d270c5dc17ef5db47f2ed849  paw-story-demo/app/native-demo.tsx
-6f417b17377933c19b5e6142908b68ecd4c3921f30c21d8d72578a7c3a053f40  paw-story-demo/app/page.tsx
+6bbe805739ddf1033dabe281efc8743c0128f4ea19d7850c896d6ad5bb2d9f30  paw-story-demo/app/page.tsx
 af98c96d9e55ce239da550ae8f8c899489e1fc518127ee92ed06cc3ae22e72ff  paw-story-demo/app/precision-story.css
 e16a1e6b04eabe7f825b728b8486c04d2e36c6433ed8b7e8950529fc423b8a22  paw-story-demo/app/precision-story.tsx
 5be1ba3523cd7e3c0a1e626a0b309c9d784af270152062775cae15fcfc613fbe  paw-story-demo/app/project-atlas.css
@@ -1037,7 +1040,7 @@ e16a1e6b04eabe7f825b728b8486c04d2e36c6433ed8b7e8950529fc423b8a22  paw-story-demo
 9327cbada39c8bdb280b8b458c889c958f1d1e9c3104ec09cdec744ae2ba67b1  paw-story-demo/app/project-reading-route.css
 ba1884526824784265a2ce4d645d40da694eb011fec3b4cda35c1d5681adb405  paw-story-demo/app/project-reading-route.tsx
 5197fcc682d05e0cd4c980f28fa003859d559b1abcf0906a2f1cb7101bd3ad57  paw-story-demo/app/resume-section.tsx
-a134d60e8b984ed84eb11b842bbe798c050a213788581c645500bd61f25805cf  paw-story-demo/app/showcase-directory.tsx
+fa62f22a397d259b825e7cd5cb7b46b278afb419df18bfbc3a381ced04bad1b1  paw-story-demo/app/showcase-directory.tsx
 66ddba5ca46b845dbc74057b0d8657aa23f5d8b02bc20dea7381ea4df4cf3e08  paw-story-demo/app/showcase-playback.tsx
 4b9f36cc33923357e5ffe739f5de2b3a86e705bbd24d855adf9e90f3bd211f27  paw-story-demo/app/story-journey.tsx
 7f261630166c8327cf5163a7d0d61d94a7d2d9966ddcf13adcd3ca123d2e635d  paw-story-demo/app/story-system.css
@@ -1224,7 +1227,7 @@ d131856ad0338a00e2ec65f46735047d460af88302047e15bab1fed857bb754f  paw-story-demo
 4995d6abda058d7dda279adcc1830b3dacadda7c4fa5d54d22ec7141599bed38  paw-story-demo/tests/guided-lab.test.mjs
 eae1d187870ad9a4b3f0c37b40589b25c1a2090dcbee19964555cf70c136b118  paw-story-demo/tests/rendered-html.test.mjs
 6988d9c5beba3bf34b47d5a5d55cfde988d490cacee7c0a4f3ae7ec3b1b79115  paw-story-demo/tests/task-story.test.mjs
-6c379bc4500415294c3c11933aa0e9117f150c37a162dbc0ef07f2756eae2c1c  paw-story-demo/tests/ui-components.test.mjs
+d0c49b0dff4f67aefa2606212abbb7928a96ce2911c0aa5ace6d0737252aa770  paw-story-demo/tests/ui-components.test.mjs
 78b32827340020946561f99ca15589ee9470e9da408b13ba674f942d7f5fa220  paw-story-demo/tsconfig.json
 1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f  paw-story-demo/vendor/shadcn-tailwind-4.13.0.LICENSE.md
 bc7d83425702955b4cb67cb14ede9d603f9d912376d57a2d81d661094d2a782a  paw-story-demo/vendor/shadcn-tailwind-4.13.0.css
@@ -6424,7 +6427,7 @@ f84d2882ab998cd9de427293db9c47cd853a87a22177016bb872803a491bc4fa  showcase/datas
 a522fe94aa055089ce9102f709308572f344498fe489719cd9bb1af42c4e8ec5  showcase/datasets/memory-corpus.v1.json
 6ab85c0cda64ffe389230915281f38bb48b371df769322f2878015fb7098b09b  showcase/datasets/sources.v1.json
 648007cc90c59f9edc5eaa668ace12282396fd9fa50de0a6abd29ad4004de37a  showcase/guided-lab-app.ts
-bfccbf664621b46a468955edfc42406f4493f9094b335d7cb2b893a0a60024fa  showcase/guided-lab.ts
+9361771c18800d7023f0a4d1277c4620dff68ed9f5f22ea18f0567b89a6c8c65  showcase/guided-lab.ts
 7cb90fe25032f0a0d4051a0c217e0d37909b289d084b155fe8452f9779bb8e1c  showcase/lab-demo.ts
 6549e483e9a1804a15a32abe6e96de464f0fb8d8e0af8f7d21becb086f13ec0a  showcase/lab-evidence.ts
 dc7f30106f8e2fe0e4378eb260c0581e297734246069c72f597fc0e04621378c  showcase/lab-flow.ts

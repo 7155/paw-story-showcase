@@ -1,0 +1,173 @@
+[
+  {
+    "id": "reject-short",
+    "title": "这句不适合我，就不选",
+    "narration": [
+      "这几句不太像我的口气。",
+      "拒绝就收起来，继续自己写；不用解释，也不会影响普通打字。"
+    ],
+    "expected": {
+      "insertedSuggestion": false,
+      "manualTextSuffix": "我到了再跟你说。",
+      "aiDoesNotReopenAutomatically": true
+    }
+  },
+  {
+    "id": "undo-insertion",
+    "title": "点错了，撤销只撤掉新插入的那句",
+    "narration": [
+      "这句先不要。",
+      "只撤掉刚插入的联想，原来打好的内容还在。"
+    ],
+    "expected": {
+      "restoredBuffer": "我会晚一点，到了给你发消息。",
+      "removedText": "你先吃饭，不用等我。",
+      "originalTextPreserved": true
+    }
+  },
+  {
+    "id": "plain-number",
+    "title": "普通数字还是普通数字",
+    "narration": [
+      "我只是想输入数字2。",
+      "普通数字不会替你选择联想。若采用快捷键，需要已配置并支持的专用组合键。"
+    ],
+    "expected": {
+      "manualTextSuffix": "2",
+      "selectedCandidateIndex": null,
+      "suggestionInserted": false,
+      "numbersNotHijacked": true
+    }
+  },
+  {
+    "id": "latest-wins",
+    "title": "继续输入了，就不要拿旧结果覆盖",
+    "narration": [
+      "等一下，我改主意了。",
+      "新输入使旧请求失效；旧文字即使晚到，也不会悄悄插进来。"
+    ],
+    "expected": {
+      "oldRequestAccepted": false,
+      "oldResultStatus": "ignored_stale_buffer_revision",
+      "bufferContainsManualEdit": true,
+      "hostWriteCountDelta": 0
+    }
+  },
+  {
+    "id": "stop-generation",
+    "title": "随时停下，旧结果别再回来",
+    "narration": [
+      "先停，我自己写。",
+      "已经停止。之后到达的结果不进入当前草稿。"
+    ],
+    "expected": {
+      "requestStatus": "cancelled",
+      "generationIncrement": 1,
+      "lateResult": "audit_only",
+      "hostWriteCountDelta": 0
+    }
+  },
+  {
+    "id": "focus-changed",
+    "title": "换了输入框，不往别处乱贴",
+    "narration": [
+      "我切到另一条消息了。",
+      "这个结果属于刚才那份通知。回到原输入位置、重新核对后再插入。"
+    ],
+    "expected": {
+      "writeBlocked": true,
+      "reason": "target_field_changed",
+      "originalDraftUnchanged": true,
+      "otherFieldUnchanged": true
+    }
+  },
+  {
+    "id": "permission-denied",
+    "title": "不授权记忆，也照样能输入",
+    "narration": [
+      "这次不要查记忆，只用我刚打的字。",
+      "可以。不知道具体安排就不补日期；输入和普通短联想不受影响。"
+    ],
+    "expected": {
+      "usedSourceIds": [],
+      "crossProjectRead": false,
+      "newText": "这次会议的时间、形式和链接还需补充，确认后再发通知。",
+      "doesNotInventSchedule": true,
+      "ordinaryTypingAvailable": true
+    }
+  },
+  {
+    "id": "sensitive-field",
+    "title": "密码框里，不出现联想",
+    "narration": [
+      "这是一个模拟密码框。",
+      "不读取内容，不发起联想，不把输入留进这个演示记录。"
+    ],
+    "expected": {
+      "sensitiveValue": null,
+      "storedTypedSecret": false,
+      "predictionRequests": 0,
+      "contextRequests": 0,
+      "audioRequests": 0,
+      "overlayVisible": false
+    }
+  },
+  {
+    "id": "predictor-unavailable",
+    "title": "AI暂时没响应，也能正常打字",
+    "narration": [
+      "联想暂时不可用，我先自己写。",
+      "原生输入继续工作，不挡住光标，也不会不断抢着重试。"
+    ],
+    "expected": {
+      "errorKind": "prediction_unavailable",
+      "noInventedLatencyMs": true,
+      "nativeInputEnabled": true,
+      "manualTextSuffix": "我到了再联系你。",
+      "autoRetryStorm": false
+    }
+  },
+  {
+    "id": "voice-uncertain",
+    "title": "没有听清的专名，留给本人确认",
+    "narration": [
+      "地点没有听清，别替我猜一个。",
+      "保留待确认位置，先不自动插入；确认后再继续。"
+    ],
+    "expected": {
+      "automaticGuess": false,
+      "uncertainSpan": "[名称待确认]",
+      "speechSample": "周六去[名称待确认]取快递。",
+      "autoInsertBeforeConfirmation": false
+    }
+  },
+  {
+    "id": "voice-focus-drift",
+    "title": "说到一半换窗口，先留住定稿",
+    "narration": [
+      "我刚切到了别的输入位置。",
+      "定稿先留在预览，不往新窗口写。回到原位置后由你重新确认。"
+    ],
+    "expected": {
+      "finalTextRetainedInPreview": true,
+      "writeBackBlocked": true,
+      "reason": "focus_mismatch",
+      "sent": false,
+      "audioPersisted": false
+    }
+  },
+  {
+    "id": "undo-revision-conflict",
+    "title": "后面又编辑过，撤销不能抹掉新内容",
+    "narration": [
+      "我插入后又写了一句。",
+      "不能直接恢复旧快照而删掉新输入；需要原生撤销历史支持，未接入时保持文本不变。"
+    ],
+    "expected": {
+      "blindSnapshotRestore": false,
+      "reason": "revision_mismatch",
+      "manualTextPreserved": true,
+      "requiresNativeUndoHistory": true
+    }
+  }
+]

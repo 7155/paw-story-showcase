@@ -1,0 +1,280 @@
+{
+  "schemaVersion": "oshow.input-scenarios.compat.v1",
+  "sourceMockId": "input-page07-everyday-writing",
+  "slotOrder": [
+    "report",
+    "prd",
+    "paper"
+  ],
+  "mappingNote": "字段可映射现有inputScenarios；iconKey由现有适配层映射图标。不是直接可执行的TS数组。默认三槽不新增布局。",
+  "inputScenarios": [
+    {
+      "id": "report",
+      "scenarioId": "daily-reply",
+      "label": "回一句消息",
+      "fileName": "日常消息 · 发送前草稿",
+      "kicker": "跟家人、朋友聊几句",
+      "title": "晚一点到，顺手多说一句",
+      "summary": "一句话打完，下一句就在旁边；挑合适的，不合适就继续自己打。",
+      "section": "我想表达的是",
+      "body": "我想告诉对方会晚一点，到了再发消息。",
+      "typingPrefix": "我会晚一点，到了给你发",
+      "compositionRoman": "xiao xi",
+      "committedSentence": "我会晚一点，到了给你发消息。",
+      "rimeCandidates": [
+        "消息",
+        "小溪",
+        "小希"
+      ],
+      "suggestions": [
+        "你先吃饭，不用等我。",
+        "我到家后再联系你。",
+        "我们晚点再聊。"
+      ],
+      "generatedParagraph": "你先吃饭，不用等我。",
+      "diagnostic": "预设演示文字 · 未测量生成速度 · 采纳前不会写入",
+      "historyDone": "未读取近期输入；只使用本轮提供的内容",
+      "retrievalDone": "未查询记忆或知识库",
+      "handoff": "结果仅供当前草稿采纳，不发送、不保存长期记忆",
+      "sources": [],
+      "notUsedSources": [
+        "recent_input_history",
+        "other_windows",
+        "other_projects"
+      ],
+      "requiredSourceCount": 0,
+      "localOnlyShortPath": true,
+      "rendererNotes": [
+        "本地短联想路径不需要经过显式生成",
+        "只有实际usedSourceIds能标已使用，不能按动画步数把四个来源槽自动点亮"
+      ]
+    },
+    {
+      "id": "prd",
+      "scenarioId": "polite-followup",
+      "label": "把话说顺",
+      "fileName": "资料跟进 · 发送前草稿",
+      "kicker": "跟同事、老师或办事窗口沟通",
+      "title": "想问进度，但不想显得生硬",
+      "summary": "把意思写下来，再选一版自然的说法；不额外许诺，也不替对方编时间。",
+      "section": "我想表达的是",
+      "body": "想表达：资料我这边还没收到，想问一下进度。语气客气、自然，不增加截止日期或额外承诺。",
+      "typingPrefix": "你",
+      "compositionRoman": "hao",
+      "committedSentence": "你好，",
+      "rimeCandidates": [
+        "好",
+        "号",
+        "浩"
+      ],
+      "suggestions": [
+        "想跟你确认一下资料的进度。",
+        "资料方便时发我一份就好。",
+        "需要我补充什么信息吗？"
+      ],
+      "generatedParagraph": "想跟你确认一下，资料大概什么时候方便发我？需要我补充信息的话，也请告诉我。",
+      "diagnostic": "预设演示文字 · 未测量生成速度 · 采纳前不会写入",
+      "historyDone": "未读取近期输入；只使用本轮提供的内容",
+      "retrievalDone": "未查询记忆或知识库",
+      "handoff": "结果仅供当前草稿采纳，不发送、不保存长期记忆",
+      "sources": [
+        {
+          "id": "p07-source-polite-followup-intent",
+          "label": "本轮选定来源",
+          "title": "本次想表达的意思",
+          "detail": "资料还没收到，想问一下进度。客气、自然，不加截止日期或额外承诺。",
+          "iconKey": "FileText",
+          "usedOnlyAfterExplicitGeneration": true
+        }
+      ],
+      "notUsedSources": [
+        "recent_input_history",
+        "other_windows",
+        "other_projects"
+      ],
+      "requiredSourceCount": 1,
+      "localOnlyShortPath": false,
+      "rendererNotes": [
+        "本地短联想路径不需要经过显式生成",
+        "只有实际usedSourceIds能标已使用，不能按动画步数把四个来源槽自动点亮"
+      ]
+    },
+    {
+      "id": "paper",
+      "scenarioId": "meeting-notice",
+      "label": "接着写通知",
+      "fileName": "活动通知 · 草稿",
+      "kicker": "组织讨论、社团活动、团队沟通",
+      "title": "定过的安排，不用再翻一遍",
+      "summary": "你允许用哪份安排，就从哪份安排接着写；找不到的内容留待确认。",
+      "section": "我想表达的是",
+      "body": "请按当前活动安排写一条简短通知。仅允许本轮读取我选中的安排v2和本项目通知偏好。会议链接没有确定，不能猜。",
+      "typingPrefix": "给大家同步一下活动",
+      "compositionRoman": "xin xi",
+      "committedSentence": "给大家同步一下活动信息：",
+      "rimeCandidates": [
+        "信息",
+        "欣喜",
+        "心细"
+      ],
+      "suggestions": [
+        "有一项安排需要确认。",
+        "具体信息放在下面。",
+        "有问题可以一起讨论。"
+      ],
+      "generatedParagraph": "这次会议安排在周四15:00，线上进行。\n主要交流进度和待讨论问题，请每人提前准备一个问题。\n会议链接待确认。",
+      "diagnostic": "预设演示文字 · 未测量生成速度 · 采纳前不会写入",
+      "historyDone": "未读取近期输入；只使用本轮提供的内容",
+      "retrievalDone": "只使用选定的活动安排v2和通知偏好",
+      "handoff": "结果仅供当前草稿采纳，不发送、不保存长期记忆",
+      "sources": [
+        {
+          "id": "p07-source-meeting-notice-schedule-v2",
+          "label": "本轮选定来源",
+          "title": "本次活动安排 · v2",
+          "detail": "这次会议定在周四15:00，线上进行。议程：进度说明、问题讨论。每人提前准备一个问题。会议链接尚未确定。",
+          "iconKey": "FileText",
+          "usedOnlyAfterExplicitGeneration": true
+        },
+        {
+          "id": "p07-source-meeting-notice-writing-preference",
+          "label": "本轮选定来源",
+          "title": "当前活动 · 已接受的通知偏好",
+          "detail": "本项目的通知不写套话。说清时间、形式、需要准备什么；未知信息写待确认。",
+          "iconKey": "BookOpen",
+          "usedOnlyAfterExplicitGeneration": true
+        }
+      ],
+      "notUsedSources": [
+        "recent_input_history",
+        "other_windows",
+        "other_projects"
+      ],
+      "requiredSourceCount": 2,
+      "localOnlyShortPath": false,
+      "rendererNotes": [
+        "本地短联想路径不需要经过显式生成",
+        "只有实际usedSourceIds能标已使用，不能按动画步数把四个来源槽自动点亮"
+      ]
+    }
+  ],
+  "alternatives": [
+    {
+      "id": "prd",
+      "scenarioId": "service-request",
+      "label": "把问题说清",
+      "fileName": "售后咨询 · 发送前草稿",
+      "kicker": "跟客服、物业或服务人员说明问题",
+      "title": "说清发生了什么，不用组织半天",
+      "summary": "把现象和想问的事接成一句完整的话，不夸大问题，也不编订单信息。",
+      "section": "我想表达的是",
+      "body": "桌灯开箱后发现底座有一道裂痕。我想问能不能更换底座、需要提供什么信息。没有提供订单号、照片或购买日期。",
+      "typingPrefix": "你好，有个问题想",
+      "compositionRoman": "zi xun",
+      "committedSentence": "你好，有个问题想咨询一下，",
+      "rimeCandidates": [
+        "咨询",
+        "资讯",
+        "自寻"
+      ],
+      "suggestions": [
+        "想咨询一下处理方式。",
+        "有个情况想请你帮忙看看。",
+        "需要我补充哪些信息？"
+      ],
+      "generatedParagraph": "桌灯开箱后发现底座有一道裂痕，想问一下能否更换底座，以及需要我提供哪些信息？谢谢。",
+      "diagnostic": "预设演示文字 · 未测量生成速度 · 采纳前不会写入",
+      "historyDone": "未读取近期输入；只使用本轮提供的内容",
+      "retrievalDone": "未查询记忆或知识库",
+      "handoff": "结果仅供当前草稿采纳，不发送、不保存长期记忆",
+      "sources": [
+        {
+          "id": "p07-source-service-request-intent",
+          "label": "本轮选定来源",
+          "title": "用户提供的情况",
+          "detail": "桌灯开箱后底座有一道裂痕。想咨询能否更换底座、需要提供什么信息。",
+          "iconKey": "FileText",
+          "usedOnlyAfterExplicitGeneration": true
+        }
+      ],
+      "notUsedSources": [
+        "recent_input_history",
+        "other_windows",
+        "other_projects"
+      ],
+      "requiredSourceCount": 1,
+      "localOnlyShortPath": false,
+      "rendererNotes": [
+        "本地短联想路径不需要经过显式生成",
+        "只有实际usedSourceIds能标已使用，不能按动画步数把四个来源槽自动点亮"
+      ]
+    },
+    {
+      "id": "paper",
+      "scenarioId": "study-notes",
+      "label": "整理零散笔记",
+      "fileName": "学习笔记 · 草稿",
+      "kicker": "学生、学习新技能或做工作笔记的人",
+      "title": "写下零散想法，再接成一段",
+      "summary": "把已有内容整理清楚；没想明白的地方继续标出来，不凭空补“正确答案”。",
+      "section": "我想表达的是",
+      "body": "先筛选空白项，再统一日期格式，最后核对总数。重复记录怎么处理、缺失项能不能留空，这两个问题还没确认。",
+      "typingPrefix": "今天的笔记整理成",
+      "compositionRoman": "yao dian",
+      "committedSentence": "今天的笔记整理成要点：",
+      "rimeCandidates": [
+        "要点",
+        "药店",
+        "腰垫"
+      ],
+      "suggestions": [
+        "先记已经确认的做法。",
+        "把还不清楚的问题单独列出来。",
+        "下次从这里继续。"
+      ],
+      "generatedParagraph": "整理表格时，先筛选空白项，再统一日期格式，最后核对总数。\n待确认：重复记录的处理方法，以及缺失项是否允许留空。",
+      "diagnostic": "预设演示文字 · 未测量生成速度 · 采纳前不会写入",
+      "historyDone": "未读取近期输入；只使用本轮提供的内容",
+      "retrievalDone": "未查询记忆或知识库",
+      "handoff": "结果仅供当前草稿采纳，不发送、不保存长期记忆",
+      "sources": [
+        {
+          "id": "p07-source-study-notes-notes",
+          "label": "本轮选定来源",
+          "title": "当前零散笔记",
+          "detail": "先筛选空白项，再统一日期格式，最后核对总数。重复记录怎么处理、缺失项能不能留空，这两个问题还没确认。",
+          "iconKey": "FileText",
+          "usedOnlyAfterExplicitGeneration": true
+        }
+      ],
+      "notUsedSources": [
+        "recent_input_history",
+        "other_windows",
+        "other_projects"
+      ],
+      "requiredSourceCount": 1,
+      "localOnlyShortPath": false,
+      "rendererNotes": [
+        "本地短联想路径不需要经过显式生成",
+        "只有实际usedSourceIds能标已使用，不能按动画步数把四个来源槽自动点亮"
+      ]
+    }
+  ],
+  "voice": {
+    "scenarioId": "voice-note",
+    "title": "把想到的事，说成文字。",
+    "description": "边说边显示临时文字；松开后核对定稿，再写回当前草稿。",
+    "interimSegments": [
+      "今天下班后买牛奶和面包",
+      "今天下班后买牛奶和面包，鸡蛋不用买。周六下午三点去取快递",
+      "今天下班后买牛奶和面包，鸡蛋不用买。周六下午三点去取快递，不对，是四点。"
+    ],
+    "finalizedText": "今天下班后买牛奶和面包，鸡蛋不用买。周六下午四点取快递。",
+    "targetDraftPrefix": "待办：\n",
+    "audioIsMock": true,
+    "requiresFieldPermissionToWrite": true,
+    "systemPermissionStatus": "mock_granted_not_real_status",
+    "statusLine": "模拟听写 · 未录音 · 未创建提醒"
+  },
+  "sourceMockFileSha256": "sha256:a0ce2c3dbd521f1780f79d935389dea52e4042f60d0b9e9a34438e12eba75485"
+}

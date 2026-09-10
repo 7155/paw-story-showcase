@@ -1,4 +1,7 @@
 "use client";
+import "./input-host.css";
+import inputData from "./input-scenarios.json";
+import inputBranches from "./input-branches.json";
 
 import "./full-showcase.css";
 import "./world-showcase.css";
@@ -65,98 +68,10 @@ const inputTimelineDurations = [
   3_000,
 ] as const;
 
-const inputScenarios = [
-  {
-    id: "report",
-    label: "技术复盘",
-    fileName: "PAW Agent 安全写入复盘.docx",
-    kicker: "架构复盘 · WorkspaceHarness",
-    title: "为什么我们推翻了“同步失败就回滚”",
-    summary: "用一次真实架构反转，讲清 Tool、权限、并发边界与证据分级。",
-    section: "问题与反转",
-    body: "旧策略把真实文件写入与 WorkDocument 登记做成强一致：登记失败就尝试回滚文件。后来我们发现，辅助协作记录不应撤销已经成功且获批的真实工作。",
-    typingPrefix: "最终决定把工作区重新定义为唯一的",
-    compositionRoman: "shi shi yuan",
-    committedSentence: "最终决定把工作区重新定义为唯一的事实源。",
-    rimeCandidates: ["事实源", "实施源", "实时源", "事实原", "真实源"],
-    suggestions: [
-      "真实写入成功后，不因辅助登记失败而回滚",
-      "documentSync 失败只留一次 Trace 与残余提醒",
-      "resourceRevision 仍不等于同文件并发串行化",
-    ],
-    generatedParagraph: "这次反转不是放松安全，而是重新划分事实源：workspace_write 仍要经过 Tool 可用性、workspaceRoots、resourceRevision、approval digest 与 OS sandbox 五层约束；但一旦真实文件已经成功写入，WorkDocument 登记失败只记录一次 documentSync pending/failed 与 Trace，不再撤销用户的真实工作。当前边界也必须说清：resourceRevision 能阻止顺序发生的陈旧写入，却不等于同文件 mutation queue；两个真正同时通过预检的全文件替换仍可能出现后写覆盖前写。",
-    diagnostic: "当前输入 24 字 · 对话证据 3 条 · 代码证据 4 条 · 首字 1.3 秒",
-    historyDone: "已选取 3 条架构追问与用户纠正",
-    retrievalDone: "已找到安全分层、Git 反转与并发残余",
-    handoff: "AX 7 节点 · 对话 3 条 · 召回 Decision、Skill、Git",
-    sources: [
-      { id: "window", label: "窗口语义", title: "当前复盘 · 问题与反转", detail: "rollback → workspace source of truth", Icon: FileText },
-      { id: "recent", label: "最近完整输入", title: "架构追问 · 3 条", detail: "不要把所有安全机制都叫多 Agent 安全", Icon: History },
-      { id: "atom", label: "项目事实 · Decision", title: "写入与辅助登记边界", detail: "成功的 workspace mutation 不被 WorkDocument 撤销", Icon: CircleDot },
-      { id: "book", label: "知识主题 · Skill", title: "Trace Agent 诊断合同", detail: "八项评分 · 硬门槛 · 授权后修复", Icon: BookOpen },
-    ],
-  },
-  {
-    id: "prd",
-    label: "产品需求",
-    fileName: "智能输入需求说明.docx",
-    kicker: "产品需求 · v0.9",
-    title: "Post-commit 联想交互需求",
-    summary: "定义联想出现时机、快捷键和 Active RAG 的授权边界。",
-    section: "交互规则",
-    body: "拼音组合阶段只保留 Rime 候选，不展示模型或 RAG 内容。",
-    typingPrefix: "用户提交完整句子后，系统才展示三条",
-    compositionRoman: "duan lian xiang",
-    committedSentence: "用户提交完整句子后，系统才展示三条短联想。",
-    rimeCandidates: ["三条短联想", "三条端联想", "三条段联想", "三条短连想", "三条联想"],
-    suggestions: [
-      "Tab 接受第一条，Option + 数字选择侧候选",
-      "普通联想不读取远程上下文",
-      "点击生成后再启动 Active RAG",
-    ],
-    generatedParagraph: "验收时需要同时满足三个条件：联想不得覆盖系统候选栏；首条建议可用 Tab 接受，其他建议使用 Option + 数字选择；只有用户主动点击“生成”后，系统才能读取获准的窗口语义、近期输入与记忆，并在结果中保留可核对的依据回执。",
-    diagnostic: "当前输入 24 字 · 历史 3 条 · RAG 2 条 · 首字 1.1 秒",
-    historyDone: "已选取 3 条交互评审结论",
-    retrievalDone: "已找到组合态规则与授权边界",
-    handoff: "AX 6 节点 · 历史 3 条 · 召回 Atom、Book",
-    sources: [
-      { id: "window", label: "窗口语义", title: "当前 PRD · 交互规则", detail: "联想出现时机与快捷键定义", Icon: FileText },
-      { id: "recent", label: "最近完整输入", title: "交互评审 · 3 条", detail: "数字键不能被联想面板吞掉", Icon: History },
-      { id: "atom", label: "知识库事实 · Atom", title: "组合态边界", detail: "composition phase = Rime only", Icon: CircleDot },
-      { id: "book", label: "知识主题 · Book", title: "Active RAG 授权", detail: "仅在用户主动点击生成后启动", Icon: BookOpen },
-    ],
-  },
-  {
-    id: "paper",
-    label: "论文写作",
-    fileName: "冰架基底融化方法.docx",
-    kicker: "研究论文 · 方法章节",
-    title: "基于物理残差学习的冰架融化反演",
-    summary: "质量守恒基线、残差校正与像元级不确定性建模。",
-    section: "模型方法",
-    body: "首先依据质量守恒关系计算物理基线：m_raw = SMB − ∂tH − ∇·(Hu)。",
-    typingPrefix: "随后使用残差 U-Net 学习观测产品与物理基线之间的",
-    compositionRoman: "xi tong pian cha",
-    committedSentence: "随后使用残差 U-Net 学习观测产品与物理基线之间的系统偏差。",
-    rimeCandidates: ["系统偏差", "系统偏叉", "系通偏差", "系统片差", "系统误差"],
-    suggestions: [
-      "网络同时输出残差项与像元级不确定性",
-      "最终结果由物理基线与学习残差相加得到",
-      "采用时空分块避免训练与验证泄漏",
-    ],
-    generatedParagraph: "网络以 m_raw、冰厚、速度及其空间梯度等 12 个通道为输入，同时预测残差项 δm 与对数方差 logσ²。最终融化率写为 m_pred = m_raw + δm，使模型只学习物理方程未能解释的部分；训练与验证按冰架和年份分块，以避免相邻像元造成的数据泄漏。",
-    diagnostic: "当前输入 32 字 · 历史 2 条 · RAG 3 条 · 首字 1.4 秒",
-    historyDone: "已选取 2 条实验设计记录",
-    retrievalDone: "已找到特征定义与验证方案",
-    handoff: "AX 7 节点 · 历史 2 条 · 召回 Atom、Book",
-    sources: [
-      { id: "window", label: "窗口语义", title: "当前论文 · 模型方法", detail: "质量守恒基线与残差校正", Icon: FileText },
-      { id: "recent", label: "最近完整输入", title: "实验记录 · 2 条", detail: "Residual U-Net 输出 δm 与 logσ²", Icon: History },
-      { id: "atom", label: "知识库事实 · Atom", title: "模型特征定义", detail: "输入共 12 个物理与空间特征通道", Icon: CircleDot },
-      { id: "book", label: "知识主题 · Book", title: "验证方法", detail: "按冰架与年份进行时空分块", Icon: BookOpen },
-    ],
-  },
-] as const;
+const inputScenarios = [...inputData.inputScenarios, ...inputData.alternatives].map(item => ({
+  ...item, id: item.scenarioId,
+  sources: item.sources.map(source => ({...source, Icon: source.iconKey === 'BookOpen' ? BookOpen : FileText})),
+}));
 
 const orbitalWork = [
   {
@@ -307,16 +222,19 @@ function MoreFeaturesMenu() {
   );
 }
 
-function ImeDemo() {
+function ImeDemo({ onVoice }: { onVoice: () => void }) {
   const reducedMotion = useSyncExternalStore(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot);
-  const [scenarioId, setScenarioId] = useState<(typeof inputScenarios)[number]["id"]>("report");
+  const [scenarioId, setScenarioId] = useState<(typeof inputScenarios)[number]["id"]>("daily-reply");
   const [acceptedText, setAcceptedText] = useState<string | null>(null);
   const [decisionReceipt, setDecisionReceipt] = useState<"accepted" | "rejected" | null>(null);
+  const [draft, setDraft] = useState<string | null>(null);
+  const [auto, setAuto] = useState(true);
+  const [pointer, setPointer] = useState<{left:number;top:number} | null>(null);
   const windowRef = useRef<HTMLDivElement>(null);
   const { ref: imeViewRef, onScreen: imeOnScreen } = useOnScreen<HTMLDivElement>();
   const caretRef = useRef<HTMLElement>(null);
   const [popupAnchor, setPopupAnchor] = useState({ left: 16, top: 420, ready: false });
-  const playback = useTimedLoop(inputTimelineDurations, [12], imeOnScreen && !reducedMotion);
+  const playback = useTimedLoop(inputTimelineDurations, [4, 11, 13], imeOnScreen && !reducedMotion);
   const scenario = inputScenarios.find((item) => item.id === scenarioId) ?? inputScenarios[0];
   const typedPrefix = useTypewriter(scenario.typingPrefix, playback.step === 0 && !reducedMotion, 38);
   const typedRoman = useTypewriter(scenario.compositionRoman, playback.step === 1 && !reducedMotion, 85);
@@ -327,7 +245,7 @@ function ImeDemo() {
   const showProgress = playback.step >= 6 && playback.step <= 9;
   const showResult = playback.step >= 10 && playback.step <= 12;
   const showSourceTrace = playback.step >= 6 && playback.step <= 12;
-  const sourceVisibleCount = playback.step === 6 ? 1 : playback.step === 7 ? 2 : playback.step >= 8 ? 4 : 0;
+  const sourceVisibleCount = showSourceTrace ? scenario.sources.length : 0;
   const accepting = playback.step === 12;
   const inserted = playback.step === 13;
   const phaseIndex = playback.step <= 1 ? 0 : playback.step <= 3 ? 1 : playback.step <= 5 ? 2 : playback.step <= 12 ? 3 : 4;
@@ -338,31 +256,46 @@ function ImeDemo() {
   const pendingDetails = ["等待可访问性上下文", "等待上下文就绪", "等待上下文就绪", "等待检索结果"];
   const imeStages = [
     { title: "理解当前内容", active: "正在读取当前输入与界面信息", done: `已读取 ${scenario.fileName} 与当前段落` },
-    { title: "补充近期上下文", active: "正在选择最近完整输入", done: scenario.historyDone },
-    { title: "查找相关记忆", active: "正在检索记忆、计划与资料", done: scenario.retrievalDone },
+    { title: "核对本轮输入", active: "仅核对本次给出的意思", done: scenario.historyDone },
+    { title: "核对获准资料", active: scenario.retrievalDone, done: scenario.retrievalDone },
     { title: "组织回答", active: "首段内容已到达，正在继续", done: "回答已生成" },
   ];
 
   const chooseScenario = (next: (typeof inputScenarios)[number]["id"]) => {
     setScenarioId(next);
+    setDraft(null);
+    setAuto(true);
     setAcceptedText(null);
     setDecisionReceipt(null);
     playback.restart();
   };
 
   const acceptText = (text: string) => {
+    setDraft((draft ?? scenario.committedSentence) + text);
     setAcceptedText(text);
     setDecisionReceipt("accepted");
-    playback.goTo(13, true);
+    playback.goTo(13, false);
   };
 
   const rejectText = () => {
     setAcceptedText(null);
     setDecisionReceipt("rejected");
-    playback.goTo(2, true);
+    playback.goTo(2, false);
   };
 
-  const effectiveAcceptedText = acceptedText;
+  useEffect(() => {
+    if (!auto || !imeOnScreen || document.hidden || (playback.step!==4 && playback.step!==11)) return;
+    const host=windowRef.current; if(!host)return;
+    const buttons=Array.from(host.querySelectorAll<HTMLButtonElement>('button'));
+    const target=playback.step===11?buttons.find(b=>b.textContent==='采纳并插入'):scenario.localOnlyShortPath?buttons.find(b=>b.getAttribute('aria-label')===`采纳联想：${scenario.suggestions[0]}`):buttons.find(b=>b.textContent?.includes('点击生成'));
+    if(!target || target.disabled)return;
+    const move=window.setTimeout(()=>{const r=target.getBoundingClientRect(),h=host.getBoundingClientRect();setPointer({left:r.left-h.left+r.width*.55,top:r.top-h.top+r.height*.5});},900);
+    const click=window.setTimeout(()=>{if(!document.hidden && target.isConnected && target.getClientRects().length && !target.disabled)target.click();setPointer(null);},2100);
+    const stop=(event:Event)=>{if(event.isTrusted){setAuto(false);setPointer(null);}};
+    host.addEventListener('pointerdown',stop);host.addEventListener('keydown',stop);
+    return()=>{clearTimeout(move);clearTimeout(click);host.removeEventListener('pointerdown',stop);host.removeEventListener('keydown',stop);};
+  },[auto,imeOnScreen,playback.step,scenario.id]);
+
   const showAcceptedReceipt = playback.step >= 13 && decisionReceipt === "accepted";
   const showRejectedReceipt = decisionReceipt === "rejected" && playback.step >= 2 && playback.step <= 5;
 
@@ -397,41 +330,41 @@ function ImeDemo() {
 
   return (
     <div className="demo-window ime-window" data-phase={phaseIndex} ref={(el) => { windowRef.current = el; imeViewRef.current = el; }}>
+      {pointer && <svg className="input-demo-pointer" style={{left:pointer.left,top:pointer.top}} width="24" height="30" viewBox="0 0 24 30" aria-hidden="true"><path d="M3 2 L3 24 L9 18 L14 28 L18 26 L13 16 L22 16 Z" fill="#202532" stroke="white" strokeWidth="2"/></svg>}
       <div className="ime-ambient ime-ambient-one" aria-hidden="true" />
       <div className="ime-ambient ime-ambient-two" aria-hidden="true" />
       <div className="window-bar">
         <div className="traffic"><i /><i /><i /></div>
-        <span className="ime-window-title"><strong>{scenario.fileName}</strong><small>PAW 智能输入 · 真实组件回放</small></span>
-        <span className="window-state"><CircleDot size={12} /> 已保存到本机</span>
+        <span className="ime-window-title"><strong>{scenario.fileName}</strong><small>PAW 智能输入 · 合成输入演示</small></span>
+        <span className="window-state"><CircleDot size={12} /> 演示草稿 · 未发送</span>
       </div>
       <div className="document-toolbar">
-        <strong>开始</strong><span>插入</span><span>布局</span><span>审阅</span><i /><span>正文</span><span>14 pt</span>
+        <strong>当前输入</strong>
         <div className="ime-scenario-switcher" aria-label="切换文档场景">
-          {inputScenarios.map((item) => <button aria-pressed={item.id === scenarioId} key={item.id} onClick={() => chooseScenario(item.id)} type="button">{item.label}</button>)}
+          {inputScenarios.slice(0,2).map((item) => <button aria-pressed={item.id === scenarioId} key={item.id} onClick={() => chooseScenario(item.id)} type="button">{item.label}</button>)}
+          <select aria-label="更多输入场景" value={inputScenarios.slice(2).some(item=>item.id===scenarioId)?scenarioId:""} onChange={event=>chooseScenario(event.target.value)}><option value="" disabled>更多场景</option>{inputScenarios.slice(2).map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select>
         </div>
       </div>
       <div className="ime-phase-rail" aria-label="输入法演示进度">
         <div className="ime-phase-line"><i style={{ width: `${phaseIndex * 25}%` }} /></div>
         {phases.map((phase, index) => <span data-state={index < phaseIndex ? "done" : index === phaseIndex ? "active" : "waiting"} key={phase}><b>{index < phaseIndex ? <Check size={12} /> : index + 1}</b>{phase}</span>)}
       </div>
-      <div className="document-page" data-inserted={inserted} key={scenario.id}>
-        <p className="doc-kicker">{scenario.kicker}</p><h2>{scenario.title}</h2>
-        <p className="doc-muted">{scenario.summary}</p><div className="doc-rule" />
-        <h3>{scenario.section}</h3><p>{scenario.body}</p>
-        <div className="typing-line" data-committed={playback.step >= 2}>
-          {playback.step <= 1 ? typedPrefix : scenario.committedSentence}
-          {showComposition ? <span className="composition-roman">{typedRoman}</span> : null}
-          <i className="ime-caret-anchor" data-active={phaseIndex < 4} ref={caretRef}><b className="caret" /></i>
-        </div>
-        {inserted && effectiveAcceptedText ? <p className="generated-paragraph">{effectiveAcceptedText}</p> : null}
-        {showAcceptedReceipt ? <div className="insert-receipt"><Check size={12} /> 已由用户采纳并写入 · 可撤销</div> : null}
+      <div className="document-page input-host" data-inserted={inserted} key={scenario.id}>
+        <header className="input-host-header"><strong>{scenario.id==='daily-reply'?'家人':scenario.id==='polite-followup'?'资料对接':scenario.id==='meeting-notice'?'活动群通知':scenario.id==='service-request'?'售后咨询':'我的笔记'}</strong><small>示例输入场景 · 未发送</small></header>
+        <div className="input-host-context">{scenario.id==='daily-reply'?<p>到哪儿了？要等你一起吃饭吗？</p>:<p>{scenario.body}</p>}</div>
+        <label className="input-host-label" htmlFor={`draft-${scenario.id}`}>{scenario.id==='study-notes'?'笔记':'消息草稿'}</label>
+        <textarea id={`draft-${scenario.id}`} aria-label="当前草稿" value={draft ?? (playback.step<=1?typedPrefix:scenario.committedSentence)} onChange={event=>{setDraft(event.target.value);setAuto(false);setAcceptedText(null);setDecisionReceipt(null);playback.goTo(2,false);}} />
+        <i className="ime-caret-anchor" ref={caretRef} aria-hidden="true" />
+        {showComposition ? <span className="composition-roman">{typedRoman}</span>:null}
+        {playback.step<4 && <button type="button" onClick={()=>{setDraft(null);setAuto(true);playback.goTo(4,false);}}>播放示例联想</button>}
+        {showAcceptedReceipt ? <div className="insert-receipt"><Check size={12} /> 已插入当前演示草稿 · 未发送 <button type="button" onClick={()=>scenario.id==='daily-reply'?chooseScenario('polite-followup'):onVoice()}>{scenario.id==='daily-reply'?'继续：把话说顺':'继续：随口记下来'}</button></div> : null}
         {showRejectedReceipt ? <div className="insert-receipt" data-decision="rejected"><CircleAlert size={12} /> 已拒绝本轮联想 · 未写入文档</div> : null}
       </div>
-      <div className="ime-statusbar"><span>中文（简体）</span><span><Keyboard size={13} /> PAW 智能输入</span><span><Mic size={13} /> 语音</span></div>
+      <div className="ime-statusbar"><button type="button" onClick={()=>{setAuto(!auto);setPointer(null);}}>{auto?"暂停演示鼠标":"继续演示鼠标"}</button><span>中文（简体）</span><span><Keyboard size={13} /> PAW 智能输入</span><span><Mic size={13} /> 语音</span></div>
       {showComposition ? (
         <div className="rime-candidate-menu" aria-label="拼音候选" data-anchor-ready={popupAnchor.ready} style={{ left: popupAnchor.left, top: popupAnchor.top }}>
           {scenario.rimeCandidates.map((candidate, index) => (
-            <button data-primary={index === 0} key={candidate} onClick={() => playback.goTo(2)} type="button"><span>{index + 1}.</span>{candidate}</button>
+            <button disabled={index !== 0} title={index !== 0 ? "仅展示拼音候选，本轮只映射第一项" : undefined} data-primary={index === 0} key={candidate} onClick={() => playback.goTo(2)} type="button"><span>{index + 1}.</span>{candidate}</button>
           ))}
         </div>
       ) : null}
@@ -456,22 +389,22 @@ function ImeDemo() {
             {scenario.suggestions.map((suggestion, index) => (
               <button aria-label={`采纳联想：${suggestion}`} data-primary={index === 0} key={suggestion} onClick={() => acceptText(suggestion)} type="button">
                 <i />
-                <kbd>{index === 0 ? "Tab" : `⌥${index + 1}`}</kbd>
+                <kbd>{index + 1}</kbd>
                 <strong>{suggestion}</strong>
               </button>
             ))}
           </div>
           <div className="native-ime-suggestion-actions">
-            <button data-pressed={playback.step === 5} onClick={() => playback.goTo(5)} type="button"><Sparkles size={13} />{playback.step === 5 ? "已点击 · 生成中" : "点击生成"}</button>
+            {!scenario.localOnlyShortPath && <button onClick={() => playback.goTo(reducedMotion ? 11 : 6)} type="button"><Sparkles size={13} />点击生成</button>}
             <button onClick={rejectText} type="button"><CircleAlert size={13} />拒绝联想</button>
           </div>
-          <small className="ime-autoplay-note">演示回放：停留约 2 秒后模拟用户点击生成</small>
+          <small className="ime-autoplay-note">先选建议；只有点击后才采纳或生成</small>
         </div>
       ) : null}
       {showProgress ? (
         <div className="native-ime-card native-ime-card--thinking" data-anchor-ready={popupAnchor.ready} data-surface="explicitGenerating" style={{ left: popupAnchor.left, top: popupAnchor.top }}>
           <span className="native-ime-rail" />
-          <header><strong>{progressTitle}</strong><button aria-label="停止生成" type="button"><Square size={10} fill="currentColor" /></button></header>
+          <header><strong>{progressTitle}</strong><button aria-label="停止生成" onClick={rejectText} type="button"><Square size={10} fill="currentColor" /></button></header>
           <div className="native-ime-progress">
             {imeStages.map((stage, index) => {
               const state = index < stageIndex ? "done" : index === stageIndex ? "active" : "pending";
@@ -484,15 +417,15 @@ function ImeDemo() {
       {showResult ? (
         <div className="native-ime-card native-ime-card--result" data-accepting={accepting} data-anchor-ready={popupAnchor.ready} data-surface="explicitResult" style={{ left: popupAnchor.left, top: popupAnchor.top }}>
           <span className="native-ime-rail" />
-          <header><kbd>Tab 插入</kbd><strong>{playback.step === 10 ? "正在接收内容" : "生成结果 · 等待用户决定"}</strong><button aria-label="拒绝并关闭" onClick={rejectText} type="button">×</button></header>
+          <header><kbd>预览</kbd><strong>{playback.step === 10 ? "正在接收内容" : "生成结果 · 等待用户决定"}</strong><button aria-label="拒绝并关闭" onClick={rejectText} type="button">×</button></header>
           <p className="native-ime-diagnostic">{scenario.diagnostic}</p>
           {playback.step === 10 ? <p className="native-ime-handoff">{scenario.handoff}</p> : null}
           <div className="native-ime-result-copy">{resultText}<b className="stream-caret" /></div>
-          <footer><button onClick={() => acceptText(scenario.generatedParagraph)} type="button">采纳并插入</button><button onClick={() => playback.goTo(6)} type="button">重试</button><button aria-label="拒绝结果" onClick={rejectText} type="button">拒绝</button></footer>
+          <footer><button onClick={() => acceptText(scenario.generatedParagraph)} type="button">采纳并插入</button><button onClick={() => playback.goTo(reducedMotion ? 11 : 6)} type="button">重试</button><button aria-label="拒绝结果" onClick={rejectText} type="button">拒绝</button></footer>
         </div>
       ) : null}
       <aside className="rag-source-trace" data-visible={showSourceTrace} aria-label="本轮上下文与数据源">
-        <header><span>获准上下文 · CONTEXT</span><strong>本轮实际使用</strong><small>{sourceVisibleCount}/4</small></header>
+        <header><span>获准上下文 · CONTEXT</span><strong>本轮实际使用</strong><small>{sourceVisibleCount}/{scenario.sources.length}</small></header>
         <div>
           {scenario.sources.map((source, index) => {
             const Icon = source.Icon;
@@ -517,13 +450,9 @@ const voiceTimelineDurations = [1_800, 2_000, 2_400, 2_000, 3_800, 3_200] as con
 function VoiceInputDemo() {
   const reducedMotion = useSyncExternalStore(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot);
   const { ref: voiceViewRef, onScreen: voiceOnScreen } = useOnScreen<HTMLDivElement>();
-  const playback = useTimedLoop(voiceTimelineDurations, [], voiceOnScreen && !reducedMotion);
+  const playback = useTimedLoop(voiceTimelineDurations, [0, 3, 4, 5], voiceOnScreen && !reducedMotion, false, false);
   const stageLabels = ["准备就绪", "按住说话", "实时转写", "松开按键", "文字定稿", "写回应用"];
-  const interim = playback.step <= 1
-    ? ""
-    : playback.step === 2
-      ? "八月二十四日我们把文件写入和文档登记做成了强一致"
-      : "八月二十四日我们把文件写入和文档登记做成强一致，五天后又推翻了这个决定";
+  const interim = playback.step < 1 ? '' : inputData.voice.interimSegments[Math.min(2, playback.step - 1)];
   const finalized = playback.step >= 4;
   const inserted = playback.step >= 5;
 
@@ -532,7 +461,7 @@ function VoiceInputDemo() {
       <header className="voice-demo-titlebar">
         <div className="traffic"><i/><i/><i/></div>
         <span><Mic size={15}/><strong>PAW · Input Studio / 语音输入</strong><small>VoiceFeature · synthetic session</small></span>
-        <b><i/> 听写服务运行中</b>
+        <b><i/> 模拟听写 · 未录音</b>
       </header>
       <div className="voice-demo-shell">
         <aside className="voice-demo-sidebar">
@@ -541,31 +470,35 @@ function VoiceInputDemo() {
           <footer><ShieldCheck size={13}/><span>不保存音频<br/>不会让伙伴朗读</span></footer>
         </aside>
         <main className="voice-demo-main">
-          <header><div><p>SAY IT TO PAW</p><h2>把说话变成输入文字。</h2><span>边说边显示，松开后补充完整文字，再写回当前应用。</span></div><button type="button"><RefreshCw size={13}/>刷新</button></header>
+          <header><div><p>SAY IT TO PAW</p><h2>把想到的事，说成文字。</h2><span>边说边显示，松开后补充完整文字，再写回当前应用。</span></div><button type="button"><RefreshCw size={13}/>刷新</button></header>
           <div className="voice-readiness-strip">
-            <article><span><i/><strong>听写服务</strong></span><b>运行中</b><small>实时听写</small></article>
-            <article><span><i/><strong>麦克风</strong></span><b>已允许</b><small>系统授权</small></article>
-            <article><span><i/><strong>辅助功能</strong></span><b>已允许</b><small>写回当前应用</small></article>
-            <article><span><i/><strong>文字定稿</strong></span><b>已就绪</b><small>保守校对</small></article>
+            <article><span><i/><strong>听写服务</strong></span><b>Mock</b><small>预设语音片段</small></article>
+            <article><span><i/><strong>麦克风</strong></span><b>未调用</b><small>未采集麦克风</small></article>
+            <article><span><i/><strong>辅助功能</strong></span><b>未调用</b><small>仅演示草稿</small></article>
+            <article><span><i/><strong>文字定稿</strong></span><b>Mock</b><small>保留否定与改口</small></article>
           </div>
           <div className="voice-demo-workspace">
             <section className="voice-live-session">
-              <header><span><i className="voice-record-dot"/> 实时听写 · LIVE</span><small>鼠标中键 · 按住说话</small></header>
+              <header><span><i className="voice-record-dot"/> 模拟听写 · MOCK</span><small>在本页按钮上按住说话（模拟）</small></header>
               <div className="voice-wave" data-speaking={playback.step >= 1 && playback.step <= 3}>{Array.from({ length: 34 }).map((_, index) => <i key={index} style={{ "--wave-index": index } as React.CSSProperties}/>)}</div>
               <div className="voice-transcript-card">
                 <span>{finalized ? "完整文字 · FINAL TEXT" : "临时听写 · INTERIM"}</span>
-                <p>{finalized ? "8 月 24 日，我们把文件写入和文档登记做成强一致；5 天后又推翻了这个决定。" : interim || "按住鼠标中键开始说话…"}<i/></p>
+                <p>{finalized ? inputData.voice.finalizedText : interim || "按住下方按钮开始模拟听写…"}<i/></p>
               </div>
+              <button type="button" onPointerDown={event=>{event.currentTarget.setPointerCapture(event.pointerId);playback.goTo(1);}} onPointerUp={()=>playback.goTo(4,false)} onPointerCancel={()=>playback.goTo(0,false)}>按住说话（模拟），松开定稿</button>
+              {finalized && !inserted ? <button type="button" onClick={()=>playback.goTo(5,false)}>写回当前草稿</button> : null}
+              {inserted ? <p className="generated-paragraph">{inputData.voice.targetDraftPrefix}{inputData.voice.finalizedText}</p> : null}
+              <p>{inputData.voice.statusLine}</p>
               <ol aria-label="语音输入处理阶段">
                 {stageLabels.map((label, index) => <li data-state={index < playback.step ? "done" : index === playback.step ? "active" : "waiting"} key={label}><span>{index < playback.step ? <Check size={10}/> : index + 1}</span><strong>{label}</strong></li>)}
               </ol>
             </section>
             <aside className="voice-refinement-panel">
               <header><Sparkles size={14}/><span><strong>文字定稿</strong><small>识别结束后的保守校对</small></span></header>
-              <div><span>临时听写</span><p><span>八月二十四日</span>我们把文件写入和文档登记做成强一致<span>五天后</span>又推翻了这个决定</p></div>
+              <div><span>临时听写</span><p>{interim || "等待模拟口述"}</p></div>
               <ArrowDown size={14}/>
-              <div data-result><span>完整文字</span><p><b>8 月 24 日</b>，我们把文件写入和文档登记做成强一致；<b>5 天后</b>又推翻了这个决定。</p></div>
-              <dl><div><dt>热词</dt><dd>WorkDocument · workspace_write</dd></div><div><dt>正文日志</dt><dd>不写入诊断记录</dd></div><div><dt>写回</dt><dd>{inserted ? "已写入《PAW Agent 安全写入复盘》" : "等待完整文字"}</dd></div></dl>
+              <div data-result><span>完整文字</span><p>{finalized ? inputData.voice.finalizedText : "松开后显示定稿"}</p></div>
+              <dl><div><dt>热词</dt><dd>鸡蛋不用买 · 三点改四点</dd></div><div><dt>正文日志</dt><dd>不写入诊断记录</dd></div><div><dt>写回</dt><dd>{inserted ? "已写入本页待办草稿" : "等待完整文字"}</dd></div></dl>
             </aside>
           </div>
         </main>
@@ -610,7 +543,7 @@ function Slide({ id, index, title, sub, detailHref, detailLabel, secondaryDetail
 function InputSlide() {
   const [inputMode, setInputMode] = useState<"keyboard" | "voice">("keyboard");
   return (
-    <Slide detailHref="/details/input" detailLabel="输入详情" id="input" projects={[{ href: "https://github.com/7155/minimind-ime", label: "minimind-ime" }, { href: "https://github.com/7155/aios", label: "AIOS-IME" }]} index="05 · 回到日常工作的入口" sub="输入、找回资料，再决定写回。" title="在输入的地方，继续工作。">
+    <Slide detailHref="/details/input" detailLabel="输入详情" id="input" projects={[{ href: "https://github.com/7155/minimind-ime", label: "minimind-ime" }, { href: "https://github.com/7155/aios", label: "AIOS-IME" }]} index="05 · 回到日常工作的入口" sub="回消息、写通知、记事情。就在输入的地方，接着写。" title="少打一点，把意思说清楚。">
       <div className="slide-frame-bar">
         <div className="slide-switch" role="group" aria-label="切换输入能力演示">
           <button aria-pressed={inputMode === "keyboard"} onClick={() => setInputMode("keyboard")} type="button"><Keyboard size={14}/>智能输入法</button>
@@ -619,7 +552,8 @@ function InputSlide() {
         <span className="slide-frame-note">真实组件回放 · 合成演示数据</span>
       </div>
       <div className="slide-frame-body">
-        {inputMode === "keyboard" ? <ImeDemo/> : <VoiceInputDemo/>}
+        {inputMode === "keyboard" ? <ImeDemo onVoice={()=>setInputMode("voice")}/> : <VoiceInputDemo/>}
+        <details><summary>操作边界 · 12 个待接入分支</summary><p>以下是 Mock 行为预期，未验证原生快捷键、撤销、中键语音或焦点回调。</p>{inputBranches.map(branch=><details key={branch.id}><summary>{branch.title}</summary>{branch.narration.map((text,index)=><p key={index}>{text}</p>)}<pre>{JSON.stringify(branch.expected,null,2)}</pre></details>)}</details>
       </div>
     </Slide>
   );

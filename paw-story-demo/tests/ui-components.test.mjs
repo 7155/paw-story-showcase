@@ -24,14 +24,13 @@ after(async () => {
   await vite.close();
 });
 
-test('application delivery replaces the four legacy tabs and links back to the matching experiment', async () => {
+test('application gallery opens each original frontend with its own identity', async () => {
   const { default: Page } = await vite.ssrLoadModule('/app/apps/page.tsx');
-  for (const [key, title, folder] of [['rag', '深度研究', 'deep-research'], ['cloudops', '云上故障诊断', 'cloudops'], ['enterpriseops', '企业交付', 'enterpriseops'], ['memory', '记忆整理', 'memory']]) {
+  for (const [key, title, folder] of [['rag','深度研究','deep-research'],['support','松果售后助手','support'],['wix','Wix 知识助手','wix'],['enterprise-rag','EnterpriseRAG 实验台','enterprise-rag'],['geo','地理研判台','geo']]) {
     const html = renderToStaticMarkup(await Page({ searchParams: Promise.resolve({ scenario: key }) }));
     assert.ok(html.includes(`title="${title}导出应用"`));
-    assert.ok(html.includes(`href="/lab?scenario=${key}"`));
-    assert.ok(html.includes(`/real-apps/${folder}-app.zip`));
-    assert.doesNotMatch(html, /松果售后助手|Wix 知识助手|地理研判台|EnterpriseRAG 实验台/);
+    assert.ok(html.includes(`src="/real-apps/${folder}/index.html"`));
+    assert.doesNotMatch(html, /page04-/);
   }
 });
 
@@ -263,7 +262,7 @@ test("renders the Reliability chapter and keeps its real PAWOS fixture connected
 
   assert.match(html, /id="reliability"/);
   assert.match(html, /<h1[^>]*>从协作，到可交付的结果/);
-  assert.match(html, /<h2[^>]*>在输入的地方，继续工作/);
+  assert.match(html, /<h2[^>]*>少打一点，把意思说清楚/);
   assert.ok(html.indexOf('id="agents"') < html.indexOf('id="reliability"'));
   assert.ok(html.indexOf('id="reliability"') < html.indexOf('id="input"'));
   assert.ok(html.indexOf('id="reliability"') < html.indexOf('id="improvement"'));
@@ -331,8 +330,8 @@ test("renders the Reliability chapter and keeps its real PAWOS fixture connected
   assert.match(pageSource, /showcaseId=\{reliabilityShowcaseId\}/);
   assert.doesNotMatch(pageSource, /<RealSurface\s+key=\{showcaseId\}/s);
   assert.match(pageSource, /useTimedLoop/);
-  assert.match(pageSource, /useTimedLoop\(inputTimelineDurations, \[12\], imeOnScreen && !reducedMotion\)/);
-  assert.match(pageSource, /useTimedLoop\(voiceTimelineDurations, \[\], voiceOnScreen && !reducedMotion\)/);
+  assert.match(pageSource, /useTimedLoop\(inputTimelineDurations, \[4, 11, 13\], imeOnScreen && !reducedMotion\)/);
+  assert.match(pageSource, /useTimedLoop\(voiceTimelineDurations, \[0, 3, 4, 5\], voiceOnScreen && !reducedMotion, false, false\)/);
   assert.match(pageSource, /useSyncExternalStore\(subscribeReducedMotion, reducedMotionSnapshot, serverSnapshot\)/);
   assert.match(pageSource, /function subscribeReducedMotion/);
   assert.doesNotMatch(pageSource, /setReducedMotion/);
