@@ -13,3 +13,16 @@
  .guided-panel .room-transformation[data-stage=windows] .room-transformation-stage { height:760px; }
  .room-orbit-caption { display:none; }
 }
+
+/* Native Room fills the stage edge to edge; keep the cinematic shell from
+   leaving a black surround around the real PAW surface. */
+.room-transformation[data-stage=windows] .pawos-live-room {
+  background: #eef1ec;
+}
+.room-transformation[data-stage=windows] .pawos-live-room iframe {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+  transform-origin: center;
+}

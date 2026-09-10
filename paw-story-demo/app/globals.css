@@ -1484,3 +1484,8 @@ html,body{overflow-x:clip}
 .task-introduction a:focus-visible,.improvement-section a:focus-visible,.story-handoff a:focus-visible{outline:2px solid #246b4d;outline-offset:5px}
 @media(max-width:760px){.task-introduction,.improvement-section{padding:48px 20px}.task-brief,.improvement-evidence article{grid-template-columns:1fr;gap:16px}.improvement-flow{grid-template-columns:1fr 1fr}.task-introduction>p{font-size:16px}}
 @media(max-width:440px){.improvement-flow{grid-template-columns:1fr}.task-introduction h1{font-size:36px}.journey-links{gap:9px;font-size:13px}}
+
+/* Full-bleed native Room. */
+.room-transformation[data-stage="windows"] .room-transformation-stage{background:#eef1ec}
+.room-transformation[data-stage="windows"] .pawos-live-room{inset:0;border:0;border-radius:0;box-shadow:none;background:#eef1ec}
+.room-transformation[data-stage="windows"] .pawos-live-room iframe{inset:0;width:100%;height:100%;transform:none;border:0}
