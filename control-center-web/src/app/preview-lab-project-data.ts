@@ -191,7 +191,7 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
           canGenerate: evaluations.get(project.projectId)?.signature === flowSignature(project) && evaluations.get(project.projectId)?.result.decision === 'keep',
           runs:evaluations.get(project.projectId)?.runs.map(run=>({id:run.id,name:run.name,passed:run.passed,total:run.total})) ?? [],
           decision: evaluations.get(project.projectId)?.result.decision ?? '', appVersion: apps.get(project.projectId)?.at(-1)?.version.version ?? 0 } } : {}),
-        ...(project?.projectId === OPTIMIZATION_PROJECT_ID ? {optimization: optimization.status(project)} : {}),
+        ...(project?.projectId === OPTIMIZATION_PROJECT_ID ? {optimization: optimization.status(project,id=>artifacts.get(artifactKey(project.projectId,id,project.artifacts.find(a=>a.artifactId===id)?.revision??0)))} : {}),
         ...(artifact ? { artifact } : {}) });
     },
     'agent.eval-lab.projects.command': async (request: ControlRequest) => {

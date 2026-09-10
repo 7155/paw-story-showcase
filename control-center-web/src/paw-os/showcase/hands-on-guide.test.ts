@@ -41,3 +41,13 @@ it('automatic click executes the actual control once and waits for its result', 
   document.body.insertAdjacentHTML('beforeend', '<p data-result>结果</p>'); guide.refresh();
   expect(publish.mock.lastCall?.[0]).toMatchObject({ complete: true }); guide.destroy();
 });
+
+it('selects a labelled option through the real form control', () => {
+  visibleElements(); document.body.innerHTML = '<label for="variant">拟采用的候选</label><select id="variant"><option>候选 A</option><option>候选 B</option></select>';
+  const change = vi.fn(); document.querySelector('select')!.addEventListener('change', change);
+  const selectPlan: GuidePlan = { steps: [{ instruction: '选择 B', target: { selector: 'select', label: '拟采用的候选' }, action: { type: 'select', value: '候选 B' }, after: { selector: 'select', label: '拟采用的候选', value: '候选 B' } }], completion: '已选择' };
+  const publish = vi.fn(); const guide = createHandsOnGuide(document, selectPlan, publish);
+  guide.refresh(); expect(guide.clickCurrent()).toBe(true); guide.refresh();
+  expect(document.querySelector('select')).toHaveValue('候选 B'); expect(change).toHaveBeenCalledOnce();
+  expect(publish.mock.lastCall?.[0]).toMatchObject({ complete: true }); guide.destroy();
+});

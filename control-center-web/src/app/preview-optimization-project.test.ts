@@ -12,7 +12,12 @@ describe('long world and executable optimization',()=>{
   expect(runRepairReplay('baseline','duplicate-submit').writeCount).toBe(2);
   expect(runRepairReplay('repaired','unknown-write-receipt')).toMatchObject({writeCount:1,fileReceipt:'confirmed'});
   expect(runRepairReplay('repaired','stale-revision').after.operationId).toBe('external-op');
+  expect(evaluateRepairSuite('baseline')).toMatchObject({total:8,passed:3,decision:'reject',providerCalls:0});
+  expect(evaluateRepairSuite('cheap')).toMatchObject({total:8,passed:4,decision:'reject',providerCalls:0});
   expect(evaluateRepairSuite('repaired')).toMatchObject({total:8,passed:8,decision:'keep',providerCalls:0});
+  for(const variant of ['baseline','cheap','repaired'] as const) {
+   expect(evaluateRepairSuite(variant).runs.every(run=>run.checks.length===5)).toBe(true);
+  }
  });
  it('uses native Lab commands and invalidates adoption when saved config changes',async()=>{
   const t=createPreviewTransport(),id='lab-showcase-repair';let n=0;
@@ -20,8 +25,14 @@ describe('long world and executable optimization',()=>{
   await expect(act('optimization_compare')).rejects.toThrow('冻结');
   await act('optimization_original');expect((await readLabProject(t,id,'repair-trace')).artifact?.content).toMatchObject({rows:expect.arrayContaining([expect.objectContaining({tool:'workspace_restore'})])});
   await act('optimization_freeze');await act('optimization_compare');await act('optimization_keep');
+  expect((await readLabProject(t,id,'repair-compare')).artifact?.content).toMatchObject({rows:expect.arrayContaining([
+   expect.objectContaining({candidate:'原流程',quality:'3/8',cost:'未测量'}),
+   expect.objectContaining({candidate:'候选 A · 只忽略登记异常',quality:'4/8',cost:'未测量'}),
+   expect.objectContaining({candidate:'候选 B · 分开业务与登记回执',quality:'8/8',cost:'未测量'}),
+  ])});
   const {project,artifact}=await readLabProject(t,id,'repair-config');const content=artifact!.content as {values:Record<string,string>};
   await commandLabProject(t,{projectId:id,action:'publish_artifact',expectedRevision:project!.revision,clientRequestId:'optimization:edited',input:{artifactId:'repair-config',expectedArtifactRevision:artifact!.revision,content:{...content,values:{...content.values,variant:'候选 A · 只忽略登记异常'}}}});
+  expect((await readLabProject(t,id) as unknown as {optimization:Record<string,unknown>}).optimization).toMatchObject({frozen:true,current:false,canKeep:false,selected:'cheap'});
   await expect(act('optimization_keep')).rejects.toThrow('重新比较');
   await act('optimization_compare');await expect(act('optimization_keep')).rejects.toThrow('失败项');
   expect((await readLabProject(t,id,'repair-decision')).artifact?.content).toContain('采用范围');

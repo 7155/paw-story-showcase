@@ -184,7 +184,18 @@ export function PawTraceFlowShowcaseDirector() {
       }
       const table = await waitForVisible('[data-trace-comparison="before-after"]');
       if (table) {
-        await wait(2_200);
+        await wait(1_200);
+        const candidateA = await waitForVisible('[data-trace-action="run-candidate-a"]');
+        if (candidateA) await hoverAndClick(candidateA, 'trace:run-candidate-a');
+        const candidateB = await waitForVisible('[data-trace-action="run-candidate-b"]');
+        if (candidateB) await hoverAndClick(candidateB, 'trace:run-candidate-b');
+        const apply = await waitForVisible('[data-trace-action="apply-candidate-b"]');
+        if (apply) await hoverAndClick(apply, 'trace:apply-candidate-b');
+        const restore = await waitForVisible('[data-trace-action="restore-original"]');
+        if (restore) await hoverAndClick(restore, 'trace:restore-original');
+        const finish = await waitForVisible('[data-trace-action="finish-verification"]');
+        if (finish) await hoverAndClick(finish, 'trace:finish-verification');
+        await wait(600);
         const evidence = await waitForVisible('[data-trace-action="open-evidence"]');
         if (evidence) await hoverAndClick(evidence, 'trace:evidence');
       }

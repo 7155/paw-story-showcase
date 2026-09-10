@@ -200,7 +200,7 @@ export function LabProjectWorkbench({ initialProjectId = '', initialProjectPage,
                   : selected ? artifact.isPending ? <p className="lab-project-loading" role="status">正在读取成果…</p> : artifact.isError ? <div className="lab-project-error" role="alert"><p>{projectError(artifact.error)}</p><Button onClick={() => void artifact.refetch()}>重新读取成果</Button></div>
                     : artifact.data ? <ArtifactSurface artifact={artifact.data} draft={drafts[draftKey]} busy={busy || sending}
                       onDraft={(draft) => updateDraft(draftKey, draft)}
-                      onSave={async (content, revision) => Boolean(await workflow.submit('publish_artifact', { artifactId: artifact.data!.artifactId, expectedArtifactRevision: revision, content }, project))}
+                      onSave={async (content, revision) => { const receipt=await workflow.submit('publish_artifact', { artifactId: artifact.data!.artifactId, expectedArtifactRevision: revision, content }, project); if(receipt&&project.projectId==='lab-showcase-repair')await workflow.project.refetch(); return Boolean(receipt); }}
                       onAction={(action, values, staged) => void act(action, values, staged)} /> : null
                     : <section className="lab-project-empty"><span><MessageSquare size={24} /></span><h2>暂无项目成果</h2><p>项目对话中生成的文档、表格和应用会显示在这里。</p>{!guideOpen ? <Button onClick={() => setGuideOpen(true)}>打开项目对话</Button> : null}</section>}
           </div>
