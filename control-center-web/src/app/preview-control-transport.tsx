@@ -4377,7 +4377,7 @@ function previewCapabilityCatalog(
         ? projectPreference
         : globalPreference !== 'inherit'
           ? globalPreference
-          : 'enabled';
+          : id === 'memory' ? 'disabled' : 'enabled';
     const effectiveScope = sessionPreference !== 'inherit'
       ? 'session'
       : projectPreference !== 'inherit'

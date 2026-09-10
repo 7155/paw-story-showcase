@@ -145,7 +145,7 @@ export function pawRoomFlowShowcaseDelayBeforeSequenceMs(
     if (sequence === 53) return 500;
     return baseDelay;
   }
-  if ([7, 10, 13, 16, 19].includes(sequence)) return 3_200;
+  if ([7, 10, 13, 16, 19].includes(sequence)) return 6_000;
   if ([8, 11, 14, 17].includes(sequence)) return 2_400;
   if ([9, 12, 15, 18].includes(sequence)) return 1_800;
   if (sequence === 20) return 3_600; // Task completion question & startConfirmation popup

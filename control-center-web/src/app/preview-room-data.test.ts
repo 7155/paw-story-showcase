@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { RoomSummary } from '@/features/rooms/room-types';
 import { createRoomProjection, parseRoomEventSnapshot, reduceRoomEvents } from '@/contracts/room-reducer';
 import { roomTranscript } from '@/features/conversation-ui/adapters/room-transcript';
 import { previewRoomSnapshot } from './preview-room-data';
@@ -15,10 +16,10 @@ describe('PAW kickoff Room fixture', () => {
     expect(reviewing.room.participants.find((item) => item.id === 'participant-review')?.status).toBe('active');
   });
 
-  it('contains four visible intercom receipts in the 69-event replay', () => {
+  it('contains four visible intercom receipts in the 70-event replay', () => {
     const snapshot = previewRoomSnapshot('room-preview');
     const intercom = snapshot.events.filter((event) => event.payload.activityKind === 'intercom');
-    expect(snapshot.events).toHaveLength(69);
+    expect(snapshot.events).toHaveLength(70);
     expect(intercom).toHaveLength(4);
     expect(intercom.map((event) => event.payload.targetParticipantId)).toEqual([
       'participant-runtime',
@@ -55,9 +56,30 @@ describe('PAW kickoff Room fixture', () => {
     expect(mars.messages.length).toBeGreaterThan(0);
   });
 
-  it('has continuous event sequences from 1 to 69', () => {
-    const raw = previewRoomSnapshot('room-preview', { throughSequence: 69 });
+  it('has continuous event sequences from 1 to 70', () => {
+    const raw = previewRoomSnapshot('room-preview', { throughSequence: 70 });
     const sequences = raw.events.map((e) => e.sequence);
-    expect(sequences).toEqual(Array.from({ length: 69 }, (_, i) => i + 1));
+    expect(sequences).toEqual(Array.from({ length: 70 }, (_, i) => i + 1));
   });
+  it('publishes a final report without claiming the open defect passed acceptance', () => {
+    const snapshot = parseRoomEventSnapshot(previewRoomSnapshot('room-preview'));
+    const projection = reduceRoomEvents(createRoomProjection('room-preview'), snapshot.events);
+    const report = projection.messagesById['room-post-final-summary'];
+    expect(report?.postKind).toBe('result');
+    expect(report?.text).toContain('最终总结');
+    const rows = selectRoomRoundTaskSheets(snapshot.room as RoomSummary, projection).flatMap(sheet => sheet.rows);
+    expect(rows.find(row => row.participantId === snapshot.room.moderatorParticipantId)?.finalMessageId).toBe(report.id);
+    expect(report?.text).toContain('不通过最终交付验收');
+  });
+
+  it('keeps the root open through integration so reviewer publications are retained', () => {
+    const integrated = parseRoomEventSnapshot(previewRoomSnapshot('room-preview', { throughSequence: 57 }));
+    const beforeReview = reduceRoomEvents(createRoomProjection('room-preview'), integrated.events);
+    expect(beforeReview.turnsById[beforeReview.turnOrder.at(-1)!]?.status).toBe('running');
+    const complete = parseRoomEventSnapshot(previewRoomSnapshot('room-preview'));
+    const projection = reduceRoomEvents(createRoomProjection('room-preview'), complete.events);
+    expect(projection.messagesById['room-post-review']?.text).toContain('缺口仍开放');
+    expect(complete.room.workItems?.find(item => item.currentOwnerParticipantId === 'participant-review')?.review).toMatchObject({ requirementVerdict: 'unsatisfied' });
+  });
+
 });

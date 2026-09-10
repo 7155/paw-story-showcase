@@ -372,7 +372,7 @@ test("renders the Reliability chapter and keeps its real PAWOS fixture connected
   assert.match(roomData, /title: 'PAW 立项'/);
   assert.doesNotMatch(roomData, /开发历程与面试故事/);
   assert.match(roomData, /产品线 4\/4/);
-  assert.match(roomData, /throughSequence \?\? 69/);
+  assert.match(roomData, /throughSequence \?\? 70/);
   assert.match(roomData, /P0 = 1/);
   assert.match(roomData, /产物回滚缺口仍开放/);
   assert.match(roomData, /usage: lane\.usage/);

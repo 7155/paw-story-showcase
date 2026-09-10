@@ -49,7 +49,7 @@ export function previewRoomSnapshot(
   const now = options.baseTimeMs ?? Date.now() - 60_000;
   const rootId = `${roomId}:turn-1`;
   const waveId = `${roomId}:wave-implementation`;
-  const requestedSequence = Math.max(1, options.throughSequence ?? 69);
+  const requestedSequence = Math.max(1, options.throughSequence ?? 70);
   const participants = pawRoomFlowShowcaseParticipants.map((participant) => ({
     schemaVersion: 'rag-ime.agent-participant.v1',
     id: participant.id,
@@ -100,7 +100,7 @@ export function previewRoomSnapshot(
     generation: 0,
     dispatchId,
     authorActorRef: participantId,
-    kind: participantId === 'participant-facilitator' ? 'result' : 'work_result',
+    kind: participantId === 'participant-facilitator' ? (postId === 'room-post-final-summary' ? 'result' : 'progress') : 'work_result',
     visibility: 'room',
     content,
     idempotencyKey: postId,
@@ -623,7 +623,12 @@ export function previewRoomSnapshot(
       dispatchId: 'dispatch-review',
       summary: '方案复核完成 · 文件回滚缺口保持开放 · 待重放',
     }),
-    event(69, 'turn_completed', null, {
+    event(69, 'room_post', 'participant-facilitator', {
+      rootId, dispatchId: '',
+      post: roomPost('room-post-final-summary', 'participant-facilitator', '',
+        '## 最终总结\n\n四条产品线已完成方案交接，4/4 WorkPatch 已汇总，接口合同与通信记录已保留。\n\n## 验收结论\n\nReviewer 已完成独立复核：方案内容齐备，但文件回滚仍有 1 项 P0 缺口，当前不通过最终交付验收。修复提议尚未重放，不把方案完成写成故障已经解决。\n\n## 下一步\n\n进入 Trace，复现文件回滚并验收修复；再到改进页比较其他故障条件下的候选。', 69),
+    }),
+    event(70, 'turn_completed', null, {
       rootId,
       summary: 'PAW 立项合成任务：4/4 方案已汇总；文件回滚缺口进入 Trace 修复与候选比较，后续章节继续同一任务。',
     }),
@@ -701,7 +706,7 @@ export function previewRoomSnapshot(
       throughSequence,
       dispatchSequence: 58,
       completedSequence: 68,
-      evidenceRefs: ['review:lanes-4-of-4', 'review:intercom-4-of-4', 'review:real-apps-4-of-4', 'review:p0-0'],
+      evidenceRefs: ['review:lanes-4-of-4', 'review:intercom-4-of-4', 'review:real-apps-4-of-4', 'review:p0-1-open'],
       reviewer: true,
     }),
   ];
@@ -815,8 +820,8 @@ function showcaseWorkItem({
     evidenceRefs: completed ? evidenceRefs : [],
     ...(reviewer && completed ? {
       review: {
-        operabilityVerdict: 'passed',
-        requirementVerdict: 'satisfied',
+        operabilityVerdict: 'failed',
+        requirementVerdict: 'unsatisfied',
         evidenceRefs,
         reason: '公开合成演示完成四线方案交接；产物回滚问题作为未完成项进入下一章验证。',
         reviewerParticipantId: ownerId,

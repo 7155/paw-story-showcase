@@ -167,7 +167,7 @@
 .paw-room-flow-showcase__cursor[data-pressed="true"]::after { opacity: 1; transform: scale(1); }
 
 @media (max-width: 720px) {
-  .paw-room-flow-showcase { bottom: 76px; width: calc(100% - 16px); border-radius: 13px; }
+  .paw-room-flow-showcase { bottom: 0; width: 100%; border-radius: 0; flex-wrap: wrap; }
   .paw-room-flow-showcase > header > span:nth-child(2) { display: none; }
   .paw-room-flow-showcase__event { grid-template-columns: 34px minmax(0, 1fr); gap: 8px; padding: 10px; }
   .paw-room-flow-showcase__phase { grid-column: 2; grid-row: 1; justify-self: start; min-height: 24px; }

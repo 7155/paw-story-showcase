@@ -25,6 +25,7 @@ import { isComposerAttachmentMimeType } from '@/contracts/attachment-policy';
 import type { RoomActivityProjection, RoomAttachmentReceipt } from '@/contracts/room-reducer';
 import type { AgentPersonaV1 } from '@/contracts/generated/agent-persona.v1';
 import type { ControlRequest, PickedFile } from '@/platform/transport';
+import { PawRoomPendingQuestion } from './PawRoomPendingQuestion';
 import { GenericUserInputCard } from '@/features/agent/review/AgentReviewDialogs';
 import { QueueTray, useConversationQueue } from '@/features/conversation-ui';
 import { usePawOsDesktop } from '@/features/paw-os/surface-context';
@@ -36,6 +37,7 @@ import {
 } from '@/features/agent/public-error';
 import { TraceAgentHandoffButton } from '@/features/trace-agent/handoff';
 import { RoomComposer, roomMentionedParticipants } from '@/features/rooms/composer/RoomComposer';
+import { RoomCapabilityControls } from '@/features/rooms/composer/RoomCapabilityControls';
 import { roomCollaborationRoleLabel, roomPlanetName } from '@/features/rooms/room-copy';
 import { latestPendingGroupedRoomInput, type PendingRoomQuestion } from '@/features/rooms/room-question';
 import {
@@ -51,10 +53,6 @@ import {
 import { useRoomLiveSession } from '@/features/rooms/runtime/use-room-live-session';
 import { usePageVisibility } from '@/platform/use-page-visibility';
 import { pulsePawCompositionForRuntimeEvents } from '../runtime/composition-pulse';
-import {
-  createRuntimeToolWindowProjector,
-  shouldAutoOpenRuntimeToolWindow,
-} from '../runtime/runtime-tool-window';
 import { PawWindowChromePortal, usePawWindowChromeTarget } from '../shell/PawWindowChrome';
 import { roomProjection, useRoomLiveStore } from '@/features/rooms/state/live-store';
 import {
@@ -192,7 +190,6 @@ export function PawRoomWorkspace({
   const [resumeErrorByRow, setResumeErrorByRow] = useState<Record<string, string>>({});
   const [resumingWorkItemId, setResumingWorkItemId] = useState('');
   const [recoveryState, setRecoveryState] = useState<'recovering' | 'failed' | 'synced'>('recovering');
-  const runtimeToolWindow = useMemo(() => createRuntimeToolWindowProjector(), [recordId]);
 
   useEffect(() => {
     if (initialDraft !== undefined) setDraft(initialDraft);
@@ -343,12 +340,6 @@ export function PawRoomWorkspace({
     onEvents: (_roomId, events) => {
       acknowledgeOptimisticSteer(events);
       pulsePawCompositionForRuntimeEvents('room', events.map((event) => event.eventType));
-      for (const event of events) {
-        const runtimeWindow = runtimeToolWindow(event);
-        if (runtimeWindow && shouldAutoOpenRuntimeToolWindow(runtimeWindow)) {
-          desktop?.openWindow(runtimeWindow);
-        }
-      }
     },
   });
 
@@ -1014,10 +1005,22 @@ export function PawRoomWorkspace({
                   />
                 </div>
               ) : null}
+              {pendingQuestion?.roomId === recordId ? <PawRoomPendingQuestion
+                key={`${pendingQuestion.rootId}:${pendingQuestion.postId}`}
+                question={pendingQuestion}
+                onAnswer={(value) => send(value, { question: pendingQuestion })}
+              /> : null}
               {pendingGroupedInput ? <GenericUserInputCard activity={pendingGroupedInput} sessionId={pendingGroupedInput.sourceSessionId} onError={setError} /> : (
                 <>
                   <QueueTray busy={sending} controller={queue} />
                   <RoomComposer
+                    capabilityControls={record ? <RoomCapabilityControls
+                      participants={record.participants}
+                      aliases={participantAliases}
+                      busy={Boolean(activeTurn) || sending}
+                      disabled={record.status !== 'active'}
+                      onSelectTool={(name) => setDraft((current) => `${current}${current.trim() ? '\n' : ''}${name}：`)}
+                    /> : undefined}
                     room={record}
                     participantAliases={participantAliases}
                     personas={personas}

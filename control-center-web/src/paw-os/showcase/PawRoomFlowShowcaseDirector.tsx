@@ -13,7 +13,7 @@ import {
   type PawRoomFlowShowcaseView,
 } from './room-flow-script';
 
-const FINAL_SEQUENCE = 69;
+const FINAL_SEQUENCE = 70;
 
 type ShowcasePhase = 'goal' | 'grill' | 'confirm' | 'dispatch' | 'streaming' | 'workpatch' | 'review' | 'submit';
 
@@ -27,6 +27,17 @@ type RoomShowcaseCursor = {
 
 export function PawRoomFlowShowcaseDirector() {
   const api = usePawDesktopApi();
+  const barRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+    // Refit the real windows when the visible playback bar wraps or mounts.
+    const update = () => window.dispatchEvent(new Event('resize'));
+    const observer = new ResizeObserver(update);
+    observer.observe(bar);
+    update();
+    return () => { observer.disconnect(); update(); };
+  }, []);
   const [current, setCurrent] = useState<PawRoomFlowShowcaseEventDetail>({
     sequence: 1,
     eventType: 'user_message',
@@ -233,6 +244,7 @@ export function PawRoomFlowShowcaseDirector() {
       aria-label="PAW Room 公开合成运行导演"
       aria-live="polite"
       className="paw-room-flow-showcase"
+      ref={barRef}
       data-phase={phase}
       data-room-view-target={cursor.targetView || undefined}
       data-sequence={current.sequence}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore, type ReactNode, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode, type MouseEvent } from 'react';
 import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { ShowcaseDirectory, showcaseChapters } from './showcase-directory';
 import './guided-showcase.css';
@@ -28,6 +28,7 @@ export function navigateGuidedChapter(event: MouseEvent<HTMLElement>) {
 
 export function GuidedShowcase({ panels }: { panels: Record<string, ReactNode> }) {
   const current = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
+  const [osScale, setOsScale] = useState(.8);
   const position = showcaseChapters.findIndex(item => item.id === current);
   const chapter = showcaseChapters[position];
   const workspace = useRef<HTMLDivElement>(null);
@@ -40,11 +41,11 @@ export function GuidedShowcase({ panels }: { panels: Record<string, ReactNode> }
   }, [current]);
   return <>
     <header className="guided-intro"><h1>从协作，到可交付的结果。</h1><p>选一个阶段，直接动手体验。</p></header>
-    <div className="guided-workspace" ref={workspace}>
+    <div className="guided-workspace" ref={workspace} data-os-scale={osScale} style={{ "--os-display-scale": osScale } as CSSProperties}>
       <aside className="guided-rail"><h2>体验路线</h2><ShowcaseDirectory current={current}/><p>真实前端 · 公开合成数据</p></aside>
       <label className="guided-mobile-nav">选择演示<select value={current} onChange={event => { navigateTo(event.target.value); }}>{showcaseChapters.map(item => <option key={item.id} value={item.id}>{item.title} · {item.action}</option>)}</select></label>
       <div className="guided-stage">
-        <header className="guided-stage-heading"><div><h2>{chapter.action}</h2><p>{chapter.hint}</p></div><a href={chapter.href}>查看详情<ArrowUpRight size={17}/></a></header>
+        <header className="guided-stage-heading"><div><h2>{chapter.action}</h2><p>{chapter.hint}</p></div><div className="guided-stage-actions">{!["apps", "input"].includes(current) && <label className="guided-os-scale">OS 缩放<select aria-label="OS 显示缩放" value={osScale} onChange={event => setOsScale(Number(event.target.value))}><option value={.8}>80%</option><option value={.9}>90%</option><option value={1}>100%</option></select></label>}<a href={chapter.href}>查看详情<ArrowUpRight size={17}/></a></div></header>
         <div className="guided-panels">{showcaseChapters.map(item => <div className="guided-panel" key={item.id} hidden={current !== item.id} aria-label={`${item.title}演示`}>{panels[item.id]}</div>)}</div>
         <nav className="guided-next" aria-label="继续体验"><span>{position + 1} / {showcaseChapters.length}</span><div>{position>0 && <a href={`#${showcaseChapters[position-1].id}`}><ArrowLeft size={16}/>上一步</a>}{position<showcaseChapters.length-1 ? <a className="guided-next-primary" href={`#${showcaseChapters[position+1].id}`}>下一步：{showcaseChapters[position+1].title}<ArrowRight size={17}/></a> : <a className="guided-next-primary" href="#agents">回到协作<ArrowRight size={17}/></a>}</div></nav>
       </div>

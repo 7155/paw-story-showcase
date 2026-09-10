@@ -149,7 +149,7 @@ export function PawRoomRoundSheet({
           : resultRows;
         const planetCount = taskRows.length + countedResultRows.length
           + (workerAssignmentExists ? 0 : coordinatorRows.length) || starterRows.length;
-        const roundOpen = latest || Boolean(historicalDisclosure[sheet.id]);
+        const roundOpen = historicalDisclosure[sheet.id] ?? latest;
         const replyId = `${detailIdPrefix}-${domToken(sheet.id)}-reply`;
         const processId = `${detailIdPrefix}-${domToken(sheet.id)}-process`;
         const hasProcess = taskRows.length > 0 || starterRows.length > 0;
@@ -170,7 +170,7 @@ export function PawRoomRoundSheet({
             key={sheet.id}
           >
             <header className="paw-room-session-round__prompt">
-              {latest ? <div className="paw-room-session-round__objective">{prompt}</div> : <button
+              {<button
                 aria-controls={replyId}
                 aria-expanded={roundOpen}
                 aria-label={roundOpen ? '折叠本轮任务' : '展开本轮任务'}

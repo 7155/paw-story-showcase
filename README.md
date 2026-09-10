@@ -8,7 +8,7 @@ story, system diagrams, technical choices, and scoped experiment results.
 The companion `control-center-web` contains the real PAWOS frontend components
 with contract-shaped synthetic data, without private Runtime or personal data.
 
-The embedded frontend was refreshed from the PAW working tree on 2026-09-07,
+The embedded frontend was refreshed from the PAW working tree on 2026-09-10,
 including the stellar desktop, current Agent and Room views, Memory topic
 pages, and Lab project/Knowledge workspaces. The exact captured source and
 public adaptations are recorded in

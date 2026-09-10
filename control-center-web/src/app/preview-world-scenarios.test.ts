@@ -29,7 +29,7 @@ describe('long public world scenarios', () => {
   });
   it('retains sequence recovery and real readable artifact hashes', () => {
     const all=previewRoomSnapshot('room-preview'); const partial=previewRoomSnapshot('room-preview',{throughSequence:44,baseTimeMs:0});
-    expect(all.events).toHaveLength(69); expect(partial.events.at(-1)?.sequence).toBe(44);
+    expect(all.events).toHaveLength(70); expect(partial.events.at(-1)?.sequence).toBe(44);
     expect(JSON.stringify(partial.events)).toContain('输入事件 v2');
     for(const file of Object.values(worldRoomFiles)) expect(createHash('sha256').update(file.content).digest('hex')).toBe(file.sha256);
   });

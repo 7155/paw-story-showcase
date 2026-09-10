@@ -636,7 +636,7 @@ function FocusDispatchPlan({
   );
 }
 
-function FocusInspector({
+export function FocusInspector({
   onOpenParticipant,
   originLabel,
   partner,

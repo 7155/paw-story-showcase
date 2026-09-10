@@ -1,7 +1,7 @@
 /* Original WebGL planets and native PAW desktop share one readable stage. */
 .guided-panel .room-transformation { max-width:none; }
 .guided-panel .room-transformation-stage { aspect-ratio:auto; height:680px; min-height:580px; }
-.guided-panel .room-transformation[data-stage=windows] .room-transformation-stage { height:max(700px,calc(100svh - 210px)); aspect-ratio:auto; }
+.guided-panel .room-transformation[data-stage=windows] .room-transformation-stage { height:max(640px,calc(100svh - 170px)); aspect-ratio:auto; }
 .guided-panel .room-orbit-layer .solar-3d-stage { height:100%; }
 .pawos-live-room:not([data-visible]) { opacity:0; pointer-events:none; visibility:hidden; }
 .pawos-live-room[data-visible] { opacity:1; visibility:visible; }

@@ -1,19 +1,19 @@
 {
   "schemaVersion": "paw.showcase-upstream.v1",
-  "snapshotDate": "2026-09-07",
+  "snapshotDate": "2026-09-10",
   "sourceRepository": "7155/personal-agent-workbench",
   "sourceVisibilityAtSnapshot": "private",
-  "sourceCommit": "955e0ed6b63d9ba612ce5dcbefc52b3bf6da5209",
+  "sourceCommit": "83848424f2453422df45106eda30dbfa7aa6378c",
   "sourceSubtree": "control-center-web",
   "snapshotMode": "working-tree-selected-frontend",
   "sourceWorkingTreeAtSnapshot": {
     "state": "dirty",
-    "scope": "control-center-web/src and public production frontend files, including the preview transport helper; product test cases, documents, dependencies and outputs excluded",
-    "capturedAt": "2026-09-07T17:07:26.566353+08:00",
-    "sourceInputFileCount": 797,
-    "sourceInputSha256": "7d6f3d3e93cbc33e9311f10eba5f096600324b7ab5612f128d4af63a3452f699",
+    "scope": "Current production frontend working-tree source and selected public assets; showcase mock transports, replay, portable Apps and foreground interaction adaptations retained. Product tests, private records and build outputs excluded.",
+    "capturedAt": "2026-09-10T11:14:55.384449+00:00",
+    "sourceInputFileCount": 857,
+    "sourceInputSha256": "df5c372518b676e700a24f83285b8c8aecdcfb6dd75f3f1aad70c445d3a73f2a",
     "sourceManifest": "manifest/frontend-source-snapshot.v1.json",
-    "note": "The source commit is the provenance anchor; the manifest records captured working-tree file hashes and their public adaptations. The production preview transport helper was captured at 17:38 to match the current stream-stability contract."
+    "note": "Captured local production frontend, including in-progress stellar assets. Public adapters retain synthetic data, replay and runnable App previews."
   },
   "sourceRefreshes": [
     {

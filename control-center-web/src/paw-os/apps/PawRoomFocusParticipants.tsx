@@ -7,7 +7,8 @@ import { useRoomLiveSession } from '@/features/rooms/runtime/use-room-live-sessi
 import type { RoomSummary } from '@/features/rooms/room-types';
 import { usePageVisibility } from '@/platform/use-page-visibility';
 import type { PawWindowNode } from '../runtime/desktop-store';
-import { FocusFlowLedger } from './PawRoomFocusOverview';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/primitives';
+import { FocusFlowLedger, FocusInspector } from './PawRoomFocusOverview';
 import { useRoomLiveFocusData } from './PawRoomLiveFocusOverview';
 import { buildRoomFocusProjection, roomFocusHasCoordinator, roomFocusOriginLabel, roomFocusStateLabel, type RoomFocusProjection } from './room-focus-projection';
 import { roomPlanetObserverWindowRequest } from './room-satellite-auto-open';
@@ -95,6 +96,8 @@ export function PawRoomFocusParticipantBar({ focus, satellitesByParticipant, sel
   onRefreshTraffic?: () => void;
 }) {
   const [trafficOpen, setTrafficOpen] = useState(false);
+  const [detailParticipantId, setDetailParticipantId] = useState('');
+  const detailPartner = focus.partners.find(partner => partner.participantId === detailParticipantId);
   const trafficTrigger = useRef<HTMLButtonElement>(null);
   const trafficId = `room-focus-traffic-${focus.goal.rootId}`;
   const closeTraffic = () => {
@@ -103,9 +106,21 @@ export function PawRoomFocusParticipantBar({ focus, satellitesByParticipant, sel
   };
   const inspect = (participantId: string) => {
     setTrafficOpen(false);
+    setDetailParticipantId(participantId);
     onSelect(participantId);
   };
   return <>
+    <Dialog open={Boolean(detailPartner)} onOpenChange={open => { if (!open) setDetailParticipantId(''); }}>
+      <DialogContent className="paw-room-focus-detail-dialog">
+        <DialogTitle>{detailPartner?.celestialName} · 卫星与验收</DialogTitle>
+        <DialogDescription>查看这个伙伴的任务、卫星记录和交付依据。</DialogDescription>
+        <div className="paw-desktop-root" style={{ position: 'relative', height: 'auto', minHeight: 0, overflow: 'visible' }}><div className="paw-room-focus-overview">
+          <FocusInspector originLabel="主持人" partner={detailPartner} partners={focus.partners}
+            work={focus.workItems.find(work => work.ownerParticipantId === detailParticipantId)}
+            satellites={satellitesByParticipant[detailParticipantId]} />
+        </div></div>
+      </DialogContent>
+    </Dialog>
     <nav aria-label="Room 伙伴" className="paw-room-focus-participants">
       <div className="paw-room-focus-participants__track">
         {focus.partners.map((partner) => {
