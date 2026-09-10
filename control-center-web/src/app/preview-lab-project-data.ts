@@ -3,7 +3,7 @@ import { OPTIMIZATION_PROJECT_ID, PreviewOptimizationProject } from './preview-o
 import type { ControlPathId } from '@/platform/routes';
 import type { ControlRequest } from '@/platform/transport';
 import type { MockRouteHandler } from '@/test/mock-transport';
-import { isArtifact, object, type LabArtifact, type LabMaterial, type LabProject, type ProjectReceipt } from '@/features/eval-lab/projects/types';
+import { isArtifact, object, type JsonValue, type LabArtifact, type LabMaterial, type LabProject, type ProjectReceipt } from '@/features/eval-lab/projects/types';
 import type { KnowledgeJob, KnowledgeState } from '@/features/eval-lab/projects/knowledge-types';
 import { currentLabExperiments } from '../../../showcase/lab-evidence';
 import { labDemoProjectId, labDemoScenarios } from '../../../showcase/lab-demo';
@@ -13,6 +13,7 @@ import { PreviewResearchKnowledge, readPublicLabRecord, writePublicLabRecord } f
 import researchHistory from '../../../paw-story-demo/public/evidence/research-history.v1.json';
 import { portableResearchDocument } from '../../../showcase/portable-research-app';
 import { defaultLabConfig } from '../../../showcase/guided-lab';
+import { labPage04, labPage04Key, labPage04ProjectId } from './lab-page04-showcase';
 
 const capturedAt = Date.UTC(2026, 8, 7, 8);
 const supportedViews = ['markdown', 'table', 'form', 'code', 'html', 'json'];
@@ -45,6 +46,14 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
     origin: 'text', byteSize: new TextEncoder().encode(text).byteLength, contentHash: previewDigest, importedAtMs: capturedAt,
   });
   const demoKey = (id: string) => currentLabExperiments.find((item) => labDemoProjectId(item.key) === id)?.key;
+  const page04Status = (project: LabProject) => {
+    const key = labPage04Key(project.projectId); if (!key) return undefined;
+    const has = (id: string) => project.artifacts.some((row) => row.artifactId === id);
+    const phase = has('page04-acceptance') ? 8 : has('page04-export') ? 7 : has('page04-preview') ? 6 : has('page04-app') ? 5
+      : has('page04-citation-audit') ? 4 : has('page04-comparison') ? 3 : has('page04-baseline') ? 2 : project.materialCount ? 1 : has('page04-alignment') ? 0 : -1;
+    return { key, phase, runs: labPage04[key].runs, trials: labPage04[key].trials,
+      generated: has('page04-app'), downloaded: has('page04-export'), accepted: has('page04-acceptance'), productionDeployed: false };
+  };
   const flowSignature = (project: LabProject) => `${project.materialSetId}:${project.artifacts.find((item) => item.artifactId === 'demo-config')?.revision ?? 0}`;
   function putArtifact(project: LabProject, value: Omit<LabArtifact, 'revision' | 'createdAtMs' | 'updatedAtMs' | 'templateRef' | 'actions'>): LabArtifact {
     const previous = project.artifacts.find((item) => item.artifactId === value.artifactId);
@@ -150,6 +159,13 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
     project.workspace.primaryArtifactId = 'demo-intake';
   }
 
+  for (const [key, scenario] of Object.entries(labPage04) as [keyof typeof labPage04, (typeof labPage04)[keyof typeof labPage04]][]) {
+    const project = createProject(scenario.title, scenario.task, [], labPage04ProjectId(key));
+    project.materialSet.materials = []; project.materialCount = 0;
+    project.intake = { state: 'needs_materials', requestedPath: '', resolvedPath: '', readCount: 0, readBytes: 0, skippedCount: 0, partial: false, issues: [], checkedAtMs: project.createdAtMs };
+    project.workspace = { artifactOrder: ['task-brief', 'acceptance'], primaryArtifactId: 'task-brief', layout: 'focus' };
+  }
+
   const repairProject = createProject('写入与登记恢复 · 优化演示', '四条工作线的合同已交付，OS 却找不到文件。沿 Trace 诊断并比较修复候选。', [{title:'故障描述',text:'公开合成：workspace_write 成功后 document_register 返回 503，旧补偿删除了已保存文件。'}], OPTIMIZATION_PROJECT_ID);
   optimization.initialize(repairProject, putArtifact);
 
@@ -191,6 +207,7 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
           canGenerate: evaluations.get(project.projectId)?.signature === flowSignature(project) && evaluations.get(project.projectId)?.result.decision === 'keep',
           runs:evaluations.get(project.projectId)?.runs.map(run=>({id:run.id,name:run.name,passed:run.passed,total:run.total})) ?? [],
           decision: evaluations.get(project.projectId)?.result.decision ?? '', appVersion: apps.get(project.projectId)?.at(-1)?.version.version ?? 0 } } : {}),
+        ...(project && page04Status(project) ? { page04: page04Status(project) } : {}),
         ...(project?.projectId === OPTIMIZATION_PROJECT_ID ? {optimization: optimization.status(project,id=>artifacts.get(artifactKey(project.projectId,id,project.artifacts.find(a=>a.artifactId===id)?.revision??0)))} : {}),
         ...(artifact ? { artifact } : {}) });
     },
@@ -215,6 +232,46 @@ export function createPreviewLabProjectRoutes(): Partial<Record<ControlPathId, M
         if (project.projectId === OPTIMIZATION_PROJECT_ID && body.action === 'knowledge' && String(input.operation).startsWith('optimization_')) {
           try { artifact = optimization.command(project, input, putArtifact, id => artifacts.get(artifactKey(project!.projectId, id, project!.artifacts.find(a => a.artifactId === id)?.revision ?? 0))); project.workspace.primaryArtifactId = artifact.artifactId; }
           catch (error) { return fail(error instanceof Error ? error.message : '优化演示未完成。'); }
+        } else if (body.action === 'knowledge' && labPage04Key(project.projectId) && String(input.operation).startsWith('page04_')) {
+          const key = labPage04Key(project.projectId)!; const scenario = labPage04[key]; const operation = String(input.operation);
+          const phase = page04Status(project)!.phase;
+          const expected = phase < 0 ? 'page04_align' : phase === 0 ? 'page04_import' : phase === 1 ? 'page04_baseline' : phase === 2 ? 'page04_compare' : phase === 3 ? 'page04_audit'
+            : phase === 4 ? 'page04_generate' : phase === 5 ? 'page04_preview' : phase === 6 && key === 'rag' ? 'page04_download' : 'page04_accept';
+          if (operation !== expected) return fail('当前操作不属于下一步。请按材料、基线、候选、引用、应用、预览与验收顺序继续。');
+          const table = (artifactId: string, title: string, summary: string, rows: Record<string, JsonValue>[], caption: string) => putArtifact(project!, { artifactId, title, kind: 'evaluation', view: 'table', summary,
+            content: { columns: Object.keys(rows[0] ?? { result: '' }).map((name) => ({ key: name, label: ({label:'方案',result:'结果',note:'说明',item:'入口',status:'处理',reason:'原因',question:'试用问题',answer:'Mock 回执'} as Record<string,string>)[name] ?? name })), rows, caption } });
+          if (operation === 'page04_align') {
+            artifact = table('page04-alignment','运行前追问与冻结标准','范围、成功定义与授权已经确认',[
+              {item:'资料范围',status:'确认',reason:'只使用 project:harbor 的获准合成正文；跨项目与旧版本排除'},
+              {item:'成功定义',status:'确认',reason:key==='rag'?'16 道公开题逐题检查必需来源；召回不等于答案正确':'6 道 development 题逐题硬判定，不做总体平均'},
+              {item:'评分标签',status:'确认',reason:'expected 只供评分器，不能进入检索或业务输入'},
+              {item:'记忆与写入',status:'确认',reason:'预览不写全局记忆、业务系统或生产服务'},
+              {item:'交付状态',status:'确认',reason:'生成、下载回执与生产部署分别记录'},
+            ],'这是 Mock 中保存的用户确认节点；没有从附件自行推断为真实授权。');
+          } else if (operation === 'page04_import') {
+            const rows = scenario.intake.exclusions.map((row) => ({ item: row.label, status: '排除', reason: row.reason }));
+            const values = scenario.materials.length ? scenario.materials : Array.from({length: scenario.intake.accepted}, (_, index) => ({id:`${key}-record-${index + 1}`,title:`${scenario.title} · 记录 ${index + 1}`,text:'公开合成业务记录，仅用于本页 Mock 决策回放。'}));
+            project.materialSet.materials = values.map((row, index) => ({ ...material(row.title, row.text, index), sourceId: row.id, uri: `preview://page04/${key}/${row.id}` }));
+            project.materialCount = values.length; project.materialSetId = `${project.projectId}:materials:page04`; project.materialSet.materialSetId = project.materialSetId;
+            project.intake = { ...project.intake, state: 'read', readCount: scenario.intake.accepted, skippedCount: scenario.intake.total - scenario.intake.accepted, partial: scenario.intake.accepted !== scenario.intake.total,
+              readBytes: project.materialSet.materials.reduce((sum,row)=>sum+row.byteSize,0), issues: rows.map((row,index)=>({code:`PAGE04_EXCLUDED_${index + 1}`,title:String(row.item),message:String(row.reason)})), checkedAtMs: Date.now() };
+            artifact = table('page04-intake-audit','材料导入与审核',`${scenario.intake.total} 项入口 · ${scenario.intake.accepted} 份进入当前语料`, rows.length ? rows : [{item:'合成业务记录',status:'已纳入',reason:'6 条记录进入独立场景'}], '上传成功不等于全部读懂。排除项不进入语料；本页没有读取真实 PDF 或运行 OCR。');
+          } else if (operation === 'page04_baseline') {
+            const run = scenario.runs[0]; artifact = table('page04-baseline','已保存基线与首次回放',`${run.label} · ${run.passed}/${run.total}`,[{label:run.label,result:`${run.passed}/${run.total}`,note:run.note}], key==='rag' ? '900 字切片、120 字重叠、K=4、上下文 6000。只计必需来源是否全齐，不代表答案正确率。' : '同一批 6 条公开合成记录与 6 道 development 题；结果为保存的 Mock 决策。');
+          } else if (operation === 'page04_compare') {
+            artifact = table('page04-comparison','候选比较',scenario.runs.map(run=>`${run.label} ${run.passed}/${run.total}`).join(' · '),scenario.runs.map(run=>({label:run.label,result:`${run.passed}/${run.total}`,note:run.note})),key==='rag' ? `语料、16 道题、K=4 与评分标签保持一致；只改变 900 / 600 / 1800 字切片。共有 ${scenario.requiredSourceCount} 个必需来源标注。` : '逐题硬判定，不用平均分掩盖关键失败；各场景分母独立。');
+          } else if (operation === 'page04_audit') {
+            artifact = table('page04-citation-audit','引用支持性审查','来源全齐仍需审查结论是否受支持',[{item:scenario.citationAudit.claim,status:scenario.citationAudit.claimSupported?'支持':'不支持',reason:scenario.citationAudit.finding}],'引用存在只证明找到了片段，不证明主张成立。');
+          } else if (operation === 'page04_generate') {
+            artifact = table('page04-app','应用生成回执',`${scenario.delivery.appId} · v${scenario.delivery.version}`,[{item:'生成应用',status:'prepared_mock_preview',reason:'绑定当前语料、所选候选和保存的评测回执'}],'这是 Mock 应用版本回执；没有模型调用、真实业务写入或生产部署。');
+          } else if (operation === 'page04_preview') {
+            artifact = table('page04-preview','应用预览试用',`${scenario.trials.length} 条 Mock 试用回执`,scenario.trials.map(row=>({question:row.prompt,status:row.status,answer:row.result})),'无命中与“命中相关材料但材料没有答案”是两种不同结果；均不得编造事实。');
+          } else if (operation === 'page04_download' && key === 'rag') {
+            artifact = table('page04-export','下载回执','p04-export-rag-v1 · Mock 已完成',[{item:'harbor-evidence-app-v1.zip',status:'download_completed_in_mock',reason:'没有生成真实 ZIP 字节，payload digest 保持为空'}],'取得下载回执不等于生产部署。其他三个场景只准备预览，不显示已下载。');
+          } else if (operation === 'page04_accept') {
+            artifact = table('page04-acceptance','人工验收','第四页 Mock 流程已验收',[{item:'本页验收',status:'accepted_mock',reason:'项目、语料、候选、应用版本和回执保持独立'}],'保留上一页 adoption-page03-b-001；不重放上一页采用，也不合并 8 道与 16 道题的分母。');
+          } else return fail('当前步骤与场景不匹配，请重新读取后继续。');
+          if (artifact) project.workspace.primaryArtifactId = artifact.artifactId;
         } else if (body.action === 'knowledge' && (project.projectId === 'lab-showcase-rag' || project.projectId.startsWith('lab-project-showcase-') || research.has(project.projectId) || String(input.operation).startsWith('upload_'))) {
           try { ({job, upload} = await researchFor(project.projectId).command(input)); projectChanged = false; }
           catch (error) { return fail(error instanceof Error ? error.message : '资料处理未完成。'); }

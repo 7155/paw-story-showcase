@@ -69,6 +69,9 @@ ad8f08f75acf4e099c25b85cedd5129f327c8f4d1385b3aa246eb06d8e365237  control-center
 bede74e0125c526b6a8c1ad746e09611d4a3fb1311a08335235ef425f4877e3c  control-center-web/src/app/control-transport.native.tsx
 770113a0663d862432d72dd866e8eca05bbff2aaef231cbce88045bf36ada139  control-center-web/src/app/control-transport.tsx
 0b520bbf60eb7f034e3b2b0f786fa937d10cdd61b5bb56ecc5e0d07630fd9df9  control-center-web/src/app/frontend-product.ts
+b72039245629e2c211aeefe3fa9a69e085e24a7a405c1191ddbdd522e7f87c76  control-center-web/src/app/lab-page04-research-sources.json
+ac28d60394085affd96e469952c144ff826436b840ef8b5ac3573d87685e011b  control-center-web/src/app/lab-page04-showcase.test.ts
+941b013e632ae10fcdc68ba4b3cb01d7344211ef99a3edbc9945ae94db6d3436  control-center-web/src/app/lab-page04-showcase.ts
 e98ca7590e8fe75be528579e7fb6fc24521cd49ac63994b61207f4c9028f9b03  control-center-web/src/app/mount-control-center.tsx
 cfafd787239fb6c2e7266d722f11fed7704adecf235a6de3273b4ef7795c37de  control-center-web/src/app/preview-business-lab.ts
 9e33422b64d7fcc466bcb030058b4015db618869aec63f29b972431750fc7cd0  control-center-web/src/app/preview-control-transport.tsx
@@ -79,8 +82,9 @@ cfafd787239fb6c2e7266d722f11fed7704adecf235a6de3273b4ef7795c37de  control-center
 bd41c451467eac07bf419e68025ac2d792f4b7050d319bf8b021bfe52ffa8cb3  control-center-web/src/app/preview-lab-app-package.ts
 85e77cd279f1f0236c081a66d4877de41d0e86136529a5eddcdd120826ffbf41  control-center-web/src/app/preview-lab-flow-ui.test.tsx
 4a3c9365aa27d7754185258f9c36fd268ed898618b1dc143d52c4d9af0d6bee9  control-center-web/src/app/preview-lab-flow.test.ts
-5169a621aee8c8ce73062635b6ee6235d205669857c6349f0395c2817ac3421d  control-center-web/src/app/preview-lab-project-data.test.ts
-22c9d1664225971e2313e6c224d12485d728b7cb8e6109655858d2b068451deb  control-center-web/src/app/preview-lab-project-data.ts
+2e6e9f5de78c66c8164fa5c5d7203ac63f83ab02bcdc3d01b6756b013a6e3040  control-center-web/src/app/preview-lab-page04-ui.test.tsx
+622d112e8639d8d7a2112b1f2677ffe98c6c61b5e971fdb7a2fff90b9c515cb8  control-center-web/src/app/preview-lab-project-data.test.ts
+0e64b569e92f265a6b98d61681246fd4e5d8d7dec6d7bf66b9f1ce57445268a7  control-center-web/src/app/preview-lab-project-data.ts
 873bb8f13b79a2da4a684341b9082b58fe8ef928ea656be8c6de17089ad8c507  control-center-web/src/app/preview-lab-project-ui.test.tsx
 1d69d2d04e31cdffbf8dfefc4fc0167d75fa8083393c86f70a655b48c5d175d6  control-center-web/src/app/preview-memory-corpus.ts
 af80538347a9c45677a7d10fa003e00f1d7b3db039f3225924b0fd925119967e  control-center-web/src/app/preview-memory-data.test.ts
@@ -581,7 +585,7 @@ d4eab73da712b95512a6fe18ce6496879e520ec15680dc5f4acd0842fdd56caf  control-center
 843628862a026f8bd4521467f329fc08d7325495e2de1af4aefd18bcc6ee64b8  control-center-web/src/features/eval-lab/projects/LabKnowledgeIntake.tsx
 121710ea3c7b8a38d2247c22c24126183e36e91044c4e7bec48860686be6a9b2  control-center-web/src/features/eval-lab/projects/LabProjectJourney.tsx
 e873231a743b59fa54e75d2d7de16e57ce2f69145d66f08393692a4ca3307bc5  control-center-web/src/features/eval-lab/projects/LabProjectWorkbench.test.tsx
-fddcdc410b0f3ce6d5a3d70c1a9f299e081189adf3ec047479b882c3bf082b50  control-center-web/src/features/eval-lab/projects/LabProjectWorkbench.tsx
+5d93c00061446c72b8ac0d339ffedcf67901a5f27800a8eae5fb084c40ecc544  control-center-web/src/features/eval-lab/projects/LabProjectWorkbench.tsx
 28e82b3420c59e9a0f3d5e314424a96b316a5cb459a016452c1fe42fcccbc708  control-center-web/src/features/eval-lab/projects/NewKnowledgeApp.test.tsx
 fc20fbdb6b7d20bdfe30bb0b9462a7c051e96bf1e92fad3902e05ff55679fefd  control-center-web/src/features/eval-lab/projects/NewKnowledgeApp.tsx
 f9b6ab4ab2d58170fe2d33d067a6b4491b90e7c61f7cc871f401c10287188b01  control-center-web/src/features/eval-lab/projects/OptimizationGoalSpace.tsx
@@ -922,6 +926,7 @@ d44b1793c0d5fa34f074f1cad23937442b38614035744591c3ee0bb05fb99f19  control-center
 f0aa2308564b2d2db36ad658c28db2f408bb539fa44583d413561a58994e8537  control-center-web/src/paw-os/shell/window-arrival.css
 31f03208b22dc9434a2c7d0e5f11f25233d099d402397753a83f1ba7e8ba2cec  control-center-web/src/paw-os/shell/window-arrival.ts
 fe5184ced77a52a1a7f7b502d7492a017e96bf6523639125997d86fefeb0f692  control-center-web/src/paw-os/showcase/LabFlowControls.tsx
+ebeb7cbbcaac55961db612b3c477ad1eaaba1389bb51088e186befb352e8d651  control-center-web/src/paw-os/showcase/LabPage04Controls.tsx
 bed809aec04b75ed2489c45eba40622b6d521310a4748df0b4863d2ca24337bb  control-center-web/src/paw-os/showcase/OptimizationControls.tsx
 51da40cfef388e554120a176270d03838567d48e548d80e83932096bbd929cd8  control-center-web/src/paw-os/showcase/PawHandsOnGuide.tsx
 59d1cf02934a813706d7b235227440d7f3a3a74d9aa15b606e7509f188499a1c  control-center-web/src/paw-os/showcase/PawMemoryFlowShowcaseDirector.test.tsx
@@ -932,7 +937,7 @@ e1cc82f47c06b35067cdbb641590ca0c506d09aa0fb4255652fe6715635b644f  control-center
 f0c0e5853dc18879c91814af79d49cec2e12eebf821c1c19de3da25ed4643e9b  control-center-web/src/paw-os/showcase/hands-on-guide.css
 4eba33e0dec1ea86e44c7c55ddc48fb1a2d943c871836b6131fc76d03de050dc  control-center-web/src/paw-os/showcase/hands-on-guide.test.ts
 1454219b569b07878c4612adfb307da382a019a4b58a6c707f00a67dac2a72ea  control-center-web/src/paw-os/showcase/hands-on-guide.ts
-8e880b3f76836971d3e1e39c57df4e733a9009c4ae9adcdb3d3e35d884f89bf9  control-center-web/src/paw-os/showcase/lab-flow-controls.css
+22fa417db04212a8e0306c346111ae069f0653f68e41e3e93cbf2b03406dc683  control-center-web/src/paw-os/showcase/lab-flow-controls.css
 d8af27c90820b4097303a392782cf0b1acd463e710d01b03910262aca29b990d  control-center-web/src/paw-os/showcase/memory-flow-script.test.ts
 9302a686a4062478ad13b4266130f31fc3549b4af9e6097492998b7148cb4fba  control-center-web/src/paw-os/showcase/memory-flow-script.ts
 2c8d65fae487b3b48791e1ede7841ddd104bd1f234d9ddc831b6561114810fc5  control-center-web/src/paw-os/showcase/room-flow-script.test.ts
@@ -1018,7 +1023,7 @@ b47d999ad18100a2214668c504dbc0fd844bdb59a0d8b5ee5247ec2aa1b18f4b  paw-story-demo
 50c0a9e1dd8398194997101327f8ad0650b065fc955bc974bf40b26a0733d125  paw-story-demo/app/guided-showcase.tsx
 adf67408cc4ef672b76d02a46298108a80af66dfca494496a1374e6923de03ac  paw-story-demo/app/hands-on-hint.tsx
 64ee07359cfabcf4bf72850fb5089f3f9689870536cfcfdcb371b3606cb46a2a  paw-story-demo/app/lab/lab-showcase.css
-d08aa25f46943a33456bafbb19dd534f45aaa115e0050cd080e1e32eba4b72a2  paw-story-demo/app/lab/lab-showcase.tsx
+8d6dd02f40c0392149b13ffb371eab2e71441eeb5b481a452d4f97f4005f0323  paw-story-demo/app/lab/lab-showcase.tsx
 3eeed518eb169fe45f71a5fa35cff996c07c30ba79bbc7784c9a85f4e5eacbc4  paw-story-demo/app/lab/page.tsx
 d20c2de7a20ba0e821fee7e6b3127b7abafd937f16f228f923047402af185a72  paw-story-demo/app/lab-evidence.ts
 1ec1680502cfad24ae84c99b30f9201d6d569866713e53f5a7fc97dba71733e0  paw-story-demo/app/layout.tsx
@@ -1219,7 +1224,7 @@ d131856ad0338a00e2ec65f46735047d460af88302047e15bab1fed857bb754f  paw-story-demo
 4995d6abda058d7dda279adcc1830b3dacadda7c4fa5d54d22ec7141599bed38  paw-story-demo/tests/guided-lab.test.mjs
 eae1d187870ad9a4b3f0c37b40589b25c1a2090dcbee19964555cf70c136b118  paw-story-demo/tests/rendered-html.test.mjs
 6988d9c5beba3bf34b47d5a5d55cfde988d490cacee7c0a4f3ae7ec3b1b79115  paw-story-demo/tests/task-story.test.mjs
-abb4f8628dc83ec6af4951667b77f89ecdafccc87e961d91da261eeafa1d313f  paw-story-demo/tests/ui-components.test.mjs
+6c379bc4500415294c3c11933aa0e9117f150c37a162dbc0ef07f2756eae2c1c  paw-story-demo/tests/ui-components.test.mjs
 78b32827340020946561f99ca15589ee9470e9da408b13ba674f942d7f5fa220  paw-story-demo/tsconfig.json
 1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f  paw-story-demo/vendor/shadcn-tailwind-4.13.0.LICENSE.md
 bc7d83425702955b4cb67cb14ede9d603f9d912376d57a2d81d661094d2a782a  paw-story-demo/vendor/shadcn-tailwind-4.13.0.css
@@ -6419,7 +6424,7 @@ f84d2882ab998cd9de427293db9c47cd853a87a22177016bb872803a491bc4fa  showcase/datas
 a522fe94aa055089ce9102f709308572f344498fe489719cd9bb1af42c4e8ec5  showcase/datasets/memory-corpus.v1.json
 6ab85c0cda64ffe389230915281f38bb48b371df769322f2878015fb7098b09b  showcase/datasets/sources.v1.json
 648007cc90c59f9edc5eaa668ace12282396fd9fa50de0a6abd29ad4004de37a  showcase/guided-lab-app.ts
-12a992d8eccfcb18be38062a5818889e6f07d699cea7484d7bfb9870967322b5  showcase/guided-lab.ts
+bfccbf664621b46a468955edfc42406f4493f9094b335d7cb2b893a0a60024fa  showcase/guided-lab.ts
 7cb90fe25032f0a0d4051a0c217e0d37909b289d084b155fe8452f9779bb8e1c  showcase/lab-demo.ts
 6549e483e9a1804a15a32abe6e96de464f0fb8d8e0af8f7d21becb086f13ec0a  showcase/lab-evidence.ts
 dc7f30106f8e2fe0e4378eb260c0581e297734246069c72f597fc0e04621378c  showcase/lab-flow.ts

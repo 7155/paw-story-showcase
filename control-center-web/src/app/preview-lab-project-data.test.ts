@@ -8,11 +8,28 @@ import { parseTrialList } from '@/features/eval-lab/trials/api';
 import { createPreviewTransport } from './preview-control-transport';
 import { currentLabExperiments } from '../../../showcase/lab-evidence';
 import { labDemoProjectId } from '../../../showcase/lab-demo';
+import { labPage04ProjectId } from './lab-page04-showcase';
+import { object } from '@/features/eval-lab/projects/types';
 
 beforeEach(() => vi.stubGlobal('crypto', webcrypto));
 afterEach(() => vi.unstubAllGlobals());
 
 describe('current PAW Lab showcase transport', () => {
+  it('advances the isolated page04 research receipts without claiming production deployment', async () => {
+    const transport = createPreviewTransport(); const projectId = labPage04ProjectId('rag');
+    let project = (await readLabProject(transport, projectId)).project!;
+    expect(object(await transport.request({pathId:'agent.eval-lab.projects.get',query:{projectId}})).page04).toMatchObject({phase:-1,productionDeployed:false});
+    for (const [index, operation] of ['page04_align','page04_import','page04_baseline','page04_compare','page04_audit','page04_generate','page04_preview','page04_download','page04_accept'].entries()) {
+      const receipt = await commandLabProject(transport,{action:'knowledge',projectId,expectedRevision:project.revision,clientRequestId:`lab-project:page04-${index}`,input:{operation}});
+      project=receipt.project;
+    }
+    const read=object(await transport.request({pathId:'agent.eval-lab.projects.get',query:{projectId}}));
+    expect(read.page04).toMatchObject({phase:8,generated:true,downloaded:true,accepted:true,productionDeployed:false});
+    expect(project.materialCount).toBe(10);
+    expect(project.intake).toMatchObject({readCount:10,skippedCount:5,partial:true});
+    expect(project.artifacts.find(row=>row.artifactId==='page04-export')?.summary).toContain('p04-export-rag-v1');
+    expect((await readLabProject(transport,'lab-showcase-repair')).project?.projectId).toBe('lab-showcase-repair');
+  });
   it('binds all four vertical projects to the same public candidate evidence', async () => {
     const transport = createPreviewTransport();
     for (const experiment of currentLabExperiments) {

@@ -6,4 +6,7 @@
 .lab-flow-controls__actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .lab-flow-controls>p { margin: 10px 0 0; font-size: 12px; line-height: 1.7; opacity: .8; }
 .lab-flow-controls>p>span { display: block; font-size: 10px; margin-top: 3px; }
+.lab-page04-controls__runs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.lab-page04-controls__runs span { padding: 5px 8px; border: 1px solid color-mix(in srgb,currentColor 14%,transparent); border-radius: 6px; font-size: 11px; background: color-mix(in srgb,currentColor 3%,transparent); }
+.lab-page04-controls__runs strong { font-weight: 650; }
 @media(max-width:600px) { .lab-flow-controls { padding: 12px 14px; }.lab-flow-controls nav { gap: 6px 14px; }.lab-flow-controls nav button { font-size: 12px; } }

@@ -102,12 +102,12 @@ test("standalone Lab page selects four real project surfaces with matching publi
     assert.equal((html.match(/<iframe/g) ?? []).length, 1);
     assert.match(html, /真实 PAW Lab 项目工作区/);
     assert.doesNotMatch(html, /guided-lab-workspace/);
-    assert.match(html, /真实 Lab 前端/);
+    assert.match(html, /原生 Lab 前端/);
     assert.ok(html.includes(`href="/lab?scenario=${experiment.key}" aria-current="page"`));
     assert.ok(html.includes(experiment.id));
     assert.ok(html.includes(experiment.qualityAfter));
     assert.ok(html.includes(experiment.costAfter));
-    assert.match(html, /本轮执行离线规则/);
+    assert.match(html, /page04 合成回执/);
     assert.match(html, /工作区里的演示编辑不会改变这些结果/);
   }
   const { FullProductStory } = await vite.ssrLoadModule("/app/page.tsx");
@@ -221,7 +221,7 @@ test("unified home contains every demo and resolved module detail links", async 
 
   assert.match(html, /lab-showcase--embedded/);
   assert.match(html, /应用实验室/);
-  assert.match(html, /本轮执行离线规则/);
+  assert.match(html, /page04 合成回执/);
   assert.match(html, /href="\/lab\?scenario=rag"/);
   const source = await readFile(path.join(root, "app/precision-story.tsx"), "utf8");
   assert.match(source, /window\.innerHeight \* \.38/);

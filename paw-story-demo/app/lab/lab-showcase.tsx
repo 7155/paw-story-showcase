@@ -3,7 +3,6 @@
 import { ArrowLeft, ArrowRight, FlaskConical, SquareArrowOutUpRight } from 'lucide-react';
 import { useRef, useState, useSyncExternalStore } from 'react';
 import { currentLabExperiment, type LabKey } from '../lab-evidence';
-import { labDemoProjectId } from '../../../showcase/lab-demo';
 import { CurrentExperimentPanel } from '../details/sandbox/sandbox-lab';
 import { guidedScenarios } from '../../../showcase/guided-lab';
 import { PawMark } from '../ui-shared';
@@ -24,7 +23,7 @@ export function LabShowcase({ scenario: initialScenario, embedded = false }: { s
   const demo = guidedScenarios.find(item=>item.key===scenario)!;
   const ready = useSyncExternalStore(subscribe, browserReady, serverReady);
   const [loadedSource, setLoadedSource] = useState('');
-  const route = `/eval-lab?project=${labDemoProjectId(scenario)}&projectPage=${scenario==='rag'?'journey':'materials'}&step=materials`;
+  const route = `/eval-lab?project=lab-page04-${scenario}&projectPage=journey&step=materials`;
   const query = `?controlTransport=mock&frontend=paw-os&showcase=context-lab-projects&showcaseInstance=lab-${scenario}#${route}`;
   const local = process.env.NODE_ENV !== 'production' && ready && ['localhost', '127.0.0.1'].includes(window.location.hostname);
   const source = ready ? (local ? `http://127.0.0.1:5174/${query}` : `/pawos/index.html${query}`) : '';
@@ -56,7 +55,7 @@ export function LabShowcase({ scenario: initialScenario, embedded = false }: { s
             onLoad={() => { if (source) setLoadedSource(source); }} allow="clipboard-read; clipboard-write"
             sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-downloads"/>
         </div>
-        <footer>{!embedded && <p><strong>从第一步开始</strong>导入资料 → 设计基线 → 设定目标 → 比较候选 → 试用与导出应用。</p>}<span>真实 Lab 前端 · 本轮执行离线规则 · 不启动新模型运行</span></footer>
+        <footer>{!embedded && <p><strong>从第一步开始</strong>审核资料 → 冻结基线 → 比较候选 → 审查引用 → 预览与取得交付回执。</p>}<span>原生 Lab 前端 · page04 合成回执 · 不启动模型或生产服务</span></footer>
       </section>
 
       <Evidence className="lab-public-results current-lab" aria-labelledby="lab-results-title">
