@@ -135,7 +135,7 @@ export function PrecisionStory({ room, trace, memory }: { room: ReactNode; trace
       <a className="precision-nav-demo" href="/?view=full">完整演示 <ArrowUpRight size={16}/></a>
     </nav>
     <section className="precision-hero">
-      <div className="precision-hero-copy"><h1>让独立的智能，<br/><span>完成共同的工作。</span></h1><p>PAW 个人 Agent 工作台。组织协作，验证交付，让下一次工作从已有结果继续。</p><a className="precision-primary" href="#agents">从一个任务开始 <ArrowDown size={18}/></a></div>
+      <div className="precision-hero-copy"><p className="precision-kicker">PAW · SYSTEM-LEVEL AGENT WORKFLOW</p><h1>让独立的智能，<br/><span>完成共同的工作。</span></h1><p>PAW 从一个问题开始：怎样让 Agent 记住上下文，并把每次配置改进变成可验证的结果。</p><div className="precision-hero-thesis"><article><strong>01</strong><b>减少重复沟通</b><span>输入法 + OS Runtime<br/>沉淀可检索的长期记忆</span></article><article><strong>02</strong><b>量化配置选择</b><span>固定任务集 + Lab<br/>比较质量、延迟与成本</span></article></div><a className="precision-primary" href="#agents">从一个任务开始 <ArrowDown size={18}/></a></div>
       <Network hero/>
       <div className="precision-hero-bottom"><span>Personal Agent Workbench</span><a href="#project-overview">探索项目设计 <ArrowRight size={16}/></a></div>
     </section>
